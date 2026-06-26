@@ -16,6 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useUIStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 
 interface Service {
   id: string;
@@ -68,7 +69,7 @@ export default function ServicesSection() {
 
   const { data: servicesData, isLoading } = useQuery<{ data: { services: Service[] } }>({
     queryKey: ["services-home"],
-    queryFn: () => fetch("/api/services").then((r) => r.json()),
+    queryFn: () => apiFetch("/api/services"),
   });
 
   const allServices = servicesData?.data?.services ?? [];

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, ArrowRight, Package } from "lucide-react";
 import { useUIStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 
 interface Product {
   id: string;
@@ -62,7 +63,7 @@ const fallbackDeals = [
 export default function FlashDeals() {
   const { data: apiData } = useQuery<{ data: { data: Product[] } }>({
     queryKey: ["flash-deals"],
-    queryFn: () => fetch("/api/products?limit=50").then((r) => r.json()),
+    queryFn: () => apiFetch("/api/products?limit=50"),
   });
 
   const discountedProducts = (() => {

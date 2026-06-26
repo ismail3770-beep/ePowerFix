@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useUIStore, useCartStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 
 interface Project {
   id: string;
@@ -36,10 +37,9 @@ export default function ProjectDetailDialog() {
 
   useEffect(() => {
     if (!selectedProjectId || !projectDetailOpen) return;
-    fetch("/api/projects")
-      .then((r) => r.json())
-      .then((data) => {
-        const found = (data.projects || []).find((p: Project) => p.id === selectedProjectId);
+    apiFetch<{ data: Project[] }>("/api/projects")
+      .then((res) => {
+        const found = (res.data || []).find((p: Project) => p.id === selectedProjectId);
         if (found) {
           setProject(found);
           try { setFeatures(Array.isArray(found.features) ? found.features : (typeof found.features === 'string' ? JSON.parse(found.features) : [])); } catch { setFeatures([]); }

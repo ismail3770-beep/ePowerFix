@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { X, Zap, Mail, ShieldCheck } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 const SESSION_KEY = "epf-newsletter-session-seen";
 const PERMANENT_KEY = "epf-newsletter-dismissed";
@@ -36,27 +37,22 @@ export default function NewsletterPopup() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/newsletter", {
+      const res = await apiFetch("/newsletter", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (res.status === 409) {
-        setError("Already subscribed!");
-        return;
-      }
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Subscription failed");
-      }
       setSubmitted(true);
       setEmail("");
       if (dontShow) {
         localStorage.setItem(PERMANENT_KEY, "1");
       }
       setTimeout(() => setOpen(false), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+    } catch (err: any) {
+      if (err?.message?.includes("409") || err?.message?.includes("conflict")) {
+        setError("Already subscribed!");
+      } else {
+        setError(err?.message || "Something went wrong");
+      }
     } finally {
       setLoading(false);
     }

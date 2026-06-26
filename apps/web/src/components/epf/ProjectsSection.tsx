@@ -3,6 +3,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronLeft, Cpu, Eye, Clock } from "lucide-react";
 import { useUIStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 
 interface Project {
   id: string;
@@ -36,7 +37,7 @@ export default function ProjectsSection() {
 
   const { data: projectsData, isLoading } = useQuery<{ data: Project[] }>({
     queryKey: ["projects-home"],
-    queryFn: () => fetch("/api/projects").then((r) => r.json()),
+    queryFn: () => apiFetch("/api/projects"),
   });
 
   const projects = projectsData?.data ?? [];

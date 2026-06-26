@@ -3,6 +3,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronLeft, Star, ShoppingCart, Eye, Heart, Package, FileText } from "lucide-react";
 import { useUIStore, useCartStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 
 interface Product {
   id: string;
@@ -35,7 +36,7 @@ export default function ShopSection() {
 
   const { data: productsData, isLoading } = useQuery<{ data: { data: Product[] } }>({
     queryKey: ["products-shop-home"],
-    queryFn: () => fetch("/api/products?limit=24").then((r) => r.json()),
+    queryFn: () => apiFetch("/api/products?limit=24"),
   });
 
   const products = productsData?.data?.data ?? [];

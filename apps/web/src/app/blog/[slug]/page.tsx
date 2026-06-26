@@ -57,7 +57,7 @@ export default function BlogDetailPage() {
   useEffect(() => {
     if (!slug) return;
     let cancelled = false;
-    apiFetch(`/api/blog/${slug}`)
+    apiFetch<{ success: boolean; data: BlogPost }>(`/api/blog/${slug}`)
       .then((r) => {
         if (cancelled) return;
         setPost(r.data);

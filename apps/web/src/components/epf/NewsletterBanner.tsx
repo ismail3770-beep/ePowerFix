@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Send } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 export default function NewsletterBanner() {
   const [email, setEmail] = useState("");
@@ -14,23 +15,18 @@ export default function NewsletterBanner() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/newsletter", {
+      const res = await apiFetch("/newsletter", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      if (res.status === 409) {
-        setError("Already subscribed!");
-        return;
-      }
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Subscription failed");
-      }
       setSubscribed(true);
       setEmail("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+    } catch (err: any) {
+      if (err?.message?.includes("409") || err?.message?.includes("conflict")) {
+        setError("Already subscribed!");
+      } else {
+        setError(err?.message || "Subscription failed");
+      }
     } finally {
       setLoading(false);
     }

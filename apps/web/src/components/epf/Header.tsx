@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useCartStore, useUIStore } from "@/store";
 import { useAuthStore } from "@/store/auth-store";
+import { apiFetch } from "@/lib/api";
 
 const megaCategories = [
   { icon: Cable, name: "Cables & Wires", slug: "cables-wires", dbSlug: "wires-cables" },
@@ -93,17 +94,14 @@ export default function Header() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/products?countOnly=true");
-        if (res.ok) {
-          const data = await res.json();
-          const counts: Record<string, number> = {};
-          (data.categories ?? []).forEach((cat: { slug: string; _count?: { products: number } }) => {
-            counts[cat.slug] = cat._count?.products ?? 0;
-          });
-          setCategoryCounts(counts);
-        }
+        const data = await apiFetch<{ categories: { slug: string; _count?: { products: number } }[] }>("/api/products?countOnly=true");
+        const counts: Record<string, number> = {};
+        (data.categories ?? []).forEach((cat) => {
+          counts[cat.slug] = cat._count?.products ?? 0;
+        });
+        setCategoryCounts(counts);
       } catch {
-        // Silently fail — hardcoded counts are no longer used; will show 0
+        // Silently fail — will show 0
       }
     })();
   }, []);

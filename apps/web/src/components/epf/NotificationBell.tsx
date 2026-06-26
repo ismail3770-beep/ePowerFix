@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api";
 
 interface Notification {
   id: string;
@@ -22,8 +23,6 @@ interface Notification {
   relatedId: string | null;
   createdAt: string;
 }
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -43,7 +42,7 @@ export default function NotificationBell() {
 
   const { data } = useQuery<{ success: boolean; data: { data: Notification[]; unreadCount: number }; message?: string }>({
     queryKey: ["notifications"],
-    queryFn: () => fetch(`${API}/notifications?limit=10`, { credentials: "include" }).then((r) => r.json()),
+    queryFn: () => apiFetch("/notifications?limit=10"),
     refetchInterval: 30000,
   });
 
@@ -52,13 +51,13 @@ export default function NotificationBell() {
 
   const markReadMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`${API}/notifications/${id}/read`, { method: "PUT", credentials: "include" }).then((r) => r.json()),
+      apiFetch(`/notifications/${id}/read`, { method: "PUT" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: () =>
-      fetch(`${API}/notifications/read-all`, { method: "PUT", credentials: "include" }).then((r) => r.json()),
+      apiFetch("/notifications/read-all", { method: "PUT" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       toast.success("All notifications marked as read");
