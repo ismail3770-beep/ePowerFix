@@ -10,6 +10,7 @@ import {
   Zap,
   ShoppingBag,
   Users,
+  User,
   Package,
   Tag,
   FolderOpen,
