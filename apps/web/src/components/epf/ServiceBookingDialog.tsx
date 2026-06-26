@@ -99,7 +99,7 @@ export default function ServiceBookingDialog() {
       bookingDate: form.preferredDate,
       bookingTime: form.preferredTime,
       address: `${form.address}, ${form.area}`,
-      notes: form.description || undefined,
+      notes: form.description || "",
     });
   };
 
