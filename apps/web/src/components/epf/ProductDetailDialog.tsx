@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useUIStore, useCartStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 
 interface Product {
@@ -40,11 +41,7 @@ export default function ProductDetailDialog() {
     if (!selectedProductId || !productDetailOpen) return;
     setIsLoading(true);
     setActiveImage(0);
-    fetch(`/api/products/${selectedProductId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed to fetch product");
-        return r.json();
-      })
+    apiFetch<{ data: { product: Product } }>(`/api/products/${selectedProductId}`)
       .then((data) => {
         const p = data?.data?.product ?? null;
         if (p) {

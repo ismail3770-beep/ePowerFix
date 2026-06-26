@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUIStore, useCartStore } from "@/store";
+import { apiFetch } from "@/lib/api";
 
 const areas = [
   "Mirpur", "Dhanmondi", "Gulshan", "Banani", "Uttara", "Mohammadpur",
@@ -51,17 +52,14 @@ export default function CheckoutDialog() {
 
   const mutation = useMutation({
     mutationFn: async (body: Record<string, any>) => {
-      const res = await fetch("/api/orders", {
+      const res = await apiFetch<any>("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Order failed");
+      if (!res.success) {
+        throw new Error(res.error || "Order failed");
       }
-      return res.json();
+      return res;
     },
     onSuccess: async (data) => {
       const orderId = data.data?.id || data.id;
@@ -95,15 +93,7 @@ export default function CheckoutDialog() {
     if (!couponCode.trim()) return;
     setCouponLoading(true);
     try {
-      const res = await fetch(`/api/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&orderTotal=${subtotal + delivery}`, { credentials: "include" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        toast.error("Invalid coupon", { description: data.error || "Coupon code is not valid" });
-        setAppliedCoupon(null);
-        setDiscount(0);
-        return;
-      }
-      const result = await res.json();
+      const result = await apiFetch<{ data: any }>(`/api/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&orderTotal=${subtotal + delivery}`);
       const coupon = result.data;
       setAppliedCoupon(coupon.code);
       setDiscount(Math.round(coupon.discount));
