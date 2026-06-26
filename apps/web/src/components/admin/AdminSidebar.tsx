@@ -120,7 +120,7 @@ export function AdminSidebar() {
           {!collapsed && (
             <div className="overflow-hidden">
               <h1 className="text-white font-bold text-[15px] leading-tight">ePowerFix</h1>
-              <p className="text-[#94a3b8] text-[10px] font-medium tracking-wider uppercase">Admin Panel</p>
+              <p className="text-[#94a3b8] text-[11px] font-medium tracking-wider uppercase">Admin Panel</p>
             </div>
           )}
         </Link>
@@ -134,7 +134,7 @@ export function AdminSidebar() {
             {!collapsed && (
               <button
                 onClick={() => toggleGroup(group.label)}
-                className="flex items-center gap-1 w-full px-2 mb-1.5 text-[11px] font-semibold tracking-wider text-[#64748b] uppercase hover:text-[#94a3b8] transition-colors"
+                className="flex items-center gap-1 w-full px-2 mb-1.5 text-[12px] font-semibold tracking-wider text-[#64748b] uppercase hover:text-[#94a3b8] transition-colors"
               >
                 {group.label}
                 <ChevronDown
@@ -156,7 +156,7 @@ export function AdminSidebar() {
                       href={item.href}
                       title={collapsed ? item.label : undefined}
                       onClick={() => setMobileOpen(false)}
-                      className={`flex items-center gap-2.5 h-[36px] px-2.5 rounded-md text-[13px] font-medium transition-all ${
+                      className={`flex items-center gap-2.5 h-[38px] px-2.5 rounded-md text-[14px] font-medium transition-all ${
                         active
                           ? "bg-[#0EA5E9] text-white"
                           : "text-[#94a3b8] hover:bg-white/[0.06] hover:text-white"
@@ -177,14 +177,14 @@ export function AdminSidebar() {
       <div className="border-t border-white/[0.08] p-2.5 space-y-0.5 shrink-0">
         <Link
           href="/"
-          className="flex items-center gap-2.5 h-[36px] px-2.5 rounded-md text-[13px] font-medium text-[#94a3b8] hover:bg-white/[0.06] hover:text-white transition-all"
+          className="flex items-center gap-2.5 h-[38px] px-2.5 rounded-md text-[14px] font-medium text-[#94a3b8] hover:bg-white/[0.06] hover:text-white transition-all"
         >
           <ExternalLink className="h-[16px] w-[16px] shrink-0" />
           {!collapsed && <span>View Website</span>}
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2.5 h-[36px] px-2.5 rounded-md text-[13px] font-medium text-[#f87171] hover:bg-red-500/10 hover:text-red-400 transition-all w-full"
+          className="flex items-center gap-2.5 h-[38px] px-2.5 rounded-md text-[14px] font-medium text-[#f87171] hover:bg-red-500/10 hover:text-red-400 transition-all w-full"
         >
           <LogOut className="h-[16px] w-[16px] shrink-0" />
           {!collapsed && <span>Logout</span>}

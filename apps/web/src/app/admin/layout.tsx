@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Left: Page title */}
           <div className="flex items-center gap-3">
             <div className="lg:hidden w-9" /> {/* Spacer for mobile menu button */}
-            <h1 className="text-[15px] font-semibold text-[#111827]">{currentPath}</h1>
+            <h1 className="text-[16px] font-semibold text-[#111827]">{currentPath}</h1>
           </div>
 
           {/* Right: Actions */}
@@ -70,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 placeholder="Search..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="flex-1 bg-transparent text-[13px] text-[#111827] placeholder:text-[#94a3b8] outline-none"
+                className="flex-1 bg-transparent text-[14px] text-[#111827] placeholder:text-[#94a3b8] outline-none"
               />
             </div>
 
@@ -91,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
                 <div className="hidden sm:flex flex-col items-start leading-tight">
                   <span className="text-[12px] font-medium text-[#111827]">{user.name?.split(" ")[0]}</span>
-                  <span className="text-[10px] text-[#94a3b8]">Administrator</span>
+                  <span className="text-[11px] text-[#94a3b8]">Administrator</span>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8] hidden sm:block" />
               </button>
@@ -100,13 +100,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="absolute right-0 top-full mt-1 w-[180px] bg-white rounded-md border border-[#e2e8f0] shadow-lg py-1 z-50">
                   <a
                     href="/profile"
-                    className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#374151] hover:bg-[#f8fafc]"
+                    className="flex items-center gap-2 px-3 py-2 text-[14px] text-[#374151] hover:bg-[#f8fafc]"
                   >
                     <User className="h-3.5 w-3.5" /> Profile
                   </a>
                   <a
                     href="/"
-                    className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#374151] hover:bg-[#f8fafc]"
+                    className="flex items-center gap-2 px-3 py-2 text-[14px] text-[#374151] hover:bg-[#f8fafc]"
                   >
                     <ExternalLink className="h-3.5 w-3.5" /> View Website
                   </a>
