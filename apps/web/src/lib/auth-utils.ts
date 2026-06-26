@@ -5,10 +5,11 @@
 
 import { jwtVerify } from 'jose'
 
-if (!process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required')
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET
+  if (!secret) return null
+  return new TextEncoder().encode(secret)
 }
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
 
 export interface AuthResult {
   ok: boolean
@@ -22,6 +23,17 @@ export interface AuthResult {
  * Returns the real userId on success (no longer 'unknown').
  */
 export async function requireAuth(request: Request): Promise<AuthResult> {
+  const JWT_SECRET = getJwtSecret()
+  if (!JWT_SECRET) {
+    return {
+      ok: false,
+      response: new Response(
+        JSON.stringify({ error: 'JWT_SECRET not configured' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      ),
+    }
+  }
+
   const authHeader = request.headers.get('authorization')
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
 

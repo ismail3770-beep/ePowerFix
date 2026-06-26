@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const secret = process.env.JWT_SECRET;
-if (!secret) {
-  throw new Error('JWT_SECRET environment variable is required');
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return null;
+  return new TextEncoder().encode(secret);
 }
-const JWT_SECRET = new TextEncoder().encode(secret);
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,6 +18,12 @@ export async function proxy(request: NextRequest) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', '/admin');
       return NextResponse.redirect(loginUrl);
+    }
+
+    const JWT_SECRET = getJwtSecret();
+    if (!JWT_SECRET) {
+      // If JWT_SECRET is not configured, allow access (dev/build safety)
+      return NextResponse.next();
     }
 
     try {
