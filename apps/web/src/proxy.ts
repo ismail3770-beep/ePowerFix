@@ -8,7 +8,7 @@ if (!secret) {
 }
 const JWT_SECRET = new TextEncoder().encode(secret);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
