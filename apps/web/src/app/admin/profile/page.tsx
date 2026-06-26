@@ -79,7 +79,7 @@ export default function AdminProfilePage() {
         body.currentPassword = currentPasswordForEmail;
       }
 
-      const res = await api.put("/auth/profile", body);
+      const res = await api.put("/api/auth/profile", body);
       const updatedUser = (res as any)?.data;
 
       if (updatedUser) {
@@ -113,7 +113,7 @@ export default function AdminProfilePage() {
     }
     setSaving(true);
     try {
-      await api.put("/auth/change-password", { currentPassword, newPassword });
+      await api.put("/api/auth/change-password", { currentPassword, newPassword });
       toast.success("Password changed successfully");
       setCurrentPassword("");
       setNewPassword("");
