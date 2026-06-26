@@ -21,9 +21,11 @@ const updateTaxSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
+// GET /api/admin/taxes
 taxRoutes.get('/', requireAdmin, async (_req, res) => {
   try {
     const taxes = await db.tax.findMany({
+      where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
     })
     res.json(success(taxes))
@@ -32,6 +34,33 @@ taxRoutes.get('/', requireAdmin, async (_req, res) => {
   }
 })
 
+// GET /api/admin/taxes/trash
+taxRoutes.get('/trash', requireAdmin, async (_req, res) => {
+  try {
+    const taxes = await db.tax.findMany({
+      where: { isDeleted: true },
+      orderBy: { createdAt: 'desc' },
+    })
+    res.json(success(taxes))
+  } catch (err: any) {
+    res.status(500).json(error(err.message))
+  }
+})
+
+// PATCH /api/admin/taxes/:id/restore
+taxRoutes.patch('/:id/restore', requireAdmin, async (req, res) => {
+  try {
+    const tax = await db.tax.update({
+      where: { id: req.params.id },
+      data: { isDeleted: false },
+    })
+    res.json(success(tax, 'Tax restored'))
+  } catch (err: any) {
+    res.status(500).json(error(err.message))
+  }
+})
+
+// POST /api/admin/taxes
 taxRoutes.post('/', requireAdmin, validate(createTaxSchema), async (req, res) => {
   try {
     const tax = await db.tax.create({ data: req.body })
@@ -41,6 +70,7 @@ taxRoutes.post('/', requireAdmin, validate(createTaxSchema), async (req, res) =>
   }
 })
 
+// PUT /api/admin/taxes/:id
 taxRoutes.put('/:id', requireAdmin, validate(updateTaxSchema), async (req, res) => {
   try {
     const tax = await db.tax.update({
@@ -53,10 +83,14 @@ taxRoutes.put('/:id', requireAdmin, validate(updateTaxSchema), async (req, res) 
   }
 })
 
+// DELETE /api/admin/taxes/:id (soft delete)
 taxRoutes.delete('/:id', requireAdmin, async (req, res) => {
   try {
-    await db.tax.delete({ where: { id: req.params.id } })
-    res.json(success(null, 'Tax deleted'))
+    await db.tax.update({
+      where: { id: req.params.id },
+      data: { isDeleted: true, isActive: false },
+    })
+    res.json(success(null, 'Tax moved to trash'))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

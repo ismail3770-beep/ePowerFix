@@ -26,9 +26,11 @@ const updateFlashSaleSchema = z.object({
   productIds: z.array(z.string()).optional(),
 })
 
+// GET /api/admin/flash-sales
 flashSaleRoutes.get('/', requireAdmin, async (_req, res) => {
   try {
     const flashSales = await db.flashSale.findMany({
+      where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { products: true } } },
     })
@@ -38,6 +40,34 @@ flashSaleRoutes.get('/', requireAdmin, async (_req, res) => {
   }
 })
 
+// GET /api/admin/flash-sales/trash
+flashSaleRoutes.get('/trash', requireAdmin, async (_req, res) => {
+  try {
+    const flashSales = await db.flashSale.findMany({
+      where: { isDeleted: true },
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { products: true } } },
+    })
+    res.json(success(flashSales))
+  } catch (err: any) {
+    res.status(500).json(error(err.message))
+  }
+})
+
+// PATCH /api/admin/flash-sales/:id/restore
+flashSaleRoutes.patch('/:id/restore', requireAdmin, async (req, res) => {
+  try {
+    const flashSale = await db.flashSale.update({
+      where: { id: req.params.id },
+      data: { isDeleted: false },
+    })
+    res.json(success(flashSale, 'Flash sale restored'))
+  } catch (err: any) {
+    res.status(500).json(error(err.message))
+  }
+})
+
+// GET /api/admin/flash-sales/:id
 flashSaleRoutes.get('/:id', requireAdmin, async (req, res) => {
   try {
     const flashSale = await db.flashSale.findUnique({
@@ -51,6 +81,7 @@ flashSaleRoutes.get('/:id', requireAdmin, async (req, res) => {
   }
 })
 
+// POST /api/admin/flash-sales
 flashSaleRoutes.post('/', requireAdmin, validate(createFlashSaleSchema), async (req, res) => {
   try {
     const { productIds, ...data } = req.body
@@ -69,6 +100,7 @@ flashSaleRoutes.post('/', requireAdmin, validate(createFlashSaleSchema), async (
   }
 })
 
+// PUT /api/admin/flash-sales/:id
 flashSaleRoutes.put('/:id', requireAdmin, validate(updateFlashSaleSchema), async (req, res) => {
   try {
     const { productIds, ...data } = req.body
@@ -88,13 +120,14 @@ flashSaleRoutes.put('/:id', requireAdmin, validate(updateFlashSaleSchema), async
   }
 })
 
+// DELETE /api/admin/flash-sales/:id (soft delete)
 flashSaleRoutes.delete('/:id', requireAdmin, async (req, res) => {
   try {
     await db.flashSale.update({
       where: { id: req.params.id },
-      data: { isActive: false },
+      data: { isDeleted: true, isActive: false },
     })
-    res.json(success(null, 'Flash sale deactivated'))
+    res.json(success(null, 'Flash sale moved to trash'))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }
