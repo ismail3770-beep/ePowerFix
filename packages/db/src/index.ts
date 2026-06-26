@@ -1,9 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
 // Models that support soft-delete via the `isDeleted` field.
-// Reads on these models automatically exclude soft-deleted rows unless
-// the caller explicitly sets `isDeleted` in the `where` clause (the opt-out valve
-// used by trash-view routes: { where: { isDeleted: true } }).
 const SOFT_DELETE_MODELS = new Set([
   'user', 'brand', 'productCategory', 'product', 'serviceCategory', 'service',
   'serviceBooking', 'review', 'blogPost', 'project', 'coupon', 'contact',
@@ -17,47 +14,64 @@ const FILTERED_OPERATIONS = new Set([
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  extendedDb: ReturnType<typeof createExtendedClient> | undefined
 }
 
-const basePrisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['error'],
-  })
+function createExtendedClient() {
+  const basePrisma =
+    globalForPrisma.prisma ??
+    new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['error'],
+    })
 
-// Client extension: globally inject `isDeleted: false` into reads on soft-delete models.
-//
-// Behavior:
-// - Applies only to models listed in SOFT_DELETE_MODELS.
-// - Applies only to read operations in FILTERED_OPERATIONS.
-// - If the caller already provides `where.isDeleted` (true OR false), it is left untouched.
-//   This is how admin trash routes opt out — they pass `isDeleted: true` explicitly.
-//
-// Known limitation: this does NOT auto-filter nested relation includes
-// (e.g. `db.product.findMany({ include: { reviews: true } })`). Each relation loads via
-// a separate query and this extension filters at the top-level model. Nested relations
-// must be filtered explicitly where needed (e.g. `include: { reviews: { where: { isDeleted: false } } }`).
-export const db = basePrisma.$extends({
-  query: Object.fromEntries(
-    [...SOFT_DELETE_MODELS].map((model) => [
-      model,
-      {
-        $allOperations({ operation, args, query }: { operation: any; args: any; query: any }) {
-          if (FILTERED_OPERATIONS.has(operation)) {
-            const where = (args as any).where
-            // Inject only if caller didn't explicitly address isDeleted.
-            if (where === undefined || where?.isDeleted === undefined) {
-              (args as any).where = { ...(where ?? {}), isDeleted: false }
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = basePrisma
+  }
+
+  return basePrisma.$extends({
+    query: Object.fromEntries(
+      [...SOFT_DELETE_MODELS].map((model) => [
+        model,
+        {
+          $allOperations({ operation, args, query }: { operation: any; args: any; query: any }) {
+            if (FILTERED_OPERATIONS.has(operation)) {
+              const where = (args as any).where
+              if (where === undefined || where?.isDeleted === undefined) {
+                (args as any).where = { ...(where ?? {}), isDeleted: false }
+              }
             }
-          }
-          return query(args)
+            return query(args)
+          },
         },
-      },
-    ]),
-  ) as any,
-})
+      ]),
+    ) as any,
+  })
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = basePrisma
+// Lazy singleton: the extended Prisma client is only created on first property access,
+// NOT at module-evaluation time. This prevents build failures on Vercel where
+// DATABASE_URL may not be set during static analysis.
+let _db: ReturnType<typeof createExtendedClient> | undefined
+
+function getDb() {
+  if (!_db) {
+    _db = globalForPrisma.extendedDb ?? createExtendedClient()
+    globalForPrisma.extendedDb = _db
+  }
+  return _db
+}
+
+// Use a Proxy so that `db.product.findMany(...)` triggers lazy initialization
+export const db = new Proxy({} as ReturnType<typeof createExtendedClient>, {
+  get(_target, prop) {
+    const client = getDb()
+    const value = (client as any)[prop]
+    if (typeof value === 'function') {
+      return value.bind(client)
+    }
+    return value
+  },
+})
 
 export { PrismaClient }
 
