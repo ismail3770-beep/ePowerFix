@@ -1,46 +1,29 @@
-# ============ BASE ============
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+FROM oven/bun:1.3-alpine
+
 WORKDIR /app
 
-# ============ DEPS ============
-FROM base AS deps
-COPY package.json bun.lock ./
-COPY apps/web/package.json ./apps/web/
-COPY apps/api/package.json ./apps/api/
-COPY packages/db/package.json ./packages/db/
-COPY packages/types/package.json ./packages/types/
-RUN corepack enable && bun install --frozen-lockfile
+# Copy lockfile first for better caching
+COPY package.json bun.lock* ./
+COPY packages/db/package.json packages/db/
+COPY packages/config/package.json packages/config/
+COPY packages/types/package.json packages/types/
+COPY packages/utils/package.json packages/utils/
+COPY apps/api/package.json apps/api/
 
-# ============ GENERATE PRISMA ============
-FROM deps AS prisma
-WORKDIR /app/packages/db
-COPY packages/db/prisma ./prisma/
-RUN bunx prisma generate
+# Install all dependencies
+RUN bun install --frozen-lockfile || bun install
 
-# ============ BUILD WEB ============
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=prisma /app/packages/db/node_modules/.prisma ./packages/db/node_modules/.prisma
-COPY . .
+# Copy source code
+COPY packages/ packages/
+COPY apps/api/ apps/api/
+COPY turbo.json ./
 
+# Generate Prisma client
 RUN cd packages/db && bunx prisma generate
-RUN cd apps/web && bun run build
 
-# ============ PRODUCTION ============
-FROM node:20-alpine AS runner
+# Expose port (Render provides PORT env var)
+EXPOSE 4000
+
+# Start the API server with bun
 WORKDIR /app
-ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./.next/static
-
-USER nextjs
-EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+CMD ["bun", "apps/api/src/server.ts"]
