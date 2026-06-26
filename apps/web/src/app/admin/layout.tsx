@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {profileOpen && (
                 <div className="absolute right-0 top-full mt-1 w-[180px] bg-white rounded-md border border-[#e2e8f0] shadow-lg py-1 z-50">
                   <a
-                    href="/profile"
+                    href="/admin/profile"
                     className="flex items-center gap-2 px-3 py-2 text-[14px] text-[#374151] hover:bg-[#f8fafc]"
                   >
                     <User className="h-3.5 w-3.5" /> Profile
