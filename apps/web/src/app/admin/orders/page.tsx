@@ -152,7 +152,7 @@ export default function AdminOrdersPage() {
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-sm">{order.orderNumber}</TableCell>
                       <TableCell>{order.user?.name || order.user?.email || "—"}</TableCell>
-                      <TableCell>৳{order.total.toFixed(2)}</TableCell>
+                      <TableCell>৳{Number(order.total).toFixed(2)}</TableCell>
                       <TableCell>
                         <Badge className={statusStyles[order.status] ?? ""} variant="outline">
                           {order.status}
@@ -247,11 +247,11 @@ export default function AdminOrdersPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{item.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            ৳{item.price.toFixed(2)} x {item.quantity}
+                            ৳{Number(item.price).toFixed(2)} x {item.quantity}
                           </p>
                         </div>
                         <p className="text-sm font-medium">
-                          ৳{(item.price * item.quantity).toFixed(2)}
+                          ৳{(Number(item.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     ))}
@@ -261,19 +261,19 @@ export default function AdminOrdersPage() {
                 <div className="border-t pt-4 space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>৳{detail.subtotal.toFixed(2)}</span>
+                    <span>৳{Number(detail.subtotal).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>৳{detail.shipping.toFixed(2)}</span>
+                    <span>৳{Number(detail.shipping).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Tax</span>
-                    <span>৳{detail.tax.toFixed(2)}</span>
+                    <span>৳{Number(detail.tax).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-base pt-2 border-t">
                     <span>Total</span>
-                    <span>৳{detail.total.toFixed(2)}</span>
+                    <span>৳{Number(detail.total).toFixed(2)}</span>
                   </div>
                 </div>
               </div>

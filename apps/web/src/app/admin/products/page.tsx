@@ -297,7 +297,7 @@ export default function AdminProductsPage() {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>৳{product.price.toFixed(2)}</TableCell>
+                      <TableCell>৳{Number(product.price).toFixed(2)}</TableCell>
                       <TableCell>{product.stock}</TableCell>
                       <TableCell>{product.category?.name ?? "—"}</TableCell>
                       <TableCell>
