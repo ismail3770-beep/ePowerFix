@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUIStore } from "@/store";
-import { apiFetch } from "@/lib/api";
 
 interface Service {
   id: string;
@@ -51,7 +50,8 @@ export default function ServiceBookingDialog() {
   // Fetch service details
   useEffect(() => {
     if (!bookingServiceId || !serviceBookingOpen) return;
-    apiFetch<{ services: Service[] }>(`/api/services?category=all`)
+    fetch(`/api/services?category=all`)
+      .then((r) => r.json())
       .then((data) => {
         const found = (data.services || []).find((s: Service) => s.id === bookingServiceId);
         if (found) setService(found);
@@ -61,14 +61,17 @@ export default function ServiceBookingDialog() {
 
   const mutation = useMutation({
     mutationFn: async (body: Record<string, string>) => {
-      const res = await apiFetch<any>("/api/services/book", {
+      const res = await fetch("/api/services/book", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
-      if (!res.success) {
-        throw new Error(res.error || "Booking failed");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Booking failed");
       }
-      return res;
+      return res.json();
     },
     onSuccess: () => {
       toast.success("বুকিং সফল হয়েছে!", { description: "আমরা শীঘ্রই যোগাযোগ করব।" });
@@ -99,7 +102,7 @@ export default function ServiceBookingDialog() {
       bookingDate: form.preferredDate,
       bookingTime: form.preferredTime,
       address: `${form.address}, ${form.area}`,
-      notes: form.description || "",
+      notes: form.description ?? '',
     });
   };
 
