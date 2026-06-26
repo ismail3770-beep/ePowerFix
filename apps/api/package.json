@@ -1,0 +1,35 @@
+{
+  "name": "@epowerfix/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot src/server.ts",
+    "dev:tsx": "tsx watch src/server.ts",
+    "start": "bun src/server.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@epowerfix/config": "workspace:*",
+    "@epowerfix/db": "workspace:*",
+    "@epowerfix/types": "workspace:*",
+    "@epowerfix/utils": "workspace:*",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.0.0",
+    "jose": "^6.0.11",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

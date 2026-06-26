@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@epowerfix/db": ["../../packages/db/src"],
+      "@epowerfix/utils": ["../../packages/utils/src"],
+      "@epowerfix/config": ["../../packages/config/src"],
+      "@epowerfix/types": ["../../packages/types/src"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
