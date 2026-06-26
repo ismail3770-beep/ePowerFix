@@ -50,11 +50,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const copyCredentials = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied!");
-  };
-
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Branding */}
@@ -225,32 +220,6 @@ export default function AdminLoginPage() {
               )}
             </Button>
           </form>
-
-          {/* Credential helper */}
-          <div className="p-4 rounded-lg bg-slate-50 border border-slate-100">
-            <p className="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wide">Demo Credentials</p>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-600 truncate font-mono">admin@epowerfix.com</p>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-600 font-mono">••••••</p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs border-slate-200 text-slate-600 hover:bg-slate-100 shrink-0"
-                onClick={() => {
-                  setEmail("admin@epowerfix.com");
-                  setPassword("123456");
-                  toast.info("Credentials filled!");
-                }}
-              >
-                Auto Fill
-              </Button>
-            </div>
-          </div>
 
           {/* Back link */}
           <a
