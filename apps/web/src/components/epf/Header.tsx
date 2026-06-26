@@ -14,7 +14,6 @@ import {
   Tag,
   ChevronRight,
   ArrowRight,
-  Settings,
   Cable,
   ShieldCheck,
   Lightbulb,
@@ -85,7 +84,7 @@ export default function Header() {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const megaTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { setSearchQuery, setAdminOpen, setCartOpen } = useUIStore();
+  const { setSearchQuery, setCartOpen } = useUIStore();
   const { getTotal, getItemCount } = useCartStore();
   const { user } = useAuthStore();
   const total = getTotal();
@@ -210,17 +209,6 @@ export default function Header() {
                   <span className="text-[14px] font-semibold text-[#111827]">৳{total.toLocaleString()}</span>
                 </div>
               </button>
-
-              {/* Admin — only visible to admin */}
-              {user?.role === "ADMIN" && (
-                <button
-                  onClick={() => setAdminOpen(true)}
-                  className="hidden sm:flex items-center justify-center px-2 py-2 rounded hover:bg-[#F8FAFC] transition-colors"
-                  title="Admin Panel"
-                >
-                  <Settings className="h-[18px] w-[18px] text-[#6B7280] hover:text-[#111827]" />
-                </button>
-              )}
 
               {/* Mobile menu trigger */}
               <button
@@ -462,14 +450,7 @@ export default function Header() {
             </div>
             <div className="p-4 border-t border-[#E2E8F0] flex gap-2">
               <button className="flex-1 h-10 bg-[#0EA5E9] text-white text-[14px] font-bold rounded-[4px] hover:bg-[#0284C7]">Login / Register</button>
-              {user?.role === "ADMIN" && (
-                <button
-                  onClick={() => { setMobileOpen(false); setAdminOpen(true); }}
-                  className="h-10 w-10 border border-[#E2E8F0] rounded flex items-center justify-center hover:bg-[#F1F5F9]"
-                >
-                  <Settings className="h-4 w-4 text-[#6B7280]" />
-                </button>
-              )}
+
             </div>
           </div>
           <div className="fixed inset-0 bg-black/30 z-[65]" onClick={() => setMobileOpen(false)} />
