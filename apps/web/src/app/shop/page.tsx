@@ -356,7 +356,7 @@ export default function ShopPage() {
   /* ---- Derived data ---- */
   const { data: categoriesData } = useQuery({
     queryKey: ['product-categories'],
-    queryFn: () => apiFetch('/api/product-categories'),
+    queryFn: () => apiFetch<{ data: Category[] }>('/api/product-categories'),
     staleTime: 5 * 60 * 1000,
   });
   const categories: Category[] = categoriesData?.data ?? [];
