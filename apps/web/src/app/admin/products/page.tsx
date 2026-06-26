@@ -86,7 +86,7 @@ export default function AdminProductsPage() {
       if (filters.isActive) params.set("isActive", filters.isActive);
       const qs = params.toString();
       const res: any = await apiFetch(`/api/admin/products${qs ? `?${qs}` : ""}`);
-      setProducts(res.data ?? []);
+      setProducts(res.data?.data ?? []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load products");
     } finally {

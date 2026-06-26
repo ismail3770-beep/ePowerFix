@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
     try {
       const params = search ? `?search=${encodeURIComponent(search)}` : "";
       const res: any = await apiFetch(`/api/admin/users${params}`);
-      setUsers(res.data ?? []);
+      setUsers(res.data?.data ?? []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load users");
     } finally {

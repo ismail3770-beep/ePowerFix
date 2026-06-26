@@ -88,7 +88,7 @@ export default function AdminOrdersPage() {
     setLoading(true);
     try {
       const res: any = await apiFetch("/api/admin/orders");
-      setOrders(res.data ?? []);
+      setOrders(res.data?.data ?? []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load orders");
     } finally {
