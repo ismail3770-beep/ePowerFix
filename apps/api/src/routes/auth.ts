@@ -108,7 +108,7 @@ authRouter.get('/me', requireAuth, async (req, res) => {
 // PUT /api/auth/profile
 authRouter.put('/profile', requireAuth, async (req, res) => {
   try {
-    const { name, phone, avatar } = req.body
+    const { name, phone, avatar, email, currentPassword } = req.body
 
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
@@ -128,10 +128,48 @@ authRouter.put('/profile', requireAuth, async (req, res) => {
     }
     if (avatar !== undefined) updateData.avatar = avatar || null
 
+    // Email change requires current password verification
+    if (email !== undefined && email !== req.user!.email) {
+      if (!currentPassword) {
+        return res.status(400).json(error('Current password is required to change email'))
+      }
+      const currentUser = await db.user.findUnique({ where: { id: req.user!.id } })
+      if (!currentUser?.password) {
+        return res.status(400).json(error('Account uses social login, cannot change email'))
+      }
+      const isValidPassword = await bcrypt.compare(currentPassword, currentUser.password)
+      if (!isValidPassword) {
+        return res.status(400).json(error('Current password is incorrect'))
+      }
+      const normalizedEmail = email.toLowerCase()
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return res.status(400).json(error('Invalid email address'))
+      }
+      const emailExists = await db.user.findFirst({
+        where: { email: normalizedEmail, id: { not: req.user!.id }, isDeleted: false },
+      })
+      if (emailExists) {
+        return res.status(409).json(error('Email already in use'))
+      }
+      updateData.email = normalizedEmail
+    }
+
     const user = await db.user.update({
       where: { id: req.user!.id },
       data: updateData,
     })
+
+    // Re-issue token if email changed (email is in JWT payload)
+    if (updateData.email) {
+      const token = await signToken({ userId: user.id, email: user.email, role: user.role })
+      res.cookie(COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+      })
+    }
 
     const { password: _, ...safeUser } = user
     res.json(success(safeUser, 'Profile updated'))

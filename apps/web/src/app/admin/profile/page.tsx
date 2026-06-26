@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "sonner";
-import { User, Camera, Lock, Settings, Save, Loader2 } from "lucide-react";
+import { User, Camera, Lock, Settings, Save, Loader2, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { api } from "@/lib/api";
 
 const tabs = [
   { key: "profile", label: "User profile", icon: User },
@@ -20,7 +20,7 @@ const tabs = [
 type TabKey = (typeof tabs)[number]["key"];
 
 export default function AdminProfilePage() {
-  const { user } = useAuthStore();
+  const { user, setUser, restoreAuth } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabKey>("profile");
   const [saving, setSaving] = useState(false);
 
@@ -28,7 +28,10 @@ export default function AdminProfilePage() {
   const [firstName, setFirstName] = useState(user?.name?.split(" ")[0] ?? "");
   const [lastName, setLastName] = useState(user?.name?.split(" ").slice(1).join(" ") ?? "");
   const [username, setUsername] = useState(user?.email?.split("@")[0] ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
+  const [currentPasswordForEmail, setCurrentPasswordForEmail] = useState("");
+  const [emailChanged, setEmailChanged] = useState(false);
 
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -39,17 +42,57 @@ export default function AdminProfilePage() {
   const [language, setLanguage] = useState("en");
   const [timezone, setTimezone] = useState("Asia/Dhaka");
 
+  // Sync form with user data when it loads
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.name?.split(" ")[0] ?? "");
+      setLastName(user.name?.split(" ").slice(1).join(" ") ?? "");
+      setUsername(user.email?.split("@")[0] ?? "");
+      setEmail(user.email ?? "");
+      setPhone(user.phone ?? "");
+    }
+  }, [user]);
+
+  // Track if email changed
+  useEffect(() => {
+    setEmailChanged(email.toLowerCase() !== (user?.email ?? "").toLowerCase());
+  }, [email, user?.email]);
+
   const handleSaveProfile = async () => {
-    if (!firstName.trim() || !username.trim() || !user?.email) {
+    if (!firstName.trim() || !username.trim() || !email.trim()) {
       toast.error("Required fields are missing");
       return;
     }
+
+    if (emailChanged && !currentPasswordForEmail) {
+      toast.error("Current password is required to change email");
+      return;
+    }
+
     setSaving(true);
     try {
-      await new Promise((r) => setTimeout(r, 800));
+      const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(" ");
+      const body: Record<string, any> = { name: fullName, phone: phone || null };
+
+      if (emailChanged) {
+        body.email = email.trim();
+        body.currentPassword = currentPasswordForEmail;
+      }
+
+      const res = await api.put("/auth/profile", body);
+      const updatedUser = (res as any)?.data;
+
+      if (updatedUser) {
+        setUser(updatedUser);
+        // Also re-fetch from server to get fresh JWT data
+        await restoreAuth();
+      }
+
+      setEmailChanged(false);
+      setCurrentPasswordForEmail("");
       toast.success("Profile updated successfully");
-    } catch {
-      toast.error("Failed to update profile");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -64,19 +107,19 @@ export default function AdminProfilePage() {
       toast.error("Passwords do not match");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
     setSaving(true);
     try {
-      await new Promise((r) => setTimeout(r, 800));
+      await api.put("/auth/change-password", { currentPassword, newPassword });
       toast.success("Password changed successfully");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch {
-      toast.error("Failed to change password");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
     } finally {
       setSaving(false);
     }
@@ -139,7 +182,7 @@ export default function AdminProfilePage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="last-name" className="text-[13px] font-medium text-[#374151]">
-                    Last Name <span className="text-red-500">*</span>
+                    Last Name
                   </Label>
                   <Input
                     id="last-name"
@@ -163,14 +206,38 @@ export default function AdminProfilePage() {
                   <Label htmlFor="email" className="text-[13px] font-medium text-[#374151]">
                     Email <span className="text-red-500">*</span>
                   </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email ?? ""}
-                    disabled
-                    className="h-[40px] text-[14px] border-[#e2e8f0] bg-[#f8fafc] text-[#64748b]"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="h-[40px] text-[14px] border-[#e2e8f0] focus:border-[#0EA5E9] focus:ring-[#0EA5E9]/20 pr-9"
+                    />
+                    <Mail className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94a3b8]" />
+                  </div>
                 </div>
+                {/* Show current password field when email is changed */}
+                {emailChanged && (
+                  <div className="col-span-1 md:col-span-2 rounded-md border border-amber-200 bg-amber-50 p-4 space-y-3">
+                    <p className="text-[13px] text-amber-800 font-medium">
+                      To confirm email change, please enter your current password.
+                    </p>
+                    <div className="max-w-sm space-y-1.5">
+                      <Label htmlFor="email-password" className="text-[13px] font-medium text-[#374151]">
+                        Current Password <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="email-password"
+                        type="password"
+                        value={currentPasswordForEmail}
+                        onChange={(e) => setCurrentPasswordForEmail(e.target.value)}
+                        placeholder="Enter current password"
+                        className="h-[40px] text-[14px] border-[#e2e8f0] focus:border-[#0EA5E9] focus:ring-[#0EA5E9]/20"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-1.5">
                   <Label htmlFor="phone" className="text-[13px] font-medium text-[#374151]">
                     Phone
@@ -179,7 +246,7 @@ export default function AdminProfilePage() {
                     id="phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+880"
+                    placeholder="01XXXXXXXXX"
                     className="h-[40px] text-[14px] border-[#e2e8f0] focus:border-[#0EA5E9] focus:ring-[#0EA5E9]/20"
                   />
                 </div>
