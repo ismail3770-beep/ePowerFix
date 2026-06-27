@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { db } from '@epowerfix/db'
-import { success, error } from '../utils/response'
+import { success, error } from '../../utils/response'
 
 export const settingsRouter = Router()
 

@@ -64,7 +64,27 @@ async function main() {
   // ============================================================
   console.log('📍 Creating user addresses...')
 
-  // Clean up existing seeded addresses to avoid duplicates on re-run
+  // Clean up dependent records first (orders reference addresses)
+  const addressIds = (
+    await db.userAddress.findMany({
+      where: { userId: { in: [admin.id, customer.id] } },
+      select: { id: true },
+    })
+  ).map(a => a.id)
+
+  if (addressIds.length > 0) {
+    const ordersToClean = await db.order.findMany({
+      where: { addressId: { in: addressIds } },
+      select: { id: true, orderNumber: true },
+    })
+    for (const o of ordersToClean) {
+      await db.orderItem.deleteMany({ where: { orderId: o.id } })
+      await db.payment.deleteMany({ where: { orderId: o.id } })
+      await db.orderHistory.deleteMany({ where: { orderId: o.id } })
+      await db.order.deleteMany({ where: { id: o.id } })
+    }
+  }
+
   await db.userAddress.deleteMany({ where: { userId: { in: [admin.id, customer.id] } } })
 
   const adminAddress = await db.userAddress.create({
@@ -169,8 +189,29 @@ async function main() {
   // ============================================================
   console.log('🛒 Creating products...')
 
-  const beximcoWire = await db.product.create({
-    data: {
+  const beximcoWire = await db.product.upsert({
+    where: { sku: 'EPF-WR-001' },
+    update: {
+      name: 'Beximco 3/22 Copper Wire (90m Coil)',
+      nameBn: 'বেক্সিমকো ৩/২২ কপার তার (৯০মি কয়েল)',
+      description: 'Premium quality Beximco 3/22 copper wire for house wiring. 90 meters per coil. BSTI certified with excellent conductivity and heat resistance.',
+      shortDesc: 'BSTI certified 3/22 copper wire, 90m coil',
+      price: 3200,
+      salePrice: 2900,
+      costPrice: 2500,
+      stock: 150,
+      minStock: 20,
+      images: [],
+      specs: { brand: 'Beximco', type: 'Copper', size: '3/22', length: '90m', certification: 'BSTI', voltage: '1100V' },
+      isFeatured: true,
+      isActive: true,
+      brandId: schneider.id,
+      categoryId: catWires.id,
+      tags: ['wire', 'copper', 'house-wiring'],
+      rating: 4.5,
+      reviewCount: 89,
+    },
+    create: {
       name: 'Beximco 3/22 Copper Wire (90m Coil)',
       nameBn: 'বেক্সিমকো ৩/২২ কপার তার (৯০মি কয়েল)',
       slug: 'beximco-3-22-copper-wire',
@@ -194,8 +235,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-WR-002' },
+    update: {
+      name: 'BRB 7/20 Copper Wire (90m Coil)',
+      nameBn: 'বিআরবি ৭/২০ কপার তার (৯০মি কয়েল)',
+      description: 'BRB 7/20 heavy-duty copper wire for main line wiring. 90 meters per coil. Ideal for high-load circuits in Bangladesh homes.',
+      shortDesc: 'Heavy-duty 7/20 copper wire for main lines',
+      price: 7800,
+      salePrice: 7200,
+      costPrice: 6500,
+      stock: 80,
+      minStock: 10,
+      images: [],
+      specs: { brand: 'BRB', type: 'Copper', size: '7/20', length: '90m', certification: 'BSTI', voltage: '1100V' },
+      isFeatured: false,
+      isActive: true,
+      brandId: siemens.id,
+      categoryId: catWires.id,
+      tags: ['wire', 'copper', 'heavy-duty'],
+      rating: 4.7,
+      reviewCount: 56,
+    },
+    create: {
       name: 'BRB 7/20 Copper Wire (90m Coil)',
       nameBn: 'বিআরবি ৭/২০ কপার তার (৯০মি কয়েল)',
       slug: 'brb-7-20-copper-wire',
@@ -219,8 +281,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-SW-001' },
+    update: {
+      name: 'Legrand 16A Socket with Child Safety',
+      nameBn: 'লেগ্র্যান্ড ১৬A সকেট (চাইল্ড সেফটি সহ)',
+      description: 'Premium Legrand 16 Ampere socket with child safety shutter. Compatible with all standard plugs in Bangladesh. Polycarbonate body.',
+      shortDesc: '16A modular socket with child lock',
+      price: 380,
+      salePrice: 340,
+      costPrice: 250,
+      stock: 300,
+      minStock: 50,
+      images: [],
+      specs: { brand: 'Legrand', type: '16A Socket', material: 'Polycarbonate', rating: '16A', safety: 'Child lock shutter' },
+      isFeatured: true,
+      isActive: true,
+      brandId: legrand.id,
+      categoryId: catSwitches.id,
+      tags: ['socket', 'modular', 'legrand'],
+      rating: 4.6,
+      reviewCount: 134,
+    },
+    create: {
       name: 'Legrand 16A Socket with Child Safety',
       nameBn: 'লেগ্র্যান্ড ১৬A সকেট (চাইল্ড সেফটি সহ)',
       slug: 'legrand-16a-socket',
@@ -244,8 +327,29 @@ async function main() {
     },
   })
 
-  const schneiderMCB = await db.product.create({
-    data: {
+  const schneiderMCB = await db.product.upsert({
+    where: { sku: 'EPF-CB-001' },
+    update: {
+      name: 'Schneider 32A MCB (Single Pole C-Curve)',
+      nameBn: 'শ্নাইডার ৩২A MCB (সিঙ্গেল পোল সি-কার্ভ)',
+      description: 'Schneider Electric 32A Miniature Circuit Breaker for protection against overcurrent and short circuit. C-Curve for motor and inductive loads.',
+      shortDesc: '32A MCB single pole, C-curve 10kA',
+      price: 520,
+      salePrice: null,
+      costPrice: 380,
+      stock: 200,
+      minStock: 30,
+      images: [],
+      specs: { brand: 'Schneider', type: 'MCB', rating: '32A', poles: 'SP', breakingCapacity: '10kA', curve: 'C-Curve' },
+      isFeatured: true,
+      isActive: true,
+      brandId: schneider.id,
+      categoryId: catBreakers.id,
+      tags: ['mcb', 'circuit-breaker', 'schneider'],
+      rating: 4.8,
+      reviewCount: 78,
+    },
+    create: {
       name: 'Schneider 32A MCB (Single Pole C-Curve)',
       nameBn: 'শ্নাইডার ৩২A MCB (সিঙ্গেল পোল সি-কার্ভ)',
       slug: 'schneider-32a-mcb',
@@ -269,8 +373,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-CB-002' },
+    update: {
+      name: 'Siemens 63A MCCB (3-Phase)',
+      nameBn: 'সিমেন্স ৬৩A MCCB (৩-ফেজ)',
+      description: 'Siemens 63A Molded Case Circuit Breaker for 3-phase industrial power distribution panels. 50kA breaking capacity. Adjustable thermal trip.',
+      shortDesc: 'Industrial 63A MCCB 3-phase 50kA',
+      price: 4500,
+      salePrice: 4100,
+      costPrice: 3500,
+      stock: 25,
+      minStock: 5,
+      images: [],
+      specs: { brand: 'Siemens', type: 'MCCB', rating: '63A', poles: '3-Phase', breakingCapacity: '50kA' },
+      isFeatured: false,
+      isActive: true,
+      brandId: siemens.id,
+      categoryId: catBreakers.id,
+      tags: ['mccb', 'industrial', '3-phase'],
+      rating: 4.9,
+      reviewCount: 12,
+    },
+    create: {
       name: 'Siemens 63A MCCB (3-Phase)',
       nameBn: 'সিমেন্স ৬৩A MCCB (৩-ফেজ)',
       slug: 'siemens-63a-mccb',
@@ -294,8 +419,29 @@ async function main() {
     },
   })
 
-  const philipsLED = await db.product.create({
-    data: {
+  const philipsLED = await db.product.upsert({
+    where: { sku: 'EPF-LED-001' },
+    update: {
+      name: 'Philips 12W LED Bulb (B22 Cool Day)',
+      nameBn: 'ফিলিপস ১২W LED বাল্ব (B22 কুল ডে)',
+      description: 'Philips 12W LED bulb with cool daylight (6500K). B22 base. Replaces 60W incandescent bulb. 1200 lumens. 5-year warranty.',
+      shortDesc: '12W LED bulb, B22 base, cool daylight',
+      price: 160,
+      salePrice: 130,
+      costPrice: 90,
+      stock: 800,
+      minStock: 100,
+      images: [],
+      specs: { brand: 'Philips', type: 'LED Bulb', wattage: '12W', base: 'B22', color: 'Cool Day 6500K', lumens: '1200lm' },
+      isFeatured: true,
+      isActive: true,
+      brandId: siemens.id,
+      categoryId: catLED.id,
+      tags: ['led', 'bulb', 'philips', 'energy-saving'],
+      rating: 4.5,
+      reviewCount: 520,
+    },
+    create: {
       name: 'Philips 12W LED Bulb (B22 Cool Day)',
       nameBn: 'ফিলিপস ১২W LED বাল্ব (B22 কুল ডে)',
       slug: 'philips-12w-led-bulb',
@@ -319,8 +465,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-LED-002' },
+    update: {
+      name: 'NVC 36W LED Panel Light (600x600mm)',
+      nameBn: 'NVC ৩৬W LED প্যানেল লাইট (৬০০x৬০০mm)',
+      description: 'NVC 36W square LED panel light for false ceiling installation. Slim design with uniform light distribution. 3600 lumens, 6500K cool white.',
+      shortDesc: '36W square LED panel for false ceiling',
+      price: 850,
+      salePrice: 750,
+      costPrice: 550,
+      stock: 120,
+      minStock: 20,
+      images: [],
+      specs: { brand: 'NVC', type: 'Panel Light', wattage: '36W', size: '600x600mm', color: 'Cool White 6500K', lumens: '3600lm' },
+      isFeatured: false,
+      isActive: true,
+      brandId: legrand.id,
+      categoryId: catLED.id,
+      tags: ['led', 'panel-light', 'ceiling'],
+      rating: 4.6,
+      reviewCount: 65,
+    },
+    create: {
       name: 'NVC 36W LED Panel Light (600x600mm)',
       nameBn: 'NVC ৩৬W LED প্যানেল লাইট (৬০০x৬০০mm)',
       slug: 'nvc-36w-led-panel-light',
@@ -344,8 +511,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-SOL-001' },
+    update: {
+      name: 'Jinko 550W Mono-Crystalline Solar Panel',
+      nameBn: 'জিংকো ৫৫০W মোনো-ক্রিস্টালাইন সোলার প্যানেল',
+      description: 'Jinko Solar 550W mono-crystalline solar panel with 21.3% cell efficiency. 25-year linear power warranty. Ideal for Bangladesh climate conditions.',
+      shortDesc: '550W mono panel, 21.3% efficiency',
+      price: 38000,
+      salePrice: 35000,
+      costPrice: 30000,
+      stock: 30,
+      minStock: 5,
+      images: [],
+      specs: { brand: 'Jinko Solar', type: 'Mono-crystalline', wattage: '550W', efficiency: '21.3%', warranty: '25 years linear', cells: '72 cells' },
+      isFeatured: true,
+      isActive: true,
+      brandId: schneider.id,
+      categoryId: catSolar.id,
+      tags: ['solar', 'panel', 'mono-crystalline', 'jinko'],
+      rating: 4.9,
+      reviewCount: 18,
+    },
+    create: {
       name: 'Jinko 550W Mono-Crystalline Solar Panel',
       nameBn: 'জিংকো ৫৫০W মোনো-ক্রিস্টালাইন সোলার প্যানেল',
       slug: 'jinko-550w-mono-solar-panel',
@@ -369,8 +557,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-CB-003' },
+    update: {
+      name: 'Legrand 40A RCCB (Double Pole 30mA)',
+      nameBn: 'লেগ্র্যান্ড ৪০A RCCB (ডাবল পোল ৩০mA)',
+      description: 'Legrand 40A Residual Current Circuit Breaker for earth leakage protection. 30mA sensitivity. Double pole. Essential for bathroom and kitchen circuits.',
+      shortDesc: '40A RCCB double pole, earth leakage protection',
+      price: 1850,
+      salePrice: 1650,
+      costPrice: 1300,
+      stock: 60,
+      minStock: 10,
+      images: [],
+      specs: { brand: 'Legrand', type: 'RCCB', rating: '40A', poles: 'DP', sensitivity: '30mA', voltage: '240V AC' },
+      isFeatured: false,
+      isActive: true,
+      brandId: legrand.id,
+      categoryId: catBreakers.id,
+      tags: ['rccb', 'safety', 'earth-leakage', 'legrand'],
+      rating: 4.7,
+      reviewCount: 42,
+    },
+    create: {
       name: 'Legrand 40A RCCB (Double Pole 30mA)',
       nameBn: 'লেগ্র্যান্ড ৪০A RCCB (ডাবল পোল ৩০mA)',
       slug: 'legrand-40a-rccb',
@@ -394,8 +603,29 @@ async function main() {
     },
   })
 
-  await db.product.create({
-    data: {
+  await db.product.upsert({
+    where: { sku: 'EPF-LED-003' },
+    update: {
+      name: 'Epic 18W LED Tube Light (4ft Cool White)',
+      nameBn: 'এপিক ১৮W LED টিউব লাইট (৪ফুট কুল হোয়াইট)',
+      description: 'Energy-efficient Epic 18W LED tube light. Replaces 36W fluorescent tube. 1200mm length, cool white 6500K. 1800 lumens. BIS certified.',
+      shortDesc: '18W LED tube replaces 36W fluorescent',
+      price: 280,
+      salePrice: 240,
+      costPrice: 170,
+      stock: 500,
+      minStock: 80,
+      images: [],
+      specs: { brand: 'Epic', type: 'LED Tube', wattage: '18W', length: '1200mm (4ft)', color: 'Cool White 6500K', lumens: '1800lm' },
+      isFeatured: true,
+      isActive: true,
+      brandId: schneider.id,
+      categoryId: catLED.id,
+      tags: ['led', 'tube-light', 'energy-saving'],
+      rating: 4.3,
+      reviewCount: 356,
+    },
+    create: {
       name: 'Epic 18W LED Tube Light (4ft Cool White)',
       nameBn: 'এপিক ১৮W LED টিউব লাইট (৪ফুট কুল হোয়াইট)',
       slug: 'epic-18w-led-tube-light',
@@ -434,6 +664,7 @@ async function main() {
       { productId: beximcoWire.id, name: '2.5mm Single Core', sku: 'EPF-WR-001-2.5', price: 2900, salePrice: 2650, stock: 180, attributes: { size: '2.5mm', type: 'single_core' } },
       { productId: beximcoWire.id, name: '4mm Single Core', sku: 'EPF-WR-001-4', price: 4500, salePrice: 4100, stock: 120, attributes: { size: '4mm', type: 'single_core' } },
     ],
+    skipDuplicates: true,
   })
 
   // Schneider MCB variants (different amp ratings)
@@ -445,6 +676,7 @@ async function main() {
       { productId: schneiderMCB.id, name: '32A Single Pole', sku: 'EPF-CB-001-32A', price: 520, salePrice: 470, stock: 200, attributes: { rating: '32A', poles: 'SP', curve: 'C-Curve' } },
       { productId: schneiderMCB.id, name: '63A Single Pole', sku: 'EPF-CB-001-63A', price: 780, salePrice: 700, stock: 100, attributes: { rating: '63A', poles: 'SP', curve: 'C-Curve' } },
     ],
+    skipDuplicates: true,
   })
 
   // Philips LED Bulb variants (different wattages)
@@ -455,6 +687,7 @@ async function main() {
       { productId: philipsLED.id, name: '12W LED Bulb', sku: 'EPF-LED-001-12W', price: 160, salePrice: 130, stock: 800, attributes: { wattage: '12W', lumens: '1200lm' } },
       { productId: philipsLED.id, name: '18W LED Bulb', sku: 'EPF-LED-001-18W', price: 220, salePrice: 180, stock: 400, attributes: { wattage: '18W', lumens: '1800lm' } },
     ],
+    skipDuplicates: true,
   })
 
   console.log(`  ✅ Created 10 product variants`)
