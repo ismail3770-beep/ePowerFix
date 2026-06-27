@@ -31,6 +31,7 @@ import {
   Menu,
   X,
   Settings,
+  ImageIcon,
 } from "lucide-react";
 
 interface NavGroup {
@@ -86,6 +87,7 @@ const navGroups: NavGroup[] = [
   {
     label: "SETTINGS",
     items: [
+      { href: "/admin/media", label: "Media", icon: ImageIcon },
       { href: "/admin/settings", label: "Site Settings", icon: Settings },
     ],
   },

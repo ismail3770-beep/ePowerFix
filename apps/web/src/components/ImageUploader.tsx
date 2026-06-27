@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Upload, X, Loader2, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api").replace(/\/api\/?$/, "");
+/* ─── Multi-image uploader ─────────────────────────────────── */
 
 interface ImageUploaderProps {
   value: string[];           // Array of image URLs
@@ -38,7 +38,8 @@ export function ImageUploader({ value, onChange, max = 5, label = "Images" }: Im
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/admin/upload`, {
+      // Use same-origin proxy (Next.js rewrite → API server)
+      const res = await fetch("/api/admin/upload", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -47,9 +48,7 @@ export function ImageUploader({ value, onChange, max = 5, label = "Images" }: Im
       if (!res.ok) throw new Error(json.error || "Upload failed");
       const url = json.data?.url;
       if (url) {
-        // Convert relative URL to full API URL
-        const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
-        onChange([...value, fullUrl]);
+        onChange([...value, url]);
         toast.success("Image uploaded");
       }
     } catch (err: any) {
@@ -152,7 +151,8 @@ export function ImageUploader({ value, onChange, max = 5, label = "Images" }: Im
   );
 }
 
-/* Single image uploader (for logo, favicon, avatar, single cover) */
+/* ─── Single-image uploader (logo, favicon, avatar, cover) ─── */
+
 export function SingleImageUploader({
   value,
   onChange,
@@ -180,7 +180,8 @@ export function SingleImageUploader({
     formData.append("file", file);
 
     try {
-      const res = await fetch(`${API_BASE}/api/admin/upload`, {
+      // Use same-origin proxy (Next.js rewrite → API server)
+      const res = await fetch("/api/admin/upload", {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -189,8 +190,7 @@ export function SingleImageUploader({
       if (!res.ok) throw new Error(json.error || "Upload failed");
       const url = json.data?.url;
       if (url) {
-        const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
-        onChange(fullUrl);
+        onChange(url);
         toast.success("Image uploaded");
       }
     } catch (err: any) {

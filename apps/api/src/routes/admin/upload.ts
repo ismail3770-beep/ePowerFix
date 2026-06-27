@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import multer from 'multer'
+import multer, { diskStorage } from 'multer'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
@@ -15,8 +15,8 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true })
 }
 
-// Multer storage config
-const storage = multer.diskStorage({
+// Multer storage config (v2 API)
+const storage = diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase()
@@ -42,42 +42,69 @@ const upload = multer({
 })
 
 // POST /api/admin/upload — single image
-uploadRouter.post('/', requireAdmin, upload.single('file'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json(error('No file uploaded'))
+uploadRouter.post('/', requireAdmin, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json(error('File too large (max 5MB)'))
+        }
+        return res.status(400).json(error(err.message))
+      }
+      return res.status(400).json(error(err.message || 'Upload failed'))
     }
-    const url = `/uploads/${req.file.filename}`
-    res.json(success({
-      url,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
-    }, 'File uploaded'))
-  } catch (err: any) {
-    res.status(500).json(error(err.message || 'Upload failed'))
-  }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json(error('No file uploaded'))
+      }
+      const url = `/uploads/${req.file.filename}`
+      res.json(success({
+        url,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+      }, 'File uploaded'))
+    } catch (err: any) {
+      res.status(500).json(error(err.message || 'Upload failed'))
+    }
+  })
 })
 
 // POST /api/admin/upload/multiple — up to 10 images
-uploadRouter.post('/multiple', requireAdmin, upload.array('files', 10), (req, res) => {
-  try {
-    const files = req.files as Express.Multer.File[]
-    if (!files || files.length === 0) {
-      return res.status(400).json(error('No files uploaded'))
+uploadRouter.post('/multiple', requireAdmin, (req, res, next) => {
+  upload.array('files', 10)(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json(error('File too large (max 5MB)'))
+        }
+        if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+          return res.status(400).json(error('Too many files (max 10)'))
+        }
+        return res.status(400).json(error(err.message))
+      }
+      return res.status(400).json(error(err.message || 'Upload failed'))
     }
-    const uploaded = files.map((f) => ({
-      url: `/uploads/${f.filename}`,
-      filename: f.filename,
-      originalName: f.originalname,
-      size: f.size,
-      mimetype: f.mimetype,
-    }))
-    res.json(success(uploaded, `${uploaded.length} file(s) uploaded`))
-  } catch (err: any) {
-    res.status(500).json(error(err.message || 'Upload failed'))
-  }
+
+    try {
+      const files = req.files as Express.Multer.File[]
+      if (!files || files.length === 0) {
+        return res.status(400).json(error('No files uploaded'))
+      }
+      const uploaded = files.map((f) => ({
+        url: `/uploads/${f.filename}`,
+        filename: f.filename,
+        originalName: f.originalname,
+        size: f.size,
+        mimetype: f.mimetype,
+      }))
+      res.json(success(uploaded, `${uploaded.length} file(s) uploaded`))
+    } catch (err: any) {
+      res.status(500).json(error(err.message || 'Upload failed'))
+    }
+  })
 })
 
 // DELETE /api/admin/upload/:filename — remove uploaded file
@@ -96,5 +123,28 @@ uploadRouter.delete('/:filename', requireAdmin, async (req, res) => {
     res.json(success(null, 'File deleted'))
   } catch (err: any) {
     res.status(500).json(error(err.message || 'Delete failed'))
+  }
+})
+
+// GET /api/admin/upload — list all uploaded files
+uploadRouter.get('/', requireAdmin, async (req, res) => {
+  try {
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+    const files = fs.readdirSync(UPLOAD_DIR)
+      .filter((f) => allowedExts.includes(path.extname(f).toLowerCase()))
+      .map((f) => {
+        const stat = fs.statSync(path.join(UPLOAD_DIR, f))
+        return {
+          filename: f,
+          url: `/uploads/${f}`,
+          size: stat.size,
+          createdAt: stat.birthtime.toISOString(),
+        }
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    res.json(success(files, `${files.length} file(s)`))
+  } catch (err: any) {
+    res.status(500).json(error(err.message || 'Failed to list files'))
   }
 })

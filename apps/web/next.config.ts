@@ -18,7 +18,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https:",
+      "img-src 'self' data: blob: http: https:",
       "font-src 'self' https://fonts.gstatic.com",
       `connect-src 'self' ${apiUrl} https://api.ipify.org`,
       "frame-ancestors 'none'",
@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**",
       },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
     ],
   },
   async headers() {
@@ -46,6 +50,11 @@ const nextConfig: NextConfig = {
       {
         source: "/api/:path*",
         destination: `${apiUrl}/api/:path*`,
+      },
+      // Proxy uploaded files through Next.js (same-origin access)
+      {
+        source: "/uploads/:path*",
+        destination: `${apiUrl}/uploads/:path*`,
       },
     ];
   },
