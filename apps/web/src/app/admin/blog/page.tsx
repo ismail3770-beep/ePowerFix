@@ -19,6 +19,7 @@ import {
   Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { SingleImageUploader } from "@/components/ImageUploader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Plus, Pencil } from "lucide-react";
 
 type PostStatus = "DRAFT" | "PUBLISHED";
