@@ -20,7 +20,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: http: https:",
       "font-src 'self' https://fonts.gstatic.com",
-      `connect-src 'self' ${apiUrl} https://api.ipify.org`,
+      "connect-src 'self' https://api.ipify.org",
       "frame-ancestors 'none'",
       "form-action 'self'",
     ].join("; "),

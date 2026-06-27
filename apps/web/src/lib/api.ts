@@ -1,7 +1,9 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/?$/, '')
+// All API calls go through the Next.js rewrite proxy (same-origin).
+// This avoids CORS issues and ensures httpOnly cookies work correctly.
+// The proxy is configured in next.config.ts → rewrites → /api/:path* → Express API.
 
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = API_BASE ? `${API_BASE}${endpoint}` : endpoint
+  const url = endpoint // always same-origin, Next.js proxy handles it
   const res = await fetch(url, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },
