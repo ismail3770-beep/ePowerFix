@@ -4,7 +4,6 @@ import { z } from 'zod'
 import { db } from '@epowerfix/db'
 import { signToken, requireAuth, COOKIE_NAME } from '../middleware/auth'
 import { validate } from '../middleware/validate'
-import { authLimiter } from '../middleware/rate-limit'
 import { success, error } from '../utils/response'
 
 export const authRouter = Router()
@@ -36,7 +35,7 @@ const changePasswordSchema = z.object({
 })
 
 // POST /api/auth/register
-authRouter.post('/register', authLimiter, validate(registerSchema), async (req, res) => {
+authRouter.post('/register', validate(registerSchema), async (req, res) => {
   try {
     const { name, email, password, phone } = req.body
 
@@ -68,7 +67,7 @@ authRouter.post('/register', authLimiter, validate(registerSchema), async (req, 
 })
 
 // POST /api/auth/login
-authRouter.post('/login', authLimiter, validate(loginSchema), async (req, res) => {
+authRouter.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body
 

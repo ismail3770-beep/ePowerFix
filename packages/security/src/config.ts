@@ -29,7 +29,7 @@ export const DefaultSecurityConfig: SecurityConfig = {
   },
   rateLimiter: [
     { enabled: true, windowMs: 60000, maxRequests: 300, scope: 'global', blockDurationMs: 300000, throttleEnabled: true },
-    { enabled: true, windowMs: 60000, maxRequests: 10, scope: 'login', blockDurationMs: 900000, throttleEnabled: false },
+    { enabled: true, windowMs: 60000, maxRequests: 20, scope: 'login', blockDurationMs: 900000, throttleEnabled: false },
     { enabled: true, windowMs: 60000, maxRequests: 5, scope: 'register', blockDurationMs: 900000, throttleEnabled: false },
     { enabled: true, windowMs: 60000, maxRequests: 20, scope: '404', blockDurationMs: 600000, throttleEnabled: true },
   ],
