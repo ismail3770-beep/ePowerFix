@@ -13,7 +13,7 @@ ordersRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { page = '1', limit = '20', status, paymentStatus, search } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = { isDeleted: false }
+    const where: any = {}
     if (status) where.status = String(status)
     if (paymentStatus) where.paymentStatus = String(paymentStatus)
     if (search) where.orderNumber = { contains: String(search), mode: 'insensitive' }

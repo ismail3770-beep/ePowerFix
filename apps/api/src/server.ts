@@ -29,6 +29,8 @@ import { aiAgentRouter } from './routes/ai-agent'
 import { extraPublicRoutes } from './routes/public/extra'
 import { settingsRouter } from './routes/public/settings'
 import { apiLimiter } from './middleware/rate-limit'
+import { securityMiddleware } from '@epowerfix/security'
+import { securityRouter } from './routes/admin/security'
 
 const app = express()
 const PORT = Number(process.env.API_PORT) || 4000
@@ -41,6 +43,9 @@ app.use(cors({
 app.use(morgan('dev'))
 app.use(cookieParser())
 app.use(express.json({ limit: '10mb' }))
+
+// Ultimate Security System (IP Guard → WAF → Bot Detector → Rate Limiter → Security Headers)
+app.use(securityMiddleware())
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')))
@@ -82,6 +87,9 @@ app.use('/api/admin', adminRouter)
 
 // AI Agent route (admin protected)
 app.use('/api/ai/agent', aiAgentRouter)
+
+// Security admin routes
+app.use('/api/admin/security', securityRouter)
 
 // 404 handler
 app.use((_req, res) => {

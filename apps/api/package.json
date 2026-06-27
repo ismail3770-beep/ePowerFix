@@ -11,6 +11,7 @@
   "dependencies": {
     "@epowerfix/config": "workspace:*",
     "@epowerfix/db": "workspace:*",
+    "@epowerfix/security": "workspace:*",
     "@epowerfix/types": "workspace:*",
     "@epowerfix/utils": "workspace:*",
     "bcryptjs": "^3.0.3",

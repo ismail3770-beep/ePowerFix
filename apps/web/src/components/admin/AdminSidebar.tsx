@@ -33,6 +33,7 @@ import {
   Settings,
   ImageIcon,
   Bot,
+  Shield,
 } from "lucide-react";
 
 interface NavGroup {
@@ -90,6 +91,7 @@ const navGroups: NavGroup[] = [
     label: "SETTINGS",
     items: [
       { href: "/admin/media", label: "Media", icon: ImageIcon },
+      { href: "/admin/security", label: "Security", icon: Shield },
       { href: "/admin/settings", label: "Site Settings", icon: Settings },
     ],
   },

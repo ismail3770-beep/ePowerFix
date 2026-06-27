@@ -19,7 +19,7 @@ returnsRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { page = '1', limit = '20', status } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = { isDeleted: false }
+    const where: any = {}
     if (status) where.status = String(status)
 
     const [data, total] = await Promise.all([

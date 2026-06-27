@@ -13,7 +13,8 @@
       "@epowerfix/db": ["../../packages/db/src"],
       "@epowerfix/utils": ["../../packages/utils/src"],
       "@epowerfix/config": ["../../packages/config/src"],
-      "@epowerfix/types": ["../../packages/types/src"]
+      "@epowerfix/types": ["../../packages/types/src"],
+      "@epowerfix/security": ["../../packages/security/src"]
     }
   },
   "include": ["src/**/*.ts"],
