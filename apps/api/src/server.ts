@@ -25,6 +25,7 @@ import { quoteRequestsRouter } from './routes/quote-requests'
 import { productCategoriesRouter } from './routes/product-categories'
 import { adminRouter } from './routes/admin'
 import { extraPublicRoutes } from './routes/public/extra'
+import { settingsRouter } from './routes/public/settings'
 import { apiLimiter } from './middleware/rate-limit'
 
 const app = express()
@@ -64,6 +65,9 @@ app.use('/api/contact', contactRouter)
 app.use('/api/newsletter', apiLimiter, newsletterRouter)
 app.use('/api/quote-requests', apiLimiter, quoteRequestsRouter)
 app.use('/api/product-categories', apiLimiter, productCategoriesRouter)
+
+// Public settings (theme, branding)
+app.use('/api/settings', settingsRouter)
 
 // Public extra routes (comparison, flash-sales, Q&A)
 app.use('/api', extraPublicRoutes)

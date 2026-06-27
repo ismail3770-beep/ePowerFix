@@ -778,8 +778,19 @@ async function main() {
   console.log('\n✨ Seed completed successfully!')
 }
 
+// ============================================================
+// SITE SETTINGS (auto-created on first GET, but seed ensures defaults)
+// ============================================================
+
 main()
   .then(async () => {
+    // Ensure site settings exist
+    await db.siteSettings.upsert({
+      where: { id: 'default' },
+      update: {},
+      create: { id: 'default' },
+    })
+    console.log('✅ Seed complete!')
     await db.$disconnect()
   })
   .catch(async (e) => {

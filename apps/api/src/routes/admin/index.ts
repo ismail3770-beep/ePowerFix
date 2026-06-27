@@ -20,6 +20,7 @@ import { newsletterRouter } from './newsletter'
 import { flashSaleRoutes } from './flash-sales'
 import { taxRoutes } from './taxes'
 import { productQuestionRoutes } from './product-questions'
+import { settingsRouter } from './settings'
 
 export const adminRouter = Router()
 
@@ -44,3 +45,4 @@ adminRouter.use('/newsletter', newsletterRouter)
 adminRouter.use('/flash-sales', flashSaleRoutes)
 adminRouter.use('/taxes', taxRoutes)
 adminRouter.use('/product-questions', productQuestionRoutes)
+adminRouter.use('/settings', settingsRouter)

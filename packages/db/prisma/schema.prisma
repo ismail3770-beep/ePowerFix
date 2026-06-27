@@ -706,3 +706,55 @@ model ProductQuestion {
   @@index([userId])
   @@map("product_questions")
 }
+
+// ==================== SITE SETTINGS ====================
+
+model SiteSettings {
+  id    String @id @default("default") @db.VarChar(20)
+
+  // Brand
+  siteName        String  @default("ePowerFix") @map("site_name") @db.VarChar(100)
+  siteTagline     String? @map("site_tagline") @db.VarChar(200)
+  logoUrl         String? @map("logo_url") @db.VarChar(500)
+  faviconUrl      String? @map("favicon_url") @db.VarChar(500)
+
+  // Colors (hex without #)
+  primaryColor    String  @default("0EA5E9") @map("primary_color") @db.VarChar(7)
+  secondaryColor  String  @default("0284C7") @map("secondary_color") @db.VarChar(7)
+  accentColor     String  @default("4D7300") @map("accent_color") @db.VarChar(7)
+  headerBg        String  @default("FFFFFF") @map("header_bg") @db.VarChar(7)
+  footerBg        String  @default("111827") @map("footer_bg") @db.VarChar(7)
+  bodyBg          String  @default("F8FAFC") @map("body_bg") @db.VarChar(7)
+
+  // Typography
+  headingFont     String  @default("Geist Sans") @map("heading_font") @db.VarChar(50)
+  bodyFont        String  @default("Geist Sans") @map("body_font") @db.VarChar(50)
+  fontSize        String  @default("16") @map("font_size") @db.VarChar(3)
+
+  // Layout
+  containerWidth  String  @default("1280") @map("container_width") @db.VarChar(5)
+
+  // Social links
+  facebookUrl     String? @map("facebook_url") @db.VarChar(300)
+  instagramUrl    String? @map("instagram_url") @db.VarChar(300)
+  twitterUrl      String? @map("twitter_url") @db.VarChar(300)
+  youtubeUrl      String? @map("youtube_url") @db.VarChar(300)
+  linkedinUrl     String? @map("linkedin_url") @db.VarChar(300)
+
+  // Contact
+  phone           String? @db.VarChar(30)
+  email           String? @db.VarChar(255)
+  address         String? @db.VarChar(500)
+
+  // Footer
+  copyrightText   String  @default("© 2025 ePowerFix. All rights reserved.") @map("copyright_text") @db.VarChar(300)
+
+  // Meta
+  metaTitle       String? @map("meta_title") @db.VarChar(100)
+  metaDescription String? @map("meta_description") @db.VarChar(500)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}

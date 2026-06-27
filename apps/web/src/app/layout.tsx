@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { Providers } from "@/components/providers";
 import { AuthProvider } from "@/components/AuthProvider";
+import { SiteThemeProvider } from "@/components/SiteThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,9 +73,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
+            <SiteThemeProvider>
             <AuthProvider>
               {children}
             </AuthProvider>
+            </SiteThemeProvider>
             <Toaster position="top-center" richColors />
           </Providers>
         </ThemeProvider>

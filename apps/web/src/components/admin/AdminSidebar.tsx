@@ -30,6 +30,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 
 interface NavGroup {
@@ -80,6 +81,12 @@ const navGroups: NavGroup[] = [
       { href: "/admin/quote-requests", label: "Quotes", icon: ClipboardList },
       { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
       { href: "/admin/returns", label: "Returns", icon: RotateCcw },
+    ],
+  },
+  {
+    label: "SETTINGS",
+    items: [
+      { href: "/admin/settings", label: "Site Settings", icon: Settings },
     ],
   },
 ];
