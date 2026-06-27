@@ -78,7 +78,7 @@ export default function ComparePage() {
         <Button size="sm" onClick={() => {
               const { addItem } = useCartStore.getState()
               products.forEach((p) =>
-                addItem({ productId: p.id, name: p.name, price: p.salePrice || p.price, image: p.images?.[0] || '/placeholder.png', quantity: 1 })
+                addItem({ productId: p.id, productName: p.name, price: p.salePrice || p.price, productImage: p.images?.[0] || '/placeholder.png', quantity: 1 })
               )
               toast.success('Added to cart')
             }}><ShoppingCart className="w-4 h-4 mr-1" /> Cart</Button>

@@ -15,6 +15,7 @@
       "dependencies": {
         "@epowerfix/config": "workspace:*",
         "@epowerfix/db": "workspace:*",
+        "@epowerfix/security": "workspace:*",
         "@epowerfix/types": "workspace:*",
         "@epowerfix/utils": "workspace:*",
         "bcryptjs": "^3.0.3",
@@ -147,6 +148,13 @@
     "packages/i18n": {
       "name": "@epowerfix/i18n",
       "version": "1.0.0",
+    },
+    "packages/security": {
+      "name": "@epowerfix/security",
+      "version": "1.0.0",
+      "devDependencies": {
+        "typescript": "^5",
+      },
     },
     "packages/types": {
       "name": "@epowerfix/types",
@@ -313,6 +321,8 @@
     "@epowerfix/db": ["@epowerfix/db@workspace:packages/db"],
 
     "@epowerfix/i18n": ["@epowerfix/i18n@workspace:packages/i18n"],
+
+    "@epowerfix/security": ["@epowerfix/security@workspace:packages/security"],
 
     "@epowerfix/types": ["@epowerfix/types@workspace:packages/types"],
 

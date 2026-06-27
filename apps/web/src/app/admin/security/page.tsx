@@ -318,7 +318,7 @@ export default function SecurityPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Blocked IPs</p>
-                    <p className="text-2xl font-bold">{stats.blockedIPs}</p>
+                    <p className="text-2xl font-bold">{stats.audit.blockedIPs}</p>
                   </div>
                   <div className="p-2 bg-red-500/10 rounded-lg">
                     <Ban className="w-5 h-5 text-red-500" />

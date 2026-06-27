@@ -99,7 +99,7 @@ export default function WishlistPage() {
                   </div>
                   <Button size="sm" onClick={() => {
                     const { addItem } = useCartStore.getState()
-                    addItem({ productId: item.product.id, name: item.product.name, price: item.product.salePrice || item.product.price, image: item.product.images?.[0] || '/placeholder.png', quantity: 1 })
+                    addItem({ productId: item.product.id, productName: item.product.name, price: item.product.salePrice || item.product.price, productImage: item.product.images?.[0] || '/placeholder.png', quantity: 1 })
                     toast.success('Added to cart')
                   }}><ShoppingCart className="w-4 h-4 mr-1" />Cart</Button>
                 </div>

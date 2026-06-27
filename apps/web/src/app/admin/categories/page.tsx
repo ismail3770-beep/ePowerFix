@@ -12,6 +12,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { SingleImageUploader } from "@/components/ImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Category { id: string; name: string; slug: string; icon: string | null; description: string | null; parentId: string | null; parent?: { name: string } | null; image: string | null; }
 

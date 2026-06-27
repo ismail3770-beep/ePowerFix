@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { SingleImageUploader } from "@/components/ImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Service { id: string; name: string; description: string | null; price: number; duration: string | null; categoryId: string | null; category?: { name: string } | null; image: string | null; isActive: boolean; }
 interface SvcCat { id: string; name: string; }
