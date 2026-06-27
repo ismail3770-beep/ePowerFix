@@ -18,10 +18,10 @@ couponsRouter.get('/', async (_req, res) => {
   }
 })
 
-// GET /api/coupons/validate?code=xxx&orderTotal=xxx
+// GET /api/coupons/validate?code=xxx&orderTotal=xxx&userId=xxx
 couponsRouter.get('/validate', apiLimiter, async (req, res) => {
   try {
-    const { code, orderTotal } = req.query as any
+    const { code, orderTotal, userId } = req.query as any
     if (!code || !orderTotal) return res.status(400).json(error('code and orderTotal are required'))
 
     const coupon = await db.coupon.findFirst({
@@ -31,6 +31,18 @@ couponsRouter.get('/validate', apiLimiter, async (req, res) => {
     if (coupon.minOrder && Number(orderTotal) < Number(coupon.minOrder)) {
       return res.status(400).json(error(`Minimum order ৳${coupon.minOrder}`))
     }
+    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+      return res.status(400).json(error('Coupon usage limit reached'))
+    }
+
+    // Check per-user usage if userId is provided (from frontend after auth)
+    let alreadyUsed = false
+    if (userId) {
+      const existing = await db.couponUsage.findUnique({
+        where: { couponId_userId: { couponId: coupon.id, userId: String(userId) } },
+      })
+      alreadyUsed = !!existing
+    }
 
     let discount = 0
     if (coupon.type === 'PERCENTAGE') {
@@ -39,7 +51,7 @@ couponsRouter.get('/validate', apiLimiter, async (req, res) => {
       discount = Number(coupon.value)
     }
 
-    res.json(success({ code: coupon.code, type: coupon.type, discount, message: `You save ৳${Math.round(discount)}!` }))
+    res.json(success({ code: coupon.code, type: coupon.type, discount, alreadyUsed, message: alreadyUsed ? 'You have already used this coupon' : `You save ৳${Math.round(discount)}!` }))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

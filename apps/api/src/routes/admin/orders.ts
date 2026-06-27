@@ -104,37 +104,44 @@ ordersRouter.post('/:id/refund', requireAdmin, validate(z.object({
     const order = await db.order.findUnique({ where: { id: req.params.id } })
     if (!order) return res.status(404).json(error('Order not found'))
 
-    // Sum existing refunds (negative amounts) for this order
-    const existingRefunds = await db.payment.aggregate({
-      where: { orderId: order.id, status: 'REFUNDED', amount: { lt: 0 } },
-      _sum: { amount: true },
+    // Wrap the entire refund operation in a transaction to prevent race conditions
+    const result = await db.$transaction(async (tx) => {
+      // Sum existing refunds (negative amounts) for this order
+      const existingRefunds = await tx.payment.aggregate({
+        where: { orderId: order.id, status: 'REFUNDED', amount: { lt: 0 } },
+        _sum: { amount: true },
+      })
+      const totalRefunded = Math.abs(existingRefunds._sum.amount || 0)
+
+      if (totalRefunded + Number(req.body.amount) > Number(order.total)) {
+        return { error: 'Refund amount exceeds order total' }
+      }
+
+      // Create a refund Payment record (negative amount convention)
+      const refund = await tx.payment.create({
+        data: {
+          orderId: order.id,
+          amount: -Number(req.body.amount),
+          method: order.paymentMethod,
+          status: 'REFUNDED',
+          paymentData: { type: 'refund', reason: req.body.reason || null } as any,
+        },
+      })
+
+      // Update denormalized order payment status
+      const totalRefundedAfter = totalRefunded + Number(req.body.amount)
+      const fullRefund = totalRefundedAfter >= Number(order.total)
+      const updatedOrder = await tx.order.update({
+        where: { id: order.id },
+        data: { paymentStatus: fullRefund ? 'REFUNDED' : 'PARTIAL_REFUND' },
+      })
+
+      return { refund, fullRefund }
     })
-    const totalRefunded = Math.abs(existingRefunds._sum.amount || 0)
 
-    if (totalRefunded + Number(req.body.amount) > Number(order.total)) {
-      return res.status(400).json(error('Refund amount exceeds order total'))
-    }
+    if (result.error) return res.status(400).json(error(result.error))
 
-    // Create a refund Payment record (negative amount convention)
-    const refund = await db.payment.create({
-      data: {
-        orderId: order.id,
-        amount: -Number(req.body.amount),
-        method: order.paymentMethod,
-        status: 'REFUNDED',
-        paymentData: { type: 'refund', reason: req.body.reason || null } as any,
-      },
-    })
-
-    // Update denormalized order payment status
-    const totalRefundedAfter = totalRefunded + Number(req.body.amount)
-    const fullRefund = totalRefundedAfter >= Number(order.total)
-    await db.order.update({
-      where: { id: order.id },
-      data: { paymentStatus: fullRefund ? 'REFUNDED' : 'PARTIAL_REFUND' },
-    })
-
-    res.status(201).json(success(refund, fullRefund ? 'Order fully refunded' : 'Partial refund recorded'))
+    res.status(201).json(success(result.refund, result.fullRefund ? 'Order fully refunded' : 'Partial refund recorded'))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

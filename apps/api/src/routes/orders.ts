@@ -238,9 +238,26 @@ ordersRouter.post('/', requireAuth, validate(createOrderSchema), async (req, res
 
     const totalAmount = subtotal + deliveryFee - discount
 
-    const orderNumber = 'EPF-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase()
+    // Generate unique order number with collision retry
+    let orderNumber: string
+    let orderCreateAttempts = 0
+    const MAX_ORDER_CREATE_ATTEMPTS = 3
 
     const order = await db.$transaction(async (tx) => {
+      // Generate unique order number inside transaction
+      for (orderCreateAttempts = 0; orderCreateAttempts < MAX_ORDER_CREATE_ATTEMPTS; orderCreateAttempts++) {
+        const candidate = 'EPF-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase()
+        const existing = await tx.order.findFirst({ where: { orderNumber: candidate }, select: { id: true } })
+        if (!existing) {
+          orderNumber = candidate
+          break
+        }
+      }
+      if (!orderNumber) {
+        // Fallback: use crypto.randomUUID-based number
+        orderNumber = 'EPF-' + (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').substring(0, 12).toUpperCase() : Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 8).toUpperCase())
+      }
+
       const created = await tx.order.create({
         data: {
           orderNumber,

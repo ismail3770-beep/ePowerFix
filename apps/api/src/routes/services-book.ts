@@ -22,11 +22,11 @@ servicesBookRouter.post('/', authLimiter, requireAuth, validate(bookingSchema), 
   try {
     const data = req.body
 
-    const service = await db.service.findUnique({
-      where: { id: data.serviceId },
-      select: { id: true, basePrice: true, isActive: true },
+    const service = await db.service.findFirst({
+      where: { id: data.serviceId, isActive: true, isDeleted: false },
+      select: { id: true, basePrice: true },
     })
-    if (!service || !service.isActive) return res.status(404).json(error('Service not available'))
+    if (!service) return res.status(404).json(error('Service not available'))
 
     const booking = await db.serviceBooking.create({
       data: {

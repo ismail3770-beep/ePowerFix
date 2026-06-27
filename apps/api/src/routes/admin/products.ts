@@ -44,7 +44,7 @@ productsRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { page = '1', limit = '20', search, category, status } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = {}
+    const where: any = { isDeleted: false }
     if (search) where.OR = [{ name: { contains: String(search), mode: 'insensitive' } }, { sku: { contains: String(search) } }]
     if (category) where.categoryId = String(category)
     if (status === 'inactive') where.isActive = false

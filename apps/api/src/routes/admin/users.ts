@@ -13,7 +13,7 @@ usersRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { page = '1', limit = '20', search, role } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = {}
+    const where: any = { isDeleted: false }
     if (search) where.OR = [
       { name: { contains: String(search), mode: 'insensitive' } },
       { email: { contains: String(search), mode: 'insensitive' } },
