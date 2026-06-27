@@ -15,6 +15,7 @@ productsRouter.get('/', async (req, res) => {
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,
+      isDeleted: false,
       ...(search ? { OR: [
         { name: { contains: String(search), mode: 'insensitive' } },
         { nameBn: { contains: String(search), mode: 'insensitive' } },
@@ -57,6 +58,7 @@ productsRouter.get('/:id', async (req, res) => {
       where: {
         OR: [{ id: req.params.id }, { slug: req.params.id }],
         isActive: true,
+        isDeleted: false,
       },
       include: {
         category: { select: { id: true, name: true, nameBn: true, slug: true } },
@@ -74,7 +76,7 @@ productsRouter.get('/:id', async (req, res) => {
 
     // Related products
     const related = await db.product.findMany({
-      where: { categoryId: product.categoryId, id: { not: product.id }, isActive: true },
+      where: { categoryId: product.categoryId, id: { not: product.id }, isActive: true, isDeleted: false },
       take: 8,
       orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, nameBn: true, slug: true, price: true, salePrice: true, images: true, rating: true, reviewCount: true },
