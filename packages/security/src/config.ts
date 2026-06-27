@@ -97,5 +97,5 @@ export const DefaultSecurityConfig: SecurityConfig = {
   blockResponseStatusCode: 403,
   blockResponseMessage: 'Access Denied - Security Policy Violation',
   trustedProxies: [],
-  excludedPaths: ['/api/health', '/api/payments/sslcommerz/ipn', '/api/payments/bkash/callback', '/api/payments/nagad/callback', '/api/payments/sslcommerz/callback', '/api/payments/nagad/verify'],
+  excludedPaths: ['/api/health', '/api/payments/sslcommerz/ipn', '/api/payments/bkash/callback', '/api/payments/nagad/callback', '/api/payments/sslcommerz/callback', '/api/payments/nagad/verify', '/api/admin'],
 }
