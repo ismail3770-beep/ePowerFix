@@ -13,7 +13,7 @@ ordersRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { page = '1', limit = '20', status, paymentStatus, search } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = {}
+    const where: any = { isDeleted: false }
     if (status) where.status = String(status)
     if (paymentStatus) where.paymentStatus = String(paymentStatus)
     if (search) where.orderNumber = { contains: String(search), mode: 'insensitive' }
@@ -104,7 +104,14 @@ ordersRouter.post('/:id/refund', requireAdmin, validate(z.object({
     const order = await db.order.findUnique({ where: { id: req.params.id } })
     if (!order) return res.status(404).json(error('Order not found'))
 
-    if (Number(req.body.amount) > Number(order.total)) {
+    // Sum existing refunds (negative amounts) for this order
+    const existingRefunds = await db.payment.aggregate({
+      where: { orderId: order.id, status: 'REFUNDED', amount: { lt: 0 } },
+      _sum: { amount: true },
+    })
+    const totalRefunded = Math.abs(existingRefunds._sum.amount || 0)
+
+    if (totalRefunded + Number(req.body.amount) > Number(order.total)) {
       return res.status(400).json(error('Refund amount exceeds order total'))
     }
 
@@ -120,7 +127,8 @@ ordersRouter.post('/:id/refund', requireAdmin, validate(z.object({
     })
 
     // Update denormalized order payment status
-    const fullRefund = Number(req.body.amount) >= Number(order.total)
+    const totalRefundedAfter = totalRefunded + Number(req.body.amount)
+    const fullRefund = totalRefundedAfter >= Number(order.total)
     await db.order.update({
       where: { id: order.id },
       data: { paymentStatus: fullRefund ? 'REFUNDED' : 'PARTIAL_REFUND' },

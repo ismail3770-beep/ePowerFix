@@ -14,7 +14,7 @@ servicesRouter.get('/', async (req, res) => {
       orderBy: { sortOrder: 'asc' },
     })
 
-    const where: any = { isActive: true }
+    const where: any = { isActive: true, isDeleted: false }
     if (categoryId) where.categoryId = categoryId
 
     const services = await db.service.findMany({
@@ -33,7 +33,7 @@ servicesRouter.get('/', async (req, res) => {
 servicesRouter.get('/:id', async (req, res) => {
   try {
     const service = await db.service.findFirst({
-      where: { OR: [{ id: req.params.id }, { slug: req.params.id }], isActive: true },
+      where: { OR: [{ id: req.params.id }, { slug: req.params.id }], isActive: true, isDeleted: false },
       include: { category: { select: { id: true, name: true, nameBn: true, slug: true } } },
     })
     if (!service) return res.status(404).json(error('Service not found'))

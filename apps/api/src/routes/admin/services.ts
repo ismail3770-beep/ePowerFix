@@ -4,7 +4,7 @@ import { db } from '@epowerfix/db'
 import { requireAdmin } from '../../middleware/auth'
 import { validate } from '../../middleware/validate'
 import { success, error } from '../../utils/response'
-import { generateSlug } from '@epowerfix/utils'
+import { generateSlug, getPagination } from '@epowerfix/utils'
 
 export const servicesRouter = Router()
 
@@ -26,17 +26,25 @@ const createServiceSchema = z.object({
 servicesRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { category, status } = req.query as any
-    const where: any = {}
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 20
+    const { skip, take } = getPagination({ page, limit })
+    const where: any = { isDeleted: false }
     if (category) where.categoryId = category
     if (status === 'active') where.isActive = true
     else if (status === 'inactive') where.isActive = false
 
-    const services = await db.service.findMany({
-      where,
-      include: { category: { select: { name: true, nameBn: true } } },
-      orderBy: { createdAt: 'desc' },
-    })
-    res.json(success(services))
+    const [services, total] = await Promise.all([
+      db.service.findMany({
+        where,
+        include: { category: { select: { name: true, nameBn: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      db.service.count({ where }),
+    ])
+    res.json(success({ data: services, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

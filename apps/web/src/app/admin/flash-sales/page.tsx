@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 interface FlashSale {
@@ -36,8 +37,7 @@ export default function FlashSalesPage() {
     try {
       const res = await apiFetch<{ data: FlashSale[] }>('/api/admin/flash-sales')
       setFlashSales(res.data || [])
-    } catch (err) { console.error(err) }
-    finally { setLoading(false) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') } finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [])
@@ -70,14 +70,14 @@ export default function FlashSalesPage() {
       }
       setDialogOpen(false)
       load()
-    } catch (err) { console.error(err) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') }
   }
 
   const handleDelete = async (id: string) => {
     try {
       await apiFetch(`/api/admin/flash-sales/${id}`, { method: 'DELETE' })
       load()
-    } catch (err) { console.error(err) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') }
     finally { setDeleteTarget(null) }
   }
 
@@ -88,7 +88,7 @@ export default function FlashSalesPage() {
         body: JSON.stringify({ isActive: !fs.isActive }),
       })
       load()
-    } catch (err) { console.error(err) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') }
   }
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>

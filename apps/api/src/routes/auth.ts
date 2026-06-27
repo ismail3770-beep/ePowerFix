@@ -21,6 +21,20 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 })
 
+const profileSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  nameBn: z.string().max(200).optional(),
+  phone: z.string().regex(/^(\+880|0)1[3-9]\d{8}$/, 'Invalid BD phone number').nullable().optional(),
+  email: z.string().email('Invalid email').optional(),
+  avatar: z.string().nullable().optional(),
+  currentPassword: z.string().optional(),
+})
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
 // POST /api/auth/register
 authRouter.post('/register', authLimiter, validate(registerSchema), async (req, res) => {
   try {
@@ -32,7 +46,7 @@ authRouter.post('/register', authLimiter, validate(registerSchema), async (req, 
       return res.status(409).json(error(`${field} already registered`))
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(password, 12)
     const user = await db.user.create({
       data: { name, email: email.toLowerCase(), password: hashedPassword, phone, role: 'CUSTOMER' },
       select: { id: true, name: true, email: true, phone: true, role: true, avatar: true },
@@ -106,16 +120,14 @@ authRouter.get('/me', requireAuth, async (req, res) => {
 })
 
 // PUT /api/auth/profile
-authRouter.put('/profile', requireAuth, async (req, res) => {
+authRouter.put('/profile', requireAuth, validate(profileSchema), async (req, res) => {
   try {
-    const { name, phone, avatar, email, currentPassword } = req.body
+    const { name, nameBn, phone, avatar, email, currentPassword } = req.body
 
     const updateData: any = {}
     if (name !== undefined) updateData.name = name
+    if (nameBn !== undefined) updateData.nameBn = nameBn
     if (phone !== undefined) {
-      if (phone && !/^01[3-9]\d{8}$/.test(phone)) {
-        return res.status(400).json(error('Invalid BD phone number'))
-      }
       if (phone) {
         const existing = await db.user.findFirst({
           where: { phone, id: { not: req.user!.id }, isDeleted: false },
@@ -142,9 +154,6 @@ authRouter.put('/profile', requireAuth, async (req, res) => {
         return res.status(400).json(error('Current password is incorrect'))
       }
       const normalizedEmail = email.toLowerCase()
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        return res.status(400).json(error('Invalid email address'))
-      }
       const emailExists = await db.user.findFirst({
         where: { email: normalizedEmail, id: { not: req.user!.id }, isDeleted: false },
       })
@@ -180,20 +189,16 @@ authRouter.put('/profile', requireAuth, async (req, res) => {
 })
 
 // PUT /api/auth/change-password
-authRouter.put('/change-password', requireAuth, async (req, res) => {
+authRouter.put('/change-password', requireAuth, validate(changePasswordSchema), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body
 
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json(error('Both current and new password required'))
-    }
-
-    if (newPassword.length < 8) {
-      return res.status(400).json(error('New password must be at least 8 characters'))
-    }
-
     const user = await db.user.findUnique({ where: { id: req.user!.id } })
     if (!user) return res.status(401).json(error('User not found'))
+
+    if (!user.password) {
+      return res.status(400).json(error('Cannot change password for social login account'))
+    }
 
     const isValid = await bcrypt.compare(currentPassword, user.password)
     if (!isValid) return res.status(400).json(error('Current password is incorrect'))

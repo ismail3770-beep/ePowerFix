@@ -8,7 +8,7 @@ export const brandsRouter = Router()
 brandsRouter.get('/', async (_req, res) => {
   try {
     const brands = await db.brand.findMany({
-      where: { isActive: true },
+      where: { isActive: true, isDeleted: false },
       orderBy: { name: 'asc' },
       select: { id: true, name: true, nameBn: true, slug: true, logo: true, country: true },
     })

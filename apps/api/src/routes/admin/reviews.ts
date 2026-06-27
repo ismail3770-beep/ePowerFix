@@ -4,6 +4,7 @@ import { db } from '@epowerfix/db'
 import { requireAdmin } from '../../middleware/auth'
 import { validate } from '../../middleware/validate'
 import { success, error } from '../../utils/response'
+import { getPagination } from '@epowerfix/utils'
 
 export const reviewsRouter = Router()
 
@@ -11,18 +12,26 @@ export const reviewsRouter = Router()
 reviewsRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { status } = req.query as any
-    const where: any = {}
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 20
+    const { skip, take } = getPagination({ page, limit })
+    const where: any = { isDeleted: false }
     if (status) where.status = status
 
-    const reviews = await db.review.findMany({
-      where,
-      include: {
-        user: { select: { id: true, name: true, email: true } },
-        product: { select: { id: true, name: true, images: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-    res.json(success(reviews))
+    const [reviews, total] = await Promise.all([
+      db.review.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          product: { select: { id: true, name: true, images: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      db.review.count({ where }),
+    ])
+    res.json(success({ data: reviews, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

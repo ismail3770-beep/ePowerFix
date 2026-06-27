@@ -21,6 +21,7 @@ const createCategorySchema = z.object({
 serviceCategoriesRouter.get('/', requireAdmin, async (_req, res) => {
   try {
     const categories = await db.serviceCategory.findMany({
+      where: { isDeleted: false },
       orderBy: { sortOrder: 'asc' },
       include: { _count: { select: { services: true } } },
     })

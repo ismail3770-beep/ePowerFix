@@ -23,6 +23,7 @@ const createCategorySchema = z.object({
 productCategoriesRouter.get('/', requireAdmin, async (_req, res) => {
   try {
     const categories = await db.productCategory.findMany({
+      where: { isDeleted: false },
       orderBy: { sortOrder: 'asc' },
       include: { _count: { select: { products: { where: { isActive: true } } } } },
     })

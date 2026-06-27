@@ -60,7 +60,7 @@ function PaymentSuccessContent() {
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  router.push("/");
+                  router.push("/profile");
                 }}
               >
                 View Orders

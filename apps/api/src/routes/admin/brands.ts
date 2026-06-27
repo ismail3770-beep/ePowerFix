@@ -20,7 +20,7 @@ const createBrandSchema = z.object({
 // GET /api/admin/brands
 brandsRouter.get('/', requireAdmin, async (_req, res) => {
   try {
-    const brands = await db.brand.findMany({ orderBy: { name: 'asc' } })
+    const brands = await db.brand.findMany({ where: { isDeleted: false }, orderBy: { name: 'asc' } })
     res.json(success(brands))
   } catch (err: any) {
     res.status(500).json(error(err.message))

@@ -238,59 +238,60 @@ ordersRouter.post('/', requireAuth, validate(createOrderSchema), async (req, res
 
     const totalAmount = subtotal + deliveryFee - discount
 
-    // Generate order number
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    const count = await db.order.count() + 1
-    const orderNumber = `EPF-${dateStr}-${String(count).padStart(4, '0')}`
+    const orderNumber = 'EPF-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase()
 
-    const order = await db.order.create({
-      data: {
-        orderNumber,
-        userId: req.user!.id,
-        status: 'PENDING',
-        subtotal,
-        deliveryCharge: deliveryFee,
-        discount,
-        total: totalAmount,
-        paymentMethod,
-        paymentStatus: 'PENDING',
-        couponId,
-        addressId,
-        notes: notes || null,
-        items: { create: orderItems },
-        payments: {
-          create: [{
-            amount: totalAmount,
-            method: paymentMethod,
-            status: 'PENDING',
-            paymentData: { source: 'checkout', method: paymentMethod } as any,
-          }],
+    const order = await db.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: {
+          orderNumber,
+          userId: req.user!.id,
+          status: 'PENDING',
+          subtotal,
+          deliveryCharge: deliveryFee,
+          discount,
+          total: totalAmount,
+          paymentMethod,
+          paymentStatus: 'PENDING',
+          couponId,
+          addressId,
+          notes: notes || null,
+          items: { create: orderItems },
+          payments: {
+            create: [{
+              amount: totalAmount,
+              method: paymentMethod,
+              status: 'PENDING',
+              paymentData: { source: 'checkout', method: paymentMethod } as any,
+            }],
+          },
+          histories: {
+            create: [{
+              userId: req.user!.id,
+              status: 'PENDING',
+              note: 'Order placed',
+            }],
+          },
         },
-        histories: {
-          create: [{
-            userId: req.user!.id,
-            status: 'PENDING',
-            note: 'Order placed',
-          }],
-        },
-      },
-      include: { items: true, address: true, payments: true, histories: true },
-    })
+        include: { items: true, address: true, payments: true, histories: true },
+      })
 
-    // Update stock (product or variant)
-    for (const item of items) {
-      if (item.variantId) {
-        await db.productVariant.update({
-          where: { id: item.variantId },
-          data: { stock: { decrement: item.quantity } },
-        })
-      } else {
-        await db.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
-        })
+      // Update stock (product or variant) inside the same transaction
+      for (const item of items) {
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } },
+          })
+        } else {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          })
+        }
       }
-    }
+
+      return created
+    })
 
     // Record coupon usage (per-user tracking) + increment global usedCount
     if (couponId) {

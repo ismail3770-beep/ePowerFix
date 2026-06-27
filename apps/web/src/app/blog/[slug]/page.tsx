@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { useParams } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";

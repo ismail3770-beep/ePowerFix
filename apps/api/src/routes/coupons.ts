@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { db } from '@epowerfix/db'
+import { apiLimiter } from '../middleware/rate-limit'
 import { success, error } from '../utils/response'
 
 export const couponsRouter = Router()
@@ -18,7 +19,7 @@ couponsRouter.get('/', async (_req, res) => {
 })
 
 // GET /api/coupons/validate?code=xxx&orderTotal=xxx
-couponsRouter.get('/validate', async (req, res) => {
+couponsRouter.get('/validate', apiLimiter, async (req, res) => {
   try {
     const { code, orderTotal } = req.query as any
     if (!code || !orderTotal) return res.status(400).json(error('code and orderTotal are required'))

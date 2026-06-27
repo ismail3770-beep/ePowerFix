@@ -1,6 +1,8 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { db } from '@epowerfix/db'
 import { requireAdmin } from '../../middleware/auth'
+import { validate } from '../../middleware/validate'
 import { success, error } from '../../utils/response'
 
 export const productQuestionRoutes = Router()
@@ -27,13 +29,15 @@ productQuestionRoutes.get('/', requireAdmin, async (req, res) => {
   }
 })
 
-productQuestionRoutes.put('/:id/answer', requireAdmin, async (req, res) => {
+const answerQuestionSchema = z.object({
+  answer: z.string().min(1).max(2000),
+})
+
+productQuestionRoutes.put('/:id/answer', requireAdmin, validate(answerQuestionSchema), async (req, res) => {
   try {
-    const { answer } = req.body
-    if (!answer?.trim()) return res.status(400).json(error('Answer is required'))
     const q = await db.productQuestion.update({
       where: { id: req.params.id },
-      data: { answer: answer.trim(), answeredAt: new Date() },
+      data: { answer: req.body.answer.trim(), answeredAt: new Date() },
     })
     res.json(success(q))
   } catch (err: any) {

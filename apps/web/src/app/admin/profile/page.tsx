@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "sonner";
 import { User, Camera, Lock, Settings, Save, Loader2, Mail } from "lucide-react";
@@ -41,6 +41,7 @@ export default function AdminProfilePage() {
   // Preferences state
   const [language, setLanguage] = useState("en");
   const [timezone, setTimezone] = useState("Asia/Dhaka");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync form with user data when it loads
   useEffect(() => {
@@ -125,16 +126,40 @@ export default function AdminProfilePage() {
     }
   };
 
-  const handleSavePreferences = async () => {
-    setSaving(true);
+  const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      toast.success("Preferences saved");
-    } catch {
-      toast.error("Failed to save preferences");
-    } finally {
-      setSaving(false);
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadRes = await fetch("/api/admin/upload", { method: "POST", body: formData, credentials: "include" });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+      const uploadedUrl = uploadData?.url || uploadData?.data?.url;
+      if (uploadedUrl) {
+        await api.put("/api/auth/profile", { avatar: uploadedUrl });
+        toast.success("Avatar updated successfully");
+        await restoreAuth();
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload avatar");
     }
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      await api.put("/api/auth/profile", { avatar: null });
+      toast.success("Avatar removed");
+      await restoreAuth();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove avatar");
+    }
+  };
+
+  const handleSavePreferences = async () => {
+    const preferences = { language, timezone };
+    localStorage.setItem('epowerfix-prefs', JSON.stringify(preferences));
+    toast.success("Preferences saved");
   };
 
   return (
@@ -273,11 +298,12 @@ export default function AdminProfilePage() {
                   {user?.name?.charAt(0)?.toUpperCase() || "A"}
                 </div>
                 <div className="space-y-3">
-                  <Button className="h-[38px] px-4 bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[14px] font-medium rounded-md">
+                  <input ref={fileInputRef} type="file" accept="image/png,image/jpg,image/jpeg" className="hidden" onChange={handleUploadAvatar} />
+                  <Button className="h-[38px] px-4 bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[14px] font-medium rounded-md" onClick={() => fileInputRef.current?.click()}>
                     <Camera className="mr-2 h-4 w-4" />
                     Upload New Avatar
                   </Button>
-                  <Button variant="outline" className="h-[38px] px-4 text-[14px] text-red-600 border-red-200 hover:bg-red-50 rounded-md">
+                  <Button variant="outline" className="h-[38px] px-4 text-[14px] text-red-600 border-red-200 hover:bg-red-50 rounded-md" onClick={handleRemoveAvatar}>
                     Remove Avatar
                   </Button>
                 </div>

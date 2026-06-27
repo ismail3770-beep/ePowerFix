@@ -29,7 +29,7 @@ export default function PaymentFailPage() {
             <div className="flex flex-col gap-2">
               <Button
                 className="w-full"
-                onClick={() => router.push("/")}
+                onClick={() => router.back()}
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Try Again

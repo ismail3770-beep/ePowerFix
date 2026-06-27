@@ -2,7 +2,7 @@
 
 const brands = [
   "Siemens", "Schneider", "ABB", "Legrand", "Havells",
-  "Phillips", "Osram", "Bosch", "Fluke", "Eaton",
+  "Philips", "Osram", "Bosch", "Fluke", "Eaton",
 ];
 
 export default function BrandStrip() {

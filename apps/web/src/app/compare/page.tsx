@@ -8,6 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { X, ShoppingCart, Star } from 'lucide-react'
 import Link from 'next/link'
+import { useCartStore } from '@/store'
+import { toast } from 'sonner'
 
 interface Product {
   id: string
@@ -73,7 +75,13 @@ export default function ComparePage() {
     { label: '', render: (p: Product) => (
       <div className="flex gap-2 justify-center">
         <Button size="sm" onClick={() => removeProduct(p.id)} variant="outline"><X className="w-4 h-4" /> Remove</Button>
-        <Button size="sm"><ShoppingCart className="w-4 h-4 mr-1" /> Cart</Button>
+        <Button size="sm" onClick={() => {
+              const { addItem } = useCartStore.getState()
+              products.forEach((p) =>
+                addItem({ productId: p.id, name: p.name, price: p.salePrice || p.price, image: p.images?.[0] || '/placeholder.png', quantity: 1 })
+              )
+              toast.success('Added to cart')
+            }}><ShoppingCart className="w-4 h-4 mr-1" /> Cart</Button>
       </div>
     )},
   ]

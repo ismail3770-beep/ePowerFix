@@ -85,11 +85,14 @@ cartRouter.post('/', requireAuth, validate(addToCartSchema), async (req, res) =>
 // PUT /api/cart/:id — update quantity (auth required)
 cartRouter.put('/:id', requireAuth, validate(z.object({ quantity: z.number().int().min(0) })), async (req, res) => {
   try {
+    const item = await db.cartItem.findFirst({ where: { id: req.params.id, userId: req.user!.id } })
+    if (!item) return res.status(404).json(error('Cart item not found'))
+
     if (req.body.quantity === 0) {
-      await db.cartItem.delete({ where: { id: req.params.id } })
+      await db.cartItem.delete({ where: { id: item.id } })
       return res.json(success(null, 'Item removed'))
     }
-    await db.cartItem.update({ where: { id: req.params.id }, data: { quantity: req.body.quantity } })
+    await db.cartItem.update({ where: { id: item.id }, data: { quantity: req.body.quantity } })
     res.json(success(null, 'Cart updated'))
   } catch (err: any) {
     res.status(500).json(error(err.message))
@@ -99,7 +102,10 @@ cartRouter.put('/:id', requireAuth, validate(z.object({ quantity: z.number().int
 // DELETE /api/cart/:id — remove item (auth required)
 cartRouter.delete('/:id', requireAuth, async (req, res) => {
   try {
-    await db.cartItem.delete({ where: { id: req.params.id } })
+    const item = await db.cartItem.findFirst({ where: { id: req.params.id, userId: req.user!.id } })
+    if (!item) return res.status(404).json(error('Cart item not found'))
+
+    await db.cartItem.delete({ where: { id: item.id } })
     res.json(success(null, 'Item removed'))
   } catch (err: any) {
     res.status(500).json(error(err.message))

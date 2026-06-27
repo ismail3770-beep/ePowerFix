@@ -2,11 +2,12 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { db } from '@epowerfix/db'
 import { validate } from '../middleware/validate'
+import { apiLimiter } from '../middleware/rate-limit'
 import { success, error } from '../utils/response'
 
 export const newsletterRouter = Router()
 
-newsletterRouter.post('/', validate(z.object({ email: z.string().email('Invalid email address') })), async (req, res) => {
+newsletterRouter.post('/', apiLimiter, validate(z.object({ email: z.string().email('Invalid email address') })), async (req, res) => {
   try {
     const sub = await db.newsletter.upsert({
       where: { email: req.body.email },

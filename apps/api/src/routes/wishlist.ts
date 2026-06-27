@@ -11,7 +11,7 @@ export const wishlistRouter = Router()
 wishlistRouter.get('/', requireAuth, async (req, res) => {
   try {
     const items = await db.wishlist.findMany({
-      where: { userId: req.user!.id },
+      where: { userId: req.user!.id, product: { isActive: true, isDeleted: false } },
       include: {
         product: { select: { id: true, name: true, nameBn: true, price: true, salePrice: true, images: true, stock: true, rating: true, reviewCount: true } },
       },
@@ -26,6 +26,9 @@ wishlistRouter.get('/', requireAuth, async (req, res) => {
 // POST /api/wishlist (auth required)
 wishlistRouter.post('/', requireAuth, validate(z.object({ productId: z.string() })), async (req, res) => {
   try {
+    const product = await db.product.findFirst({ where: { id: req.body.productId, isActive: true, isDeleted: false } })
+    if (!product) return res.status(404).json(error('Product not found'))
+
     const item = await db.wishlist.create({ data: { userId: req.user!.id, productId: req.body.productId } })
     res.status(201).json(success(item, 'Added to wishlist'))
   } catch (err: any) {

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Trash2, ShoppingCart, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { useCartStore } from '@/store'
 
 interface WishlistItem {
   id: string
@@ -96,7 +97,11 @@ export default function WishlistPage() {
                       <span className="ml-2 text-sm text-gray-400 line-through">৳{item.product.price}</span>
                     )}
                   </div>
-                  <Button size="sm"><ShoppingCart className="w-4 h-4 mr-1" />Cart</Button>
+                  <Button size="sm" onClick={() => {
+                    const { addItem } = useCartStore.getState()
+                    addItem({ productId: item.product.id, name: item.product.name, price: item.product.salePrice || item.product.price, image: item.product.images?.[0] || '/placeholder.png', quantity: 1 })
+                    toast.success('Added to cart')
+                  }}><ShoppingCart className="w-4 h-4 mr-1" />Cart</Button>
                 </div>
               </CardContent>
             </Card>

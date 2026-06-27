@@ -10,8 +10,8 @@ export const servicesBookRouter = Router()
 
 const bookingSchema = z.object({
   serviceId: z.string().min(1),
-  bookingDate: z.string().min(1, 'Booking date is required'),
-  bookingTime: z.string().min(1, 'Booking time is required'),
+  bookingDate: z.string().refine(val => !isNaN(Date.parse(val)) && new Date(val) > new Date(), 'Must be a valid future date'),
+  bookingTime: z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/, 'Invalid time format (HH:MM)'),
   notes: z.string().optional().default(''),
   address: z.string().min(1, 'Address is required'),
   phone: z.string().regex(/^(\+880|0)1[3-9]\d{8}$/, 'Invalid BD phone number'),

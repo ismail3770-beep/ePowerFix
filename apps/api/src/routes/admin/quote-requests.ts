@@ -4,17 +4,29 @@ import { db } from '@epowerfix/db'
 import { requireAdmin } from '../../middleware/auth'
 import { validate } from '../../middleware/validate'
 import { success, error } from '../../utils/response'
+import { getPagination } from '@epowerfix/utils'
 
 export const quoteRequestsRouter = Router()
 
 // GET /api/admin/quote-requests
-quoteRequestsRouter.get('/', requireAdmin, async (_req, res) => {
+quoteRequestsRouter.get('/', requireAdmin, async (req, res) => {
   try {
-    const quoteRequests = await db.quoteRequest.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: { user: { select: { id: true, name: true, email: true } } },
-    })
-    res.json(success(quoteRequests))
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 20
+    const { skip, take } = getPagination({ page, limit })
+    const where: any = { isDeleted: false }
+
+    const [quoteRequests, total] = await Promise.all([
+      db.quoteRequest.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: { user: { select: { id: true, name: true, email: true } } },
+      }),
+      db.quoteRequest.count({ where }),
+    ])
+    res.json(success({ data: quoteRequests, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

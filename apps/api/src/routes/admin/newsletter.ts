@@ -2,14 +2,23 @@ import { Router } from 'express'
 import { db } from '@epowerfix/db'
 import { requireAdmin } from '../../middleware/auth'
 import { success, error } from '../../utils/response'
+import { getPagination } from '@epowerfix/utils'
 
 export const newsletterRouter = Router()
 
 // GET /api/admin/newsletter — list all subscribers
-newsletterRouter.get('/', requireAdmin, async (_req, res) => {
+newsletterRouter.get('/', requireAdmin, async (req, res) => {
   try {
-    const subscribers = await db.newsletter.findMany({ orderBy: { createdAt: 'desc' } })
-    res.json(success(subscribers))
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 20
+    const { skip, take } = getPagination({ page, limit })
+    const where = { isDeleted: false }
+
+    const [subscribers, total] = await Promise.all([
+      db.newsletter.findMany({ where, orderBy: { createdAt: 'desc' }, skip, take }),
+      db.newsletter.count({ where }),
+    ])
+    res.json(success({ data: subscribers, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

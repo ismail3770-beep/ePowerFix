@@ -107,6 +107,20 @@ shipmentsRouter.put('/:id/status', requireAdmin, validate(updateShipmentStatusSc
     const shipment = await db.shipment.findUnique({ where: { id: req.params.id } })
     if (!shipment) return res.status(404).json(error('Shipment not found'))
 
+    // Validate status transitions (forward-only, except FAILED from any state)
+    const validTransitions: Record<string, string[]> = {
+      PENDING: ['PICKED_UP', 'FAILED'],
+      PICKED_UP: ['IN_TRANSIT', 'FAILED'],
+      IN_TRANSIT: ['OUT_FOR_DELIVERY', 'FAILED'],
+      OUT_FOR_DELIVERY: ['DELIVERED', 'FAILED'],
+      DELIVERED: ['FAILED'],
+      FAILED: [],
+    }
+    const allowed = validTransitions[shipment.status] || []
+    if (!allowed.includes(status)) {
+      return res.status(400).json(error(`Invalid status transition: ${shipment.status} → ${status}`))
+    }
+
     const updateData: any = { status }
     // Auto-stamp lifecycle timestamps on first entry into these states
     if (status !== 'PENDING' && !shipment.shippedAt) updateData.shippedAt = new Date()

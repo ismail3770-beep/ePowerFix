@@ -19,7 +19,6 @@ import {
   Lightbulb,
   Plug,
   HomeIcon,
-  Star,
 } from "lucide-react";
 import { useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";

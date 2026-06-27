@@ -42,7 +42,7 @@ export default function NotificationBell() {
 
   const { data } = useQuery<{ success: boolean; data: { data: Notification[]; unreadCount: number }; message?: string }>({
     queryKey: ["notifications"],
-    queryFn: () => apiFetch("/notifications?limit=10"),
+    queryFn: () => apiFetch("/api/notifications?limit=10"),
     refetchInterval: 30000,
   });
 
@@ -51,13 +51,13 @@ export default function NotificationBell() {
 
   const markReadMutation = useMutation({
     mutationFn: (id: string) =>
-      apiFetch(`/notifications/${id}/read`, { method: "PUT" }),
+      apiFetch(`/api/notifications/${id}/read`, { method: "PUT" }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: () =>
-      apiFetch("/notifications/read-all", { method: "PUT" }),
+      apiFetch("/api/notifications/read-all", { method: "PUT" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       toast.success("All notifications marked as read");

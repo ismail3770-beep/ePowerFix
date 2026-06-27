@@ -20,12 +20,18 @@ const createCouponSchema = z.object({
   startDate: z.string().min(1),
   endDate: z.string().min(1),
   isActive: z.boolean().default(true),
-})
+}).refine(data => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.endDate) > new Date(data.startDate)
+  }
+  return true
+}, { message: 'End date must be after start date', path: ['endDate'] })
 
 // GET /api/admin/coupons
 couponsRouter.get('/', requireAdmin, async (_req, res) => {
   try {
     const coupons = await db.coupon.findMany({
+      where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
       include: { _count: { select: { usages: true } } },
     })

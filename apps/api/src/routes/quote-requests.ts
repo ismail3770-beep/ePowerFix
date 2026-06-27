@@ -2,11 +2,12 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { db } from '@epowerfix/db'
 import { validate } from '../middleware/validate'
+import { apiLimiter } from '../middleware/rate-limit'
 import { success, error } from '../utils/response'
 
 export const quoteRequestsRouter = Router()
 
-quoteRequestsRouter.post('/', validate(z.object({
+quoteRequestsRouter.post('/', apiLimiter, validate(z.object({
   name: z.string().min(2),
   email: z.string().email(),
   phone: z.string().regex(/^(\+880|0)1[3-9]\d{8}$/),
@@ -18,7 +19,7 @@ quoteRequestsRouter.post('/', validate(z.object({
   try {
     const data = await db.quoteRequest.create({
       data: {
-        userId: null,
+        userId: req.user?.id || null,
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,

@@ -10,7 +10,7 @@ blogRouter.get('/', async (req, res) => {
   try {
     const { page = '1', limit = '10', search } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = { isPublished: true, ...(search ? {
+    const where: any = { isDeleted: false, isPublished: true, ...(search ? {
       OR: [{ title: { contains: String(search), mode: 'insensitive' } }, { titleBn: { contains: String(search), mode: 'insensitive' } }],
     } : {}) }
 
@@ -33,7 +33,7 @@ blogRouter.get('/', async (req, res) => {
 blogRouter.get('/:slug', async (req, res) => {
   try {
     const post = await db.blogPost.findFirst({
-      where: { slug: req.params.slug, isPublished: true },
+      where: { slug: req.params.slug, isDeleted: false, isPublished: true },
     })
     if (!post) return res.status(404).json(error('Post not found'))
     res.json(success(post))

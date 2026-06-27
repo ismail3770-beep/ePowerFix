@@ -22,9 +22,3 @@ export const api = {
     apiFetch<T>(url, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
   delete: <T>(url: string) => apiFetch<T>(url, { method: 'DELETE' }),
 }
-
-/** Unwraps apiFetch's { success, data, message } envelope — returns data directly */
-export async function apiFetchData<T = any>(url: string, options?: RequestInit): Promise<T | null> {
-  const res = await apiFetch(url, options)
-  return (res as any)?.data ?? null
-}

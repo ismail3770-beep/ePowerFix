@@ -1,6 +1,8 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { db } from '@epowerfix/db'
 import { requireAuth } from '../../middleware/auth'
+import { validate } from '../../middleware/validate'
 import { success, error } from '../../utils/response'
 
 export const extraPublicRoutes = Router()
@@ -15,8 +17,14 @@ extraPublicRoutes.get('/products/compare', async (req, res) => {
     if (ids.length > 4) {
       return res.status(400).json(error('Maximum 4 products can be compared'))
     }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    for (const id of ids) {
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json(error('Invalid product ID format'))
+      }
+    }
     const products = await db.product.findMany({
-      where: { id: { in: ids }, isDeleted: false },
+      where: { id: { in: ids }, isActive: true, isDeleted: false },
       include: {
         category: true,
         brand: true,
@@ -74,15 +82,17 @@ extraPublicRoutes.get('/products/:id/questions', async (req, res) => {
 })
 
 // Product Q&A — ask question (auth required)
-extraPublicRoutes.post('/products/:id/questions', requireAuth, async (req, res) => {
+const questionSchema = z.object({
+  question: z.string().min(1).max(500),
+})
+
+extraPublicRoutes.post('/products/:id/questions', requireAuth, validate(questionSchema), async (req, res) => {
   try {
-    const { question } = req.body
-    if (!question?.trim()) return res.status(400).json(error('Question is required'))
     const q = await db.productQuestion.create({
       data: {
         productId: req.params.id,
         userId: req.user!.id,
-        question: question.trim(),
+        question: req.body.question.trim(),
       },
       include: { user: { select: { id: true, name: true } } },
     })

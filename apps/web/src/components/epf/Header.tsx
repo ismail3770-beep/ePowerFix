@@ -126,6 +126,7 @@ export default function Header() {
 
   const handleSearch = () => {
     setSearchQuery(localSearch);
+    window.location.href = '/shop?search=' + encodeURIComponent(localSearch);
   };
 
   return (
@@ -186,7 +187,7 @@ export default function Header() {
               )}
 
               {/* Wishlist */}
-              <a href="#" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-[#F1F5F9] transition-colors">
+              <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-[#F1F5F9] transition-colors">
                 <Heart className="h-[16px] w-[16px] text-[#6B7280]" />
                 <span className="text-[13px] text-[#374151]">Wishlist</span>
               </a>
@@ -449,7 +450,7 @@ export default function Header() {
               ))}
             </div>
             <div className="p-4 border-t border-[#E2E8F0] flex gap-2">
-              <button className="flex-1 h-10 bg-[#0EA5E9] text-white text-[14px] font-bold rounded-[4px] hover:bg-[#0284C7]">Login / Register</button>
+              <button onClick={() => window.location.href = '/login'} className="flex-1 h-10 bg-[#0EA5E9] text-white text-[14px] font-bold rounded-[4px] hover:bg-[#0284C7]">Login / Register</button>
 
             </div>
           </div>

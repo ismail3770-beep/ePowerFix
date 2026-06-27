@@ -129,7 +129,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/5">
         <div className="mx-auto max-w-[1920px] px-4 sm:px-8 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[13px] text-white/30">&copy; 2026 ePowerFix. All rights reserved.</p>
+          <p className="text-[13px] text-white/30">&copy; {new Date().getFullYear()} ePowerFix. All rights reserved.</p>
           <div className="flex items-center gap-2">
               <span className="text-[13px] text-white/30">Safe Payments:</span>
               {/* VISA */}

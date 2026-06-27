@@ -4,6 +4,7 @@ import { db } from '@epowerfix/db'
 import { requireAdmin } from '../../middleware/auth'
 import { validate } from '../../middleware/validate'
 import { success, error } from '../../utils/response'
+import { getPagination } from '@epowerfix/utils'
 
 export const bookingsRouter = Router()
 
@@ -11,18 +12,26 @@ export const bookingsRouter = Router()
 bookingsRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const status = req.query.status as string | undefined
-    const where: any = {}
+    const page = Number(req.query.page) || 1
+    const limit = Number(req.query.limit) || 20
+    const { skip, take } = getPagination({ page, limit })
+    const where: any = { isDeleted: false }
     if (status) where.status = status
 
-    const bookings = await db.serviceBooking.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        service: { select: { name: true, nameBn: true, category: { select: { name: true } } } },
-        user: { select: { name: true, email: true, phone: true } },
-      },
-    })
-    res.json(success(bookings))
+    const [bookings, total] = await Promise.all([
+      db.serviceBooking.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+        include: {
+          service: { select: { name: true, nameBn: true, category: { select: { name: true } } } },
+          user: { select: { name: true, email: true, phone: true } },
+        },
+      }),
+      db.serviceBooking.count({ where }),
+    ])
+    res.json(success({ data: bookings, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } }))
   } catch (err: any) {
     res.status(500).json(error(err.message))
   }

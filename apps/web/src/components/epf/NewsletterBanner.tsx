@@ -15,7 +15,7 @@ export default function NewsletterBanner() {
     setLoading(true);
     setError("");
     try {
-      const res = await apiFetch("/newsletter", {
+      const res = await apiFetch("/api/newsletter", {
         method: "POST",
         body: JSON.stringify({ email }),
       });

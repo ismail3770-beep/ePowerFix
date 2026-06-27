@@ -23,7 +23,7 @@ const createBlogSchema = z.object({
 blogRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { search, published } = req.query as any
-    const where: any = {}
+    const where: any = { isDeleted: false }
     if (published === 'true') where.isPublished = true
     else if (published === 'false') where.isPublished = false
     if (search) where.OR = [{ title: { contains: String(search), mode: 'insensitive' } }]

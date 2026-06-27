@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 interface Tax {
@@ -34,8 +35,7 @@ export default function TaxesPage() {
     try {
       const res = await apiFetch<{ data: Tax[] }>('/api/admin/taxes')
       setTaxes(res.data || [])
-    } catch (err) { console.error(err) }
-    finally { setLoading(false) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') } finally { setLoading(false) }
   }
 
   useEffect(() => { load() }, [])
@@ -62,14 +62,14 @@ export default function TaxesPage() {
       }
       setDialogOpen(false)
       load()
-    } catch (err) { console.error(err) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') }
   }
 
   const handleDelete = async (id: string) => {
     try {
       await apiFetch(`/api/admin/taxes/${id}`, { method: 'DELETE' })
       load()
-    } catch (err) { console.error(err) }
+    } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') }
     finally { setDeleteTarget(null) }
   }
 

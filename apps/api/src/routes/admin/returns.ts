@@ -19,7 +19,7 @@ returnsRouter.get('/', requireAdmin, async (req, res) => {
   try {
     const { page = '1', limit = '20', status } = req.query as any
     const { skip, take } = getPagination({ page: Number(page), limit: Number(limit) })
-    const where: any = {}
+    const where: any = { isDeleted: false }
     if (status) where.status = String(status)
 
     const [data, total] = await Promise.all([
@@ -115,9 +115,18 @@ returnsRouter.put('/:id', requireAdmin, validate(updateReturnSchema), async (req
       return
     }
 
-    // COMPLETED — refund Payment record + flip the order, all atomically
-    const order = await db.order.findUnique({ where: { id: existing.orderId } })
+    // COMPLETED — refund Payment record + conditionally flip the order, all atomically
+    const order = await db.order.findUnique({
+      where: { id: existing.orderId },
+      include: { items: true },
+    })
     if (!order) return res.status(400).json(error('Linked order not found'))
+
+    // Check if ALL order items have been returned (count completed return requests for this order)
+    const completedReturnCount = await db.returnRequest.count({
+      where: { orderId: order.id, status: 'COMPLETED' },
+    })
+    const allItemsReturned = completedReturnCount + 1 >= order.items.length // +1 for the current one being completed
 
     const [updated] = await db.$transaction([
       db.returnRequest.update({
@@ -135,16 +144,19 @@ returnsRouter.put('/:id', requireAdmin, validate(updateReturnSchema), async (req
       }),
       db.order.update({
         where: { id: order.id },
-        data: { paymentStatus: 'REFUNDED', status: 'RETURNED' },
+        data: {
+          paymentStatus: 'REFUNDED',
+          ...(allItemsReturned ? { status: 'RETURNED' } : {}),
+        },
       }),
-      db.orderHistory.create({
+      ...(allItemsReturned ? [db.orderHistory.create({
         data: {
           orderId: order.id,
           userId: req.user!.id,
           status: 'RETURNED',
           note: `Return completed — refund ৳${finalRefund}`,
         },
-      }),
+      })] : []),
       db.notification.create({
         data: {
           userId: existing.userId,
