@@ -21,6 +21,7 @@ import { flashSaleRoutes } from './flash-sales'
 import { taxRoutes } from './taxes'
 import { productQuestionRoutes } from './product-questions'
 import { settingsRouter } from './settings'
+import { uploadRouter } from './upload'
 
 export const adminRouter = Router()
 
@@ -46,3 +47,4 @@ adminRouter.use('/flash-sales', flashSaleRoutes)
 adminRouter.use('/taxes', taxRoutes)
 adminRouter.use('/product-questions', productQuestionRoutes)
 adminRouter.use('/settings', settingsRouter)
+adminRouter.use('/upload', uploadRouter)

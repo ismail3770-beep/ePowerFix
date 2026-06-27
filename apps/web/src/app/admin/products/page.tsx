@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Search, Plus, Eye, Pencil, Trash2,
 } from "lucide-react";
+import { ImageUploader } from "@/components/ImageUploader";
 
 interface ProductCategory {
   id: string;
@@ -57,7 +58,7 @@ interface Brand {
 
 const defaultProduct = {
   name: "", description: "", price: 0, comparePrice: 0, sku: "",
-  stock: 0, categoryId: "", brandId: "", images: "", isFeatured: false, isActive: true,
+  stock: 0, categoryId: "", brandId: "", imageUrls: [] as string[], isFeatured: false, isActive: true,
 };
 
 type ProductForm = typeof defaultProduct;
@@ -130,7 +131,7 @@ export default function AdminProductsPage() {
       stock: product.stock,
       categoryId: product.category?.id ?? "",
       brandId: product.brand?.id ?? "",
-      images: (product.images ?? []).join(", "),
+      imageUrls: product.images ?? [],
       isFeatured: product.isFeatured,
       isActive: product.isActive,
     });
@@ -142,10 +143,7 @@ export default function AdminProductsPage() {
     try {
       const body = {
         ...form,
-        images: form.images
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        images: form.imageUrls,
       };
       if (dialog.edit) {
         await apiFetch(`/api/admin/products/${dialog.edit.id}`, {
@@ -383,8 +381,12 @@ export default function AdminProductsPage() {
               </Select>
             </div>
             <div className="col-span-2">
-              <Label htmlFor="images">Images (comma-separated URLs)</Label>
-              <Input id="images" value={form.images} onChange={(e) => setForm((f) => ({ ...f, images: e.target.value }))} />
+              <ImageUploader
+                value={form.imageUrls}
+                onChange={(urls) => setForm((f) => ({ ...f, imageUrls: urls }))}
+                max={8}
+                label="Product Images"
+              />
             </div>
             <div className="flex items-center gap-8">
               <div className="flex items-center gap-2">

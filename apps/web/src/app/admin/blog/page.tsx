@@ -18,7 +18,7 @@ import {
 import {
   Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SingleImageUploader } from "@/components/ImageUploader";
 import { Search, Plus, Pencil } from "lucide-react";
 
 type PostStatus = "DRAFT" | "PUBLISHED";
@@ -282,11 +282,10 @@ export default function AdminBlogPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input
-                id="imageUrl"
+              <SingleImageUploader
                 value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                onChange={(url) => setForm({ ...form, imageUrl: url })}
+                label="Cover Image"
               />
             </div>
             <div className="space-y-2">

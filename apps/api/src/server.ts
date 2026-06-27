@@ -3,6 +3,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import path from 'path'
 
 import { authRouter } from './routes/auth'
 import { productsRouter } from './routes/products'
@@ -39,6 +40,9 @@ app.use(cors({
 app.use(morgan('dev'))
 app.use(cookieParser())
 app.use(express.json({ limit: '10mb' }))
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')))
 
 // Health check
 app.get('/', (_req, res) => {

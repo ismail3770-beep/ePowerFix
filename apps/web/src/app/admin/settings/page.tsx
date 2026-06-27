@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   Palette, Type, Layout, Globe, Share2, Save, Loader2, Eye, RotateCcw,
 } from "lucide-react";
+import { SingleImageUploader } from "@/components/ImageUploader";
 
 const DEFAULTS = {
   siteName: "ePowerFix",
@@ -241,22 +242,20 @@ export default function AdminSettingsPage() {
                   <Input value={settings.siteTagline || ""} onChange={(e) => update("siteTagline", e.target.value)} className="h-10 text-[14px]" placeholder="Your site tagline" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-medium text-[#374151]">Logo URL</Label>
-                  <Input value={settings.logoUrl || ""} onChange={(e) => update("logoUrl", e.target.value)} className="h-10 text-[14px]" placeholder="https://..." />
+                  <SingleImageUploader
+                    value={settings.logoUrl || ""}
+                    onChange={(url) => update("logoUrl", url)}
+                    label="Logo"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-medium text-[#374151]">Favicon URL</Label>
-                  <Input value={settings.faviconUrl || ""} onChange={(e) => update("faviconUrl", e.target.value)} className="h-10 text-[14px]" placeholder="https://..." />
+                  <SingleImageUploader
+                    value={settings.faviconUrl || ""}
+                    onChange={(url) => update("faviconUrl", url)}
+                    label="Favicon"
+                  />
                 </div>
               </div>
-              {settings.logoUrl && (
-                <div className="flex items-center gap-4 p-3 rounded-md border border-[#e2e8f0] bg-[#f8fafc] max-w-xs">
-                  <Eye className="h-4 w-4 text-[#94a3b8]" />
-                  <span className="text-[12px] text-[#64748b]">Preview:</span>
-                  <img src={settings.logoUrl} alt="Logo" className="h-8 object-contain" onError={(e) => (e.currentTarget.style.display = "none")} />
-                </div>
-              )}
-
               <Separator className="my-2" />
               <h4 className="text-[14px] font-medium text-[#374151]">Contact Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 max-w-2xl">

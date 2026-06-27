@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SingleImageUploader } from "@/components/ImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -100,7 +100,13 @@ export default function BrandsPage() {
           <div className="space-y-4 py-4">
             <div><Label>Name</Label><Input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} /></div>
             <div><Label>Slug</Label><Input value={form.slug} onChange={e=>setForm({...form,slug:e.target.value})} placeholder="Auto-generated from name" /></div>
-            <div><Label>Logo URL</Label><Input value={form.logo} onChange={e=>setForm({...form,logo:e.target.value})} /></div>
+            <div className="space-y-2">
+              <SingleImageUploader
+                value={form.logo}
+                onChange={(url) => setForm({ ...form, logo: url })}
+                label="Brand Logo"
+              />
+            </div>
             <div><Label>Description</Label><textarea className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} /></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={()=>setDialog(false)}>Cancel</Button><Button onClick={save} disabled={saving}>{saving?"Saving...":"Save"}</Button></DialogFooter>

@@ -9,7 +9,7 @@ import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SingleImageUploader } from "@/components/ImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Search } from "lucide-react";
 
@@ -86,7 +86,13 @@ export default function CategoriesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Image URL</Label><Input value={form.image} onChange={e=>setForm({...form,image:e.target.value})} /></div>
+            <div className="space-y-2">
+              <SingleImageUploader
+                value={form.image}
+                onChange={(url) => setForm({ ...form, image: url })}
+                label="Category Image"
+              />
+            </div>
             <div><Label>Description</Label><textarea className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} /></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={()=>setDialog(false)}>Cancel</Button><Button onClick={save} disabled={saving}>{saving?"Saving...":"Save"}</Button></DialogFooter>

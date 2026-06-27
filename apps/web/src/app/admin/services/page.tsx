@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SingleImageUploader } from "@/components/ImageUploader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Pencil, Search } from "lucide-react";
 
@@ -97,7 +97,13 @@ export default function ServicesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div><Label>Image URL</Label><Input value={form.image} onChange={e=>setForm({...form,image:e.target.value})} /></div>
+            <div className="space-y-2">
+              <SingleImageUploader
+                value={form.image}
+                onChange={(url) => setForm({ ...form, image: url })}
+                label="Service Image"
+              />
+            </div>
             <div className="flex items-center gap-2"><Switch checked={form.isActive} onCheckedChange={v=>setForm({...form,isActive:v})} /><Label>Active</Label></div>
           </div>
           <DialogFooter><Button variant="outline" onClick={()=>setDialog(false)}>Cancel</Button><Button onClick={save} disabled={saving}>{saving?"Saving...":"Save"}</Button></DialogFooter>
