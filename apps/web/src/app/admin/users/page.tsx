@@ -14,7 +14,7 @@ import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Shield, ShieldOff } from "lucide-react";
+import { Search, Shield, ShieldOff, Trash2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -79,6 +79,17 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function handleDeleteUser(userId: string, userName: string) {
+    if (!confirm(`Are you sure you want to delete "${userName}"? This action can be undone from the trashed users list.`)) return;
+    try {
+      await apiFetch(`/api/admin/users/${userId}`, { method: "DELETE" });
+      toast.success("User deleted");
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete user");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -118,7 +129,7 @@ export default function AdminUsersPage() {
                     <TableHead>Status</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Joined</TableHead>
-                    <TableHead className="w-28 text-right">Actions</TableHead>
+                    <TableHead className="w-36 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -150,17 +161,27 @@ export default function AdminUsersPage() {
                         {formatDate(user.createdAt)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant={user.isActive ? "destructive" : "default"}
-                          onClick={() => handleToggleActive(user)}
-                        >
-                          {user.isActive ? (
-                            <><ShieldOff className="mr-1 h-3 w-3" /> Block</>
-                          ) : (
-                            <><Shield className="mr-1 h-3 w-3" /> Unblock</>
-                          )}
-                        </Button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant={user.isActive ? "destructive" : "default"}
+                            onClick={() => handleToggleActive(user)}
+                          >
+                            {user.isActive ? (
+                              <><ShieldOff className="mr-1 h-3 w-3" /> Block</>
+                            ) : (
+                              <><Shield className="mr-1 h-3 w-3" /> Unblock</>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => handleDeleteUser(user.id, user.name || user.email)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
