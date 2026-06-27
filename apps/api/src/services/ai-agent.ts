@@ -943,8 +943,15 @@ let agentInstance: AIAgent | null = null
 
 export async function getAIAgent(): Promise<AIAgent> {
   if (!agentInstance) {
-    agentInstance = new AIAgent()
-    await agentInstance.init()
+    const agent = new AIAgent()
+    try {
+      await agent.init()
+      agentInstance = agent
+    } catch (err) {
+      console.error('[AI Agent] Failed to initialize ZAI SDK:', err)
+      agentInstance = null
+      throw new Error('AI Agent initialization failed. Check ZAI SDK configuration.')
+    }
   }
   return agentInstance
 }

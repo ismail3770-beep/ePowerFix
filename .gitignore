@@ -7,3 +7,4 @@ node_modules
 
 # uploads
 apps/api/uploads/
+packages/security/dist/

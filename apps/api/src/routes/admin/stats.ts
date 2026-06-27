@@ -32,8 +32,8 @@ statsRouter.get('/', requireAdmin, async (_req, res) => {
       db.service.count({ where: { isActive: true, isDeleted: false } }),
       db.project.count({ where: { isDeleted: false } }),
       db.contact.count({ where: { isDeleted: false } }),
-      db.returnRequest.count({ where: { status: 'PENDING', isDeleted: false } }),
-      db.returnRequest.count({ where: { isDeleted: false } }),
+      db.returnRequest.count({ where: { status: 'PENDING' } }),
+      db.returnRequest.count(),
     ])
 
     const recentOrders = await db.order.findMany({
