@@ -25,7 +25,8 @@ export type {
   RateLimitEntry,
 } from './types'
 
-export { SecurityConfig, DefaultSecurityConfig } from './config'
+export type { SecurityConfig } from './config'
+export { DefaultSecurityConfig } from './config'
 export { securityMiddleware } from './middleware/security'
 
 // Individual middleware exports

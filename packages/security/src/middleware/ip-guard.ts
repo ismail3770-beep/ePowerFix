@@ -15,7 +15,7 @@ export function ipGuardMiddleware(config: IPGuardConfig) {
   if (!cleanupTimer) {
     cleanupTimer = setInterval(() => {
       const now = Date.now()
-      rules = rules.filter(r => !r.expiresAt || r.expiresAt > now)
+      rules = rules.filter(r => !r.expiresAt || r.expiresAt.getTime() > now)
       autoBlockCounters = new Map()
     }, 60000)
   }

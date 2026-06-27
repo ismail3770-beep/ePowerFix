@@ -8,6 +8,7 @@ COPY packages/db/package.json packages/db/
 COPY packages/config/package.json packages/config/
 COPY packages/types/package.json packages/types/
 COPY packages/utils/package.json packages/utils/
+COPY packages/security/package.json packages/security/
 COPY apps/api/package.json apps/api/
 
 # Install all dependencies

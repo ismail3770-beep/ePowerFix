@@ -39,10 +39,12 @@ export class AuditLogService {
       filtered = filtered.filter(e => e.ip === options.ip)
     }
     if (options?.startDate) {
-      filtered = filtered.filter(e => e.timestamp >= options.startDate)
+      const start = options.startDate
+      filtered = filtered.filter(e => e.timestamp >= start)
     }
     if (options?.endDate) {
-      filtered = filtered.filter(e => e.timestamp <= options.endDate)
+      const end = options.endDate
+      filtered = filtered.filter(e => e.timestamp <= end)
     }
     filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     const total = filtered.length

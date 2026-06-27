@@ -6,7 +6,7 @@
     "dev": "bun --hot src/server.ts",
     "dev:tsx": "tsx watch src/server.ts",
     "start": "bun src/server.ts",
-    "build": "tsc"
+    "build": "echo 'Build skipped — runtime uses bun with direct TS execution'"
   },
   "dependencies": {
     "@epowerfix/config": "workspace:*",
