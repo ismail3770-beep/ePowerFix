@@ -25,6 +25,7 @@ import { newsletterRouter } from './routes/newsletter'
 import { quoteRequestsRouter } from './routes/quote-requests'
 import { productCategoriesRouter } from './routes/product-categories'
 import { adminRouter } from './routes/admin'
+import { aiAgentRouter } from './routes/ai-agent'
 import { extraPublicRoutes } from './routes/public/extra'
 import { settingsRouter } from './routes/public/settings'
 import { apiLimiter } from './middleware/rate-limit'
@@ -79,6 +80,9 @@ app.use('/api', extraPublicRoutes)
 // Admin routes (all protected)
 app.use('/api/admin', adminRouter)
 
+// AI Agent route (admin protected)
+app.use('/api/ai/agent', aiAgentRouter)
+
 // 404 handler
 app.use((_req, res) => {
   res.status(404).json({ success: false, error: 'Not found' })
@@ -95,6 +99,7 @@ app.listen(PORT, () => {
   console.log(`   Health:  http://localhost:${PORT}/`)
   console.log(`   Public:  http://localhost:${PORT}/api/`)
   console.log(`   Admin:   http://localhost:${PORT}/api/admin/`)
+  console.log(`   AI Agent: http://localhost:${PORT}/api/ai/agent`)
 })
 
 export default app
