@@ -32,6 +32,7 @@ import {
   X,
   Settings,
   ImageIcon,
+  Bot,
 } from "lucide-react";
 
 interface NavGroup {
@@ -44,6 +45,7 @@ const navGroups: NavGroup[] = [
     label: "MAIN",
     items: [
       { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/admin/ai-agent", label: "AI Assistant", icon: Bot },
       { href: "/admin/profile", label: "Profile", icon: User },
     ],
   },
