@@ -57,7 +57,7 @@ export default function AdminMessagesPage() {
     setError(null)
     try {
       const res = await apiFetch<{ data: Message[] }>("/api/admin/messages")
-      setMessages(res.data)
+      setMessages(Array.isArray(res.data) ? res.data : (res.data as any)?.data || [])
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load messages"
       setError(msg)

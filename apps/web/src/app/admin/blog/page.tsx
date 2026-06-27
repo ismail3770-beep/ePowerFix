@@ -74,7 +74,7 @@ export default function AdminBlogPage() {
     try {
       const params = search ? `?search=${encodeURIComponent(search)}` : "";
       const res: any = await apiFetch(`/api/admin/blog${params}`);
-      setPosts(res.data ?? []);
+      setPosts(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load posts");
     } finally {

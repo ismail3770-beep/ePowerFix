@@ -54,7 +54,7 @@ export default function AdminQuoteRequestsPage() {
     setError(null)
     try {
       const res = await apiFetch<{ data: QuoteRequest[] }>("/api/admin/quote-requests")
-      setQuotes(res.data)
+      setQuotes(Array.isArray(res.data) ? res.data : (res.data as any)?.data || [])
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load quote requests"
       setError(msg)

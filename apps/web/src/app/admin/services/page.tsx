@@ -35,8 +35,8 @@ export default function ServicesPage() {
         apiFetch<{ data: Service[] }>("/api/admin/services"),
         apiFetch<{ data: SvcCat[] }>("/api/admin/service-categories").catch(() => ({ data: [] })),
       ]);
-      setServices(svcRes.data);
-      setSvcCats((catRes as any)?.data ?? []);
+      setServices(Array.isArray(svcRes.data) ? svcRes.data : (svcRes.data as any)?.data || []);
+      setSvcCats(Array.isArray(catRes.data) ? catRes.data : (catRes as any)?.data || []);
     } catch { toast.error("Failed to load services"); }
     finally { setLoading(false); }
   };

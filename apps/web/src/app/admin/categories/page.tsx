@@ -26,7 +26,7 @@ export default function CategoriesPage() {
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
-    try { const res = await apiFetch<{ data: Category[] }>("/api/admin/product-categories"); setCats(res.data); }
+    try { const res = await apiFetch<{ data: Category[] }>("/api/admin/product-categories"); setCats(Array.isArray(res.data) ? res.data : (res.data as any)?.data || []); }
     catch { toast.error("Failed to load categories"); } finally { setLoading(false); }
   };
 

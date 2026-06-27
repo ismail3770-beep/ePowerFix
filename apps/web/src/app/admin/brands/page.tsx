@@ -29,7 +29,7 @@ export default function BrandsPage() {
   const load = async () => {
     try {
       const res = await apiFetch<{ data: Brand[] }>("/api/admin/brands");
-      setBrands(res.data);
+      setBrands(Array.isArray(res.data) ? res.data : (res.data as any)?.data || []);
     } catch { toast.error("Failed to load brands"); }
     finally { setLoading(false); }
   };

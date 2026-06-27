@@ -27,7 +27,7 @@ export default function CouponsPage() {
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
-    try { const res = await apiFetch<{ data: Coupon[] }>("/api/admin/coupons"); setCoupons(res.data); }
+    try { const res = await apiFetch<{ data: Coupon[] }>("/api/admin/coupons"); setCoupons(Array.isArray(res.data) ? res.data : (res.data as any)?.data || []); }
     catch { toast.error("Failed to load coupons"); } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);

@@ -56,7 +56,7 @@ export default function AdminBookingsPage() {
     try {
       const params = statusFilter !== "ALL" ? `?status=${statusFilter}` : "";
       const res: any = await apiFetch(`/api/admin/bookings${params}`);
-      setBookings(res.data ?? []);
+      setBookings(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch (err: any) {
       toast.error(err.message || "Failed to load bookings");
     } finally {

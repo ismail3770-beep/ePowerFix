@@ -42,7 +42,7 @@ export default function ProductQuestionsPage() {
   const load = async () => {
     try {
       const res = await apiFetch<{ data: Question[] }>('/api/admin/product-questions')
-      setQuestions(res.data || [])
+      setQuestions(Array.isArray(res.data) ? res.data : (res.data as any)?.data || [])
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
   }

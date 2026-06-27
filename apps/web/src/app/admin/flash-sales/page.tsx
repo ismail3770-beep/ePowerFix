@@ -36,7 +36,7 @@ export default function FlashSalesPage() {
   const load = async () => {
     try {
       const res = await apiFetch<{ data: FlashSale[] }>('/api/admin/flash-sales')
-      setFlashSales(res.data || [])
+      setFlashSales(Array.isArray(res.data) ? res.data : (res.data as any)?.data || [])
     } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') } finally { setLoading(false) }
   }
 

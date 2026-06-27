@@ -98,7 +98,7 @@ export default function AdminProductsPage() {
   const fetchCategories = useCallback(async () => {
     try {
       const res: any = await apiFetch("/api/admin/product-categories");
-      setCategories(res.data ?? []);
+      setCategories(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch {
       // non-critical
     }
@@ -107,7 +107,7 @@ export default function AdminProductsPage() {
   const fetchBrands = useCallback(async () => {
     try {
       const res: any = await apiFetch("/api/admin/brands");
-      setBrands(res.data ?? []);
+      setBrands(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch {
       // non-critical
     }

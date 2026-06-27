@@ -34,7 +34,7 @@ export default function TaxesPage() {
   const load = async () => {
     try {
       const res = await apiFetch<{ data: Tax[] }>('/api/admin/taxes')
-      setTaxes(res.data || [])
+      setTaxes(Array.isArray(res.data) ? res.data : (res.data as any)?.data || [])
     } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') } finally { setLoading(false) }
   }
 
