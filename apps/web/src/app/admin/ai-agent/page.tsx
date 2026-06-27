@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Bot, Send, Trash2, Loader2, Sparkles, ArrowRight, MessageSquare, StopCircle } from "lucide-react";
 
@@ -14,6 +15,17 @@ interface Message {
   toolCalls?: string[];
   loading?: boolean;
 }
+
+const MODEL_OPTIONS = [
+  { value: "__default__", label: "Default Model" },
+  { value: "glm-5", label: "GLM-5" },
+  { value: "glm-5-turbo", label: "GLM-5 Turbo" },
+  { value: "glm-5-flash", label: "GLM-5 Flash" },
+  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+  { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+  { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+];
 
 const SUGGESTIONS = [
   "Dashboard stats dekao",
@@ -29,6 +41,7 @@ export default function AIAgentPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState("__default__");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -78,6 +91,7 @@ export default function AIAgentPage() {
       }>("/api/ai/agent", {
         message: text.trim(),
         sessionId,
+        ...(selectedModel !== "__default__" ? { model: selectedModel } : {}),
       });
 
       const { response, toolCallsExecuted } = res.data;
@@ -156,6 +170,18 @@ export default function AIAgentPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Select value={selectedModel} onValueChange={setSelectedModel} disabled={loading}>
+            <SelectTrigger className="w-[160px] h-9 text-xs">
+              <SelectValue placeholder="Default Model" />
+            </SelectTrigger>
+            <SelectContent>
+              {MODEL_OPTIONS.map((m) => (
+                <SelectItem key={m.value} value={m.value} disabled={m.value === "__default__"}>
+                  {m.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {messages.length > 0 && (
             <Button
               variant="outline"

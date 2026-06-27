@@ -45,7 +45,8 @@ export default function AdminNewsletterPage() {
     setError(null)
     try {
       const res = await apiFetch<{ data: Subscriber[] }>("/api/admin/newsletter")
-      setSubscribers(res.data)
+      const payload = res.data
+      setSubscribers(Array.isArray(payload) ? payload : (payload as any)?.data || [])
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load subscribers"
       setError(msg)

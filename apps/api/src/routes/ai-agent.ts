@@ -8,7 +8,7 @@ export const aiAgentRouter = Router()
 // POST /api/ai/agent — Send a message to the AI agent
 aiAgentRouter.post('/', requireAdmin, async (req, res) => {
   try {
-    const { message, sessionId } = req.body
+    const { message, sessionId, model } = req.body
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return res.status(400).json(error('Message is required'))
@@ -16,7 +16,7 @@ aiAgentRouter.post('/', requireAdmin, async (req, res) => {
 
     const sid = sessionId || req.user!.id
     const agent = await getAIAgent()
-    const result = await agent.chat(sid, message.trim())
+    const result = await agent.chat(sid, message.trim(), model)
 
     res.json(success({
       response: result.response,

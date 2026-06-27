@@ -827,7 +827,7 @@ export class AIAgent {
     return this
   }
 
-  async chat(sessionId: string, userMessage: string): Promise<{
+  async chat(sessionId: string, userMessage: string, model?: string): Promise<{
     response: string
     toolCallsExecuted: number
     sessionId: string
@@ -856,6 +856,7 @@ export class AIAgent {
           { role: 'assistant', content: systemMessage },
           ...llmHistory,
         ],
+        ...(model ? { model } : {}),
         thinking: { type: 'disabled' },
       })
 
@@ -921,6 +922,7 @@ export class AIAgent {
         { role: 'assistant', content: systemMessage },
         ...llmHistory,
       ],
+      ...(model ? { model } : {}),
       thinking: { type: 'disabled' },
     })
 
