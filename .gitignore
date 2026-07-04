@@ -30,34 +30,38 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — NEVER commit real secrets
 .env*
 !.env.example
 
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
-.claude
-.z-ai-config
+
+# logs
 *.log
 dev.log
-dev.out.log
+server.log
+
+# local databases (SQLite binary — not needed when using PostgreSQL)
+/db/
+*.db
+*.sqlite
+*.sqlite3
+
+# sandbox / dev environment
+/skills/
+/.zscripts/
+/.claude
+/.z-ai-config
+local-*
 test
 prompt
-
-server.log
-# Skills directory
-/skills/
-
-# Local backups & clones
-/src_backup_starter/
-/ePowerFix/
-/tool-results/
-/agent-ctx/
+/examples/
+/mini-services/
+/download/
+/upload/
 *.png
-admin-*-working.png
