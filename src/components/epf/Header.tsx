@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ChevronDown, Bell } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useCartStore, useUIStore } from "@/store";
 import { useAuthStore } from "@/store/auth-store";
 import { apiFetch } from "@/lib/api";
@@ -97,26 +97,10 @@ export default function Header() {
   const { setSearchQuery, setCartOpen } = useUIStore();
   const { getTotal, getItemCount } = useCartStore();
   const { user, logout } = useAuthStore();
-  const [notifCount, setNotifCount] = useState(0);
   const total = getTotal();
   const count = getItemCount();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-
-  // Fetch notification count
-  useEffect(() => {
-    if (!user) { setNotifCount(0); return; }
-    const controller = new AbortController();
-    const fetchNotif = async () => {
-      try {
-        const res: any = await apiFetch('/api/notifications/unread-count', { signal: controller.signal });
-        setNotifCount(res?.data?.unreadCount ?? 0);
-      } catch {}
-    };
-    fetchNotif();
-    const interval = setInterval(fetchNotif, 60000);
-    return () => { controller.abort(); clearInterval(interval); };
-  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -368,17 +352,6 @@ export default function Header() {
                   </div>
                 )}
               </div>
-
-              {/* Notifications */}
-              <a href="/notifications" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-dark-50 transition-colors relative">
-                <Bell className="h-[16px] w-[16px] text-dark-500" />
-                {notifCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-[15px] min-w-[15px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
-                    {notifCount > 9 ? '9+' : notifCount}
-                  </span>
-                )}
-                <span className="text-[13px] text-dark-700">Alerts</span>
-              </a>
 
               {/* Wishlist */}
               <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-dark-50 transition-colors">
