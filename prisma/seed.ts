@@ -57,7 +57,7 @@ async function seed() {
   // 1. Users (1 admin + 3 customers)
   // ------------------------------------------------------------------
   const adminEmail = "admin@epowerfix.com";
-  const adminPassword = "admin123";
+  const adminPassword = "***REDACTED***";
 
   const admin = await db.user.upsert({
     where: { email: adminEmail },
@@ -71,10 +71,10 @@ async function seed() {
     },
     create: {
       id: uuidv4(),
-      name: "Admin User",
-      nameBn: "অ্যাডমিন",
+      name: "ePowerFix Admin",
+      nameBn: "ই-পাওয়ার ফিক্স অ্যাডমিন",
       email: adminEmail,
-      phone: "+880100000000",
+      phone: "+880000000000",
       password: hashPassword(adminPassword),
       role: "ADMIN",
       isActive: true,

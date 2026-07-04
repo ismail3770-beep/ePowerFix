@@ -60,7 +60,7 @@ bun run prisma/seed.ts
 ```
 
 This creates:
-- 1 admin user: `admin@epowerfix.com` / `admin123`
+- 1 admin user: `admin@epowerfix.com` / `***REDACTED***`
 - 3 customers, 6 products, 4 brands, 4 categories
 - 3 sample orders, 3 services, 3 blog posts, 3 coupons, and more
 
@@ -75,7 +75,7 @@ Open http://localhost:3000
 ### 8. Access the admin panel
 
 - Go to http://localhost:3000/admin/login
-- Login with `admin@epowerfix.com` / `admin123`
+- Login with `admin@epowerfix.com` / `***REDACTED***`
 
 ---
 
@@ -124,7 +124,7 @@ bun run prisma/seed.ts
 ### Step 4: Login to admin panel
 
 - Visit `https://your-site.vercel.app/admin/login`
-- Login with `admin@epowerfix.com` / `admin123`
+- Login with `admin@epowerfix.com` / `***REDACTED***`
 - **⚠️ Change the admin password immediately** via the admin panel
 
 ---
@@ -237,7 +237,7 @@ bun run db:reset     # Reset database
 
 ```
 Email:    admin@epowerfix.com
-Password: admin123
+Password: ***REDACTED***
 ```
 
 **⚠️ Change these immediately in production** by editing `prisma/seed.ts` and re-running the seed, or via the admin panel.
