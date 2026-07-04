@@ -59,12 +59,12 @@ interface Brand {
 
 const defaultProduct = {
   name: "", description: "", price: 0, comparePrice: 0, sku: "",
-  stock: 0, categoryId: "", brandId: "", imageUrls: [] as string[], isFeatured: false, isActive: true,
+  stock: 0, categoryId: "__none__", brandId: "__none__", imageUrls: [] as string[], isFeatured: false, isActive: true,
 };
 
 type ProductForm = typeof defaultProduct;
 
-const initialFilters = { search: "", categoryId: "", brandId: "", isActive: "" };
+const initialFilters = { search: "", categoryId: "__all__", brandId: "__all__", isActive: "__all__" };
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -83,9 +83,9 @@ export default function AdminProductsPage() {
     try {
       const params = new URLSearchParams();
       if (filters.search) params.set("search", filters.search);
-      if (filters.categoryId) params.set("categoryId", filters.categoryId);
-      if (filters.brandId) params.set("brandId", filters.brandId);
-      if (filters.isActive) params.set("isActive", filters.isActive);
+      if (filters.categoryId && filters.categoryId !== "__all__") params.set("categoryId", filters.categoryId);
+      if (filters.brandId && filters.brandId !== "__all__") params.set("brandId", filters.brandId);
+      if (filters.isActive && filters.isActive !== "__all__") params.set("isActive", filters.isActive);
       const qs = params.toString();
       const res: any = await apiFetch(`/api/admin/products${qs ? `?${qs}` : ""}`);
       setProducts(res.data?.data ?? []);
@@ -133,8 +133,8 @@ export default function AdminProductsPage() {
       comparePrice: product.comparePrice ?? 0,
       sku: product.sku,
       stock: product.stock,
-      categoryId: product.category?.id ?? "",
-      brandId: product.brand?.id ?? "",
+      categoryId: product.category?.id ?? "__none__",
+      brandId: product.brand?.id ?? "__none__",
       imageUrls: product.images ?? [],
       isFeatured: product.isFeatured,
       isActive: product.isActive,
@@ -147,6 +147,8 @@ export default function AdminProductsPage() {
     try {
       const body = {
         ...form,
+        categoryId: form.categoryId === "__none__" ? null : form.categoryId,
+        brandId: form.brandId === "__none__" ? null : form.brandId,
         images: form.imageUrls,
       };
       if (dialog.edit) {
@@ -218,7 +220,7 @@ export default function AdminProductsPage() {
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="__all__">All categories</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
@@ -232,7 +234,7 @@ export default function AdminProductsPage() {
                 <SelectValue placeholder="All brands" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All brands</SelectItem>
+                <SelectItem value="__all__">All brands</SelectItem>
                 {brands.map((b) => (
                   <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                 ))}
@@ -246,7 +248,7 @@ export default function AdminProductsPage() {
                 <SelectValue placeholder="All status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All status</SelectItem>
+                <SelectItem value="__all__">All status</SelectItem>
                 <SelectItem value="true">Active</SelectItem>
                 <SelectItem value="false">Inactive</SelectItem>
               </SelectContent>
@@ -363,7 +365,7 @@ export default function AdminProductsPage() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
@@ -377,7 +379,7 @@ export default function AdminProductsPage() {
                   <SelectValue placeholder="Select brand" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="__none__">None</SelectItem>
                   {brands.map((b) => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                   ))}

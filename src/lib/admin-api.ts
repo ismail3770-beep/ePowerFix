@@ -33,12 +33,16 @@ export function stringifyJsonField(value: unknown): string {
 }
 
 /**
- * Reads pagination params from a URL search params object.
+ * Reads pagination params from a URL string or URL object.
  */
-export function getPagination(url: URL) {
-  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10))
-  const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10)))
-  const search = url.searchParams.get('search') || url.searchParams.get('q') || ''
+export function getPagination(url: URL | string) {
+  const searchParams =
+    typeof url === 'string'
+      ? new URL(url, 'http://localhost').searchParams
+      : url.searchParams
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)))
+  const search = searchParams.get('search') || searchParams.get('q') || ''
   const skip = (page - 1) * limit
   return { page, limit, skip, search }
 }
