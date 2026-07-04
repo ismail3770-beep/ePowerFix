@@ -535,6 +535,56 @@ export function EPFArrowLeft({ className, size = defaults.size, strokeWidth = de
   );
 }
 
+// ─── Account (circular filled) ─────────────────────────
+// Source: user-01.svg — dark circle background + white user silhouette inside.
+// `currentColor` colors the outer circle so callers can theme it via text-* classes.
+export function EPFAccountIcon({ className, size = defaults.size }: IconProps) {
+  // Unique clip-path id to avoid collisions when multiple instances are rendered.
+  const clipId = "epf-account-clip";
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="11.65" fill="currentColor" />
+      <g clipPath={`url(#${clipId})`}>
+        <path
+          d="M12,1.22A10.79,10.79,0,1,1,4.38,4.38,10.74,10.74,0,0,1,12,1.22ZM9.92,14.55c0-.05.11-.43.15-.49a2,2,0,0,1-.8-1.48h0a.6.6,0,0,1-.29-.08.77.77,0,0,1-.32-.39c-.15-.34-.63-1.46.11-1.37C8.3,10,9.24,8.65,7.63,8.16,9,6.48,11.75,3.9,13.79,6.49a2.5,2.5,0,0,1,1.43,4.34.51.51,0,0,1,.25.06.62.62,0,0,1,.22.75c-.08.23-.17.39-.26.61s-.26.36-.56.32a2,2,0,0,1-.82,1.55l.13.43C13.56,15.86,11,15.92,9.92,14.55ZM4.54,17.82c.51-2.17,1.92-1.41,4.64-3.11,1,2,4.9,2.16,5.71,0,2.33,1.49,4.16.88,4.63,3a9.46,9.46,0,1,0-15,.07Z"
+          fill="#fff"
+        />
+      </g>
+      <defs>
+        <clipPath id={clipId}>
+          <rect x="1.22" y="1.22" width="21.55" height="21.55" fill="none" />
+        </clipPath>
+      </defs>
+    </svg>
+  );
+}
+
+// ─── Wishlist (filled heart) ───────────────────────────
+// Source: wishlist-01.svg — solid filled heart shape.
+export function EPFHeartFilled({ className, size = defaults.size }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path
+        d="M11.31,3.24l.69.6.69-.6a6.53,6.53,0,0,1,8.93,9.53h0l-6.36,6.36h0L12,22.39,3.88,14.27h0l-1.5-1.5h0a6.53,6.53,0,0,1,8.93-9.53Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+// ─── Cart (filled) ─────────────────────────────────────
+// Source: shop icon-01.svg — solid shopping cart with wheels.
+export function EPFCartFilled({ className, size = defaults.size }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path
+        d="M22.63,3.49a1.49,1.49,0,0,1,.44.39,1.63,1.63,0,0,1,.25.57,1.67,1.67,0,0,1,0,.63l-1.52,8.64a1.46,1.46,0,0,1-.44.83,1.15,1.15,0,0,1-.8.33H7.81l.3,1.92h12.8a.79.79,0,0,1,.6.28,1,1,0,0,1,.25.68,1,1,0,0,1-.25.68.79.79,0,0,1-.6.28H7.4a.79.79,0,0,1-.54-.22,1,1,0,0,1-.29-.57L4.16,2.4H1.49a.77.77,0,0,1-.6-.29,1,1,0,0,1-.25-.67A1,1,0,0,1,.89.76a.79.79,0,0,1,.6-.28H4.87A.75.75,0,0,1,5.41.7a1.07,1.07,0,0,1,.29.57L6,3.36H22.09A1.13,1.13,0,0,1,22.63,3.49Zm-14.3,20A1.92,1.92,0,1,0,6.41,21.6,1.92,1.92,0,0,0,8.33,23.52Zm11.52,0a1.92,1.92,0,1,0-1.92-1.92A1.92,1.92,0,0,0,19.85,23.52Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 // ─── Named export map for easy import
 export const EPFIcons = {
   LogoBolt: EPFLogoBolt,
@@ -585,6 +635,9 @@ export const EPFIcons = {
   ChevronDown: EPFChevronDown,
   Clock: EPFClock,
   HardHat: EPFHardHat,
+  AccountIcon: EPFAccountIcon,
+  HeartFilled: EPFHeartFilled,
+  CartFilled: EPFCartFilled,
 };
 
 export type EPFIconName = keyof typeof EPFIcons;

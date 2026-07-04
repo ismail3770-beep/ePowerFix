@@ -19,6 +19,9 @@ import {
   EPFBookOpen,
   EPFSmartphone,
   EPFTag,
+  EPFAccountIcon,
+  EPFHeartFilled,
+  EPFCartFilled,
 } from "@/components/epf/icons/EPFIcons";
 
 const megaCategories = [
@@ -298,24 +301,36 @@ export default function Header() {
                 {user ? (
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded hover:bg-dark-50 transition-colors"
+                    className="hidden lg:flex items-center gap-2 px-2 py-1 rounded hover:bg-dark-50 transition-colors"
                   >
-                    <div className="h-6 w-6 rounded-full bg-epf-500 text-white text-[12px] font-bold flex items-center justify-center shrink-0">
-                      {user.name?.charAt(0)?.toUpperCase() || "U"}
-                    </div>
-                    <div className="flex flex-col leading-tight">
-                      <span className="text-[13px] text-dark-500">Hello, {user.name?.split(" ")[0]}</span>
-                      <span className="text-[14px] font-medium text-dark-900">My Account</span>
+                    <EPFAccountIcon className="h-[26px] w-[26px] text-dark-700 shrink-0" />
+                    <div className="flex flex-col leading-tight text-left">
+                      <span className="text-[13px] font-medium text-dark-900 truncate max-w-[140px]">
+                        {user.name}
+                      </span>
+                      <span className="text-[12px] text-dark-500 truncate max-w-[140px]">
+                        {user.phone || user.email}
+                      </span>
                     </div>
                   </button>
                 ) : (
-                  <a href="/login" className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded hover:bg-dark-50 transition-colors">
-                    <I.User className="h-[16px] w-[16px] text-dark-500" />
+                  <div className="hidden lg:flex items-center gap-2 px-2 py-1 rounded hover:bg-dark-50 transition-colors">
+                    <EPFAccountIcon className="h-[26px] w-[26px] text-dark-700 shrink-0" />
                     <div className="flex flex-col leading-tight">
-                      <span className="text-[13px] text-dark-500">Login</span>
-                      <span className="text-[14px] font-medium text-dark-900">Account</span>
+                      <a
+                        href="/login"
+                        className="text-[14px] font-medium text-dark-900 hover:text-epf-500 transition-colors leading-tight"
+                      >
+                        Login
+                      </a>
+                      <a
+                        href="/register"
+                        className="text-[12px] text-dark-500 hover:text-epf-500 transition-colors leading-tight"
+                      >
+                        Register
+                      </a>
                     </div>
-                  </a>
+                  </div>
                 )}
 
                 {/* User Dropdown Menu (when logged in) */}
@@ -324,6 +339,9 @@ export default function Header() {
                     <div className="px-4 py-3 border-b border-dark-200">
                       <p className="text-[14px] font-semibold text-dark-900">{user.name}</p>
                       <p className="text-[12px] text-dark-500">{user.email}</p>
+                      {user.phone && (
+                        <p className="text-[12px] text-dark-500 mt-0.5">{user.phone}</p>
+                      )}
                     </div>
                     <a href="/order-track" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">
                       <I.Truck className="h-4 w-4" /> Track Order
@@ -343,36 +361,28 @@ export default function Header() {
                     </button>
                   </div>
                 )}
-
-                {/* Login/Register Dropdown (when NOT logged in) */}
-                {!user && (
-                  <div className="hidden lg:block absolute right-0 top-full mt-0.5 w-[140px] bg-white border border-dark-200 rounded-md shadow-md py-1 z-50 group-hover:opacity-100 group-hover:visible opacity-0 invisible transition-all">
-                    <a href="/login" className="block px-4 py-2 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">Login</a>
-                    <a href="/register" className="block px-4 py-2 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">Register</a>
-                  </div>
-                )}
               </div>
 
               {/* Wishlist */}
               <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-dark-50 transition-colors">
-                <I.Heart className="h-[16px] w-[16px] text-dark-500" />
-                <span className="text-[13px] text-dark-700">Wishlist</span>
+                <EPFHeartFilled className="h-[22px] w-[22px] text-dark-700" />
+                <span className="text-[13px] text-dark-700 mt-0.5">Wishlist</span>
               </a>
 
               {/* Cart */}
               <button
                 onClick={() => setCartOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded border border-dark-200 hover:border-dark-300 hover:bg-dark-50 transition-colors relative"
+                className="flex items-center gap-2 px-3 py-2 rounded border border-dark-200 hover:border-dark-300 hover:bg-dark-50 transition-colors relative"
               >
                 <div className="relative">
-                  <I.Cart className="h-[18px] w-[18px] text-dark-700" />
+                  <EPFCartFilled className="h-[22px] w-[22px] text-dark-700" />
                   {mounted && count > 0 && (
                     <span className="absolute -top-2 -right-2 h-[15px] min-w-[15px] rounded-full bg-epf-500 text-white text-[12px] font-bold flex items-center justify-center px-0.5">
                       {formatCount(count)}
                     </span>
                   )}
                 </div>
-                <div className="hidden sm:flex flex-col leading-tight">
+                <div className="hidden sm:flex flex-col leading-tight text-left">
                   <span className="text-[13px] text-dark-500">Cart</span>
                   <span className="text-[14px] font-semibold text-dark-900">{mounted ? `৳${total.toLocaleString()}` : ""}</span>
                 </div>
