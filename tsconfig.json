@@ -20,9 +20,15 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@epowerfix/db": ["./packages/db/src"],
+      "@epowerfix/types": ["./packages/types/src"],
+      "@epowerfix/config": ["./packages/config/src"],
+      "@epowerfix/utils": ["./packages/utils/src"],
+      "@epowerfix/security": ["./packages/security/src"],
+      "@epowerfix/i18n": ["./packages/i18n/src"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "ePowerFix", "src_backup_starter"]
 }

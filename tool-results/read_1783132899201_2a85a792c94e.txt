@@ -1,0 +1,787 @@
+     1→// ePowerFix SQLite schema (converted from PostgreSQL).
+     2→// - Provider: sqlite (no enums, no @db.*, no Decimal, no Json)
+     3→// - Enums -> String (UPPERCASE literal values kept)
+     4→// - Decimal -> Float
+     5→// - Json -> String (apps must JSON.parse/stringify manually)
+     6→// - String[] (scalar lists) are supported by the SQLite connector since Prisma 4.
+     7→
+     8→generator client {
+     9→  provider = "prisma-client-js"
+    10→}
+    11→
+    12→datasource db {
+    13→  provider = "sqlite"
+    14→  url      = env("DATABASE_URL")
+    15→}
+    16→
+    17→// ==================== MODELS ====================
+    18→
+    19→model User {
+    20→  id        String   @id @default(uuid())
+    21→  name      String
+    22→  nameBn    String?  @map("name_bn")
+    23→  email     String   @unique
+    24→  phone     String   @unique
+    25→  password  String
+    26→  role      String   @default("CUSTOMER")
+    27→  avatar    String?
+    28→  isActive  Boolean  @default(true) @map("is_active")
+    29→  isDeleted Boolean  @default(false) @map("is_deleted")
+    30→  // Email verification + password reset. Tokens store a sha256 hash of the
+    31→  // random token that was emailed — never the raw value.
+    32→  emailVerified        Boolean   @default(false) @map("email_verified")
+    33→  emailVerifyToken     String?   @map("email_verify_token")
+    34→  passwordResetToken   String?   @map("password_reset_token")
+    35→  passwordResetExpires DateTime? @map("password_reset_expires")
+    36→  createdAt DateTime   @default(now()) @map("created_at")
+    37→  updatedAt DateTime   @updatedAt @map("updated_at")
+    38→
+    39→  addresses       UserAddress[]
+    40→  orders          Order[]
+    41→  reviews         Review[]
+    42→  wishlistItems   Wishlist[]
+    43→  quoteRequests    QuoteRequest[]
+    44→  serviceBookings ServiceBooking[]
+    45→  cartItems       CartItem[]
+    46→  contacts        Contact[]
+    47→  newsletters     Newsletter[]
+    48→  orderHistories  OrderHistory[]
+    49→  couponUsages    CouponUsage[]
+    50→  returnRequests  ReturnRequest[]
+    51→  notifications   Notification[]
+    52→  questions       ProductQuestion[]
+    53→
+    54→  @@map("users")
+    55→}
+    56→
+    57→model UserAddress {
+    58→  id          String   @id @default(cuid())
+    59→  userId      String   @map("user_id")
+    60→  label       String?
+    61→  fullName    String   @map("full_name")
+    62→  phone       String
+    63→  address     String
+    64→  city        String
+    65→  area        String?
+    66→  postalCode  String?  @map("postal_code")
+    67→  isDefault   Boolean  @default(false) @map("is_default")
+    68→  isDeleted   Boolean  @default(false) @map("is_deleted")
+    69→  createdAt   DateTime @default(now()) @map("created_at")
+    70→  updatedAt   DateTime @updatedAt @map("updated_at")
+    71→
+    72→  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    73→  orders  Order[]
+    74→
+    75→  @@index([userId])
+    76→  @@map("user_addresses")
+    77→}
+    78→
+    79→model Brand {
+    80→  id        String   @id @default(uuid())
+    81→  name      String
+    82→  nameBn    String?  @map("name_bn")
+    83→  slug      String   @unique
+    84→  logo      String?
+    85→  country   String?
+    86→  website   String?
+    87→  isActive  Boolean  @default(true) @map("is_active")
+    88→  isDeleted Boolean  @default(false) @map("is_deleted")
+    89→  createdAt DateTime @default(now()) @map("created_at")
+    90→  updatedAt DateTime @updatedAt @map("updated_at")
+    91→
+    92→  products Product[]
+    93→
+    94→  @@map("brands")
+    95→}
+    96→
+    97→model ProductCategory {
+    98→  id        String   @id @default(uuid())
+    99→  name      String
+   100→  nameBn    String   @map("name_bn")
+   101→  slug      String   @unique
+   102→  icon      String?
+   103→  image     String?
+   104→  parentId  String?  @map("parent_id")
+   105→  sortOrder Int      @default(0) @map("sort_order")
+   106→  isActive  Boolean  @default(true) @map("is_active")
+   107→  isDeleted Boolean  @default(false) @map("is_deleted")
+   108→  createdAt DateTime @default(now()) @map("created_at")
+   109→  updatedAt DateTime @updatedAt @map("updated_at")
+   110→
+   111→  products  Product[]
+   112→  parent    ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+   113→  children  ProductCategory[] @relation("CategoryHierarchy")
+   114→
+   115→  @@map("product_categories")
+   116→}
+   117→
+   118→model Product {
+   119→  id          String   @id @default(uuid())
+   120→  name        String
+   121→  nameBn      String?  @map("name_bn")
+   122→  slug        String   @unique
+   123→  description String
+   124→  shortDesc   String?  @map("short_desc")
+   125→  sku         String?  @unique
+   126→  price       Float
+   127→  salePrice   Float?   @map("sale_price")
+   128→  costPrice   Float?   @map("cost_price")
+   129→  stock       Int      @default(0)
+   130→  minStock    Int      @default(5) @map("min_stock")
+   131→  images      String   @default("[]") // JSON-stringified array of URLs
+   132→  specs       String?
+   133→  isFeatured  Boolean  @default(false) @map("is_featured")
+   134→  hasVariant  Boolean  @default(false) @map("has_variant")
+   135→  // Digital delivery: isDigital products skip stock/shipping and are delivered
+   136→  // via secure download. digitalFile is a PRIVATE path (never publicly served).
+   137→  isDigital     Boolean        @default(false) @map("is_digital")
+   138→  digitalFile   String?        @map("digital_file")
+   139→  downloadLimit Int?           @map("download_limit")
+   140→  isActive    Boolean          @default(true) @map("is_active")
+   141→  isDeleted   Boolean          @default(false) @map("is_deleted")
+   142→  brandId     String           @map("brand_id")
+   143→  categoryId  String           @map("category_id")
+   144→  tags        String           @default("[]") // JSON-stringified array of tags
+   145→  rating      Float            @default(0)
+   146→  reviewCount Int              @default(0) @map("review_count")
+   147→  createdAt   DateTime         @default(now()) @map("created_at")
+   148→  updatedAt   DateTime         @updatedAt @map("updated_at")
+   149→
+   150→  brand     Brand            @relation(fields: [brandId], references: [id])
+   151→  category  ProductCategory  @relation(fields: [categoryId], references: [id])
+   152→  variants  ProductVariant[]
+   153→  reviews   Review[]
+   154→  wishlistItems Wishlist[]
+   155→  cartItems CartItem[]
+   156→  orderItems OrderItem[]
+   157→  flashSaleId String?           @map("flash_sale_id")
+   158→  flashSale   FlashSale?        @relation(fields: [flashSaleId], references: [id])
+   159→  taxId       String?           @map("tax_id")
+   160→  tax         Tax?              @relation(fields: [taxId], references: [id])
+   161→  questions   ProductQuestion[]
+   162→
+   163→  @@index([categoryId])
+   164→  @@index([brandId])
+   165→  @@index([flashSaleId])
+   166→  @@index([isActive])
+   167→  @@map("products")
+   168→}
+   169→
+   170→model ProductVariant {
+   171→  id         String   @id @default(cuid())
+   172→  productId  String   @map("product_id")
+   173→  name       String
+   174→  sku        String   @unique
+   175→  price      Float
+   176→  salePrice  Float?   @map("sale_price")
+   177→  stock      Int      @default(0)
+   178→  attributes String
+   179→  isActive   Boolean  @default(true) @map("is_active")
+   180→  createdAt  DateTime @default(now()) @map("created_at")
+   181→  updatedAt  DateTime @updatedAt @map("updated_at")
+   182→
+   183→  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+   184→  cartItems  CartItem[]
+   185→  orderItems OrderItem[]
+   186→
+   187→  @@index([productId])
+   188→  @@map("product_variants")
+   189→}
+   190→
+   191→model CartItem {
+   192→  id        String    @id @default(uuid())
+   193→  userId    String    @map("user_id")
+   194→  itemType  String    @default("PRODUCT") @map("item_type")
+   195→  productId String?   @map("product_id")
+   196→  variantId String?   @map("variant_id")
+   197→  serviceId String?   @map("service_id")
+   198→  projectId String?   @map("project_id")
+   199→  quantity  Int       @default(1)
+   200→  createdAt DateTime  @default(now()) @map("created_at")
+   201→  updatedAt DateTime  @updatedAt @map("updated_at")
+   202→
+   203→  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+   204→  product Product?        @relation(fields: [productId], references: [id])
+   205→  variant ProductVariant? @relation(fields: [variantId], references: [id])
+   206→  service Service?        @relation(fields: [serviceId], references: [id])
+   207→  project Project?        @relation(fields: [projectId], references: [id])
+   208→
+   209→  @@index([userId])
+   210→  @@index([productId])
+   211→  @@index([serviceId])
+   212→  @@index([projectId])
+   213→  @@unique([userId, productId, variantId])
+   214→  @@unique([userId, serviceId])
+   215→  @@unique([userId, projectId])
+   216→  @@map("cart_items")
+   217→}
+   218→
+   219→model Wishlist {
+   220→  id        String   @id @default(uuid())
+   221→  userId    String   @map("user_id")
+   222→  productId String   @map("product_id")
+   223→  createdAt DateTime @default(now()) @map("created_at")
+   224→
+   225→  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+   226→  product Product @relation(fields: [productId], references: [id])
+   227→
+   228→  @@index([userId])
+   229→  @@index([productId])
+   230→  @@unique([userId, productId])
+   231→  @@map("wishlists")
+   232→}
+   233→
+   234→model Order {
+   235→  id              String   @id @default(uuid())
+   236→  orderNumber     String   @unique @map("order_number")
+   237→  userId          String?  @map("user_id")
+   238→  customerName    String?  @map("customer_name")
+   239→  customerPhone   String?  @map("customer_phone")
+   240→  customerEmail   String?  @map("customer_email")
+   241→  subtotal        Float
+   242→  deliveryCharge  Float    @default(0) @map("delivery_charge")
+   243→  discount        Float    @default(0)
+   244→  taxAmount       Float    @default(0) @map("tax_amount")
+   245→  total           Float
+   246→  status          String   @default("PENDING")
+   247→  paymentStatus   String   @default("PENDING") @map("payment_status")
+   248→  paymentMethod   String   @map("payment_method")
+   249→  couponId        String?  @map("coupon_id")
+   250→  addressId       String?  @map("address_id")
+   251→  notes           String?
+   252→  deliveredAt     DateTime? @map("delivered_at")
+   253→  createdAt       DateTime  @default(now()) @map("created_at")
+   254→  updatedAt       DateTime  @updatedAt @map("updated_at")
+   255→
+   256→  user     User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+   257→  address  UserAddress? @relation(fields: [addressId], references: [id])
+   258→  items    OrderItem[]
+   259→  payments Payment[]
+   260→  histories OrderHistory[]
+   261→  couponUsages CouponUsage[]
+   262→  coupon   Coupon?     @relation(fields: [couponId], references: [id])
+   263→  shipment Shipment?
+   264→  returnRequests ReturnRequest[]
+   265→
+   266→  @@index([userId])
+   267→  @@index([addressId])
+   268→  @@index([status])
+   269→  @@index([createdAt])
+   270→  @@map("orders")
+   271→}
+   272→
+   273→model OrderHistory {
+   274→  id        String   @id @default(cuid())
+   275→  orderId   String   @map("order_id")
+   276→  userId    String?  @map("user_id")
+   277→  status    String
+   278→  note      String?
+   279→  createdAt DateTime @default(now()) @map("created_at")
+   280→
+   281→  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+   282→  user  User? @relation(fields: [userId], references: [id])
+   283→
+   284→  @@index([orderId])
+   285→  @@map("order_histories")
+   286→}
+   287→
+   288→model ReturnRequest {
+   289→  id           String   @id @default(cuid())
+   290→  orderId      String   @map("order_id")
+   291→  userId       String   @map("user_id")
+   292→  reason       String
+   293→  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+   294→  refundAmount Float?   @map("refund_amount")
+   295→  notes        String?
+   296→  createdAt    DateTime @default(now()) @map("created_at")
+   297→  updatedAt    DateTime @updatedAt @map("updated_at")
+   298→
+   299→  order Order @relation(fields: [orderId], references: [id])
+   300→  user  User  @relation(fields: [userId], references: [id])
+   301→
+   302→  @@index([orderId])
+   303→  @@index([userId])
+   304→  @@index([status])
+   305→  @@map("return_requests")
+   306→}
+   307→
+   308→model Notification {
+   309→  id        String   @id @default(cuid())
+   310→  userId    String   @map("user_id")
+   311→  title     String
+   312→  message   String
+   313→  type      String   @default("INFO") // RETURN, ORDER, INFO, etc.
+   314→  isRead    Boolean  @default(false) @map("is_read")
+   315→  relatedId String?  @map("related_id") // e.g. return request id
+   316→  createdAt DateTime @default(now()) @map("created_at")
+   317→  updatedAt DateTime @updatedAt @map("updated_at")
+   318→
+   319→  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+   320→
+   321→  @@index([userId])
+   322→  @@index([isRead])
+   323→  @@map("notifications")
+   324→}
+   325→
+   326→model Payment {
+   327→  id               String   @id @default(cuid())
+   328→  orderId          String?  @map("order_id")
+   329→  serviceBookingId String?  @map("service_booking_id")
+   330→  amount           Float
+   331→  method           String
+   332→  status           String   @default("PENDING")
+   333→  transactionId    String?  @unique @map("transaction_id")
+   334→  paymentData      String?  @map("payment_data")
+   335→  paidAt           DateTime? @map("paid_at")
+   336→  createdAt        DateTime @default(now()) @map("created_at")
+   337→  updatedAt        DateTime @updatedAt @map("updated_at")
+   338→
+   339→  order          Order?          @relation(fields: [orderId], references: [id])
+   340→  serviceBooking ServiceBooking? @relation(fields: [serviceBookingId], references: [id])
+   341→
+   342→  @@index([orderId])
+   343→  @@index([status])
+   344→  @@map("payments")
+   345→}
+   346→
+   347→model OrderItem {
+   348→  id           String   @id @default(uuid())
+   349→  orderId      String   @map("order_id")
+   350→  itemType     String   @default("PRODUCT") @map("item_type")
+   351→  productId    String?  @map("product_id")
+   352→  variantId    String?  @map("variant_id")
+   353→  serviceId    String?  @map("service_id")
+   354→  projectId    String?  @map("project_id")
+   355→  productName  String   @map("product_name")
+   356→  productImage String?  @map("product_image")
+   357→  variantName  String?  @map("variant_name")
+   358→  price        Float
+   359→  quantity     Int
+   360→  total        Float
+   361→  // Number of times a digital asset for this line has been downloaded.
+   362→  downloadCount Int      @default(0) @map("download_count")
+   363→  createdAt    DateTime  @default(now()) @map("created_at")
+   364→
+   365→  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+   366→  product Product?        @relation(fields: [productId], references: [id])
+   367→  variant ProductVariant? @relation(fields: [variantId], references: [id])
+   368→  service Service?        @relation(fields: [serviceId], references: [id])
+   369→  project Project?        @relation(fields: [projectId], references: [id])
+   370→
+   371→  @@index([orderId])
+   372→  @@index([productId])
+   373→  @@index([serviceId])
+   374→  @@index([projectId])
+   375→  @@map("order_items")
+   376→}
+   377→
+   378→model Shipment {
+   379→  id                String   @id @default(cuid())
+   380→  orderId           String   @unique @map("order_id")
+   381→  trackingNumber    String?  @unique @map("tracking_number")
+   382→  carrier           String?
+   383→  status            String   @default("PENDING")
+   384→  estimatedDelivery DateTime? @map("estimated_delivery")
+   385→  shippedAt         DateTime? @map("shipped_at")
+   386→  deliveredAt       DateTime? @map("delivered_at")
+   387→  notes             String?
+   388→  createdAt         DateTime @default(now()) @map("created_at")
+   389→  updatedAt         DateTime @updatedAt @map("updated_at")
+   390→
+   391→  order     Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+   392→  histories ShipmentHistory[]
+   393→
+   394→  @@index([status])
+   395→  @@index([trackingNumber])
+   396→  @@map("shipments")
+   397→}
+   398→
+   399→model ShipmentHistory {
+   400→  id         String   @id @default(cuid())
+   401→  shipmentId String   @map("shipment_id")
+   402→  status     String
+   403→  note       String?
+   404→  location   String?
+   405→  createdAt  DateTime @default(now()) @map("created_at")
+   406→
+   407→  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+   408→
+   409→  @@index([shipmentId])
+   410→  @@map("shipment_histories")
+   411→}
+   412→
+   413→model Coupon {
+   414→  id          String   @id @default(uuid())
+   415→  code        String   @unique
+   416→  name        String
+   417→  nameBn      String?  @map("name_bn")
+   418→  description String?
+   419→  type        String   // PERCENTAGE, FIXED
+   420→  value       Float
+   421→  minOrder    Float?   @map("min_order")
+   422→  maxDiscount Float?   @map("max_discount")
+   423→  usageLimit  Int?     @map("usage_limit")
+   424→  usedCount   Int      @default(0) @map("used_count")
+   425→  startDate   DateTime @map("start_date")
+   426→  endDate     DateTime @map("end_date")
+   427→  isActive    Boolean  @default(true) @map("is_active")
+   428→  isDeleted   Boolean  @default(false) @map("is_deleted")
+   429→  createdAt   DateTime @default(now()) @map("created_at")
+   430→  updatedAt   DateTime @updatedAt @map("updated_at")
+   431→
+   432→  orders Order[]
+   433→  usages CouponUsage[]
+   434→
+   435→  @@map("coupons")
+   436→}
+   437→
+   438→model CouponUsage {
+   439→  id        String   @id @default(cuid())
+   440→  couponId  String   @map("coupon_id")
+   441→  userId    String   @map("user_id")
+   442→  orderId   String?  @map("order_id")
+   443→  createdAt DateTime @default(now()) @map("created_at")
+   444→
+   445→  coupon Coupon  @relation(fields: [couponId], references: [id])
+   446→  user   User    @relation(fields: [userId], references: [id])
+   447→  order  Order?  @relation(fields: [orderId], references: [id])
+   448→
+   449→  @@unique([couponId, userId])
+   450→  @@index([userId])
+   451→  @@map("coupon_usages")
+   452→}
+   453→
+   454→model ServiceCategory {
+   455→  id        String   @id @default(uuid())
+   456→  name      String
+   457→  nameBn    String   @map("name_bn")
+   458→  slug      String   @unique
+   459→  icon      String?
+   460→  image     String?
+   461→  sortOrder Int      @default(0) @map("sort_order")
+   462→  isActive  Boolean  @default(true) @map("is_active")
+   463→  isDeleted Boolean  @default(false) @map("is_deleted")
+   464→  createdAt DateTime @default(now()) @map("created_at")
+   465→  updatedAt DateTime @updatedAt @map("updated_at")
+   466→
+   467→  services Service[]
+   468→
+   469→  @@map("service_categories")
+   470→}
+   471→
+   472→model Service {
+   473→  id          String   @id @default(uuid())
+   474→  name        String
+   475→  nameBn      String?  @map("name_bn")
+   476→  slug        String   @unique
+   477→  description String
+   478→  shortDesc   String?  @map("short_desc")
+   479→  basePrice   Float    @map("base_price")
+   480→  priceUnit   String   @map("price_unit") // per_call, per_day, per_hour, fixed
+   481→  images      String   @default("[]") // JSON-stringified array of URLs
+   482→  features    String?
+   483→  isFeatured  Boolean  @default(false) @map("is_featured")
+   484→  isActive    Boolean  @default(true) @map("is_active")
+   485→  isDeleted   Boolean  @default(false) @map("is_deleted")
+   486→  categoryId  String   @map("category_id")
+   487→  rating      Float    @default(0)
+   488→  reviewCount Int      @default(0) @map("review_count")
+   489→  createdAt   DateTime @default(now()) @map("created_at")
+   490→  updatedAt   DateTime @updatedAt @map("updated_at")
+   491→
+   492→  category ServiceCategory @relation(fields: [categoryId], references: [id])
+   493→  bookings ServiceBooking[]
+   494→  cartItems  CartItem[]
+   495→  orderItems OrderItem[]
+   496→  reviews    Review[]
+   497→
+   498→  @@index([categoryId])
+   499→  @@map("services")
+   500→}
+   501→
+   502→model ServiceBooking {
+   503→  id             String   @id @default(uuid())
+   504→  userId         String   @map("user_id")
+   505→  serviceId      String   @map("service_id")
+   506→  bookingDate    DateTime @map("booking_date")
+   507→  bookingTime    String   @map("booking_time")
+   508→  status         String   @default("PENDING")
+   509→  notes          String?
+   510→  address        String
+   511→  phone          String
+   512→  totalCost      Float    @map("total_cost")
+   513→  paymentStatus  String   @default("PENDING") @map("payment_status")
+   514→  paymentMethod  String?  @map("payment_method")
+   515→  isDeleted      Boolean  @default(false) @map("is_deleted")
+   516→  createdAt      DateTime @default(now()) @map("created_at")
+   517→  updatedAt      DateTime @updatedAt @map("updated_at")
+   518→
+   519→  user     User      @relation(fields: [userId], references: [id])
+   520→  service  Service   @relation(fields: [serviceId], references: [id])
+   521→  payments Payment[]
+   522→
+   523→  @@index([userId])
+   524→  @@index([serviceId])
+   525→  @@index([status])
+   526→  @@map("service_bookings")
+   527→}
+   528→
+   529→model Review {
+   530→  id        String   @id @default(uuid())
+   531→  userId    String   @map("user_id")
+   532→  productId String?  @map("product_id")
+   533→  serviceId String?  @map("service_id")
+   534→  rating    Int
+   535→  title     String
+   536→  comment   String
+   537→  status    String   @default("PENDING")
+   538→  isDeleted Boolean  @default(false) @map("is_deleted")
+   539→  createdAt DateTime @default(now()) @map("created_at")
+   540→  updatedAt DateTime @updatedAt @map("updated_at")
+   541→
+   542→  user    User     @relation(fields: [userId], references: [id])
+   543→  product Product? @relation(fields: [productId], references: [id])
+   544→  service Service? @relation(fields: [serviceId], references: [id])
+   545→
+   546→  @@index([productId])
+   547→  @@index([serviceId])
+   548→  @@index([userId])
+   549→  @@index([status])
+   550→  @@map("reviews")
+   551→}
+   552→
+   553→model BlogPost {
+   554→  id         String   @id @default(uuid())
+   555→  title      String
+   556→  titleBn    String?  @map("title_bn")
+   557→  slug       String   @unique
+   558→  content    String
+   559→  excerpt    String?
+   560→  coverImage String?  @map("cover_image")
+   561→  author     String?
+   562→  tags       String   @default("[]") // JSON-stringified array of tags
+   563→  isPublished Boolean @default(false) @map("is_published")
+   564→  isDeleted  Boolean  @default(false) @map("is_deleted")
+   565→  createdAt  DateTime @default(now()) @map("created_at")
+   566→  updatedAt  DateTime @updatedAt @map("updated_at")
+   567→
+   568→  @@map("blog_posts")
+   569→}
+   570→
+   571→model QuoteRequest {
+   572→  id          String   @id @default(uuid())
+   573→  userId      String?  @map("user_id")
+   574→  name        String
+   575→  phone       String
+   576→  email       String?
+   577→  serviceType String   @map("service_type")
+   578→  description String
+   579→  address     String?
+   580→  budget      String?
+   581→  status      String   @default("PENDING")
+   582→  isDeleted   Boolean  @default(false) @map("is_deleted")
+   583→  createdAt   DateTime @default(now()) @map("created_at")
+   584→  updatedAt   DateTime @updatedAt @map("updated_at")
+   585→
+   586→  user User? @relation(fields: [userId], references: [id])
+   587→
+   588→  @@map("quote_requests")
+   589→}
+   590→
+   591→model Contact {
+   592→  id        String   @id @default(uuid())
+   593→  userId    String?  @map("user_id")
+   594→  name      String
+   595→  email     String
+   596→  phone     String?
+   597→  subject   String
+   598→  message   String
+   599→  status    String   @default("NEW")
+   600→  isDeleted Boolean  @default(false) @map("is_deleted")
+   601→  createdAt DateTime @default(now()) @map("created_at")
+   602→  updatedAt DateTime @updatedAt @map("updated_at")
+   603→
+   604→  user User? @relation(fields: [userId], references: [id])
+   605→
+   606→  @@map("contacts")
+   607→}
+   608→
+   609→model Newsletter {
+   610→  id        String   @id @default(uuid())
+   611→  userId    String?  @map("user_id")
+   612→  email     String   @unique
+   613→  status    String   @default("ACTIVE")
+   614→  isDeleted Boolean  @default(false) @map("is_deleted")
+   615→  createdAt DateTime @default(now()) @map("created_at")
+   616→  updatedAt DateTime @updatedAt @map("updated_at")
+   617→
+   618→  user User? @relation(fields: [userId], references: [id])
+   619→
+   620→  @@map("newsletters")
+   621→}
+   622→
+   623→model Project {
+   624→  id          String   @id @default(uuid())
+   625→  title       String
+   626→  titleBn     String?  @map("title_bn")
+   627→  slug        String   @unique
+   628→  description String
+   629→  coverImage  String?  @map("cover_image")
+   630→  images      String   @default("[]") // JSON-stringified array of URLs
+   631→  client      String?
+   632→  location    String?
+   633→  status      String   @default("COMPLETED")
+   634→  // Sellable-project fields. isSellable=false keeps a project as portfolio-only.
+   635→  isSellable  Boolean  @default(false) @map("is_sellable")
+   636→  price       Float?
+   637→  salePrice   Float?   @map("sale_price")
+   638→  isDeleted   Boolean  @default(false) @map("is_deleted")
+   639→  startDate   DateTime? @map("start_date")
+   640→  endDate     DateTime? @map("end_date")
+   641→  createdAt   DateTime @default(now()) @map("created_at")
+   642→  updatedAt   DateTime @updatedAt @map("updated_at")
+   643→
+   644→  cartItems  CartItem[]
+   645→  orderItems OrderItem[]
+   646→
+   647→  @@map("projects")
+   648→}
+   649→
+   650→model FlashSale {
+   651→  id          String   @id @default(uuid())
+   652→  title       String
+   653→  description String?
+   654→  startDate   DateTime @map("start_date")
+   655→  endDate     DateTime @map("end_date")
+   656→  discount    Float
+   657→  isActive    Boolean  @default(true) @map("is_active")
+   658→  isDeleted   Boolean  @default(false) @map("is_deleted")
+   659→  products    Product[]
+   660→  createdAt   DateTime @default(now()) @map("created_at")
+   661→  updatedAt   DateTime @updatedAt @map("updated_at")
+   662→
+   663→  @@map("flash_sales")
+   664→}
+   665→
+   666→model Tax {
+   667→  id        String   @id @default(uuid())
+   668→  name      String
+   669→  rate      Float
+   670→  type      String   @default("PERCENTAGE")
+   671→  isActive  Boolean  @default(true) @map("is_active")
+   672→  isDeleted Boolean  @default(false) @map("is_deleted")
+   673→  createdAt DateTime @default(now()) @map("created_at")
+   674→  updatedAt DateTime @updatedAt @map("updated_at")
+   675→
+   676→  products Product[]
+   677→
+   678→  @@map("taxes")
+   679→}
+   680→
+   681→model ProductQuestion {
+   682→  id         String    @id @default(uuid())
+   683→  productId  String    @map("product_id")
+   684→  userId     String    @map("user_id")
+   685→  question   String
+   686→  answer     String?
+   687→  answeredAt DateTime? @map("answered_at")
+   688→  isDeleted  Boolean   @default(false) @map("is_deleted")
+   689→  createdAt  DateTime  @default(now()) @map("created_at")
+   690→  updatedAt  DateTime  @updatedAt @map("updated_at")
+   691→
+   692→  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+   693→  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+   694→
+   695→  @@index([productId])
+   696→  @@index([userId])
+   697→  @@map("product_questions")
+   698→}
+   699→
+   700→// ==================== SITE SETTINGS ====================
+   701→
+   702→model SiteSettings {
+   703→  id    String @id @default("default")
+   704→
+   705→  // Brand
+   706→  siteName        String  @default("ePowerFix") @map("site_name")
+   707→  siteTagline     String? @map("site_tagline")
+   708→  logoUrl         String? @map("logo_url")
+   709→  faviconUrl      String? @map("favicon_url")
+   710→
+   711→  // Colors (hex without #)
+   712→  primaryColor    String  @default("0EA5E9") @map("primary_color")
+   713→  secondaryColor  String  @default("0284C7") @map("secondary_color")
+   714→  accentColor     String  @default("4D7300") @map("accent_color")
+   715→  headerBg        String  @default("FFFFFF") @map("header_bg")
+   716→  footerBg        String  @default("111827") @map("footer_bg")
+   717→  bodyBg          String  @default("F8FAFC") @map("body_bg")
+   718→
+   719→  // Typography
+   720→  headingFont     String  @default("Geist Sans") @map("heading_font")
+   721→  bodyFont        String  @default("Geist Sans") @map("body_font")
+   722→  fontSize        String  @default("16") @map("font_size")
+   723→
+   724→  // Layout
+   725→  containerWidth  String  @default("1280") @map("container_width")
+   726→
+   727→  // Social links
+   728→  facebookUrl     String? @map("facebook_url")
+   729→  instagramUrl    String? @map("instagram_url")
+   730→  twitterUrl      String? @map("twitter_url")
+   731→  youtubeUrl      String? @map("youtube_url")
+   732→  linkedinUrl     String? @map("linkedin_url")
+   733→
+   734→  // Contact
+   735→  phone           String?
+   736→  email           String?
+   737→  address         String?
+   738→
+   739→  // Footer
+   740→  copyrightText   String  @default("© 2025 ePowerFix. All rights reserved.") @map("copyright_text")
+   741→
+   742→  // Meta
+   743→  metaTitle       String? @map("meta_title")
+   744→  metaDescription String? @map("meta_description")
+   745→
+   746→  createdAt DateTime @default(now()) @map("created_at")
+   747→  updatedAt DateTime @updatedAt @map("updated_at")
+   748→
+   749→  @@map("site_settings")
+   750→}
+   751→
+   752→// ==================== AI PROVIDERS ====================
+   753→
+   754→model AiProvider {
+   755→  id             String    @id @default(cuid())
+   756→  name           String
+   757→  type           String               // OPENAI | ANTHROPIC | GEMINI | OLLAMA | OPENROUTER | OPENCODE | CUSTOM
+   758→  apiKey         String?
+   759→  baseUrl        String
+   760→  defaultModel   String
+   761→  enabled        Boolean   @default(true)
+   762→  isBuiltIn      Boolean   @default(false)             // pre-configured vs user-created
+   763→  sortOrder      Int       @default(0)                 @map("sort_order")
+   764→  config         String?                               // extra config (headers, endpointPath, etc.) — JSON-stringified
+   765→  lastTestedAt   DateTime?                            @map("last_tested_at")
+   766→  lastTestStatus String?                               @map("last_test_status")  // SUCCESS | FAILED
+   767→  createdAt      DateTime  @default(now())             @map("created_at")
+   768→  updatedAt      DateTime  @updatedAt                  @map("updated_at")
+   769→
+   770→  @@map("ai_providers")
+   771→}
+   772→
+   773→model Banner {
+   774→  id        String   @id @default(cuid())
+   775→  title     String
+   776→  subtitle  String?
+   777→  image     String
+   778→  link      String?
+   779→  type      String   @default("hero") // "hero" | "services" | "promo"
+   780→  position  Int      @default(0)
+   781→  isActive  Boolean  @default(true) @map("is_active")
+   782→  createdAt DateTime @default(now()) @map("created_at")
+   783→  updatedAt DateTime @updatedAt      @map("updated_at")
+   784→
+   785→  @@map("banners")
+   786→}
+   787→

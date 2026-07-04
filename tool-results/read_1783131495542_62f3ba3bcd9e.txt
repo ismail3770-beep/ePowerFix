@@ -1,0 +1,463 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useState, useEffect } from "react";
+     4→     4→import { useQuery } from "@tanstack/react-query";
+     5→     5→import {
+     6→     6→  ShoppingBag, Package, Users, DollarSign, CalendarCheck, ArrowUp, ArrowDown,
+     7→     7→  ChevronRight, Eye, Pencil, Trash2, X,
+     8→     8→  Plus, Search, FileText, Settings,
+     9→     9→} from "lucide-react";
+    10→    10→import { apiFetch } from "@/lib/api";
+    11→    11→import { useAdminTab } from "./layout";
+    12→    12→
+    13→    13→// ======================== TYPES ========================
+    14→    14→interface AdminStats {
+    15→    15→  totalProducts: number; activeProducts: number;
+    16→    16→  totalOrders: number; pendingOrders: number;
+    17→    17→  totalUsers: number; totalBookings: number;
+    18→    18→  totalRevenue: number; monthlyRevenue: number;
+    19→    19→  pendingBookings: number; unreadContacts: number; totalReviews: number;
+    20→    20→  totalServices: number; totalProjects: number; totalContacts: number;
+    21→    21→  pendingReturns: number; totalReturns: number;
+    22→    22→  recentOrders: { id: string; orderNumber: string; total: number; status: string; createdAt: string }[];
+    23→    23→}
+    24→    24→
+    25→    25→interface Product {
+    26→    26→  id: string; name: string; slug: string; price: number; salePrice?: number | null;
+    27→    27→  stock: number; sku?: string | null; images: string[]; isActive: boolean;
+    28→    28→  category?: { name: string } | null; createdAt: string;
+    29→    29→}
+    30→    30→
+    31→    31→interface OrderItem {
+    32→    32→  id: string; orderNumber: string; total: number; status: string;
+    33→    33→  paymentStatus: string; paymentMethod: string; createdAt: string;
+    34→    34→  user?: { name: string; email: string } | null;
+    35→    35→  _count?: { items: number };
+    36→    36→}
+    37→    37→
+    38→    38→const statusColor: Record<string, string> = {
+    39→    39→  PENDING: "bg-amber-100 text-amber-700",
+    40→    40→  CONFIRMED: "bg-sky-100 text-sky-700",
+    41→    41→  PROCESSING: "bg-purple-100 text-purple-700",
+    42→    42→  SHIPPED: "bg-teal-100 text-teal-700",
+    43→    43→  DELIVERED: "bg-emerald-100 text-emerald-700",
+    44→    44→  CANCELLED: "bg-red-100 text-red-700",
+    45→    45→  RETURNED: "bg-gray-100 text-gray-700",
+    46→    46→  PAID: "bg-emerald-100 text-emerald-700",
+    47→    47→  FAILED: "bg-red-100 text-red-700",
+    48→    48→  REFUNDED: "bg-orange-100 text-orange-700",
+    49→    49→};
+    50→    50→
+    51→    51→const paymentMethodIcons: Record<string, React.ElementType> = {
+    52→    52→  BKASH: () => <span className="text-pink-600 font-bold text-[10px]">bK</span>,
+    53→    53→  NAGAD: () => <span className="text-orange-600 font-bold text-[10px]">NG</span>,
+    54→    54→  SSLCOMMERZ: () => <span className="text-purple-600 font-bold text-[10px]">SL</span>,
+    55→    55→  COD: () => <span className="text-gray-600 font-bold text-[10px]">COD</span>,
+    56→    56→};
+    57→    57→
+    58→    58→function formatCurrency(n: number) { return "৳" + n.toLocaleString(); }
+    59→    59→
+    60→    60→function Badge({ status }: { status: string }) {
+    61→    61→  const color = statusColor[status] || "bg-gray-100 text-gray-700";
+    62→    62→  return <span className={`inline-flex items-center px-2.5 py-0.5 text-[12px] font-medium rounded ${color}`}>{status}</span>;
+    63→    63→}
+    64→    64→
+    65→    65→function StatCard({ icon: Icon, label, value, sub, trend, iconBg }: {
+    66→    66→  icon: React.ElementType; label: string; value: string | number;
+    67→    67→  sub?: string; trend?: { dir: "up" | "down"; pct: string }; iconBg: string;
+    68→    68→}) {
+    69→    69→  return (
+    70→    70→    <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-[0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+    71→    71→      <div className="flex items-start justify-between mb-3">
+    72→    72→        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${iconBg}`}>
+    73→    73→          <Icon className="w-5 h-5 text-white" />
+    74→    74→        </div>
+    75→    75→        {trend && (
+    76→    76→          <span className={`flex items-center gap-0.5 text-[12px] font-medium ${trend.dir === "up" ? "text-[#10B981]" : "text-[#DC2626]"}`}>
+    77→    77→            {trend.dir === "up" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}{trend.pct}
+    78→    78→          </span>
+    79→    79→        )}
+    80→    80→      </div>
+    81→    81→      <p className="text-[28px] font-bold text-[#111827] leading-none mb-1">{typeof value === "number" ? value.toLocaleString() : value}</p>
+    82→    82→      <p className="text-[12px] font-medium uppercase text-[#6B7280] tracking-wide">{label}</p>
+    83→    83→      {sub && <p className="text-[13px] text-[#6B7280] mt-1.5">{sub}</p>}
+    84→    84→    </div>
+    85→    85→  );
+    86→    86→}
+    87→    87→
+    88→    88→// ======================== DASHBOARD TAB ========================
+    89→    89→function DashboardTab() {
+    90→    90→  const { data: statsRes, isLoading } = useQuery<{ success: boolean; data: AdminStats }>({
+    91→    91→    queryKey: ["admin-stats"],
+    92→    92→    queryFn: () => apiFetch("/api/admin/stats"),
+    93→    93→    refetchInterval: 30000,
+    94→    94→  });
+    95→    95→  const s = statsRes?.data;
+    96→    96→
+    97→    97→  if (isLoading || !s) {
+    98→    98→    return (
+    99→    99→      <div className="space-y-6">
+   100→   100→        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+   101→   101→          {Array.from({ length: 6 }).map((_, i) => (
+   102→   102→            <div key={i} className="bg-white border border-[#E5E7EB] rounded-lg p-5 animate-pulse">
+   103→   103→              <div className="h-9 w-9 bg-[#F3F4F6] rounded-lg mb-3" />
+   104→   104→              <div className="h-7 bg-[#F3F4F6] rounded w-1/2 mb-2" />
+   105→   105→              <div className="h-3 bg-[#F3F4F6] rounded w-2/3" />
+   106→   106→            </div>
+   107→   107→          ))}
+   108→   108→        </div>
+   109→   109→      </div>
+   110→   110→    );
+   111→   111→  }
+   112→   112→
+   113→   113→  return (
+   114→   114→    <div className="space-y-6">
+   115→   115→      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+   116→   116→        <StatCard icon={ShoppingBag} label="Total Orders" value={s.totalOrders}
+   117→   117→          sub={`● Pending ${s.pendingOrders}`} iconBg="bg-sky-500" />
+   118→   118→        <StatCard icon={Package} label="Total Products" value={s.totalProducts}
+   119→   119→          sub={`● Active ${s.activeProducts} ● Services ${s.totalServices}`} iconBg="bg-emerald-500" />
+   120→   120→        <StatCard icon={DollarSign} label="Total Sales" value={formatCurrency(Number(s.monthlyRevenue))}
+   121→   121→          sub={`This month ${formatCurrency(Number(s.monthlyRevenue))}`} trend={{ dir: "up", pct: "12.5%" }} iconBg="bg-blue-500" />
+   122→   122→        <StatCard icon={Users} label="Total Customers" value={s.totalUsers}
+   123→   123→          sub={`● Bookings ${s.totalBookings}`} iconBg="bg-purple-500" />
+   124→   124→        <StatCard icon={CalendarCheck} label="Total Bookings" value={s.totalBookings}
+   125→   125→          sub={`● Pending ${s.pendingBookings} ● Completed ${s.totalBookings - s.pendingBookings}`} iconBg="bg-amber-500" />
+   126→   126→        <StatCard icon={DollarSign} label="Total Revenue" value={formatCurrency(Number(s.totalRevenue))}
+   127→   127→          sub={`Products/Services combined`} iconBg="bg-rose-500" />
+   128→   128→      </div>
+   129→   129→
+   130→   130→      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+   131→   131→        <div className="lg:col-span-2 bg-white border border-[#E5E7EB] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+   132→   132→          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB]">
+   133→   133→            <h3 className="text-[15px] font-semibold text-[#111827]">Recent Orders</h3>
+   134→   134→            <div className="flex items-center gap-2">
+   135→   135→              {["All", "Today", "Week", "Month"].map((t) => (
+   136→   136→                <button key={t} className={`text-[13px] px-3 py-1 rounded-md transition-colors ${t === "All" ? "text-[#0EA5E9] font-medium" : "text-[#6B7280] hover:text-[#111827]"}`}>{t}</button>
+   137→   137→              ))}
+   138→   138→            </div>
+   139→   139→          </div>
+   140→   140→          <table className="w-full text-left">
+   141→   141→            <thead><tr className="border-b border-[#E5E7EB] bg-[#F9FAFB]">
+   142→   142→              <th className="text-[12px] font-semibold uppercase text-[#374151] px-5 py-3">Order</th>
+   143→   143→              <th className="text-[12px] font-semibold uppercase text-[#374151] px-5 py-3">Status</th>
+   144→   144→              <th className="text-[12px] font-semibold uppercase text-[#374151] px-5 py-3">Total</th>
+   145→   145→              <th className="text-[12px] font-semibold uppercase text-[#374151] px-5 py-3">Date</th>
+   146→   146→              <th className="text-[12px] font-semibold uppercase text-[#374151] px-5 py-3"></th>
+   147→   147→            </tr></thead>
+   148→   148→            <tbody>
+   149→   149→              {s.recentOrders.map((o, i) => (
+   150→   150→                <tr key={o.id} className={`border-b border-[#E5E7EB] hover:bg-[#F0F9FF] transition-colors ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}>
+   151→   151→                  <td className="px-5 py-3.5 text-[14px] font-medium text-[#0EA5E9]">#{o.orderNumber}</td>
+   152→   152→                  <td className="px-5 py-3.5"><Badge status={o.status} /></td>
+   153→   153→                  <td className="px-5 py-3.5 text-[14px] font-semibold text-[#111827]">{formatCurrency(Number(o.total))}</td>
+   154→   154→                  <td className="px-5 py-3.5 text-[13px] text-[#6B7280]">{new Date(o.createdAt).toLocaleDateString()}</td>
+   155→   155→                  <td className="px-5 py-3.5"><button className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-gray-100 text-[#6B7280] hover:text-[#0EA5E9]"><Eye className="w-4 h-4" /></button></td>
+   156→   156→                </tr>
+   157→   157→              ))}
+   158→   158→              {s.recentOrders.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-[14px] text-[#9CA3AF]">No orders yet</td></tr>}
+   159→   159→            </tbody>
+   160→   160→          </table>
+   161→   161→        </div>
+   162→   162→
+   163→   163→        <div className="space-y-4">
+   164→   164→          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.1)] p-5">
+   165→   165→            <h3 className="text-[15px] font-semibold text-[#111827] mb-4">Quick Summary</h3>
+   166→   166→            <div className="space-y-3">
+   167→   167→              {[
+   168→   168→                { label: "Pending Orders", value: s.pendingOrders, color: "text-amber-500" },
+   169→   169→                { label: "Unread Messages", value: s.unreadContacts, color: "text-blue-500" },
+   170→   170→                { label: "Pending Bookings", value: s.pendingBookings, color: "text-purple-500" },
+   171→   171→                { label: "Pending Returns", value: s.pendingReturns, color: "text-red-500" },
+   172→   172→              ].map((item) => (
+   173→   173→                <div key={item.label} className="flex justify-between items-center py-2 border-b border-[#E5E7EB] last:border-0">
+   174→   174→                  <span className="text-[13px] text-[#6B7280] flex items-center gap-2"><span className={`w-2 h-2 rounded-full ${item.color} inline-block`} />{item.label}</span>
+   175→   175→                  <span className="text-[14px] font-semibold text-[#111827]">{item.value}</span>
+   176→   176→                </div>
+   177→   177→              ))}
+   178→   178→            </div>
+   179→   179→          </div>
+   180→   180→          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.1)] p-5">
+   181→   181→            <h3 className="text-[15px] font-semibold text-[#111827] mb-3">Quick Actions</h3>
+   182→   182→            <div className="space-y-2">
+   183→   183→              {[
+   184→   184→                { label: "Add Product", tab: "products" },
+   185→   185→                { label: "View Orders", tab: "orders" },
+   186→   186→                { label: "Messages", tab: "messages" },
+   187→   187→                { label: "Manage Services", tab: "services" },
+   188→   188→              ].map((item) => (
+   189→   189→                <a key={item.label} href={`/admin?tab=${item.tab}`} className="flex items-center gap-2 px-3 py-2.5 text-[13px] text-[#374151] hover:bg-[#F3F4F6] rounded-lg transition-colors">{item.label} <ChevronRight className="w-3 h-3 ml-auto text-[#9CA3AF]" /></a>
+   190→   190→              ))}
+   191→   191→            </div>
+   192→   192→          </div>
+   193→   193→        </div>
+   194→   194→      </div>
+   195→   195→    </div>
+   196→   196→  );
+   197→   197→}
+   198→   198→
+   199→   199→// ======================== PRODUCTS TAB ========================
+   200→   200→function ProductsTab() {
+   201→   201→  const { data, isLoading } = useQuery<{ success: boolean; data: { data: Product[]; total: number } }>({
+   202→   202→    queryKey: ["admin-products"],
+   203→   203→    queryFn: () => apiFetch("/api/admin/products"),
+   204→   204→  });
+   205→   205→  const products = data?.data?.data ?? [];
+   206→   206→
+   207→   207→  return (
+   208→   208→    <div>
+   209→   209→      <div className="flex items-center justify-between mb-5">
+   210→   210→        <div><h2 className="text-[18px] font-semibold text-[#111827]">All Products</h2><p className="text-[13px] text-[#6B7280] mt-0.5">{products.length} products found</p></div>
+   211→   211→        <button className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[13px] font-medium rounded-lg px-4 py-2 transition-colors flex items-center gap-1.5"><Plus className="w-4 h-4" /> Add New Product</button>
+   212→   212→      </div>
+   213→   213→
+   214→   214→      {/* Tabs */}
+   215→   215→      <div className="flex items-center gap-0 mb-4 border-b border-[#E5E7EB]">
+   216→   216→        {["All products", "In-house Products", "Project Kits", "Services", "Drafts"].map((tab) => (
+   217→   217→          <button key={tab} className={`px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors ${tab === "All products" ? "text-[#0EA5E9] border-[#0EA5E9]" : "text-[#6B7280] hover:text-[#111827] border-transparent"}`}>{tab}</button>
+   218→   218→        ))}
+   219→   219→      </div>
+   220→   220→
+   221→   221→      {/* Search + Filters */}
+   222→   222→      <div className="bg-white border border-[#E5E7EB] rounded-lg mb-4">
+   223→   223→        <div className="flex items-center justify-between px-4 py-3">
+   224→   224→          <a href="/admin?tab=products-add" className="text-[13px] font-medium text-[#0EA5E9] flex items-center gap-1 hover:underline"><Plus className="w-3.5 h-3.5" /> Add New Product</a>
+   225→   225→          <div className="flex items-center gap-2">
+   226→   226→            <div className="relative"><Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" /><input type="text" placeholder="Search products..." className="w-52 h-9 pl-8 pr-3 text-[13px] bg-[#F9FAFB] border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-1 focus:ring-[#0EA5E9]/30" /></div>
+   227→   227→            {["Bulk Action", "Filter", "Sort"].map((l) => (
+   228→   228→              <select key={l} className="h-9 px-3 text-[13px] text-[#6B7280] bg-white border border-[#E5E7EB] rounded-md focus:outline-none"><option>{l}</option></select>
+   229→   229→            ))}
+   230→   230→          </div>
+   231→   231→        </div>
+   232→   232→      </div>
+   233→   233→
+   234→   234→      {/* Table */}
+   235→   235→      <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+   236→   236→        <table className="w-full text-left">
+   237→   237→          <thead><tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+   238→   238→            <th className="px-4 py-3"><input type="checkbox" className="rounded border-gray-300" /></th>
+   239→   239→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Image</th>
+   240→   240→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Product Name</th>
+   241→   241→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Category</th>
+   242→   242→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">SKU</th>
+   243→   243→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3 text-right">Price</th>
+   244→   244→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Stock</th>
+   245→   245→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Status</th>
+   246→   246→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3 text-right">Actions</th>
+   247→   247→          </tr></thead>
+   248→   248→          <tbody>
+   249→   249→            {isLoading ? Array.from({ length: 5 }).map((_, i) => (
+   250→   250→              <tr key={i} className="animate-pulse"><td colSpan={9} className="px-4 py-4"><div className="h-8 bg-[#F3F4F6] rounded" /></td></tr>
+   251→   251→            )) : products.length === 0 ? (
+   252→   252→              <tr><td colSpan={9} className="text-center py-12 text-[14px] text-[#9CA3AF]">No products found. Make sure the database has seed data.</td></tr>
+   253→   253→            ) : products.map((p, i) => (
+   254→   254→              <tr key={p.id} className={`border-b border-[#E5E7EB] hover:bg-[#F0F9FF] transition-colors ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}>
+   255→   255→                <td className="px-4 py-3"><input type="checkbox" className="rounded border-gray-300" /></td>
+   256→   256→                <td className="px-4 py-3"><div className="w-[50px] h-[50px] rounded bg-[#F3F4F6] overflow-hidden">{p.images?.[0] ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[#9CA3AF] text-xs">N/A</div>}</div></td>
+   257→   257→                <td className="px-4 py-3"><span className="text-[14px] text-[#0EA5E9] font-medium hover:underline cursor-pointer">{p.name}</span></td>
+   258→   258→                <td className="px-4 py-3 text-[14px] text-[#374151]">{p.category?.name || "—"}</td>
+   259→   259→                <td className="px-4 py-3 text-[14px] text-[#374151]">{p.sku || "—"}</td>
+   260→   260→                <td className="px-4 py-3 text-[14px] font-semibold text-[#111827] text-right">{formatCurrency(Number(p.salePrice || p.price))}</td>
+   261→   261→                <td className="px-4 py-3 text-[14px] text-[#374151]">{p.stock > 0 ? p.stock : <span className="text-red-600 font-medium">Out of Stock</span>}</td>
+   262→   262→                <td className="px-4 py-3"><span className={`inline-flex px-2.5 py-0.5 text-[12px] font-medium rounded ${p.isActive ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{p.isActive ? "Published" : "Draft"}</span></td>
+   263→   263→                <td className="px-4 py-3">
+   264→   264→                  <div className="flex items-center justify-end gap-0.5">
+   265→   265→                    <button title="View" onClick={() => alert('View product: ' + p.name)} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-[#0EA5E9] hover:bg-gray-100"><Eye className="w-4 h-4" /></button>
+   266→   266→                    <button title="Edit" onClick={() => alert('Edit product: ' + p.name)} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-[#0EA5E9] hover:bg-gray-100"><Pencil className="w-4 h-4" /></button>
+   267→   267→                    <button title="Settings" onClick={() => alert('Settings for: ' + p.name)} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-gray-700 hover:bg-gray-100"><Settings className="w-4 h-4" /></button>
+   268→   268→                    <button title="Delete" onClick={() => { if (confirm('Delete "' + p.name + '"?')) alert('Delete: ' + p.name); }} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-red-500 hover:bg-gray-100"><Trash2 className="w-4 h-4" /></button>
+   269→   269→                  </div>
+   270→   270→                </td>
+   271→   271→              </tr>
+   272→   272→            ))}
+   273→   273→          </tbody>
+   274→   274→        </table>
+   275→   275→      </div>
+   276→   276→
+   277→   277→      {/* Pagination */}
+   278→   278→      <div className="flex items-center justify-center gap-1 mt-5">
+   279→   279→        <button className="px-3 py-1.5 text-[13px] text-[#6B7280] hover:text-[#111827] flex items-center gap-1"><ArrowLeft className="w-3.5 h-3.5" /> Previous</button>
+   280→   280→        {[1, 2, 3].map((p) => (
+   281→   281→          <button key={p} className={`w-8 h-8 rounded-full text-[13px] font-medium ${p === 1 ? "bg-[#0EA5E9] text-white" : "bg-white text-[#374151] border border-[#E5E7EB] hover:bg-gray-50"}`}>{p}</button>
+   282→   282→        ))}
+   283→   283→        <button className="px-3 py-1.5 text-[13px] text-[#6B7280] hover:text-[#111827] flex items-center gap-1">Next <ArrowRight className="w-3.5 h-3.5" /></button>
+   284→   284→      </div>
+   285→   285→    </div>
+   286→   286→  );
+   287→   287→}
+   288→   288→
+   289→   289→function ArrowLeft(props: any) { return <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>; }
+   290→   290→function ArrowRight(props: any) { return <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>; }
+   291→   291→
+   292→   292→// ======================== ORDERS TAB ========================
+   293→   293→function OrdersTab() {
+   294→   294→  const { data, isLoading, refetch } = useQuery<{ success: boolean; data: { data: OrderItem[] } }>({
+   295→   295→    queryKey: ["admin-orders"],
+   296→   296→    queryFn: () => apiFetch("/api/admin/orders"),
+   297→   297→  });
+   298→   298→  const orders = data?.data?.data ?? [];
+   299→   299→  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+   300→   300→  const [detailOrder, setDetailOrder] = useState<any>(null);
+   301→   301→  const [detailLoading, setDetailLoading] = useState(false);
+   302→   302→
+   303→   303→  useEffect(() => {
+   304→   304→    if (!detailOrderId) { setDetailOrder(null); return; }
+   305→   305→    setDetailLoading(true);
+   306→   306→    apiFetch<any>(`/api/admin/orders/${detailOrderId}`)
+   307→   307→      .then((res) => setDetailOrder(res.success ? res.data : null))
+   308→   308→      .catch(() => setDetailOrder(null))
+   309→   309→      .finally(() => setDetailLoading(false));
+   310→   310→  }, [detailOrderId]);
+   311→   311→
+   312→   312→  const handleDeleteOrder = async (id: string) => {
+   313→   313→    try {
+   314→   314→      await apiFetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
+   315→   315→      refetch();
+   316→   316→    } catch { /* no delete endpoint — silently ignore */ }
+   317→   317→  };
+   318→   318→
+   319→   319→  return (
+   320→   320→    <div>
+   321→   321→      <div className="flex items-center justify-between mb-5">
+   322→   322→        <div><h2 className="text-[18px] font-semibold text-[#111827]">All Orders</h2><p className="text-[13px] text-[#6B7280] mt-0.5">{orders.length} orders found</p></div>
+   323→   323→      </div>
+   324→   324→
+   325→   325→      <div className="flex items-center gap-0 mb-4 border-b border-[#E5E7EB]">
+   326→   326→        {["All", "In-House", "Seller"].map((tab) => (
+   327→   327→          <button key={tab} className={`px-4 py-2.5 text-[14px] font-medium border-b-2 transition-colors ${tab === "All" ? "text-[#0EA5E9] border-[#0EA5E9]" : "text-[#6B7280] hover:text-[#111827] border-transparent"}`}>{tab}</button>
+   328→   328→        ))}
+   329→   329→      </div>
+   330→   330→
+   331→   331→      <div className="bg-white border border-[#E5E7EB] rounded-lg mb-4">
+   332→   332→        <div className="flex items-center justify-between px-4 py-3">
+   333→   333→          <div className="relative"><Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" /><input type="text" placeholder="Search Orders..." className="w-64 h-9 pl-8 pr-3 text-[13px] bg-[#F9FAFB] border border-[#E5E7EB] rounded-md focus:outline-none" /></div>
+   334→   334→          <div className="flex items-center gap-2">
+   335→   335→            {["Bulk Action", "Delivery Status", "Payment Status", "Filter by Date"].map((l) => (
+   336→   336→              <select key={l} className="h-9 px-3 text-[13px] text-[#6B7280] bg-white border border-[#E5E7EB] rounded-md"><option>{l}</option></select>
+   337→   337→            ))}
+   338→   338→          </div>
+   339→   339→        </div>
+   340→   340→      </div>
+   341→   341→
+   342→   342→      <div className="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
+   343→   343→        <table className="w-full text-left">
+   344→   344→          <thead><tr className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
+   345→   345→            <th className="px-4 py-3"><input type="checkbox" className="rounded border-gray-300" /></th>
+   346→   346→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Order ID</th>
+   347→   347→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Customer</th>
+   348→   348→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Date</th>
+   349→   349→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Items</th>
+   350→   350→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3 text-right">Total</th>
+   351→   351→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Payment</th>
+   352→   352→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3">Delivery</th>
+   353→   353→            <th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-3 text-right">Actions</th>
+   354→   354→          </tr></thead>
+   355→   355→          <tbody>
+   356→   356→            {isLoading ? Array.from({ length: 5 }).map((_, i) => (
+   357→   357→              <tr key={i} className="animate-pulse"><td colSpan={9} className="px-4 py-4"><div className="h-8 bg-[#F3F4F6] rounded" /></td></tr>
+   358→   358→            )) : orders.length === 0 ? (
+   359→   359→              <tr><td colSpan={9} className="text-center py-12 text-[14px] text-[#9CA3AF]">No orders found.</td></tr>
+   360→   360→            ) : orders.map((o, i) => {
+   361→   361→              const PayIcon = paymentMethodIcons[o.paymentMethod] || (() => <span className="text-[10px]">—</span>);
+   362→   362→              return (
+   363→   363→                <tr key={o.id} className={`border-b border-[#E5E7EB] hover:bg-[#F0F9FF] transition-colors ${i % 2 === 1 ? "bg-[#F9FAFB]" : "bg-white"}`}>
+   364→   364→                  <td className="px-4 py-3"><input type="checkbox" className="rounded border-gray-300" /></td>
+   365→   365→                  <td className="px-4 py-3"><span className="text-[14px] font-medium text-[#0EA5E9]">#{o.orderNumber}</span></td>
+   366→   366→                  <td className="px-4 py-3"><div className="text-[14px] text-[#374151]">{o.user?.name || "Guest"}</div><div className="text-[12px] text-[#6B7280]">{o.user?.email || ""}</div></td>
+   367→   367→                  <td className="px-4 py-3 text-[14px] text-[#6B7280]">{new Date(o.createdAt).toLocaleDateString()}</td>
+   368→   368→                  <td className="px-4 py-3 text-[14px] text-[#374151]">{o._count?.items || 0}</td>
+   369→   369→                  <td className="px-4 py-3 text-[14px] font-semibold text-[#111827] text-right">{formatCurrency(Number(o.total))}</td>
+   370→   370→                  <td className="px-4 py-3"><div className="flex items-center gap-1.5"><span className="w-5 h-5 rounded bg-gray-100 flex items-center justify-center"><PayIcon /></span><Badge status={o.paymentStatus} /></div></td>
+   371→   371→                  <td className="px-4 py-3"><Badge status={o.status} /></td>
+   372→   372→                  <td className="px-4 py-3"><div className="flex items-center justify-end gap-0.5">
+   373→   373→                    <button onClick={() => setDetailOrderId(o.id)} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-[#0EA5E9] hover:bg-gray-100"><Eye className="w-4 h-4" /></button>
+   374→   374→                    <button onClick={() => setDetailOrderId(o.id)} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-[#0EA5E9] hover:bg-gray-100"><Pencil className="w-4 h-4" /></button>
+   375→   375→                    <button onClick={() => setDetailOrderId(o.id)} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-[#0EA5E9] hover:bg-gray-100"><FileText className="w-4 h-4" /></button>
+   376→   376→                    <button onClick={() => { if (confirm('Delete order #' + o.orderNumber + '?')) handleDeleteOrder(o.id); }} className="h-7 w-7 rounded-md flex items-center justify-center text-[#9CA3AF] hover:text-red-500 hover:bg-gray-100"><Trash2 className="w-4 h-4" /></button>
+   377→   377→                  </div></td>
+   378→   378→                </tr>
+   379→   379→              );
+   380→   380→            })}
+   381→   381→          </tbody>
+   382→   382→        </table>
+   383→   383→      </div>
+   384→   384→
+   385→   385→      {/* Order Detail Modal */}
+   386→   386→      {detailOrderId && (
+   387→   387→        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDetailOrderId(null)}>
+   388→   388→          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-auto mx-4" onClick={(e) => e.stopPropagation()}>
+   389→   389→            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+   390→   390→              <h3 className="text-[16px] font-semibold text-[#111827]">Order Detail{detailOrder ? ` — #${detailOrder.orderNumber}` : ''}</h3>
+   391→   391→              <button onClick={() => setDetailOrderId(null)} className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-[#F3F4F6] text-[#6B7280] hover:text-[#111827]"><X className="w-4 h-4" /></button>
+   392→   392→            </div>
+   393→   393→            <div className="p-6">
+   394→   394→              {detailLoading ? (
+   395→   395→                <div className="flex items-center justify-center py-12"><div className="animate-spin h-6 w-6 border-2 border-[#0EA5E9] border-t-transparent rounded-full" /></div>
+   396→   396→              ) : detailOrder ? (
+   397→   397→                <div className="space-y-4">
+   398→   398→                  <div className="grid grid-cols-2 gap-4">
+   399→   399→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Customer</p><p className="text-[14px] text-[#111827]">{detailOrder.user?.name || 'Guest'}</p><p className="text-[13px] text-[#6B7280]">{detailOrder.user?.email || ''}</p></div>
+   400→   400→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Order Date</p><p className="text-[14px] text-[#111827]">{new Date(detailOrder.createdAt).toLocaleString()}</p></div>
+   401→   401→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Status</p><Badge status={detailOrder.status} /></div>
+   402→   402→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Payment</p><Badge status={detailOrder.paymentStatus} /></div>
+   403→   403→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Total</p><p className="text-[16px] font-bold text-[#111827]">{formatCurrency(Number(detailOrder.total))}</p></div>
+   404→   404→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Payment Method</p><p className="text-[14px] text-[#111827]">{detailOrder.paymentMethod || '—'}</p></div>
+   405→   405→                  </div>
+   406→   406→                  {detailOrder.items?.length > 0 && (
+   407→   407→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-2">Order Items ({detailOrder.items.length})</p>
+   408→   408→                      <div className="border border-[#E5E7EB] rounded-lg overflow-hidden">
+   409→   409→                        <table className="w-full text-left"><thead className="bg-[#F9FAFB]"><tr><th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-2">Product</th><th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-2 text-right">Qty</th><th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-2 text-right">Price</th><th className="text-[12px] font-semibold uppercase text-[#374151] px-4 py-2 text-right">Total</th></tr></thead>
+   410→   410→                          <tbody>{detailOrder.items.map((item: any, idx: number) => (
+   411→   411→                            <tr key={item.id || idx} className="border-t border-[#E5E7EB]"><td className="px-4 py-2 text-[14px] text-[#374151]">{item.product?.name || item.name || 'Product'}</td><td className="px-4 py-2 text-[14px] text-[#374151] text-right">{item.quantity || 1}</td><td className="px-4 py-2 text-[14px] text-[#374151] text-right">{formatCurrency(Number(item.price))}</td><td className="px-4 py-2 text-[14px] font-semibold text-[#111827] text-right">{formatCurrency(Number(item.price) * (item.quantity || 1))}</td></tr>
+   412→   412→                          ))}</tbody></table></div></div>
+   413→   413→                  )}
+   414→   414→                  {detailOrder.address && (
+   415→   415→                    <div><p className="text-[12px] font-medium uppercase text-[#6B7280] mb-1">Shipping Address</p><p className="text-[14px] text-[#374151]">{detailOrder.address.street}, {detailOrder.address.city}, {detailOrder.address.state} {detailOrder.address.zip}</p></div>
+   416→   416→                  )}
+   417→   417→                </div>
+   418→   418→              ) : (
+   419→   419→                <p className="text-center text-[14px] text-[#6B7280] py-8">Failed to load order details.</p>
+   420→   420→              )}
+   421→   421→            </div>
+   422→   422→          </div>
+   423→   423→        </div>
+   424→   424→      )}
+   425→   425→    </div>
+   426→   426→  );
+   427→   427→}
+   428→   428→
+   429→   429→// ======================== PLACEHOLDER ========================
+   430→   430→function PlaceholderTab({ tab }: { tab: string }) {
+   431→   431→  const title = tab.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+   432→   432→  return (
+   433→   433→    <div className="flex flex-col items-center justify-center py-20 text-center">
+   434→   434→      <div className="w-16 h-16 rounded-full bg-[#F3F4F6] flex items-center justify-center mb-4">
+   435→   435→        <span className="text-[#9CA3AF] text-2xl font-bold">{title.charAt(0)}</span>
+   436→   436→      </div>
+   437→   437→      <h2 className="text-[18px] font-semibold text-[#111827] mb-2">{title}</h2>
+   438→   438→      <p className="text-[14px] text-[#6B7280] max-w-md">This section is under development.</p>
+   439→   439→    </div>
+   440→   440→  );
+   441→   441→}
+   442→   442→
+   443→   443→// ======================== MAIN ========================
+   444→   444→export default function AdminPage() {
+   445→   445→  const { activeTab } = useAdminTab();
+   446→   446→
+   447→   447→  switch (activeTab) {
+   448→   448→    case 'dashboard':
+   449→   449→      return <DashboardTab />;
+   450→   450→    case 'products':
+   451→   451→    case 'products-list':
+   452→   452→      return <ProductsTab />;
+   453→   453→    case 'orders':
+   454→   454→    case 'orders-all':
+   455→   455→    case 'orders-pending':
+   456→   456→    case 'orders-processing':
+   457→   457→    case 'orders-completed':
+   458→   458→      return <OrdersTab />;
+   459→   459→    default:
+   460→   460→      return <PlaceholderTab tab={activeTab} />;
+   461→   461→  }
+   462→   462→}
+   463→   463→

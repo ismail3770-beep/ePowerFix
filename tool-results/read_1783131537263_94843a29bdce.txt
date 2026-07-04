@@ -1,0 +1,745 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useCallback } from 'react'
+     4→import api from '@/lib/axios'
+     5→import {
+     6→  Shield, ShieldAlert, ShieldCheck, Bot, Ban, Unlock,
+     7→  Activity, Search, Trash2, Plus, X, AlertTriangle,
+     8→  CheckCircle2, XCircle, Info, Loader2, RefreshCw, Globe, Lock, Zap, FileWarning
+     9→} from 'lucide-react'
+    10→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+    11→import { Button } from '@/components/ui/button'
+    12→import { Badge } from '@/components/ui/badge'
+    13→import { Input } from '@/components/ui/input'
+    14→import { toast } from 'sonner'
+    15→
+    16→// ── Types ──
+    17→interface ScanResult {
+    18→  id: string
+    19→  scannedAt: string
+    20→  score: number
+    21→  totalTests: number
+    22→  passedTests: number
+    23→  failedTests: number
+    24→  warnings: number
+    25→  issues: { test: string; severity: string; description: string; fixable: boolean; fixDescription?: string; score: number }[]
+    26→}
+    27→
+    28→interface AuditLog {
+    29→  id: string
+    30→  timestamp: string
+    31→  action: string
+    32→  resource: string
+    33→  ip: string
+    34→  userAgent: string
+    35→  path: string
+    36→  details: Record<string, unknown>
+    37→}
+    38→
+    39→interface IPRule {
+    40→  id: string
+    41→  type: string
+    42→  ip?: string
+    43→  cidr?: string
+    44→  reason: string
+    45→  createdAt: string
+    46→  expiresAt?: string
+    47→}
+    48→
+    49→interface BotSignal {
+    50→  ip: string
+    51→  isBot: boolean
+    52→  score: number
+    53→  identity?: string
+    54→  lastSeenAt: number
+    55→}
+    56→
+    57→interface SecurityStats {
+    58→  audit: {
+    59→    totalEvents: number
+    60→    lastHour: number
+    61→    lastDay: number
+    62→    lastWeek: number
+    63→    byType: Record<string, number>
+    64→    uniqueIPs: number
+    65→    blockedIPs: number
+    66→    topPaths: { path: string; count: number }[]
+    67→  }
+    68→  lockedIPs: number
+    69→  botSignals: number
+    70→  suspiciousBots: number
+    71→  ipReputations: number
+    72→  maliciousIPs: number
+    73→  ipRules: number
+    74→}
+    75→
+    76→// ── Helpers ──
+    77→const severityColor = (s: string) => {
+    78→  switch (s) {
+    79→    case 'critical': return 'bg-red-500/10 text-red-500 border-red-500/20'
+    80→    case 'high': return 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+    81→    case 'medium': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+    82→    case 'low': return 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+    83→    default: return 'bg-green-500/10 text-green-500 border-green-500/20'
+    84→  }
+    85→}
+    86→
+    87→const severityIcon = (s: string) => {
+    88→  switch (s) {
+    89→    case 'critical': case 'high': return <XCircle className="w-4 h-4 text-red-500" />
+    90→    case 'medium': return <AlertTriangle className="w-4 h-4 text-yellow-500" />
+    91→    case 'low': return <Info className="w-4 h-4 text-blue-500" />
+    92→    default: return <CheckCircle2 className="w-4 h-4 text-green-500" />
+    93→  }
+    94→}
+    95→
+    96→const scoreColor = (score: number) => {
+    97→  if (score >= 80) return 'text-green-500'
+    98→  if (score >= 60) return 'text-yellow-500'
+    99→  if (score >= 40) return 'text-orange-500'
+   100→  return 'text-red-500'
+   101→}
+   102→
+   103→const scoreBg = (score: number) => {
+   104→  if (score >= 80) return 'bg-green-500/10 border-green-500/30'
+   105→  if (score >= 60) return 'bg-yellow-500/10 border-yellow-500/30'
+   106→  if (score >= 40) return 'bg-orange-500/10 border-orange-500/30'
+   107→  return 'bg-red-500/10 border-red-500/30'
+   108→}
+   109→
+   110→const eventTypeColor = (t: string) => {
+   111→  switch (t) {
+   112→    case 'WAF_BLOCK': return 'bg-purple-500/10 text-purple-400'
+   113→    case 'RATE_LIMIT': return 'bg-yellow-500/10 text-yellow-400'
+   114→    case 'IP_BLOCKED': return 'bg-red-500/10 text-red-400'
+   115→    case 'BOT_DETECTED': return 'bg-orange-500/10 text-orange-400'
+   116→    case 'BRUTE_FORCE': return 'bg-red-600/10 text-red-500'
+   117→    case 'LOGIN_SUCCESS': return 'bg-green-500/10 text-green-400'
+   118→    case 'LOGIN_FAILURE': return 'bg-pink-500/10 text-pink-400'
+   119→    default: return 'bg-gray-500/10 text-gray-400'
+   120→  }
+   121→}
+   122→
+   123→export default function SecurityPage() {
+   124→  const [stats, setStats] = useState<SecurityStats | null>(null)
+   125→  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
+   126→  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+   127→  const [lockedIPs, setLockedIPs] = useState<{ ip: string; lockedUntil: number; attempts: number }[]>([])
+   128→  const [ipRules, setIpRules] = useState<IPRule[]>([])
+   129→  const [botSignals, setBotSignals] = useState<BotSignal[]>([])
+   130→  const [loading, setLoading] = useState(true)
+   131→  const [scanning, setScanning] = useState(false)
+   132→  const [activeTab, setActiveTab] = useState<'overview' | 'audit' | 'scanner' | 'firewall' | 'ips' | 'bots'>('overview')
+   133→  const [showAddRule, setShowAddRule] = useState(false)
+   134→  const [newRuleIP, setNewRuleIP] = useState('')
+   135→  const [newRuleReason, setNewRuleReason] = useState('')
+   136→
+   137→  const fetchStats = useCallback(async () => {
+   138→    try {
+   139→      const { data } = await api.get('/api/admin/security/stats')
+   140→      setStats(data.data)
+   141→    } catch { /* silent */ }
+   142→  }, [])
+   143→
+   144→  const fetchAuditLogs = useCallback(async () => {
+   145→    try {
+   146→      const { data } = await api.get('/api/admin/security/audit-logs', { params: { limit: 100 } })
+   147→      setAuditLogs(data.entries || [])
+   148→    } catch { /* silent */ }
+   149→  }, [])
+   150→
+   151→  const fetchLockedIPs = useCallback(async () => {
+   152→    try {
+   153→      const { data } = await api.get('/api/admin/security/locked-ips')
+   154→      setLockedIPs(data.data || [])
+   155→    } catch { /* silent */ }
+   156→  }, [])
+   157→
+   158→  const fetchIPRules = useCallback(async () => {
+   159→    try {
+   160→      const { data } = await api.get('/api/admin/security/ip-rules')
+   161→      setIpRules(data.data || [])
+   162→    } catch { /* silent */ }
+   163→  }, [])
+   164→
+   165→  const fetchBotSignals = useCallback(async () => {
+   166→    try {
+   167→      const { data } = await api.get('/api/admin/security/bot-signals')
+   168→      setBotSignals((data.data || []).slice(0, 50))
+   169→    } catch { /* silent */ }
+   170→  }, [])
+   171→
+   172→  useEffect(() => {
+   173→    const load = async () => {
+   174→      setLoading(true)
+   175→      await Promise.all([fetchStats(), fetchAuditLogs(), fetchLockedIPs(), fetchIPRules(), fetchBotSignals()])
+   176→      setLoading(false)
+   177→    }
+   178→    load()
+   179→  }, [fetchStats, fetchAuditLogs, fetchLockedIPs, fetchIPRules, fetchBotSignals])
+   180→
+   181→  const handleScan = async () => {
+   182→    setScanning(true)
+   183→    try {
+   184→      const { data } = await api.post('/api/admin/security/scan')
+   185→      setScanResult(data.data)
+   186→      toast.success(`Scan complete — Score: ${data.data.score}/100`)
+   187→    } catch {
+   188→      toast.error('Scan failed')
+   189→    }
+   190→    setScanning(false)
+   191→  }
+   192→
+   193→  const handleUnlockIP = async (ip: string) => {
+   194→    try {
+   195→      await api.post('/api/admin/security/unlock-ip', { ip })
+   196→      toast.success(`Unlocked ${ip}`)
+   197→      fetchLockedIPs()
+   198→      fetchStats()
+   199→    } catch {
+   200→      toast.error('Failed to unlock')
+   201→    }
+   202→  }
+   203→
+   204→  const handleAddRule = async () => {
+   205→    if (!newRuleIP) return
+   206→    try {
+   207→      await api.post('/api/admin/security/ip-rules', {
+   208→        type: 'manual_block',
+   209→        ip: newRuleIP,
+   210→        reason: newRuleReason || 'Manual block by admin',
+   211→      })
+   212→      toast.success(`Blocked ${newRuleIP}`)
+   213→      setNewRuleIP('')
+   214→      setNewRuleReason('')
+   215→      setShowAddRule(false)
+   216→      fetchIPRules()
+   217→      fetchStats()
+   218→    } catch {
+   219→      toast.error('Failed to add rule')
+   220→    }
+   221→  }
+   222→
+   223→  const handleRemoveRule = async (id: string) => {
+   224→    try {
+   225→      await api.delete(`/api/admin/security/ip-rules/${id}`)
+   226→      toast.success('Rule removed')
+   227→      fetchIPRules()
+   228→      fetchStats()
+   229→    } catch {
+   230→      toast.error('Failed to remove rule')
+   231→    }
+   232→  }
+   233→
+   234→  const handleClearLogs = async () => {
+   235→    try {
+   236→      await api.delete('/api/admin/security/audit-logs')
+   237→      setAuditLogs([])
+   238→      toast.success('Logs cleared')
+   239→      fetchStats()
+   240→    } catch {
+   241→      toast.error('Failed to clear logs')
+   242→    }
+   243→  }
+   244→
+   245→  const tabs = [
+   246→    { key: 'overview' as const, label: 'Overview', icon: Activity },
+   247→    { key: 'audit' as const, label: 'Audit Log', icon: Search },
+   248→    { key: 'scanner' as const, label: 'Scanner', icon: ShieldCheck },
+   249→    { key: 'firewall' as const, label: 'WAF', icon: Shield },
+   250→    { key: 'ips' as const, label: 'IP Management', icon: Globe },
+   251→    { key: 'bots' as const, label: 'Bot Detection', icon: Bot },
+   252→  ]
+   253→
+   254→  if (loading) {
+   255→    return (
+   256→      <div className="flex items-center justify-center h-96">
+   257→        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+   258→      </div>
+   259→    )
+   260→  }
+   261→
+   262→  return (
+   263→    <div className="space-y-6">
+   264→      {/* Header */}
+   265→      <div className="flex items-center justify-between">
+   266→        <div className="flex items-center gap-3">
+   267→          <div className="p-2 bg-blue-500/10 rounded-lg">
+   268→            <Shield className="w-6 h-6 text-blue-500" />
+   269→          </div>
+   270→          <div>
+   271→            <h1 className="text-2xl font-bold">Security Center</h1>
+   272→            <p className="text-sm text-muted-foreground">Ultimate Security System — Real-time monitoring & protection</p>
+   273→          </div>
+   274→        </div>
+   275→        <Button variant="outline" size="sm" onClick={() => { fetchStats(); fetchAuditLogs(); fetchLockedIPs(); fetchIPRules(); fetchBotSignals(); }}>
+   276→          <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+   277→        </Button>
+   278→      </div>
+   279→
+   280→      {/* Tabs */}
+   281→      <div className="flex gap-1 bg-muted/50 p-1 rounded-lg overflow-x-auto">
+   282→        {tabs.map(tab => (
+   283→          <button
+   284→            key={tab.key}
+   285→            onClick={() => setActiveTab(tab.key)}
+   286→            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
+   287→              activeTab === tab.key
+   288→                ? 'bg-background text-foreground shadow-sm'
+   289→                : 'text-muted-foreground hover:text-foreground'
+   290→            }`}
+   291→          >
+   292→            <tab.icon className="w-4 h-4" />
+   293→            {tab.label}
+   294→          </button>
+   295→        ))}
+   296→      </div>
+   297→
+   298→      {/* Overview Tab */}
+   299→      {activeTab === 'overview' && stats && (
+   300→        <div className="space-y-6">
+   301→          {/* Stat Cards */}
+   302→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+   303→            <Card>
+   304→              <CardContent className="p-4">
+   305→                <div className="flex items-center justify-between">
+   306→                  <div>
+   307→                    <p className="text-sm text-muted-foreground">Events (24h)</p>
+   308→                    <p className="text-2xl font-bold">{stats.audit.lastDay}</p>
+   309→                  </div>
+   310→                  <div className="p-2 bg-blue-500/10 rounded-lg">
+   311→                    <Activity className="w-5 h-5 text-blue-500" />
+   312→                  </div>
+   313→                </div>
+   314→              </CardContent>
+   315→            </Card>
+   316→            <Card>
+   317→              <CardContent className="p-4">
+   318→                <div className="flex items-center justify-between">
+   319→                  <div>
+   320→                    <p className="text-sm text-muted-foreground">Blocked IPs</p>
+   321→                    <p className="text-2xl font-bold">{stats.audit.blockedIPs}</p>
+   322→                  </div>
+   323→                  <div className="p-2 bg-red-500/10 rounded-lg">
+   324→                    <Ban className="w-5 h-5 text-red-500" />
+   325→                  </div>
+   326→                </div>
+   327→              </CardContent>
+   328→            </Card>
+   329→            <Card>
+   330→              <CardContent className="p-4">
+   331→                <div className="flex items-center justify-between">
+   332→                  <div>
+   333→                    <p className="text-sm text-muted-foreground">Locked (Brute Force)</p>
+   334→                    <p className="text-2xl font-bold">{stats.lockedIPs}</p>
+   335→                  </div>
+   336→                  <div className="p-2 bg-orange-500/10 rounded-lg">
+   337→                    <Lock className="w-5 h-5 text-orange-500" />
+   338→                  </div>
+   339→                </div>
+   340→              </CardContent>
+   341→            </Card>
+   342→            <Card>
+   343→              <CardContent className="p-4">
+   344→                <div className="flex items-center justify-between">
+   345→                  <div>
+   346→                    <p className="text-sm text-muted-foreground">Suspicious Bots</p>
+   347→                    <p className="text-2xl font-bold">{stats.suspiciousBots}</p>
+   348→                  </div>
+   349→                  <div className="p-2 bg-purple-500/10 rounded-lg">
+   350→                    <Bot className="w-5 h-5 text-purple-500" />
+   351→                  </div>
+   352→                </div>
+   353→              </CardContent>
+   354→            </Card>
+   355→          </div>
+   356→
+   357→          {/* Security Score + Quick Scan */}
+   358→          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+   359→            <Card>
+   360→              <CardHeader className="pb-3">
+   361→                <CardTitle className="text-base flex items-center gap-2">
+   362→                  <ShieldCheck className="w-4 h-4" /> Quick Security Scan
+   363→                </CardTitle>
+   364→              </CardHeader>
+   365→              <CardContent>
+   366→                <p className="text-sm text-muted-foreground mb-4">
+   367→                  Run a security scan to check JWT config, CORS, env vars, and dependencies.
+   368→                </p>
+   369→                <Button onClick={handleScan} disabled={scanning}>
+   370→                  {scanning ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+   371→                  {scanning ? 'Scanning...' : 'Run Security Scan'}
+   372→                </Button>
+   373→                {scanResult && (
+   374→                  <div className={`mt-4 p-4 rounded-lg border ${scoreBg(scanResult.score)}`}>
+   375→                    <div className="flex items-center justify-between mb-2">
+   376→                      <span className="text-sm font-medium">Security Score</span>
+   377→                      <span className={`text-2xl font-bold ${scoreColor(scanResult.score)}`}>{scanResult.score}/100</span>
+   378→                    </div>
+   379→                    <div className="w-full bg-black/20 rounded-full h-2 mb-3">
+   380→                      <div
+   381→                        className={`h-2 rounded-full transition-all ${scanResult.score >= 80 ? 'bg-green-500' : scanResult.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+   382→                        style={{ width: `${scanResult.score}%` }}
+   383→                      />
+   384→                    </div>
+   385→                    <div className="flex gap-4 text-xs text-muted-foreground">
+   386→                      <span className="text-green-400">{scanResult.passedTests} passed</span>
+   387→                      <span className="text-red-400">{scanResult.failedTests} failed</span>
+   388→                      <span className="text-yellow-400">{scanResult.warnings} warnings</span>
+   389→                    </div>
+   390→                    {scanResult.issues.filter(i => i.severity !== 'info').length > 0 && (
+   391→                      <div className="mt-3 space-y-2">
+   392→                        {scanResult.issues.filter(i => i.severity !== 'info').map((issue, i) => (
+   393→                          <div key={i} className="flex items-start gap-2 text-xs">
+   394→                            {severityIcon(issue.severity)}
+   395→                            <div>
+   396→                              <span className="font-medium">{issue.test}:</span> {issue.description}
+   397→                              {issue.fixDescription && <span className="text-muted-foreground ml-1">→ {issue.fixDescription}</span>}
+   398→                            </div>
+   399→                          </div>
+   400→                        ))}
+   401→                      </div>
+   402→                    )}
+   403→                  </div>
+   404→                )}
+   405→              </CardContent>
+   406→            </Card>
+   407→
+   408→            {/* Event Types Breakdown */}
+   409→            <Card>
+   410→              <CardHeader className="pb-3">
+   411→                <CardTitle className="text-base flex items-center gap-2">
+   412→                  <FileWarning className="w-4 h-4" /> Event Types (24h)
+   413→                </CardTitle>
+   414→              </CardHeader>
+   415→              <CardContent>
+   416→                {Object.keys(stats.audit.byType).length === 0 ? (
+   417→                  <p className="text-sm text-muted-foreground">No security events in the last 24 hours.</p>
+   418→                ) : (
+   419→                  <div className="space-y-2">
+   420→                    {Object.entries(stats.audit.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+   421→                      <div key={type} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+   422→                        <Badge variant="outline" className={eventTypeColor(type)}>{type}</Badge>
+   423→                        <span className="text-sm font-mono font-medium">{count}</span>
+   424→                      </div>
+   425→                    ))}
+   426→                  </div>
+   427→                )}
+   428→                <div className="mt-4 pt-3 border-t border-border/50 text-xs text-muted-foreground space-y-1">
+   429→                  <p>Total events logged: {stats.audit.totalEvents}</p>
+   430→                  <p>Unique IPs tracked: {stats.audit.uniqueIPs}</p>
+   431→                  <p>IP rules active: {stats.ipRules}</p>
+   432→                </div>
+   433→              </CardContent>
+   434→            </Card>
+   435→          </div>
+   436→        </div>
+   437→      )}
+   438→
+   439→      {/* Audit Log Tab */}
+   440→      {activeTab === 'audit' && (
+   441→        <Card>
+   442→          <CardHeader className="pb-3">
+   443→            <div className="flex items-center justify-between">
+   444→              <CardTitle className="text-base flex items-center gap-2">
+   445→                <Search className="w-4 h-4" /> Audit Log
+   446→              </CardTitle>
+   447→              <Button variant="outline" size="sm" onClick={handleClearLogs} className="text-red-400 hover:text-red-300">
+   448→                <Trash2 className="w-3 h-3 mr-1" /> Clear
+   449→              </Button>
+   450→            </div>
+   451→          </CardHeader>
+   452→          <CardContent>
+   453→            {auditLogs.length === 0 ? (
+   454→              <p className="text-sm text-muted-foreground py-8 text-center">No audit log entries yet. Security events will appear here.</p>
+   455→            ) : (
+   456→              <div className="overflow-x-auto">
+   457→                <table className="w-full text-sm">
+   458→                  <thead>
+   459→                    <tr className="text-left text-muted-foreground border-b border-border">
+   460→                      <th className="pb-2 pr-4">Time</th>
+   461→                      <th className="pb-2 pr-4">Type</th>
+   462→                      <th className="pb-2 pr-4">IP</th>
+   463→                      <th className="pb-2 pr-4">Path</th>
+   464→                      <th className="pb-2">Details</th>
+   465→                    </tr>
+   466→                  </thead>
+   467→                  <tbody className="divide-y divide-border/50">
+   468→                    {auditLogs.slice(0, 50).map(log => (
+   469→                      <tr key={log.id} className="hover:bg-muted/30">
+   470→                        <td className="py-2 pr-4 whitespace-nowrap text-xs text-muted-foreground">
+   471→                          {new Date(log.timestamp).toLocaleTimeString()}
+   472→                        </td>
+   473→                        <td className="py-2 pr-4">
+   474→                          <Badge variant="outline" className={`text-xs ${eventTypeColor(log.action)}`}>{log.action}</Badge>
+   475→                        </td>
+   476→                        <td className="py-2 pr-4 font-mono text-xs">{log.ip}</td>
+   477→                        <td className="py-2 pr-4 text-xs max-w-[200px] truncate">{log.resource}</td>
+   478→                        <td className="py-2 text-xs text-muted-foreground max-w-[250px] truncate">
+   479→                          {JSON.stringify(log.details).slice(0, 80)}
+   480→                        </td>
+   481→                      </tr>
+   482→                    ))}
+   483→                  </tbody>
+   484→                </table>
+   485→              </div>
+   486→            )}
+   487→          </CardContent>
+   488→        </Card>
+   489→      )}
+   490→
+   491→      {/* Scanner Tab */}
+   492→      {activeTab === 'scanner' && (
+   493→        <Card>
+   494→          <CardHeader className="pb-3">
+   495→            <CardTitle className="text-base flex items-center gap-2">
+   496→              <ShieldCheck className="w-4 h-4" /> Security Scanner
+   497→            </CardTitle>
+   498→          </CardHeader>
+   499→          <CardContent>
+   500→            <p className="text-sm text-muted-foreground mb-4">
+   501→              Full security scan checks JWT secret strength, CORS configuration, environment variable exposure, Node.js version, and dependency health.
+   502→            </p>
+   503→            <Button onClick={handleScan} disabled={scanning} size="lg">
+   504→              {scanning ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+   505→              {scanning ? 'Scanning...' : 'Run Full Security Scan'}
+   506→            </Button>
+   507→            {scanResult && (
+   508→              <div className="mt-6 space-y-4">
+   509→                <div className={`p-4 rounded-lg border ${scoreBg(scanResult.score)}`}>
+   510→                  <div className="flex items-center justify-between mb-2">
+   511→                    <span className="text-lg font-semibold">Overall Score</span>
+   512→                    <span className={`text-3xl font-bold ${scoreColor(scanResult.score)}`}>{scanResult.score}/100</span>
+   513→                  </div>
+   514→                  <div className="w-full bg-black/20 rounded-full h-3 mb-2">
+   515→                    <div
+   516→                      className={`h-3 rounded-full transition-all ${scanResult.score >= 80 ? 'bg-green-500' : scanResult.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+   517→                      style={{ width: `${scanResult.score}%` }}
+   518→                    />
+   519→                  </div>
+   520→                  <p className="text-xs text-muted-foreground">Scanned at {new Date(scanResult.scannedAt).toLocaleString()}</p>
+   521→                </div>
+   522→                <div className="space-y-2">
+   523→                  {scanResult.issues.map((issue, i) => (
+   524→                    <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${severityColor(issue.severity)}`}>
+   525→                      {severityIcon(issue.severity)}
+   526→                      <div className="flex-1 min-w-0">
+   527→                        <div className="flex items-center gap-2 mb-1">
+   528→                          <span className="font-medium text-sm">{issue.test}</span>
+   529→                          <Badge variant="outline" className={severityColor(issue.severity)}>{issue.severity}</Badge>
+   530→                        </div>
+   531→                        <p className="text-sm">{issue.description}</p>
+   532→                        {issue.fixDescription && (
+   533→                          <p className="text-xs text-muted-foreground mt-1">Fix: {issue.fixDescription}</p>
+   534→                        )}
+   535→                      </div>
+   536→                      <span className="text-sm font-mono font-medium">{issue.score}/100</span>
+   537→                    </div>
+   538→                  ))}
+   539→                </div>
+   540→              </div>
+   541→            )}
+   542→          </CardContent>
+   543→        </Card>
+   544→      )}
+   545→
+   546→      {/* WAF Tab */}
+   547→      {activeTab === 'firewall' && (
+   548→        <Card>
+   549→          <CardHeader className="pb-3">
+   550→            <CardTitle className="text-base flex items-center gap-2">
+   551→              <ShieldAlert className="w-4 h-4" /> Web Application Firewall (WAF)
+   552→            </CardTitle>
+   553→          </CardHeader>
+   554→          <CardContent className="space-y-4">
+   555→            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+   556→              <div className="p-4 rounded-lg border border-purple-500/20 bg-purple-500/5">
+   557→                <p className="text-xs text-muted-foreground mb-1">XSS Patterns</p>
+   558→                <p className="text-2xl font-bold text-purple-400">23</p>
+   559→                <p className="text-xs text-muted-foreground">Script injection, DOM events, eval()</p>
+   560→              </div>
+   561→              <div className="p-4 rounded-lg border border-red-500/20 bg-red-500/5">
+   562→                <p className="text-xs text-muted-foreground mb-1">SQLi Patterns</p>
+   563→                <p className="text-2xl font-bold text-red-400">30</p>
+   564→                <p className="text-xs text-muted-foreground">UNION, DROP, time-based blind</p>
+   565→              </div>
+   566→              <div className="p-4 rounded-lg border border-orange-500/20 bg-orange-500/5">
+   567→                <p className="text-xs text-muted-foreground mb-1">Total Patterns</p>
+   568→                <p className="text-2xl font-bold text-orange-400">100+</p>
+   569→                <p className="text-xs text-muted-foreground">XSS + SQLi + Dir Traversal + Aggressive</p>
+   570→              </div>
+   571→            </div>
+   572→            <div className="p-4 rounded-lg bg-muted/30 border">
+   573→              <p className="text-sm font-medium mb-2">WAF Mode: <Badge variant="outline" className="ml-1">Learning (Log Only)</Badge></p>
+   574→              <p className="text-xs text-muted-foreground">
+   575→                WAF is currently in learning mode — it logs suspicious requests but does not block them.
+   576→                Switch to &quot;enabled&quot; mode in the config to activate blocking. Cumulative scoring: each request parameter is checked against all pattern categories.
+   577→              </p>
+   578→            </div>
+   579→            <div className="p-4 rounded-lg bg-muted/30 border">
+   580→              <p className="text-sm font-medium mb-2">Protected Categories</p>
+   581→              <div className="flex flex-wrap gap-2">
+   582→                {['XSS', 'SQL Injection', 'Directory Traversal', 'Field Truncation', 'Aggressive/Code Exec'].map(cat => (
+   583→                  <Badge key={cat} variant="outline">{cat}</Badge>
+   584→                ))}
+   585→              </div>
+   586→            </div>
+   587→          </CardContent>
+   588→        </Card>
+   589→      )}
+   590→
+   591→      {/* IP Management Tab */}
+   592→      {activeTab === 'ips' && (
+   593→        <div className="space-y-4">
+   594→          {/* Locked IPs */}
+   595→          <Card>
+   596→            <CardHeader className="pb-3">
+   597→              <CardTitle className="text-base flex items-center gap-2">
+   598→                <Lock className="w-4 h-4 text-orange-500" /> Locked IPs (Brute Force)
+   599→              </CardTitle>
+   600→            </CardHeader>
+   601→            <CardContent>
+   602→              {lockedIPs.length === 0 ? (
+   603→                <p className="text-sm text-muted-foreground py-4">No IPs are currently locked.</p>
+   604→              ) : (
+   605→                <div className="space-y-2">
+   606→                  {lockedIPs.map(item => (
+   607→                    <div key={item.ip} className="flex items-center justify-between p-3 rounded-lg bg-red-500/5 border border-red-500/20">
+   608→                      <div>
+   609→                        <span className="font-mono text-sm">{item.ip}</span>
+   610→                        <span className="text-xs text-muted-foreground ml-3">
+   611→                          {item.attempts} attempts — unlocks in {Math.max(0, Math.ceil((item.lockedUntil - Date.now()) / 60000))}m
+   612→                        </span>
+   613→                      </div>
+   614→                      <Button variant="outline" size="sm" onClick={() => handleUnlockIP(item.ip)}>
+   615→                        <Unlock className="w-3 h-3 mr-1" /> Unlock
+   616→                      </Button>
+   617→                    </div>
+   618→                  ))}
+   619→                </div>
+   620→              )}
+   621→            </CardContent>
+   622→          </Card>
+   623→
+   624→          {/* IP Rules */}
+   625→          <Card>
+   626→            <CardHeader className="pb-3">
+   627→              <div className="flex items-center justify-between">
+   628→                <CardTitle className="text-base flex items-center gap-2">
+   629→                  <Ban className="w-4 h-4" /> IP Rules
+   630→                </CardTitle>
+   631→                <Button variant="outline" size="sm" onClick={() => setShowAddRule(!showAddRule)}>
+   632→                  {showAddRule ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3 mr-1" />} Add Rule
+   633→                </Button>
+   634→              </div>
+   635→            </CardHeader>
+   636→            <CardContent>
+   637→              {showAddRule && (
+   638→                <div className="flex gap-2 mb-4 p-3 rounded-lg bg-muted/30 border">
+   639→                  <Input
+   640→                    placeholder="IP address (e.g. 192.168.1.1)"
+   641→                    value={newRuleIP}
+   642→                    onChange={e => setNewRuleIP(e.target.value)}
+   643→                    className="flex-1"
+   644→                  />
+   645→                  <Input
+   646→                    placeholder="Reason"
+   647→                    value={newRuleReason}
+   648→                    onChange={e => setNewRuleReason(e.target.value)}
+   649→                    className="flex-1"
+   650→                  />
+   651→                  <Button onClick={handleAddRule} size="sm">Block</Button>
+   652→                </div>
+   653→              )}
+   654→              {ipRules.length === 0 ? (
+   655→                <p className="text-sm text-muted-foreground py-4">No IP rules configured. Add a block or whitelist rule above.</p>
+   656→              ) : (
+   657→                <div className="space-y-2">
+   658→                  {ipRules.map(rule => (
+   659→                    <div key={rule.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+   660→                      <div className="flex items-center gap-3">
+   661→                        <Badge variant={rule.type === 'manual_bypass' ? 'default' : 'destructive'} className="text-xs">
+   662→                          {rule.type === 'manual_bypass' ? 'Whitelist' : rule.type === 'auto_block' ? 'Auto-Block' : 'Blocked'}
+   663→                        </Badge>
+   664→                        <span className="font-mono text-sm">{rule.ip || rule.cidr}</span>
+   665→                        <span className="text-xs text-muted-foreground">{rule.reason}</span>
+   666→                      </div>
+   667→                      <Button variant="ghost" size="sm" onClick={() => handleRemoveRule(rule.id)} className="text-red-400 hover:text-red-300">
+   668→                        <X className="w-3 h-3" />
+   669→                      </Button>
+   670→                    </div>
+   671→                  ))}
+   672→                </div>
+   673→              )}
+   674→            </CardContent>
+   675→          </Card>
+   676→        </div>
+   677→      )}
+   678→
+   679→      {/* Bot Detection Tab */}
+   680→      {activeTab === 'bots' && (
+   681→        <Card>
+   682→          <CardHeader className="pb-3">
+   683→            <CardTitle className="text-base flex items-center gap-2">
+   684→              <Bot className="w-4 h-4" /> Bot Detection
+   685→            </CardTitle>
+   686→          </CardHeader>
+   687→          <CardContent>
+   688→            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+   689→              <div className="p-3 rounded-lg border bg-muted/30">
+   690→                <p className="text-xs text-muted-foreground">Tracked IPs</p>
+   691→                <p className="text-xl font-bold">{botSignals.length}</p>
+   692→              </div>
+   693→              <div className="p-3 rounded-lg border bg-orange-500/5 border-orange-500/20">
+   694→                <p className="text-xs text-muted-foreground">Flagged as Bots</p>
+   695→                <p className="text-xl font-bold text-orange-400">{botSignals.filter(b => b.isBot).length}</p>
+   696→              </div>
+   697→              <div className="p-3 rounded-lg border bg-blue-500/5 border-blue-500/20">
+   698→                <p className="text-xs text-muted-foreground">Known Good Bots</p>
+   699→                <p className="text-xl font-bold text-blue-400">{botSignals.filter(b => b.identity).length}</p>
+   700→              </div>
+   701→            </div>
+   702→            {botSignals.length === 0 ? (
+   703→              <p className="text-sm text-muted-foreground py-4 text-center">No bot signals recorded yet.</p>
+   704→            ) : (
+   705→              <div className="overflow-x-auto">
+   706→                <table className="w-full text-sm">
+   707→                  <thead>
+   708→                    <tr className="text-left text-muted-foreground border-b border-border">
+   709→                      <th className="pb-2 pr-4">IP</th>
+   710→                      <th className="pb-2 pr-4">Score</th>
+   711→                      <th className="pb-2 pr-4">Identity</th>
+   712→                      <th className="pb-2 pr-4">Bot?</th>
+   713→                      <th className="pb-2">Last Seen</th>
+   714→                    </tr>
+   715→                  </thead>
+   716→                  <tbody className="divide-y divide-border/50">
+   717→                    {botSignals.map((bot, i) => (
+   718→                      <tr key={i} className="hover:bg-muted/30">
+   719→                        <td className="py-2 pr-4 font-mono text-xs">{bot.ip}</td>
+   720→                        <td className="py-2 pr-4">
+   721→                          <span className={`font-mono text-xs ${bot.score < 30 ? 'text-red-400' : bot.score < 60 ? 'text-yellow-400' : 'text-green-400'}`}>
+   722→                            {bot.score}
+   723→                          </span>
+   724→                        </td>
+   725→                        <td className="py-2 pr-4 text-xs">{bot.identity || '—'}</td>
+   726→                        <td className="py-2 pr-4">
+   727→                          <Badge variant={bot.isBot ? 'destructive' : 'default'} className="text-xs">
+   728→                            {bot.isBot ? 'Yes' : 'No'}
+   729→                          </Badge>
+   730→                        </td>
+   731→                        <td className="py-2 text-xs text-muted-foreground">
+   732→                          {new Date(bot.lastSeenAt * 1000).toLocaleString()}
+   733→                        </td>
+   734→                      </tr>
+   735→                    ))}
+   736→                  </tbody>
+   737→                </table>
+   738→              </div>
+   739→            )}
+   740→          </CardContent>
+   741→        </Card>
+   742→      )}
+   743→    </div>
+   744→  )
+   745→}

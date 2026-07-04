@@ -1,0 +1,58 @@
+// ePowerFix Custom Icon System
+// Each icon is a custom SVG React component with consistent stroke width and brand colors.
+// Usage: import { HomeIcon, ShopIcon } from "@/icons"
+
+export { default as HomeIcon } from "./HomeIcon"
+export { default as ShopIcon } from "./ShopIcon"
+export { default as CartIcon } from "./CartIcon"
+export { default as UserIcon } from "./UserIcon"
+export { default as SearchIcon } from "./SearchIcon"
+export { default as PhoneIcon } from "./PhoneIcon"
+export { default as EmailIcon } from "./EmailIcon"
+export { default as LocationIcon } from "./LocationIcon"
+export { default as ToolsIcon } from "./ToolsIcon"
+export { default as ServiceIcon } from "./ServiceIcon"
+export { default as ProjectIcon } from "./ProjectIcon"
+export { default as HeartIcon } from "./HeartIcon"
+export { default as StarIcon } from "./StarIcon"
+export { default as TruckIcon } from "./TruckIcon"
+export { default as ShieldIcon } from "./ShieldIcon"
+export { default as HeadsetIcon } from "./HeadsetIcon"
+export { default as ChevronLeftIcon } from "./ChevronLeftIcon"
+export { default as ChevronRightIcon } from "./ChevronRightIcon"
+export { default as CloseIcon } from "./CloseIcon"
+export { default as MenuIcon } from "./MenuIcon"
+export { default as FilterIcon } from "./FilterIcon"
+export { default as GridIcon } from "./GridIcon"
+export { default as ListIcon } from "./ListIcon"
+export { default as WhatsAppIcon } from "./WhatsAppIcon"
+export { default as FacebookIcon } from "./FacebookIcon"
+export { default as InstagramIcon } from "./InstagramIcon"
+export { default as YouTubeIcon } from "./YouTubeIcon"
+export { default as ZapIcon } from "./ZapIcon"
+export { default as InfoIcon } from "./InfoIcon"
+export { default as CheckIcon } from "./CheckIcon"
+export { default as ArrowRightIcon } from "./ArrowRightIcon"
+export { default as TagIcon } from "./TagIcon"
+export { default as PackageIcon } from "./PackageIcon"
+export { default as EyeIcon } from "./EyeIcon"
+export { default as PencilIcon } from "./PencilIcon"
+export { default as TrashIcon } from "./TrashIcon"
+export { default as PlusIcon } from "./PlusIcon"
+export { default as MinusIcon } from "./MinusIcon"
+export { default as ShareIcon } from "./ShareIcon"
+export { default as ClockIcon } from "./ClockIcon"
+export { default as CalendarIcon } from "./CalendarIcon"
+export { default as DownloadIcon } from "./DownloadIcon"
+export { default as SendIcon } from "./SendIcon"
+export { default as LinkIcon } from "./LinkIcon"
+export { default as AlertIcon } from "./AlertIcon"
+export { default as RefreshIcon } from "./RefreshIcon"
+export { default as BoltIcon } from "./BoltIcon"
+
+// Icon props interface
+export interface IconProps {
+  className?: string
+  size?: number
+  color?: string
+}
