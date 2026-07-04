@@ -9,6 +9,7 @@ A complete e-commerce + service booking platform for electrical products in Bang
 - **Auth:** JWT (httpOnly cookies) via `jose`
 - **UI:** Tailwind CSS 4 + shadcn/ui (New York)
 - **State:** Zustand + TanStack Query
+- **Deploy:** Vercel (app) + Neon (database)
 
 ## Quick Start (Local with PostgreSQL)
 
@@ -26,16 +27,12 @@ bun install
 ### 3. Create the database
 
 ```bash
-# Using psql
 psql -U postgres -c "CREATE DATABASE epowerfix;"
-
-# OR using createdb
+# OR
 createdb -U postgres epowerfix
 ```
 
 ### 4. Configure environment
-
-Copy `.env.example` to `.env` and update the credentials:
 
 ```bash
 cp .env.example .env
@@ -80,6 +77,70 @@ Open http://localhost:3000
 - Go to http://localhost:3000/admin/login
 - Login with `admin@epowerfix.com` / `admin123`
 
+---
+
+## 🚀 Deploy to Vercel (Free — Production)
+
+### Step 1: Create a PostgreSQL database on Neon
+
+1. Go to https://neon.tech and sign up (free)
+2. Click "New Project" → name it `epowerfix`
+3. Select a region close to you (e.g., Singapore for Bangladesh)
+4. Copy the connection string — looks like:
+   ```
+   postgresql://neondb_owner:password@ep-xxx.us-east-2.aws.neon.tech/epowerfix?sslmode=require
+   ```
+
+### Step 2: Push schema to Neon database
+
+From your local machine:
+
+```bash
+# Set the Neon DATABASE_URL temporarily
+export DATABASE_URL="postgresql://neondb_owner:password@ep-xxx.neon.tech/epowerfix?sslmode=require"
+
+# Push schema (creates 33 tables)
+bun run db:push
+
+# Seed data (creates admin user + sample data)
+bun run prisma/seed.ts
+```
+
+### Step 3: Deploy to Vercel
+
+1. Go to https://vercel.com and sign in with GitHub
+2. Click "Add New" → "Project"
+3. Import your `ePowerFix` repository
+4. Vercel auto-detects Next.js — keep defaults
+5. Add Environment Variables:
+   ```
+   DATABASE_URL    = postgresql://neondb_owner:password@ep-xxx.neon.tech/epowerfix?sslmode=require
+   JWT_SECRET      = your-long-random-jwt-secret-min-32-chars
+   NEXTAUTH_SECRET = your-long-random-nextauth-secret
+   ```
+6. Click "Deploy" — wait 2-3 minutes
+7. Your site is live at `https://ePowerFix.vercel.app`!
+
+### Step 4: Login to admin panel
+
+- Visit `https://your-site.vercel.app/admin/login`
+- Login with `admin@epowerfix.com` / `admin123`
+- **⚠️ Change the admin password immediately** via the admin panel
+
+---
+
+## 🔐 Security Checklist (Before Going Live)
+
+- [ ] **Change admin password** — edit `prisma/seed.ts`, re-run seed, or change via admin panel
+- [ ] **Generate new JWT_SECRET** — run `openssl rand -base64 32`
+- [ ] **Generate new NEXTAUTH_SECRET** — run `openssl rand -base64 32`
+- [ ] **Review admin user list** — remove any test users
+- [ ] **Set up rate limiting** — already included in security package
+- [ ] **Enable Neon automated backups** — free tier includes 7 days
+- [ ] **Add custom domain** — in Vercel dashboard → Settings → Domains
+
+---
+
 ## Admin Panel Features
 
 All admin features are **dynamic** (connected to PostgreSQL):
@@ -117,36 +178,13 @@ All API routes are Next.js App Router routes (no separate Express server):
 
 ```
 src/app/api/
-├── auth/
-│   ├── login/route.ts        # POST - login, sets JWT cookie
-│   ├── me/route.ts           # GET - current user
-│   └── logout/route.ts       # POST - clear session
-├── admin/
-│   ├── orders/               # GET, POST + [id] GET/PUT/DELETE + [id]/status PUT
-│   ├── products/             # GET, POST + [id] GET/PUT/DELETE
-│   ├── users/                # GET, POST + [id] GET/PUT/DELETE
-│   ├── product-categories/   # GET, POST + [id] GET/PUT/DELETE
-│   ├── brands/               # GET, POST + [id] GET/PUT/DELETE
-│   ├── coupons/              # ...
-│   ├── bookings/             # ...
-│   ├── services/             # ...
-│   ├── service-categories/   # ...
-│   ├── blog/                 # ...
-│   ├── reviews/              # ...
-│   ├── messages/             # ...
-│   ├── quote-requests/       # ...
-│   ├── returns/              # ...
-│   ├── projects/             # ...
-│   ├── flash-sales/          # ...
-│   ├── newsletter/           # ...
-│   ├── banners/              # ...
-│   ├── taxes/                # ...
-│   ├── settings/             # ...
-│   ├── ai-providers/         # ...
-│   ├── product-questions/    # ...
-│   ├── upload/               # POST - file upload
-│   └── stats/                # GET - dashboard stats
-└── payments/                 # Payment gateway callbacks
+├── auth/             # login, me, logout
+├── admin/            # 53 admin CRUD routes
+│   ├── orders/       # GET, POST + [id] GET/PUT/DELETE + [id]/status PUT
+│   ├── products/     # GET, POST + [id] GET/PUT/DELETE
+│   ├── users/        # ...
+│   └── ...           # (see src/app/api/admin/ for full list)
+└── payments/         # Payment gateway callbacks (bKash, Nagad, SSLCommerz)
 ```
 
 All admin routes are protected by `requireAdmin()` middleware (checks JWT + ADMIN role).
@@ -161,7 +199,7 @@ prisma/
 src/
 ├── app/
 │   ├── admin/       # 26 admin pages
-│   ├── api/         # 53 API routes
+│   ├── api/         # 60 API routes
 │   └── ...          # Public pages (shop, services, blog, etc.)
 ├── components/
 │   ├── ui/          # shadcn/ui components
@@ -202,4 +240,14 @@ Email:    admin@epowerfix.com
 Password: admin123
 ```
 
-**Change these immediately in production** by editing `prisma/seed.ts` and re-running the seed, or via the admin panel.
+**⚠️ Change these immediately in production** by editing `prisma/seed.ts` and re-running the seed, or via the admin panel.
+
+## Future: Mobile App Migration
+
+When you're ready to build a mobile app (React Native), the backend can be extracted into a separate Express API:
+
+1. Move `src/app/api/**` routes → Express server
+2. Update `src/lib/api.ts` to point to the new API URL
+3. Both web + mobile will use the same API
+
+The code is structured to make this migration straightforward when needed.
