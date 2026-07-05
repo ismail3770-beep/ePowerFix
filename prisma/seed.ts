@@ -967,6 +967,197 @@ async function seed() {
   console.log("  ✓ AiProvider: OpenAI (seed, disabled)");
 
   // ------------------------------------------------------------------
+  // 15. Projects (3 portfolio + 3 sellable kits)
+  // ------------------------------------------------------------------
+  const projects = [
+    {
+      id: uuidv4(),
+      title: "Smart Home Automation System",
+      titleBn: "স্মার্ট হোম অটোমেশন সিস্টেম",
+      slug: "smart-home-automation",
+      description:
+        "Complete home automation with Arduino + ESP32 — control lights, fans, and appliances from a mobile app. Includes wiring diagram, code, and step-by-step guide.",
+      coverImage:
+        "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&h=600&fit=crop",
+      images: j([
+        "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&h=600&fit=crop",
+      ]),
+      client: "Rahim Residence",
+      location: "Dhanmondi, Dhaka",
+      status: "COMPLETED",
+      isSellable: true,
+      price: 4500,
+      salePrice: 3990,
+      startDate: new Date("2024-09-01"),
+      endDate: new Date("2024-11-15"),
+    },
+    {
+      id: uuidv4(),
+      title: "Solar Power System 5kW",
+      titleBn: "সোলার পাওয়ার সিস্টেম ৫kW",
+      slug: "solar-power-5kw",
+      description:
+        "Off-grid 5kW solar installation for a 4-bedroom house. Includes panels, inverter, battery bank, and charge controller. Full installation guide + maintenance schedule.",
+      coverImage:
+        "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop",
+      images: j([
+        "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1545208942-e1c9c9160247?w=800&h=600&fit=crop",
+      ]),
+      client: "Karim Industries",
+      location: "Gazipur",
+      status: "COMPLETED",
+      isSellable: true,
+      price: 185000,
+      salePrice: 175000,
+      startDate: new Date("2024-07-10"),
+      endDate: new Date("2024-10-20"),
+    },
+    {
+      id: uuidv4(),
+      title: "Industrial PLC Automation",
+      titleBn: "ইন্ডাস্ট্রিয়াল PLC অটোমেশন",
+      slug: "industrial-plc-automation",
+      description:
+        "PLC-based automation for a textile factory — 3 production lines with Siemens S7-1200. Reduced downtime by 35%. Includes ladder logic, HMI design, and commissioning report.",
+      coverImage:
+        "https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=800&h=600&fit=crop",
+      images: j([
+        "https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=800&h=600&fit=crop",
+      ]),
+      client: "Bengal Textiles Ltd.",
+      location: "Narayanganj",
+      status: "COMPLETED",
+      isSellable: false,
+      startDate: new Date("2024-03-01"),
+      endDate: new Date("2024-06-30"),
+    },
+    {
+      id: uuidv4(),
+      title: "Arduino IoT Weather Station Kit",
+      titleBn: "আরডুইনো আইওটি ওয়েদার স্টেশন কিট",
+      slug: "arduino-iot-weather-station",
+      description:
+        "Build your own IoT weather station with Arduino + ESP8266. Measures temperature, humidity, pressure, and rain. Sends data to a cloud dashboard. Kit includes all components + code + guide.",
+      coverImage:
+        "https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=800&h=600&fit=crop",
+      images: j([
+        "https://images.unsplash.com/photo-1536375657738-2aa8003aa945?w=800&h=600&fit=crop",
+      ]),
+      client: null,
+      location: null,
+      status: "COMPLETED",
+      isSellable: true,
+      price: 2800,
+      salePrice: 2350,
+    },
+    {
+      id: uuidv4(),
+      title: "Automatic Power Factor Correction",
+      titleBn: "অটোমেটিক পাওয়ার ফ্যাক্টর কারেকশন",
+      slug: "automatic-power-factor-correction",
+      description:
+        "APFC panel for a commercial building — improved PF from 0.72 to 0.96, reducing electricity bill by 18%. Includes capacitor bank design, relay logic, and monitoring dashboard.",
+      coverImage:
+        "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&h=600&fit=crop",
+      images: j([
+        "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&h=600&fit=crop",
+      ]),
+      client: "Square Shopping Mall",
+      location: "Panthapath, Dhaka",
+      status: "COMPLETED",
+      isSellable: false,
+      startDate: new Date("2024-05-15"),
+      endDate: new Date("2024-08-10"),
+    },
+    {
+      id: uuidv4(),
+      title: "ESP32 Smart Switch Kit",
+      titleBn: "ESP32 স্মার্ট সুইচ কিট",
+      slug: "esp32-smart-switch-kit",
+      description:
+        "Convert any regular switch into a WiFi smart switch. Control from phone, set timers, and integrate with Alexa/Google. Kit includes ESP32, relay module, PCB, and 3D-printed enclosure.",
+      coverImage:
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop",
+      images: j([
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=600&fit=crop",
+      ]),
+      client: null,
+      location: null,
+      status: "COMPLETED",
+      isSellable: true,
+      price: 1200,
+      salePrice: 990,
+    },
+  ];
+
+  for (const p of projects) {
+    const existing = await db.project.findUnique({ where: { slug: p.slug } });
+    if (existing) continue;
+    await db.project.create({ data: p });
+  }
+  console.log(`  ✓ Projects: ${projects.length} (3 portfolio + 3 sellable kits)`);
+
+  // ------------------------------------------------------------------
+  // 16. Blog posts (3)
+  // ------------------------------------------------------------------
+  const blogPosts = [
+    {
+      id: uuidv4(),
+      title: "How to Choose the Right Solar Panel for Your Home",
+      titleBn: "আপনার বাসার জন্য সঠিক সোলার প্যানেল নির্বাচন",
+      slug: "how-to-choose-right-solar-panel",
+      excerpt:
+        "A complete guide to selecting solar panels based on capacity, efficiency, and budget for Bangladeshi homes.",
+      content:
+        "<p>Solar energy is becoming increasingly popular in Bangladesh. In this guide, we cover:</p><ul><li>Monocrystalline vs Polycrystalline panels</li><li>Calculating your power needs</li><li>Budget estimation</li><li>Installation tips</li></ul><p>Read on to make an informed decision for your home.</p>",
+      coverImage:
+        "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=500&fit=crop",
+      author: "ePowerFix Admin",
+      tags: j(["solar", "renewable energy", "guide"]),
+      isPublished: true,
+    },
+    {
+      id: uuidv4(),
+      title: "Top 5 Electrical Safety Tips for Every Home",
+      titleBn: "প্রতিটি বাসার জন্য ৫টি ইলেকট্রিক্যাল সেফটি টিপস",
+      slug: "top-5-electrical-safety-tips",
+      excerpt:
+        "Keep your family safe with these essential electrical safety practices every homeowner should know.",
+      content:
+        "<p>Electrical safety is crucial for every home. Here are our top 5 tips:</p><ol><li>Check for frayed wires regularly</li><li>Don't overload power outlets</li><li>Use RCCB/MCB protection</li><li>Keep water away from electrical points</li><li>Hire a licensed electrician for major work</li></ol>",
+      coverImage:
+        "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&h=500&fit=crop",
+      author: "ePowerFix Team",
+      tags: j(["safety", "tips", "home"]),
+      isPublished: true,
+    },
+    {
+      id: uuidv4(),
+      title: "Understanding LED Light Efficiency: A Buyer's Guide",
+      titleBn: "LED লাইট এফিশিয়েন্সি বোঝা: একটি ক্রেতার গাইড",
+      slug: "understanding-led-light-efficiency",
+      excerpt:
+        "Learn how LED lights save energy and money, and what to look for when buying LED bulbs in Bangladesh.",
+      content:
+        "<p>LED lights use up to 80% less energy than traditional bulbs. This guide covers:</p><ul><li>Lumens vs Watts</li><li>Color temperature</li><li>Brand recommendations</li><li>Price vs longevity</li></ul>",
+      coverImage:
+        "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&h=500&fit=crop",
+      author: "ePowerFix Team",
+      tags: j(["led", "lighting", "energy saving"]),
+      isPublished: true,
+    },
+  ];
+
+  for (const post of blogPosts) {
+    const existing = await db.blogPost.findUnique({ where: { slug: post.slug } });
+    if (existing) continue;
+    await db.blogPost.create({ data: post });
+  }
+  console.log(`  ✓ Blog posts: ${blogPosts.length}`);
+
+  // ------------------------------------------------------------------
   // Done
   // ------------------------------------------------------------------
   console.log("✓ Seed complete.");
@@ -990,6 +1181,7 @@ async function seed() {
     taxes: await db.tax.count(),
     flashSales: await db.flashSale.count(),
     aiProviders: await db.aiProvider.count(),
+    projects: await db.project.count(),
     siteSettings: await db.siteSettings.count(),
   };
   console.log("Counts:", JSON.stringify(counts, null, 2));
