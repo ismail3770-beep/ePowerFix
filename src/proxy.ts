@@ -23,6 +23,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { logSecurityEvent } from '@/lib/security-logger';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LAYER 1: Security Headers
@@ -302,7 +303,10 @@ export async function proxy(request: NextRequest) {
   // Block dangerous patterns in URL query params before any processing
   const inputCheck = checkInputSafety(request);
   if (!inputCheck.safe) {
-    console.warn(`[SECURITY] Blocked malicious input from ${clientIP}: ${inputCheck.pattern} on ${pathname}`);
+    await logSecurityEvent('Malicious input blocked', 'error', request, {
+      pattern: inputCheck.pattern,
+      ip: clientIP,
+    });
     const response = NextResponse.json(
       { error: 'Invalid request' },
       { status: 400 },
@@ -317,14 +321,21 @@ export async function proxy(request: NextRequest) {
     const rateLimitResult = checkRateLimit(rateLimitKey, rateLimitRule);
 
     if (!rateLimitResult.allowed) {
-      console.warn(`[SECURITY] Rate limit exceeded for ${clientIP} on ${pathname}`);
+      await logSecurityEvent('Rate limit exceeded', 'warning', request, {
+        ip: clientIP,
+        retryAfter: rateLimitResult.retryAfter,
+      });
       return applySecurityHeaders(rateLimitResponse(rateLimitResult.retryAfter));
     }
   }
 
   // ─── LAYER 3: CSRF Protection ────────────────────────────────────────────
   if (!checkCSRF(request)) {
-    console.warn(`[SECURITY] CSRF blocked: origin mismatch from ${clientIP} on ${pathname}`);
+    await logSecurityEvent('CSRF blocked: origin mismatch', 'error', request, {
+      origin: request.headers.get('origin'),
+      expectedHost: request.headers.get('host'),
+      ip: clientIP,
+    });
     const response = NextResponse.json(
       { error: 'Cross-origin requests are not allowed' },
       { status: 403 },
@@ -337,6 +348,11 @@ export async function proxy(request: NextRequest) {
     const token = request.cookies.get('token')?.value;
 
     if (!token) {
+      // No token — unauthorized access attempt to admin
+      await logSecurityEvent('Unauthorized admin access: no token', 'warning', request, {
+        ip: clientIP,
+        targetPath: pathname,
+      });
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', '/admin');
       return applySecurityHeaders(NextResponse.redirect(loginUrl));
@@ -351,7 +367,12 @@ export async function proxy(request: NextRequest) {
     const payload = await verifyToken(token);
 
     if (!payload) {
-      // Invalid/expired token → clear cookie + redirect to login
+      // Invalid/expired token — potential token theft or forgery attempt
+      await logSecurityEvent('Invalid JWT on admin route', 'error', request, {
+        ip: clientIP,
+        targetPath: pathname,
+        tokenPrefix: token.slice(0, 10),  // Only first 10 chars for debugging
+      });
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', '/admin');
       const response = NextResponse.redirect(loginUrl);
@@ -360,7 +381,13 @@ export async function proxy(request: NextRequest) {
     }
 
     if (payload.role !== 'ADMIN') {
-      // Non-admin trying to access admin → redirect home
+      // Non-admin user trying to access admin panel — privilege escalation attempt
+      await logSecurityEvent('Privilege escalation: non-admin on admin route', 'error', request, {
+        ip: clientIP,
+        userId: payload.id,
+        userRole: payload.role,
+        targetPath: pathname,
+      });
       return applySecurityHeaders(NextResponse.redirect(new URL('/', request.url)));
     }
 
