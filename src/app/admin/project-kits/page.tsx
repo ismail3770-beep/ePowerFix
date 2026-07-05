@@ -59,6 +59,7 @@ export default function AdminProjectKitsPage() {
   const [items, setItems] = useState<KitItem[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
   const [addDialog, setAddDialog] = useState(false);
   const [editItem, setEditItem] = useState<KitItem | null>(null);
   const [addForm, setAddForm] = useState({ productId: "__none__", quantity: 1, isRequired: true, notes: "" });
@@ -92,12 +93,15 @@ export default function AdminProjectKitsPage() {
   };
 
   const fetchProducts = async () => {
+    setProductsLoading(true);
     try {
       const res = await apiFetch<{ data: { data: Product[] } | Product[] }>("/api/admin/products?limit=100");
       const list = (res.data as any)?.data ?? (Array.isArray(res.data) ? res.data : []);
       setProducts(list);
-    } catch {
-      /* silent */
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to load products");
+    } finally {
+      setProductsLoading(false);
     }
   };
 
@@ -317,15 +321,24 @@ export default function AdminProjectKitsPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Product *</Label>
-              <Select value={addForm.productId} onValueChange={(v) => setAddForm({ ...addForm, productId: v })}>
-                <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Select a product</SelectItem>
-                  {products.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}{p.sku ? ` (${p.sku})` : ""}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {productsLoading ? (
+                <div className="h-9 flex items-center px-3 border rounded-md text-sm text-muted-foreground">Loading products…</div>
+              ) : products.length === 0 ? (
+                <div className="border border-amber-300 bg-amber-50 rounded-md p-3 text-sm text-amber-800">
+                  <p className="font-medium mb-1">No products available.</p>
+                  <p className="text-xs">You need to create products first before adding them to a kit. Go to the <a href="/admin/products" className="text-[#0EA5E9] underline">Products page</a> to add products.</p>
+                </div>
+              ) : (
+                <Select value={addForm.productId} onValueChange={(v) => setAddForm({ ...addForm, productId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Select a product</SelectItem>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}{p.sku ? ` (${p.sku})` : ""}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
