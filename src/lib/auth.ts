@@ -9,10 +9,16 @@ import { db } from '@/lib/db'
 
 const COOKIE_NAME = 'token'
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days
+const ISSUER = 'epowerfix'
+const AUDIENCE = 'epowerfix-users'
 
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET
-  if (!secret) throw new Error('JWT_SECRET not configured')
+  if (!secret || secret.length < 32) {
+    throw new Error(
+      'JWT_SECRET must be set and at least 32 characters. Run: openssl rand -base64 32',
+    )
+  }
   return new TextEncoder().encode(secret)
 }
 
@@ -45,6 +51,8 @@ export async function createSession(user: SessionUser) {
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
+    .setIssuer(ISSUER)
+    .setAudience(AUDIENCE)
     .setExpirationTime(`${TOKEN_TTL_SECONDS}s`)
     .sign(secret)
 
@@ -79,7 +87,10 @@ export async function getSession(): Promise<SessionUser | null> {
     if (!token) return null
 
     const secret = getJwtSecret()
-    const { payload } = await jwtVerify(token, secret)
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: ISSUER,
+      audience: AUDIENCE,
+    })
     const userId = payload.id as string | undefined
     if (!userId) return null
 
