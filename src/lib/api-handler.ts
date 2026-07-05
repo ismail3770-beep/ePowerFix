@@ -119,8 +119,9 @@ function withErrorHandling<T extends (...args: any[]) => Promise<Response | Next
 /**
  * Parses and validates the request body against a Zod schema.
  * Throws a ZodError (caught by withErrorHandling) if invalid.
+ * Exported so routes with dynamic URL params can use it directly.
  */
-async function validateBody<T>(request: NextRequest, schema: ZodSchema<T>): Promise<T> {
+export async function validateBody<T>(request: NextRequest, schema: ZodSchema<T>): Promise<T> {
   let body: unknown
   try {
     body = await request.json()

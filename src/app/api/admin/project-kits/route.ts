@@ -4,11 +4,12 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   getPagination,
   listResponse,
+  parseJsonField,
+  stringifyJsonField,
 } from '@/lib/admin-api'
-import { parseJsonField, stringifyJsonField } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 function slugify(text: string): string {
   return text
@@ -19,102 +20,88 @@ function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
-/**
- * GET /api/admin/project-kits
- * List all project kits with pagination + search.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schemas ──────────────────────────────────────────────────────────────
 
-  try {
-    const { page, limit, skip, search } = getPagination(request.url)
+const createKitSchema = z.object({
+  title: z.string().min(1).max(200),
+  titleBn: z.string().optional(),
+  slug: z.string().optional(),
+  description: z.string().min(1).max(10000),
+  coverImage: z.string().optional(),
+  images: z.array(z.string()).optional().default([]),
+  category: z.string().max(100).optional(),
+  difficulty: z.enum(['Beginner', 'Intermediate', 'Advanced']).optional(),
+  price: z.number().min(0),
+  salePrice: z.number().min(0).optional(),
+  stock: z.number().int().min(0).optional().default(0),
+  isActive: z.boolean().optional().default(true),
+})
 
-    const where: any = {}
-    if (search) {
-      where.OR = [
-        { title: { contains: search } },
-        { titleBn: { contains: search } },
-        { description: { contains: search } },
-        { category: { contains: search } },
-      ]
-    }
+// ─── GET: List project kits ──────────────────────────────────────────────────
 
-    const [kits, total] = await Promise.all([
-      db.projectKit.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          _count: { select: { items: true } },
-        },
-      }),
-      db.projectKit.count({ where }),
-    ])
+export const GET = adminGetRoute(async (request) => {
+  const { page, limit, skip, search } = getPagination(request.url)
 
-    const parsed = kits.map((k: any) => ({
-      ...k,
-      images: parseJsonField(k.images),
-      itemCount: k._count?.items ?? 0,
-      _count: undefined,
-    }))
-
-    return listResponse(parsed, total, page, limit)
-  } catch (err: any) {
-    console.error('admin/project-kits GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const where: any = {}
+  if (search) {
+    where.OR = [
+      { title: { contains: search } },
+      { titleBn: { contains: search } },
+      { description: { contains: search } },
+      { category: { contains: search } },
+    ]
   }
-}
 
-/**
- * POST /api/admin/project-kits
- * Create a new project kit.
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  const [kits, total] = await Promise.all([
+    db.projectKit.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { items: true } } },
+    }),
+    db.projectKit.count({ where }),
+  ])
 
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
+  const parsed = kits.map((k: any) => ({
+    ...k,
+    images: parseJsonField(k.images),
+    itemCount: k._count?.items ?? 0,
+    _count: undefined,
+  }))
 
-    const { title, titleBn, slug, description, coverImage, images, category, difficulty, price, salePrice, stock, isActive } = body
-    if (!title) return errorResponse('title is required', 400)
-    if (!description) return errorResponse('description is required', 400)
-    if (price === undefined || price === null) return errorResponse('price is required', 400)
+  return listResponse(parsed, total, page, limit)
+})
 
-    let finalSlug = slug || slugify(title)
-    const existing = await db.projectKit.findUnique({ where: { slug: finalSlug } })
-    if (existing) {
-      finalSlug = `${finalSlug}-${Date.now().toString(36)}`
-    }
+// ─── POST: Create project kit ────────────────────────────────────────────────
 
-    const kit = await db.projectKit.create({
-      data: {
-        title,
-        titleBn: titleBn || null,
-        slug: finalSlug,
-        description,
-        coverImage: coverImage || null,
-        images: stringifyJsonField(images),
-        category: category || null,
-        difficulty: difficulty || null,
-        price: Number(price),
-        salePrice: salePrice !== undefined ? Number(salePrice) : null,
-        stock: stock !== undefined ? Number(stock) : 0,
-        isActive: isActive !== undefined ? !!isActive : true,
-      },
-    })
+export const POST = adminRoute(createKitSchema, async (request, body, user) => {
+  const { title, titleBn, slug, description, coverImage, images, category, difficulty, price, salePrice, stock, isActive } = body
 
-    return jsonResponse({
-      data: {
-        ...kit,
-        images: parseJsonField(kit.images),
-      },
-    }, 201)
-  } catch (err: any) {
-    console.error('admin/project-kits POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  let finalSlug = slug || slugify(title)
+  const existing = await db.projectKit.findUnique({ where: { slug: finalSlug } })
+  if (existing) {
+    finalSlug = `${finalSlug}-${Date.now().toString(36)}`
   }
-}
+
+  const kit = await db.projectKit.create({
+    data: {
+      title,
+      titleBn: titleBn || null,
+      slug: finalSlug,
+      description,
+      coverImage: coverImage || null,
+      images: stringifyJsonField(images),
+      category: category || null,
+      difficulty: difficulty || null,
+      price: Number(price),
+      salePrice: salePrice !== undefined ? Number(salePrice) : null,
+      stock: Number(stock),
+      isActive: !!isActive,
+    },
+  })
+
+  return jsonResponse({
+    data: { ...kit, images: parseJsonField(kit.images) },
+  }, 201)
+})

@@ -4,12 +4,12 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   getPagination,
   listResponse,
   parseJsonField,
   stringifyJsonField,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 function slugify(text: string): string {
   return text
@@ -20,169 +20,138 @@ function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
-/**
- * GET /api/admin/products
- * List products with pagination, search, categoryId, brandId, isActive filters.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schemas ──────────────────────────────────────────────────────────────
 
-  try {
-    const { page, limit, skip, search } = getPagination(request.url)
-    const url = new URL(request.url)
-    const categoryId = url.searchParams.get('categoryId') || undefined
-    const brandId = url.searchParams.get('brandId') || undefined
-    const isActiveParam = url.searchParams.get('isActive')
-    const isActive =
-      isActiveParam === null || isActiveParam === undefined
-        ? undefined
-        : isActiveParam === 'true'
+const createProductSchema = z.object({
+  name: z.string().min(1).max(200),
+  nameBn: z.string().optional(),
+  slug: z.string().optional(),
+  description: z.string().min(1).max(10000),
+  shortDesc: z.string().max(500).optional(),
+  price: z.number().min(0),
+  comparePrice: z.number().optional(),
+  salePrice: z.number().optional(),
+  costPrice: z.number().optional(),
+  sku: z.string().max(100).optional(),
+  stock: z.number().int().min(0).optional().default(0),
+  minStock: z.number().int().min(0).optional().default(5),
+  categoryId: z.string().min(1),
+  brandId: z.string().min(1),
+  images: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).optional().default([]),
+  specs: z.string().optional(),
+  isFeatured: z.boolean().optional().default(false),
+  isBestDeal: z.boolean().optional().default(false),
+  hasVariant: z.boolean().optional().default(false),
+  isDigital: z.boolean().optional().default(false),
+  digitalFile: z.string().optional(),
+  downloadLimit: z.number().int().optional(),
+  isActive: z.boolean().optional().default(true),
+})
 
-    const where: any = {}
-    if (categoryId) where.categoryId = categoryId
-    if (brandId) where.brandId = brandId
-    if (isActive !== undefined) where.isActive = isActive
-    if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { nameBn: { contains: search } },
-        { sku: { contains: search } },
-        { slug: { contains: search } },
-      ]
-    }
+// ─── GET: List products ──────────────────────────────────────────────────────
 
-    const [products, total] = await Promise.all([
-      db.product.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          category: true,
-          brand: true,
-        },
-      }),
-      db.product.count({ where }),
-    ])
+export const GET = adminGetRoute(async (request) => {
+  const { page, limit, skip, search } = getPagination(request.url)
+  const url = new URL(request.url)
+  const categoryId = url.searchParams.get('categoryId') || undefined
+  const brandId = url.searchParams.get('brandId') || undefined
+  const isActiveParam = url.searchParams.get('isActive')
+  const isActive =
+    isActiveParam === null || isActiveParam === undefined
+      ? undefined
+      : isActiveParam === 'true'
 
-    const parsed = products.map((p: any) => ({
-      ...p,
-      images: parseJsonField(p.images),
-      tags: parseJsonField(p.tags),
-    }))
-
-    return listResponse(parsed, total, page, limit)
-  } catch (err: any) {
-    console.error('admin/products GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const where: any = {}
+  if (categoryId) where.categoryId = categoryId
+  if (brandId) where.brandId = brandId
+  if (isActive !== undefined) where.isActive = isActive
+  if (search) {
+    where.OR = [
+      { name: { contains: search } },
+      { nameBn: { contains: search } },
+      { sku: { contains: search } },
+      { slug: { contains: search } },
+    ]
   }
-}
 
-/**
- * POST /api/admin/products
- * Create a product. images/tags arrays are JSON-stringified for SQLite.
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  const [products, total] = await Promise.all([
+    db.product.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: { category: true, brand: true },
+    }),
+    db.product.count({ where }),
+  ])
 
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
+  const parsed = products.map((p: any) => ({
+    ...p,
+    images: parseJsonField(p.images),
+    tags: parseJsonField(p.tags),
+  }))
 
-    const {
+  return listResponse(parsed, total, page, limit)
+})
+
+// ─── POST: Create product ────────────────────────────────────────────────────
+
+export const POST = adminRoute(createProductSchema, async (request, body, user) => {
+  const {
+    name, nameBn, slug, description, shortDesc, price,
+    comparePrice, salePrice, costPrice, sku, stock, minStock,
+    categoryId, brandId, images, tags, specs,
+    isFeatured, isBestDeal, hasVariant, isDigital, digitalFile, downloadLimit, isActive,
+  } = body
+
+  // Auto-generate slug if not provided; ensure uniqueness.
+  let finalSlug = slug || slugify(name)
+  const existing = await db.product.findUnique({ where: { slug: finalSlug } })
+  if (existing) {
+    finalSlug = `${finalSlug}-${Date.now().toString(36)}`
+  }
+
+  // SKU uniqueness check (if provided)
+  if (sku) {
+    const skuExists = await db.product.findUnique({ where: { sku } })
+    if (skuExists) return errorResponse('SKU already exists', 400)
+  }
+
+  const product = await db.product.create({
+    data: {
       name,
-      nameBn,
-      slug,
+      nameBn: nameBn || null,
+      slug: finalSlug,
       description,
-      shortDesc,
-      price,
-      comparePrice,
-      salePrice,
-      costPrice,
-      sku,
-      stock,
-      minStock,
+      shortDesc: shortDesc || null,
+      price: Number(price),
+      salePrice: salePrice !== undefined ? Number(salePrice) : comparePrice !== undefined ? Number(comparePrice) : null,
+      costPrice: costPrice !== undefined ? Number(costPrice) : null,
+      sku: sku || null,
+      stock: Number(stock),
+      minStock: Number(minStock),
       categoryId,
       brandId,
-      images,
-      tags,
-      specs,
-      isFeatured,
-      isBestDeal,
-      hasVariant,
-      isDigital,
-      digitalFile,
-      downloadLimit,
-      isActive,
-    } = body
+      images: stringifyJsonField(images),
+      tags: stringifyJsonField(tags),
+      specs: specs || null,
+      isFeatured: !!isFeatured,
+      isBestDeal: !!isBestDeal,
+      hasVariant: !!hasVariant,
+      isDigital: !!isDigital,
+      digitalFile: digitalFile || null,
+      downloadLimit: downloadLimit !== undefined ? Number(downloadLimit) : null,
+      isActive: isActive !== undefined ? !!isActive : true,
+    },
+    include: { category: true, brand: true },
+  })
 
-    if (!name) return errorResponse('name is required', 400)
-    if (!description) return errorResponse('description is required', 400)
-    if (price === undefined || price === null)
-      return errorResponse('price is required', 400)
-    if (!categoryId) return errorResponse('categoryId is required', 400)
-    if (!brandId) return errorResponse('brandId is required', 400)
-
-    // Auto-generate slug if not provided; ensure uniqueness.
-    let finalSlug = slug || slugify(name)
-    const existing = await db.product.findUnique({
-      where: { slug: finalSlug },
-    })
-    if (existing) {
-      finalSlug = `${finalSlug}-${Date.now().toString(36)}`
-    }
-
-    // SKU uniqueness check (if provided)
-    if (sku) {
-      const skuExists = await db.product.findUnique({ where: { sku } })
-      if (skuExists) return errorResponse('SKU already exists', 400)
-    }
-
-    const product = await db.product.create({
-      data: {
-        name,
-        nameBn: nameBn || null,
-        slug: finalSlug,
-        description,
-        shortDesc: shortDesc || null,
-        price: Number(price),
-        salePrice:
-          salePrice !== undefined
-            ? Number(salePrice)
-            : comparePrice !== undefined
-            ? Number(comparePrice)
-            : null,
-        costPrice: costPrice !== undefined ? Number(costPrice) : null,
-        sku: sku || null,
-        stock: stock !== undefined ? Number(stock) : 0,
-        minStock: minStock !== undefined ? Number(minStock) : 5,
-        categoryId,
-        brandId,
-        images: stringifyJsonField(images),
-        tags: stringifyJsonField(tags),
-        specs: specs || null,
-        isFeatured: !!isFeatured,
-        isBestDeal: !!isBestDeal,
-        hasVariant: !!hasVariant,
-        isDigital: !!isDigital,
-        digitalFile: digitalFile || null,
-        downloadLimit: downloadLimit !== undefined ? Number(downloadLimit) : null,
-        isActive: isActive !== undefined ? !!isActive : true,
-      },
-      include: { category: true, brand: true },
-    })
-
-    return jsonResponse({
-      data: {
-        ...product,
-        images: parseJsonField(product.images),
-        tags: parseJsonField(product.tags),
-      },
-    }, 201)
-  } catch (err: any) {
-    console.error('admin/products POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  return jsonResponse({
+    data: {
+      ...product,
+      images: parseJsonField(product.images),
+      tags: parseJsonField(product.tags),
+    },
+  }, 201)
+})
