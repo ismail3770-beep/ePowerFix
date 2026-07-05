@@ -1,16 +1,13 @@
 "use client";
-
-import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ChevronRight, ChevronDown, Calendar, Clock, FolderOpen, ExternalLink,
-  Check, Download, MessageCircle, Send, Facebook, Twitter, ImageIcon,
-  BookOpen, ArrowLeft,
+  ChevronRight, Calendar, Clock, FolderOpen, ArrowLeft, BookOpen,
 } from "lucide-react";
-import { toast } from "sonner";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
+import CartDrawer from "@/components/epf/CartDrawer";
+import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from "@/lib/api";
@@ -18,30 +15,34 @@ import { apiFetch } from "@/lib/api";
 interface ProjectDetail {
   id: string;
   title: string;
+  titleBn?: string | null;
   slug: string;
   description: string;
-  category: string;
-  coverImage?: string;
-  images: string[];
-  price?: number | null;
-  salePrice?: number | null;
-  githubUrl?: string | null;
-  liveUrl?: string | null;
-  features?: string;
-  isSellable?: boolean;
+  coverImage?: string | null;
+  images?: string[];
+  client?: string | null;
+  location?: string | null;
+  status: string;
+  startDate?: string | null;
+  endDate?: string | null;
   createdAt: string;
 }
 
-const CATEGORIES: Record<string, string> = { electrical: "Electrical", solar: "Solar", automation: "Automation", iot: "IoT" };
-
 function formatDate(d: string) { return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }); }
+function parseImages(val: unknown): string[] {
+  if (Array.isArray(val)) return val as string[];
+  if (typeof val === "string") {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch { /* ignore */ }
+  }
+  return [];
+}
 
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
 
-  const { data: apiRes, isLoading } = useQuery<{ success: boolean; data: ProjectDetail }>({
+  const { data: apiRes, isLoading } = useQuery<{ data: ProjectDetail }>({
     queryKey: ["project-detail", slug],
     queryFn: () => apiFetch(`/api/projects/${slug}`),
     enabled: !!slug,
@@ -67,14 +68,15 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const categoryName = CATEGORIES[p.category?.toLowerCase()] || p.category || "General";
-  const readTime = "15 min read";
-  const thumb = p.coverImage || p.images?.[0] || "";
-  const features: string[] = [];
+  const statusLabel = p.status.replace(/_/g, " ");
+  const images = p.images ? (Array.isArray(p.images) ? p.images : parseImages(p.images)) : [];
+  const thumb = p.coverImage || images[0] || "";
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
+      <CartDrawer />
+      <CheckoutDialog />
       <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 sm:px-12 py-8">
         <div className="flex items-center justify-between flex-wrap gap-2 bg-[#F9FAFB] px-4 py-2.5 rounded-lg mb-6">
           <nav className="flex items-center gap-1.5 text-[13px] text-[#6B7280] flex-wrap">
@@ -82,16 +84,8 @@ export default function ProjectDetailPage() {
             <ChevronRight className="w-3 h-3 shrink-0" />
             <a href="/projects" className="hover:text-[#0EA5E9] hover:underline">Projects</a>
             <ChevronRight className="w-3 h-3 shrink-0" />
-            <a href={`/projects?category=${p.category}`} className="hover:text-[#0EA5E9] hover:underline">{categoryName}</a>
-            <ChevronRight className="w-3 h-3 shrink-0" />
             <span className="text-[#374151] font-medium truncate max-w-[200px]">{p.title}</span>
           </nav>
-          <div className="flex items-center gap-2">
-            <span className="text-[12px] text-[#6B7280] hidden sm:inline">Share:</span>
-            {[Facebook, Twitter, ImageIcon].map((Icon, i) => (
-              <button key={i} className="w-7 h-7 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center text-[#6B7280] hover:text-[#0EA5E9] hover:border-[#0EA5E9] transition-all"><Icon className="w-3.5 h-3.5" /></button>
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -105,25 +99,26 @@ export default function ProjectDetailPage() {
             <div className="flex flex-wrap items-center gap-3 text-[14px] text-[#6B7280] mb-4">
               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" />{formatDate(p.createdAt)}</span>
               <span className="w-1 h-1 rounded-full bg-[#D1D5DB]" />
-              <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{readTime}</span>
-              <span className="w-1 h-1 rounded-full bg-[#D1D5DB]" />
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#0EA5E9]/10 text-[#0EA5E9] text-[12px] font-medium rounded-full"><FolderOpen className="w-3 h-3" />{categoryName}</span>
+              <span className="flex items-center gap-1.5"><FolderOpen className="w-4 h-4" />{statusLabel}</span>
+              {p.client && (<><span className="w-1 h-1 rounded-full bg-[#D1D5DB]" /><span>Client: {p.client}</span></>)}
             </div>
 
             <div className="mb-6">
               <p className="text-[16px] leading-relaxed text-[#374151] mb-4">{p.description}</p>
-              <div className="flex flex-wrap items-center gap-3 mt-5">
-                {p.liveUrl && <a href={p.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[15px] font-medium px-6 py-3 rounded-[4px] transition-all"><ExternalLink className="w-4 h-4" />Live Demo</a>}
-                {p.githubUrl && <a href={p.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-[#E5E7EB] text-[#374151] hover:text-[#0EA5E9] hover:border-[#0EA5E9] text-[15px] font-medium px-6 py-3 rounded-[4px] transition-all">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>View Source</a>}
-                {p.isSellable && p.price != null && (
-                  <div className="ml-auto text-right">
-                    <p className="text-[14px] text-[#6B7280]">Price</p>
-                    <p className="text-[24px] font-bold text-[#111827]">৳{Number(p.salePrice || p.price).toLocaleString()}<span className="text-[14px] font-normal text-[#6B7280]"> BDT</span></p>
-                  </div>
-                )}
-              </div>
             </div>
+
+            {images.length > 1 && (
+              <div className="mb-6">
+                <h3 className="text-[18px] font-semibold text-[#111827] mb-3">Gallery</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {images.map((img, i) => (
+                    <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#F1F5F9]">
+                      <img src={img} alt={`${p.title} ${i + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <aside className="w-full lg:w-[30%] shrink-0 space-y-6">
@@ -131,11 +126,18 @@ export default function ProjectDetailPage() {
             <div className="bg-white border border-[#E5E7EB] rounded-lg p-5">
               <h3 className="text-[15px] font-semibold text-[#111827] mb-3">Project Info</h3>
               <div className="space-y-2.5">
-                <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Category</span><span className="text-[#0EA5E9] font-medium">{categoryName}</span></div>
+                <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Status</span><span className="text-[#0EA5E9] font-medium">{statusLabel}</span></div>
                 <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Published</span><span className="text-[#374151]">{formatDate(p.createdAt)}</span></div>
-                <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Read Time</span><span className="text-[#374151]">{readTime}</span></div>
-                {p.isSellable && p.price != null && <div className="flex justify-between text-[14px] pt-2.5 border-t border-[#E5E7EB]"><span className="text-[#6B7280] font-medium">Price</span><span className="text-[#111827] font-bold">৳{Number(p.salePrice || p.price).toLocaleString()}</span></div>}
+                {p.client && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Client</span><span className="text-[#374151]">{p.client}</span></div>}
+                {p.location && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Location</span><span className="text-[#374151]">{p.location}</span></div>}
+                {p.startDate && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Start Date</span><span className="text-[#374151]">{formatDate(p.startDate)}</span></div>}
+                {p.endDate && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">End Date</span><span className="text-[#374151]">{formatDate(p.endDate)}</span></div>}
               </div>
+            </div>
+            <div className="bg-[#f8f9fa] rounded-lg p-5">
+              <h3 className="text-[15px] font-semibold text-[#111827] mb-3">Need a similar project?</h3>
+              <p className="text-[13px] text-[#6B7280] mb-3">We can build custom electrical, solar, or IoT projects tailored to your needs.</p>
+              <a href="/get-quote" className="block text-center bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[14px] font-medium py-2.5 rounded-lg transition-colors">Request a Quote</a>
             </div>
           </aside>
         </div>

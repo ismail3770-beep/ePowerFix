@@ -423,42 +423,6 @@ function FilterSidebar({
           ))}
         </div>
       </div>
-
-      {/* Rating */}
-      <div>
-        <h4 className="text-[13px] font-semibold text-[#374151] mb-3">
-          Rating
-        </h4>
-        <div className="space-y-2">
-          {RATING_OPTIONS.map((r) => (
-            <button
-              key={r}
-              onClick={() => onSelectRating(selectedRating === r ? null : r)}
-              className={`flex items-center gap-2 w-full text-left text-[13px] py-1.5 transition-colors ${
-                selectedRating === r
-                  ? "text-epf-500 font-medium"
-                  : "text-[#6B7280] hover:text-[#111827]"
-              }`}
-            >
-              <span
-                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                  selectedRating === r
-                    ? "bg-epf-500 border-epf-500"
-                    : "border-[#D1D5DB]"
-                }`}
-              >
-                {selectedRating === r && (
-                  <Check className="w-3 h-3 text-white" />
-                )}
-              </span>
-              <span className="flex items-center gap-1">
-                {r}
-                <EPFStar className="w-3 h-3 text-amber-400" /> & up
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -609,11 +573,6 @@ export default function ProjectKitsPage() {
       });
     }
 
-    // Rating filter
-    if (selectedRating !== null) {
-      arr = arr.filter((k) => Math.round(k.rating || 0) >= selectedRating);
-    }
-
     // Sort
     switch (sort) {
       case "price-asc":
@@ -648,7 +607,7 @@ export default function ProjectKitsPage() {
     }
 
     return arr;
-  }, [baseKits, selectedPriceRange, selectedRating, sort]);
+  }, [baseKits, selectedPriceRange, sort]);
 
   /* ---- Pagination (client-side) ---- */
   const totalKits = processedKits.length;
@@ -663,7 +622,7 @@ export default function ProjectKitsPage() {
   /* ---- Reset page on filter change ---- */
   useEffect(() => {
     setPage(1);
-  }, [selectedPriceRange, selectedRating, appliedSearch, sort]);
+  }, [selectedPriceRange, appliedSearch, sort]);
 
   /* ---- Handlers ---- */
   const handleSortChange = (v: SortOption) => setSort(v);

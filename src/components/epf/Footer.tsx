@@ -1,13 +1,15 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Facebook, Youtube, Instagram, Twitter, Phone, Mail, MapPin } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 const infoLinks = [
-  { label: "About Us", href: "/about" },
-  { label: "Delivery Information", href: "#" },
-  { label: "Terms & Conditions", href: "#" },
-  { label: "Help Center", href: "#" },
-  { label: "Returns & Refunds", href: "#" },
+  { label: "About Us", href: "/contact" },
+  { label: "Delivery Information", href: "/contact" },
+  { label: "Terms & Conditions", href: "/contact" },
+  { label: "Help Center", href: "/contact" },
+  { label: "Returns & Refunds", href: "/contact" },
 ];
 
 const serviceLinks = [
@@ -21,7 +23,7 @@ const serviceLinks = [
 const extrasLinks = [
   { label: "Shop", href: "/shop" },
   { label: "Projects", href: "/projects" },
-  { label: "Cost Estimator", href: "/cost-estimator" },
+  { label: "Project Kits", href: "/project-kits" },
   { label: "Order Track", href: "/order-track" },
   { label: "Blog", href: "/blog" },
   { label: "Deals", href: "/deals" },
@@ -31,17 +33,22 @@ const accountLinks = [
   { label: "My Account", href: "/profile" },
   { label: "Order History", href: "/profile" },
   { label: "Wish List", href: "/wishlist" },
-  { label: "Newsletter", href: "#" },
+  { label: "Newsletter", href: "/" },
   { label: "Contact Us", href: "/contact" },
   { label: "Get a Quote", href: "/get-quote" },
 ];
 
-const socialIcons = [
-  { icon: Facebook, label: "Facebook" },
-  { icon: Twitter, label: "Twitter" },
-  { icon: Instagram, label: "Instagram" },
-  { icon: Youtube, label: "YouTube" },
-];
+interface SocialLinks {
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  twitterUrl?: string | null;
+  youtubeUrl?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  copyrightText?: string | null;
+  siteName?: string;
+}
 
 function FooterHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -62,6 +69,21 @@ function FooterItem({ href, children }: { href: string; children: React.ReactNod
 }
 
 export default function Footer() {
+  const [settings, setSettings] = useState<SocialLinks>({});
+
+  useEffect(() => {
+    apiFetch<{ data: SocialLinks }>("/api/settings")
+      .then((res) => setSettings(res.data || {}))
+      .catch(() => {});
+  }, []);
+
+  const socials = [
+    { icon: Facebook, label: "Facebook", url: settings.facebookUrl },
+    { icon: Twitter, label: "Twitter", url: settings.twitterUrl },
+    { icon: Instagram, label: "Instagram", url: settings.instagramUrl },
+    { icon: Youtube, label: "YouTube", url: settings.youtubeUrl },
+  ].filter((s) => s.url);
+
   return (
     <footer className="bg-[#111827] border-t border-white/5">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-10 lg:py-12">
@@ -78,28 +100,36 @@ export default function Footer() {
               Your trusted partner for professional electrical services, quality components and engineering project kits in Bangladesh.
             </p>
             <ul className="space-y-2 mb-5">
-              <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                <MapPin className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
-                <span>Dhaka, Bangladesh</span>
-              </li>
-              <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                <Phone className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
-                <span>+880 1XXX-XXXXXX</span>
-              </li>
-              <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                <Mail className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
-                <span>info@epowerfix.com</span>
-              </li>
+              {settings.address && (
+                <li className="flex items-center gap-2.5 text-[14px] text-white/50">
+                  <MapPin className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                  <span>{settings.address}</span>
+                </li>
+              )}
+              {settings.phone && (
+                <li className="flex items-center gap-2.5 text-[14px] text-white/50">
+                  <Phone className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                  <span>{settings.phone}</span>
+                </li>
+              )}
+              {settings.email && (
+                <li className="flex items-center gap-2.5 text-[14px] text-white/50">
+                  <Mail className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                  <span>{settings.email}</span>
+                </li>
+              )}
             </ul>
-            <div className="flex items-center gap-1.5">
-              {socialIcons.map((s) => (
-                <a key={s.label} href="#"
-                  className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-[#0EA5E9] hover:bg-[#0EA5E9] text-white/50 hover:text-white transition-colors"
-                  aria-label={s.label}>
-                  <s.icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
+            {socials.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                {socials.map((s) => (
+                  <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
+                    className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-[#0EA5E9] hover:bg-[#0EA5E9] text-white/50 hover:text-white transition-colors"
+                    aria-label={s.label}>
+                    <s.icon className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Information */}
@@ -131,7 +161,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/5">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[13px] text-white/30">&copy; {new Date().getFullYear()} ePowerFix. All rights reserved.</p>
+          <p className="text-[13px] text-white/30">{settings.copyrightText || `© ${new Date().getFullYear()} ${settings.siteName || "ePowerFix"}. All rights reserved.`}</p>
           <div className="flex items-center gap-2">
               <span className="text-[13px] text-white/30">Safe Payments:</span>
               {/* VISA */}
