@@ -136,11 +136,11 @@ export default function BestDeals() {
       try {
         const res: any = await apiFetch("/api/products?limit=10&bestDeals=true");
         const products = res.data?.data;
-        if (Array.isArray(products) && products.length >= 4) {
+        if (Array.isArray(products) && products.length > 0) {
           setDeals(products.slice(0, 10));
         }
       } catch {
-        /* keep fallback */
+        /* keep fallback (empty) */
       }
     })();
   }, []);

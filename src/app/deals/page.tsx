@@ -363,7 +363,8 @@ export default function DealsPage() {
 
   const allDeals = (() => {
     const products = productsEnvelope?.data?.data ?? [];
-    return products.filter((p) => p.comparePrice && p.comparePrice > p.price);
+    // The API already filters by isBestDeal=true, so just return all.
+    return products;
   })();
 
   const getDiscount = useCallback((p: Product) => {
