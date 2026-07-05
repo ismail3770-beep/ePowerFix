@@ -52,6 +52,10 @@ model User {
   notifications   Notification[]
   questions       ProductQuestion[]
 
+  // Performance: index frequently queried fields
+  @@index([role])           // Admin panel filters by role (ADMIN vs CUSTOMER)
+  @@index([isActive])       // Soft-delete filter on every query
+  @@index([createdAt])      // Admin user list sorted by newest
   @@map("users")
 }
 
@@ -167,6 +171,11 @@ model Product {
   @@index([brandId])
   @@index([flashSaleId])
   @@index([isActive])
+  @@index([isFeatured])     // Homepage "Featured Products" section
+  @@index([isBestDeal])     // Homepage "Best Deals" section + /deals page
+  @@index([price])          // Shop page price sort + price filter
+  @@index([slug])           // Product detail page lookup by slug
+  @@index([createdAt])      // "Newest" sort option in shop
   @@map("products")
 }
 
@@ -270,6 +279,7 @@ model Order {
   @@index([addressId])
   @@index([status])
   @@index([createdAt])
+  @@index([paymentStatus])  // Admin: filter by payment status
   @@map("orders")
 }
 
