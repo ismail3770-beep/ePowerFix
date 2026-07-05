@@ -146,10 +146,24 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Delivery charge — flat 60 inside Dhaka, 120 outside (simple heuristic).
+    // Delivery charge — read from site settings; fall back to defaults.
+    let siteSettings: any = null
+    try {
+      siteSettings = await db.siteSettings.findUnique({ where: { id: 'default' } })
+    } catch {
+      // ignore — use defaults
+    }
+    const insideDhakaRate = siteSettings?.shippingInsideDhaka ?? 60
+    const outsideDhakaRate = siteSettings?.shippingOutsideDhaka ?? 120
+    const freeShippingThreshold = siteSettings?.freeShippingThreshold ?? 0
+
     const fullAddress = `${address}, ${area || ''}`.toLowerCase()
     const isInsideDhaka = area && /dhaka|ঢাকা/i.test(area)
-    const deliveryCharge = isInsideDhaka ? 60 : 120
+    let deliveryCharge = isInsideDhaka ? insideDhakaRate : outsideDhakaRate
+    // Free shipping if subtotal is above the threshold (and threshold > 0).
+    if (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) {
+      deliveryCharge = 0
+    }
 
     // Coupon discount
     let discount = 0

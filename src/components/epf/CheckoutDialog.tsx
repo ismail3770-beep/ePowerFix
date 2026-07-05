@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -45,9 +45,33 @@ export default function CheckoutDialog() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [shippingRates, setShippingRates] = useState({
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingThreshold: 0,
+  });
+
+  // Fetch shipping rates from site settings once.
+  useEffect(() => {
+    apiFetch<{ data: any }>("/api/settings")
+      .then((res) => {
+        const s = res.data;
+        setShippingRates({
+          insideDhaka: s.shippingInsideDhaka ?? 60,
+          outsideDhaka: s.shippingOutsideDhaka ?? 120,
+          freeShippingThreshold: s.freeShippingThreshold ?? 0,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const subtotal = getTotal();
-  const delivery = subtotal > 0 ? 60 : 0;
+  const isInsideDhaka = /dhaka|ঢাকা/i.test(form.area || "");
+  let delivery = subtotal > 0 ? (isInsideDhaka ? shippingRates.insideDhaka : shippingRates.outsideDhaka) : 0;
+  // Free shipping if subtotal is above the threshold (and threshold > 0).
+  if (shippingRates.freeShippingThreshold > 0 && subtotal >= shippingRates.freeShippingThreshold) {
+    delivery = 0;
+  }
   const total = subtotal + delivery - discount;
 
   const mutation = useMutation({
@@ -63,19 +87,41 @@ export default function CheckoutDialog() {
     },
     onSuccess: async (data) => {
       const orderId = data.data?.id || data.id;
+      const order = data.data || data;
       const isOnlinePayment = form.paymentMethod !== 'COD';
 
+      // Online methods → hand off to the payment gateway, then redirect.
       if (isOnlinePayment && orderId) {
-        toast.info("Online payment gateway coming soon. Your order will be confirmed via COD for now.", {
-          description: `Order #${data.data?.orderNumber || data.orderNumber || orderId}`,
-        });
-        clearCart();
-        handleClose();
-        return;
+        try {
+          const pay = await apiFetch<{ paymentUrl?: string; error?: string }>("/api/payments/initiate", {
+            method: "POST",
+            body: JSON.stringify({
+              orderId,
+              paymentMethod: form.paymentMethod.toLowerCase(),
+              amount: Number(order.total),
+              customerName: form.customerName,
+              customerPhone: form.customerPhone,
+              customerEmail: form.customerEmail || undefined,
+              address: form.address || "Dhaka",
+            }),
+          });
+          if (pay?.paymentUrl) {
+            clearCart();
+            handleClose();
+            window.location.href = pay.paymentUrl;
+            return;
+          }
+          throw new Error(pay?.error || "Payment initiation failed");
+        } catch (err: any) {
+          toast.error("Payment could not be started", {
+            description: err?.message || "Please try again, or choose Cash on Delivery.",
+          });
+          return;
+        }
       }
 
       toast.success("অর্ডার সফল!", {
-        description: `Order #${data.data?.orderNumber || data.orderNumber || "confirmed"} — শীঘ্রই যোগাযোগ করা হবে।`,
+        description: `Order #${order.orderNumber || "confirmed"} — শীঘ্রই যোগাযোগ করা হবে।`,
       });
       clearCart();
       handleClose();

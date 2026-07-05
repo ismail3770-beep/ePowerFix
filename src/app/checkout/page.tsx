@@ -76,9 +76,33 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [shippingRates, setShippingRates] = useState({
+    insideDhaka: 60,
+    outsideDhaka: 120,
+    freeShippingThreshold: 0,
+  });
+
+  // Fetch shipping rates from site settings once.
+  useEffect(() => {
+    apiFetch<{ data: any }>("/api/settings")
+      .then((res) => {
+        const s = res.data;
+        setShippingRates({
+          insideDhaka: s.shippingInsideDhaka ?? 60,
+          outsideDhaka: s.shippingOutsideDhaka ?? 120,
+          freeShippingThreshold: s.freeShippingThreshold ?? 0,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const subtotal = getTotal();
-  const delivery = subtotal > 0 ? 60 : 0;
+  const isInsideDhaka = /dhaka|ঢাকা/i.test(form.area || "");
+  let delivery = subtotal > 0 ? (isInsideDhaka ? shippingRates.insideDhaka : shippingRates.outsideDhaka) : 0;
+  // Free shipping if subtotal is above the threshold (and threshold > 0).
+  if (shippingRates.freeShippingThreshold > 0 && subtotal >= shippingRates.freeShippingThreshold) {
+    delivery = 0;
+  }
   const total = subtotal + delivery - discount;
 
   /* Redirect if cart empty (after mount) */
