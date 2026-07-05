@@ -23,7 +23,8 @@ export async function GET(
       ...project,
       images: parseJsonField(project.images),
     }
-    return jsonResponse({ data: { project: parsed } })
+    // Frontend expects `data` to be the project object directly.
+    return jsonResponse({ data: parsed })
   } catch (err: any) {
     console.error('public/projects/[slug] GET error:', err)
     return errorResponse(err?.message || 'Internal server error', 500)

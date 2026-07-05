@@ -119,7 +119,7 @@ export default function ServiceDetailPage() {
               </div>
             )}
             <div className="bg-[#F0F9FF] rounded-lg p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div><p className="text-[14px] text-[#6B7280]">Price</p><p className="text-[28px] font-bold text-[#111827]">৳{service.basePrice.toLocaleString()}<span className="text-[14px] font-normal text-[#6B7280]"> BDT</span></p></div>
+              <div><p className="text-[14px] text-[#6B7280]">Price</p><p className="text-[28px] font-bold text-[#111827]">৳{Number(service.basePrice ?? 0).toLocaleString()}<span className="text-[14px] font-normal text-[#6B7280]"> BDT</span></p></div>
               <div className="flex items-center gap-3">
                 <button className="h-11 px-6 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-semibold text-[15px] rounded-lg transition-all duration-200 flex items-center gap-2"><ShoppingCart className="w-4 h-4" />Book Now</button>
                 <button className="h-11 px-6 border border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white font-medium text-[15px] rounded-lg transition-all duration-200">Add to Cart</button>
