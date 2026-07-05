@@ -42,7 +42,7 @@ const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/shop", label: "Shop" },
   { href: "/projects", label: "Projects" },
-  { href: "/cost-estimator", label: "Cost Estimator" },
+  { href: "/project-kits", label: "Project Kits" },
   { href: "/deals", label: "Best Deals" },
 ];
 

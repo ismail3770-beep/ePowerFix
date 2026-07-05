@@ -206,7 +206,7 @@ export default function ShopSection() {
           <RowHeader
             title="Project Kits"
             subtitle="Everything you need to build your project — components, code & guides"
-            href="/shop?tab=kits"
+            href="/project-kits"
           />
           <div className={GRID}>
             {projectsLoading
