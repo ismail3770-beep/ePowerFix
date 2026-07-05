@@ -31,7 +31,8 @@ export async function GET(
       ...service,
       images: parseJsonField(service.images),
     }
-    return jsonResponse({ data: { service: parsed } })
+    // Frontend expects `data` to be the service object directly.
+    return jsonResponse({ data: parsed })
   } catch (err: any) {
     console.error('public/services/[slug] GET error:', err)
     return errorResponse(err?.message || 'Internal server error', 500)
