@@ -39,6 +39,8 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
         ],
       },
       { key: "project-kits", label: "Project Kits", icon: "package" },
+      { key: "projects", label: "Projects", icon: "folder" },
+      { key: "blog", label: "Blog", icon: "file-text" },
     ],
   },
   {
@@ -64,13 +66,6 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
       { key: "flash-sales", label: "Flash Sales", icon: "zap" },
       { key: "newsletter", label: "Newsletter", icon: "mail" },
       { key: "banners", label: "Banners", icon: "image" },
-    ],
-  },
-  {
-    title: "CONTENT",
-    items: [
-      { key: "projects", label: "Projects", icon: "folder" },
-      { key: "blog", label: "Blog", icon: "file-text" },
     ],
   },
   {
