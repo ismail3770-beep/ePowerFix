@@ -744,6 +744,34 @@ model SiteSettings {
   metaTitle       String? @map("meta_title")
   metaDescription String? @map("meta_description")
 
+  // Payment Gateways — bKash
+  bkashEnabled       Boolean @default(false) @map("bkash_enabled")
+  bkashPhoneNumber   String? @map("bkash_phone_number")
+  bkashApiKey        String? @map("bkash_api_key")
+  bkashSecretKey     String? @map("bkash_secret_key")
+  bkashSandbox       Boolean @default(true)  @map("bkash_sandbox")
+
+  // Payment Gateways — Nagad
+  nagadEnabled       Boolean @default(false) @map("nagad_enabled")
+  nagadPhoneNumber   String? @map("nagad_phone_number")
+  nagadApiKey        String? @map("nagad_api_key")
+  nagadSecretKey     String? @map("nagad_secret_key")
+  nagadSandbox       Boolean @default(true)  @map("nagad_sandbox")
+
+  // Payment Gateways — SSLCommerz
+  sslcommerzEnabled      Boolean @default(false) @map("sslcommerz_enabled")
+  sslcommerzStoreId      String? @map("sslcommerz_store_id")
+  sslcommerzStorePassword String? @map("sslcommerz_store_password")
+  sslcommerzSandbox      Boolean @default(true)  @map("sslcommerz_sandbox")
+
+  // Payment Gateways — Bank Transfer
+  bankTransferEnabled     Boolean @default(false) @map("bank_transfer_enabled")
+  bankTransferInstructions String? @map("bank_transfer_instructions")
+
+  // Payment Gateways — Cash on Delivery
+  codEnabled  Boolean @default(true)  @map("cod_enabled")
+  codFee      Float    @default(0)     @map("cod_fee")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
