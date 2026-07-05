@@ -215,34 +215,37 @@ export function publicGetRoute(handler: NoBodyPublicHandler) {
 }
 
 // ─── Common Zod Schemas ───────────────────────────────────────────────────────
-// Pre-built schemas for common API patterns. Import and reuse across routes.
+// Pre-built Zod schemas for common API patterns. Import and reuse across routes.
 
 export const schemas = {
   // Auth
-  login: { email: z.string().email(), password: z.string().min(1) },
-  register: {
+  login: z.object({
+    email: z.string().email(),
+    password: z.string().min(1),
+  }),
+  register: z.object({
     name: z.string().min(2),
     email: z.string().email(),
     phone: z.string().min(6),
     password: z.string().min(6),
-  },
-  changePassword: {
+  }),
+  changePassword: z.object({
     currentPassword: z.string().min(1),
     newPassword: z.string().min(8),
-  },
+  }),
 
   // Contact / Newsletter / Quote
-  contact: {
+  contact: z.object({
     name: z.string().min(1).max(100),
     email: z.string().email(),
     phone: z.string().optional(),
     subject: z.string().min(1).max(200),
     message: z.string().min(1).max(5000),
-  },
-  newsletter: {
+  }),
+  newsletter: z.object({
     email: z.string().email(),
-  },
-  quoteRequest: {
+  }),
+  quoteRequest: z.object({
     name: z.string().min(1),
     phone: z.string().min(6),
     email: z.string().email().optional().or(z.literal('')),
@@ -250,33 +253,33 @@ export const schemas = {
     description: z.string().min(1),
     address: z.string().optional(),
     budget: z.string().optional(),
-  },
+  }),
 
   // Service booking
-  serviceBooking: {
+  serviceBooking: z.object({
     serviceId: z.string().min(1),
     bookingDate: z.string().min(1),
     bookingTime: z.string().min(1),
     address: z.string().min(1),
     phone: z.string().min(6),
     notes: z.string().optional(),
-  },
+  }),
 
   // Review
-  review: {
+  review: z.object({
     productId: z.string().optional(),
     serviceId: z.string().optional(),
     rating: z.number().int().min(1).max(5),
     title: z.string().min(1).max(200),
     comment: z.string().min(1).max(5000),
-  },
+  }),
 
   // Pagination query params helper
-  pagination: {
+  pagination: z.object({
     page: z.string().optional().default('1').transform(Number),
     limit: z.string().optional().default('20').transform(Number),
     search: z.string().optional().default(''),
-  },
+  }),
 }
 
 // Re-export z for convenience
