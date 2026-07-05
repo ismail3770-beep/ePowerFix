@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
     // TODO: Phase 2 — set to false after resolving all type errors
     ignoreBuildErrors: true,
   },
-  reactStrictMode: false,
+  reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

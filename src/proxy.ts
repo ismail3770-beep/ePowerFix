@@ -10,7 +10,36 @@ function getJwtSecret() {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const method = request.method.toUpperCase();
 
+  // ─── CSRF Protection for API mutations ────────────────────────────────────
+  // Block cross-origin POST/PUT/PATCH requests to /api/* in production
+  if (
+    process.env.NODE_ENV === 'production' &&
+    pathname.startsWith('/api/') &&
+    ['POST', 'PUT', 'PATCH'].includes(method)
+  ) {
+    const origin = request.headers.get('origin')
+    const host = request.headers.get('host')
+    if (origin) {
+      try {
+        const originUrl = new URL(origin)
+        if (originUrl.host !== host) {
+          return NextResponse.json(
+            { error: 'Cross-origin requests are not allowed' },
+            { status: 403 },
+          )
+        }
+      } catch {
+        return NextResponse.json(
+          { error: 'Invalid origin header' },
+          { status: 403 },
+        )
+      }
+    }
+  }
+
+  // ─── Admin route protection ────────────────────────────────────────────────
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     const token = request.cookies.get('token')?.value;
 
@@ -45,5 +74,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin', '/admin/:path*'],
+  matcher: ['/admin', '/admin/:path*', '/api/:path*'],
 };

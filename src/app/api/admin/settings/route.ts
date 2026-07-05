@@ -327,5 +327,9 @@ export const PUT = adminRoute(updateSettingsSchema, async (request, body, user) 
     update: data,
   })
 
+  // Invalidate cached public settings
+  const { cache } = await import('@/lib/cache')
+  await cache.del('settings:default')
+
   return jsonResponse({ data: mapSettings(settings) })
 })

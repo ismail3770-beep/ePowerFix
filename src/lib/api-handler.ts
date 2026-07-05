@@ -34,6 +34,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ZodSchema, ZodError } from 'zod'
 import { requireAdmin, requireAuth, jsonResponse, errorResponse } from '@/lib/auth'
+import { captureError } from '@/lib/monitoring'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,11 +82,9 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<Response
     try {
       return await handler(...args)
     } catch (err: any) {
-      // Log full error server-side
-      console.error('[API Error]', {
-        message: err?.message,
-        stack: err?.stack,
-        name: err?.name,
+      // Send to Sentry / structured logging (never leaks to client)
+      await captureError(err, {
+        handler: handler.name || 'anonymous',
       })
 
       // Zod validation errors → 400
