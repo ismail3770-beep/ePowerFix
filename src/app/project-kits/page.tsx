@@ -166,9 +166,12 @@ function KitCardGrid({ kit }: { kit: Kit }) {
   };
 
   return (
-    <button
+    <div
       onClick={openDetail}
-      className="group flex flex-col text-left bg-white border border-[#E2E8F0] rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
+      className="group flex flex-col text-left bg-white border border-[#E2E8F0] rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
     >
       <div className="relative aspect-square bg-[#F1F5F9] overflow-hidden">
         {cover ? (
@@ -230,7 +233,7 @@ function KitCardGrid({ kit }: { kit: Kit }) {
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -288,9 +291,12 @@ function KitCardList({ kit }: { kit: Kit }) {
   };
 
   return (
-    <button
+    <div
       onClick={openDetail}
-      className="group w-full text-left bg-white border border-[#E2E8F0] rounded-lg p-3 flex gap-4 hover:shadow-md transition-all duration-300"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
+      className="group w-full text-left bg-white border border-[#E2E8F0] rounded-lg p-3 flex gap-4 hover:shadow-md transition-all duration-300 cursor-pointer"
     >
       <div className="w-32 h-32 bg-[#F1F5F9] rounded-md overflow-hidden shrink-0 relative">
         {cover ? (
@@ -348,7 +354,7 @@ function KitCardList({ kit }: { kit: Kit }) {
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
