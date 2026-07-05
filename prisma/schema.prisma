@@ -772,6 +772,13 @@ model SiteSettings {
   codEnabled  Boolean @default(true)  @map("cod_enabled")
   codFee      Float    @default(0)     @map("cod_fee")
 
+  // Shipping — flat delivery rates by zone
+  shippingInsideDhaka      Float  @default(60)  @map("shipping_inside_dhaka")
+  shippingOutsideDhaka     Float  @default(120) @map("shipping_outside_dhaka")
+  freeShippingThreshold    Float  @default(5000) @map("free_shipping_threshold")
+  shippingInsideDhakaLabel String @default("Inside Dhaka") @map("shipping_inside_dhaka_label")
+  shippingOutsideDhakaLabel String @default("Outside Dhaka") @map("shipping_outside_dhaka_label")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

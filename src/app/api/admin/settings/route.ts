@@ -200,6 +200,13 @@ export async function PUT(request: NextRequest) {
     if (body.codEnabled !== undefined) data.codEnabled = !!body.codEnabled
     if (body.codFee !== undefined) data.codFee = Number(body.codFee) || 0
 
+    // Shipping — flat delivery rates by zone
+    if (body.shippingInsideDhaka !== undefined) data.shippingInsideDhaka = Number(body.shippingInsideDhaka) || 0
+    if (body.shippingOutsideDhaka !== undefined) data.shippingOutsideDhaka = Number(body.shippingOutsideDhaka) || 0
+    if (body.freeShippingThreshold !== undefined) data.freeShippingThreshold = Number(body.freeShippingThreshold) || 0
+    if (body.shippingInsideDhakaLabel !== undefined) data.shippingInsideDhakaLabel = body.shippingInsideDhakaLabel
+    if (body.shippingOutsideDhakaLabel !== undefined) data.shippingOutsideDhakaLabel = body.shippingOutsideDhakaLabel
+
     // Also accept a `paymentGateways` grouped object for convenience
     if (body.paymentGateways && typeof body.paymentGateways === 'object') {
       const pg = body.paymentGateways
