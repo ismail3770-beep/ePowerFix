@@ -26,6 +26,11 @@ export async function GET(request: NextRequest) {
     const bestDeals = url.searchParams.get('bestDeals')
     const sort = url.searchParams.get('sort') || 'featured'
 
+    // Server-side filters (previously done client-side)
+    const minPrice = url.searchParams.get('minPrice')
+    const maxPrice = url.searchParams.get('maxPrice')
+    const minRating = url.searchParams.get('minRating')
+
     const where: any = { isActive: true }
 
     // category may be an id or a slug — resolve to id.
@@ -40,6 +45,19 @@ export async function GET(request: NextRequest) {
     if (brandId) where.brandId = brandId
     if (featured === 'true') where.isFeatured = true
     if (bestDeals === 'true') where.isBestDeal = true
+
+    // Server-side price filter
+    if (minPrice || maxPrice) {
+      where.price = {}
+      if (minPrice) where.price.gte = parseFloat(minPrice)
+      if (maxPrice) where.price.lte = parseFloat(maxPrice)
+    }
+
+    // Server-side rating filter
+    if (minRating) {
+      where.rating = { gte: parseFloat(minRating) }
+    }
+
     if (search) {
       where.OR = [
         { name: { contains: search } },
