@@ -84,9 +84,6 @@ export async function PUT(
     if (body.client !== undefined) data.client = body.client || null
     if (body.location !== undefined) data.location = body.location || null
     if (body.status !== undefined) data.status = body.status
-    if (body.isSellable !== undefined) data.isSellable = !!body.isSellable
-    if (body.price !== undefined) data.price = body.price === null ? null : Number(body.price)
-    if (body.salePrice !== undefined) data.salePrice = body.salePrice === null ? null : Number(body.salePrice)
     if (body.startDate !== undefined) data.startDate = body.startDate ? new Date(body.startDate) : null
     if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null
 
