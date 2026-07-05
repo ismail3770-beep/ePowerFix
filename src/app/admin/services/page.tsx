@@ -126,9 +126,9 @@ export default function ServicesPage() {
             <div><Label>Price (৳)</Label><Input type="number" value={form.price} onChange={e=>setForm({...form,price:Number(e.target.value)})} /></div>
             <div><Label>Duration</Label><Input value={form.duration} onChange={e=>setForm({...form,duration:e.target.value})} placeholder="e.g. 2 hours" /></div>
             <div><Label>Category</Label>
-              <Select value={form.categoryId} onValueChange={v=>setForm({...form,categoryId:v})}>
+              <Select value={form.categoryId || "__none__"} onValueChange={v=>setForm({...form,categoryId: v === "__none__" ? "" : v})}>
                 <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                <SelectContent><SelectItem value="">No category</SelectItem>
+                <SelectContent><SelectItem value="__none__">No category</SelectItem>
                   {svcCats.map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
