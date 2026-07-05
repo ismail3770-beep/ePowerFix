@@ -4,10 +4,10 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   getPagination,
   listResponse,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 /**
  * Maps a Coupon DB row to the response shape expected by the admin frontend.
@@ -30,121 +30,118 @@ function mapCoupon(c: any) {
   }
 }
 
-/**
- * GET /api/admin/coupons
- * List coupons with pagination + search. Returns listResponse.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
-  try {
-    const { page, limit, skip, search } = getPagination(request.url)
+const createCouponSchema = z.object({
+  code: z.string().min(1),
+  name: z.string().optional(),
+  nameBn: z.string().optional(),
+  description: z.string().optional(),
+  type: z.string().optional(),
+  discountType: z.string().optional(),
+  value: z.number().nullable().optional(),
+  discount: z.number().nullable().optional(),
+  minOrder: z.number().nullable().optional(),
+  maxDiscount: z.number().nullable().optional(),
+  usageLimit: z.number().nullable().optional(),
+  maxUses: z.number().nullable().optional(),
+  startsAt: z.string().optional(),
+  validFrom: z.string().optional(),
+  expiresAt: z.string().optional(),
+  validTo: z.string().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough()
 
-    const where: any = {}
-    if (search) {
-      where.OR = [
-        { code: { contains: search } },
-        { name: { contains: search } },
-        { description: { contains: search } },
-      ]
-    }
+// ─── GET /api/admin/coupons ───────────────────────────────────────────────────
 
-    const [coupons, total] = await Promise.all([
-      db.coupon.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      db.coupon.count({ where }),
-    ])
+export const GET = adminGetRoute(async (request) => {
+  const { page, limit, skip, search } = getPagination(request.url)
 
-    return listResponse(coupons.map(mapCoupon), total, page, limit)
-  } catch (err: any) {
-    console.error('admin/coupons GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const where: any = {}
+  if (search) {
+    where.OR = [
+      { code: { contains: search } },
+      { name: { contains: search } },
+      { description: { contains: search } },
+    ]
   }
-}
 
-/**
- * POST /api/admin/coupons
- * Create a coupon. Accepts both task-spec field names (type/value/usageLimit/
- * startsAt/expiresAt/maxDiscount) and frontend field names (discountType/
- * discount/maxUses/validFrom/validTo). The `code` is upper-cased.
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  const [coupons, total] = await Promise.all([
+    db.coupon.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    }),
+    db.coupon.count({ where }),
+  ])
 
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
+  return listResponse(coupons.map(mapCoupon), total, page, limit)
+})
 
-    const code = (body.code || '').toString().trim().toUpperCase()
-    if (!code) return errorResponse('code is required', 400)
+// ─── POST /api/admin/coupons ──────────────────────────────────────────────────
 
-    // type / discountType
-    const type = body.type || body.discountType || 'PERCENTAGE'
-    // value / discount
-    const value =
-      body.value !== undefined && body.value !== null
-        ? Number(body.value)
-        : body.discount !== undefined && body.discount !== null
-        ? Number(body.discount)
-        : null
-    if (value === null || Number.isNaN(value)) {
-      return errorResponse('value (or discount) is required', 400)
-    }
+export const POST = adminRoute(createCouponSchema, async (request, body, user) => {
+  const code = (body.code || '').toString().trim().toUpperCase()
+  if (!code) return errorResponse('code is required', 400)
 
-    // Date range. Schema requires both startDate and endDate.
-    const now = new Date()
-    const startDate = body.startsAt || body.validFrom
-      ? new Date(body.startsAt || body.validFrom)
-      : now
-    const endDate = body.expiresAt || body.validTo
-      ? new Date(body.expiresAt || body.validTo)
-      : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-
-    if (endDate < startDate) {
-      return errorResponse('expiresAt must be after startsAt', 400)
-    }
-
-    // Uniqueness check for the code.
-    const existing = await db.coupon.findUnique({ where: { code } })
-    if (existing) return errorResponse('Coupon code already exists', 400)
-
-    const coupon = await db.coupon.create({
-      data: {
-        code,
-        name: body.name || code,
-        nameBn: body.nameBn || null,
-        description: body.description || null,
-        type,
-        value,
-        minOrder:
-          body.minOrder !== undefined && body.minOrder !== null
-            ? Number(body.minOrder)
-            : null,
-        maxDiscount:
-          body.maxDiscount !== undefined && body.maxDiscount !== null
-            ? Number(body.maxDiscount)
-            : null,
-        usageLimit:
-          body.usageLimit !== undefined && body.usageLimit !== null
-            ? Number(body.usageLimit)
-            : body.maxUses !== undefined && body.maxUses !== null
-            ? Number(body.maxUses)
-            : null,
-        startDate,
-        endDate,
-        isActive: body.isActive !== undefined ? !!body.isActive : true,
-      },
-    })
-
-    return jsonResponse({ data: mapCoupon(coupon) }, 201)
-  } catch (err: any) {
-    console.error('admin/coupons POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  // type / discountType
+  const type = body.type || body.discountType || 'PERCENTAGE'
+  // value / discount
+  const value =
+    body.value !== undefined && body.value !== null
+      ? Number(body.value)
+      : body.discount !== undefined && body.discount !== null
+      ? Number(body.discount)
+      : null
+  if (value === null || Number.isNaN(value)) {
+    return errorResponse('value (or discount) is required', 400)
   }
-}
+
+  // Date range. Schema requires both startDate and endDate.
+  const now = new Date()
+  const startRaw = body.startsAt || body.validFrom
+  const startDate = startRaw ? new Date(startRaw) : now
+  const endRaw = body.expiresAt || body.validTo
+  const endDate = endRaw
+    ? new Date(endRaw)
+    : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+  if (endDate < startDate) {
+    return errorResponse('expiresAt must be after startsAt', 400)
+  }
+
+  // Uniqueness check for the code.
+  const existing = await db.coupon.findUnique({ where: { code } })
+  if (existing) return errorResponse('Coupon code already exists', 400)
+
+  const coupon = await db.coupon.create({
+    data: {
+      code,
+      name: body.name || code,
+      nameBn: body.nameBn || null,
+      description: body.description || null,
+      type,
+      value,
+      minOrder:
+        body.minOrder !== undefined && body.minOrder !== null
+          ? Number(body.minOrder)
+          : null,
+      maxDiscount:
+        body.maxDiscount !== undefined && body.maxDiscount !== null
+          ? Number(body.maxDiscount)
+          : null,
+      usageLimit:
+        body.usageLimit !== undefined && body.usageLimit !== null
+          ? Number(body.usageLimit)
+          : body.maxUses !== undefined && body.maxUses !== null
+          ? Number(body.maxUses)
+          : null,
+      startDate,
+      endDate,
+      isActive: body.isActive !== undefined ? !!body.isActive : true,
+    },
+  })
+
+  return jsonResponse({ data: mapCoupon(coupon) }, 201)
+})

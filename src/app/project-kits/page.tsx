@@ -42,15 +42,14 @@ interface Kit {
   titleBn?: string | null;
   slug: string;
   description: string;
-  price: number | null;
+  price: number;
   salePrice: number | null;
   coverImage: string | null;
   images: string[];
-  isSellable: boolean;
-  status?: string;
-  client?: string | null;
-  location?: string | null;
-  rating?: number;
+  category: string | null;
+  difficulty: string | null;
+  stock: number;
+  itemCount?: number;
   createdAt?: string;
 }
 
@@ -139,7 +138,7 @@ function KitListCardSkeleton() {
 function KitCardGrid({ kit }: { kit: Kit }) {
   const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
   const addItem = useCartStore((s) => s.addItem);
-  const buyable = kit.isSellable && kit.price != null;
+  const buyable = kit.price != null;
   const price = Number(kit.salePrice || kit.price || 0);
   const hasDiscount =
     kit.salePrice != null && kit.price != null && kit.salePrice < kit.price;
@@ -166,72 +165,83 @@ function KitCardGrid({ kit }: { kit: Kit }) {
     toast.success("Kit added to cart", { description: kit.title });
   };
 
+  // Discount percent for the badge (priority over the KIT label)
+  const discountPct = hasDiscount
+    ? Math.round(((Number(kit.price) - price) / Number(kit.price)) * 100)
+    : 0;
+  const kitBadge = discountPct > 0 ? `-${discountPct}%` : "KIT";
+
   return (
-    <button
+    <div
       onClick={openDetail}
-      className="group flex flex-col text-left bg-white border border-[#E2E8F0] rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
+      className="group flex flex-col text-left bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer"
     >
-      <div className="relative aspect-square bg-[#F1F5F9] overflow-hidden">
+      {/* ─── Image Area ─── */}
+      <div className="relative aspect-square bg-slate-50 overflow-hidden">
         {cover ? (
           <img
             src={cover}
             alt={kit.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Boxes className="w-9 h-9 text-[#CBD5E1]" />
+            <Boxes className="w-9 h-9 text-slate-300" />
           </div>
         )}
-        <span className="absolute top-2 left-2 bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1">
-          <Boxes className="w-3 h-3" /> KIT
+        <span className="absolute top-2 left-2 z-10 bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded leading-none tracking-wide">
+          {kitBadge}
         </span>
-        {hasDiscount && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
-            SALE
-          </span>
-        )}
-        {buyable && (
-          <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <button
-              onClick={addToCart}
-              className="w-full bg-[#111827]/90 hover:bg-[#111827] text-white text-[12px] font-medium py-2 rounded-md flex items-center justify-center gap-1.5 backdrop-blur-sm"
-            >
-              <ShoppingCart /> Add to Cart
-            </button>
-          </div>
-        )}
       </div>
-      <div className="p-2.5 flex flex-col gap-1 flex-1">
-        <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-medium">
-          Project Kit
-        </p>
-        <h4 className="text-[12.5px] font-medium text-[#111827] line-clamp-2 leading-snug min-h-[2.2rem] group-hover:text-epf-500 transition-colors">
+
+      {/* ─── Add to Cart — directly under image ─── */}
+      {buyable ? (
+        <button
+          onClick={addToCart}
+          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[12px] font-semibold transition-colors duration-150"
+        >
+          <ShoppingCart /> Add to Cart
+        </button>
+      ) : (
+        <button
+          onClick={(e) => { e.stopPropagation(); openDetail(); }}
+          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[12px] font-semibold transition-colors duration-150"
+        >
+          View Details
+        </button>
+      )}
+
+      {/* ─── Content ─── */}
+      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-3 gap-1">
+        <h4 className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-snug min-h-[2.4rem] group-hover:text-epf-600 transition-colors">
           {kit.title}
         </h4>
-        <div className="mt-auto pt-1">
+        <div className="mt-auto pt-1 flex flex-col">
           {buyable ? (
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[14px] font-bold text-[#111827]">
-                ৳{price.toLocaleString()}
-              </span>
+            <>
               {hasDiscount && (
-                <span className="text-[11px] text-[#9CA3AF] line-through">
+                <span className="text-[11px] text-slate-400 line-through leading-none mb-0.5">
                   ৳{Number(kit.price).toLocaleString()}
                 </span>
               )}
-            </div>
+              <span className="text-[16px] font-bold text-epf-600 leading-tight">
+                ৳{price.toLocaleString()}
+              </span>
+            </>
           ) : (
             <span className="text-[12px] font-medium text-epf-500">
-              View details
+              Tap to view
             </span>
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -261,7 +271,7 @@ function ShoppingCart({ className = "" }: { className?: string }) {
 function KitCardList({ kit }: { kit: Kit }) {
   const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
   const addItem = useCartStore((s) => s.addItem);
-  const buyable = kit.isSellable && kit.price != null;
+  const buyable = kit.price != null;
   const price = Number(kit.salePrice || kit.price || 0);
   const hasDiscount =
     kit.salePrice != null && kit.price != null && kit.salePrice < kit.price;
@@ -288,51 +298,60 @@ function KitCardList({ kit }: { kit: Kit }) {
     toast.success("Kit added to cart", { description: kit.title });
   };
 
+  // Discount percent for the badge (priority over the KIT label)
+  const discountPct = hasDiscount
+    ? Math.round(((Number(kit.price) - price) / Number(kit.price)) * 100)
+    : 0;
+  const kitBadge = discountPct > 0 ? `-${discountPct}%` : "KIT";
+
   return (
-    <button
+    <div
       onClick={openDetail}
-      className="group w-full text-left bg-white border border-[#E2E8F0] rounded-lg p-3 flex gap-4 hover:shadow-md transition-all duration-300"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
+      className="group w-full text-left bg-white border border-slate-200 rounded-lg p-3 flex gap-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer"
     >
-      <div className="w-32 h-32 bg-[#F1F5F9] rounded-md overflow-hidden shrink-0 relative">
+      <div className="w-32 h-32 bg-slate-50 rounded-md overflow-hidden shrink-0 relative">
         {cover ? (
           <img
             src={cover}
             alt={kit.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Boxes className="w-8 h-8 text-[#CBD5E1]" />
+            <Boxes className="w-8 h-8 text-slate-300" />
           </div>
         )}
-        <span className="absolute top-1 left-1 bg-epf-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-sm flex items-center gap-0.5">
-          <Boxes className="w-2.5 h-2.5" /> KIT
+        <span className="absolute top-1.5 left-1.5 bg-epf-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded leading-none tracking-wide">
+          {kitBadge}
         </span>
       </div>
       <div className="flex-1 min-w-0 py-1 flex flex-col">
-        <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-medium mb-1">
+        <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium mb-1">
           Project Kit
         </p>
-        <h4 className="text-[15px] font-medium text-[#111827] line-clamp-2 leading-snug group-hover:text-epf-500 transition-colors">
+        <h4 className="text-[15px] font-medium text-slate-800 line-clamp-2 leading-snug group-hover:text-epf-600 transition-colors">
           {kit.title}
         </h4>
-        <p className="text-[12px] text-[#6B7280] line-clamp-2 mt-1">
+        <p className="text-[12px] text-slate-500 line-clamp-2 mt-1">
           {kit.description}
         </p>
         <div className="mt-auto pt-2 flex items-center justify-between">
           {buyable ? (
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[16px] font-bold text-[#111827]">
-                ৳{price.toLocaleString()}
-              </span>
+            <div className="flex flex-col">
               {hasDiscount && (
-                <span className="text-[12px] text-[#9CA3AF] line-through">
+                <span className="text-[11px] text-slate-400 line-through leading-none mb-0.5">
                   ৳{Number(kit.price).toLocaleString()}
                 </span>
               )}
+              <span className="text-[17px] font-bold text-epf-600 leading-tight">
+                ৳{price.toLocaleString()}
+              </span>
             </div>
           ) : (
             <span className="text-[13px] font-medium text-epf-500">
@@ -342,14 +361,14 @@ function KitCardList({ kit }: { kit: Kit }) {
           {buyable && (
             <button
               onClick={addToCart}
-              className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[12px] font-medium px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-[12px] font-semibold px-3.5 py-2 rounded-md flex items-center gap-1.5 transition-colors"
             >
               <EPFCart size={13} /> Add to Cart
             </button>
           )}
         </div>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -414,42 +433,6 @@ function FilterSidebar({
                 )}
               </span>
               {r.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Rating */}
-      <div>
-        <h4 className="text-[13px] font-semibold text-[#374151] mb-3">
-          Rating
-        </h4>
-        <div className="space-y-2">
-          {RATING_OPTIONS.map((r) => (
-            <button
-              key={r}
-              onClick={() => onSelectRating(selectedRating === r ? null : r)}
-              className={`flex items-center gap-2 w-full text-left text-[13px] py-1.5 transition-colors ${
-                selectedRating === r
-                  ? "text-epf-500 font-medium"
-                  : "text-[#6B7280] hover:text-[#111827]"
-              }`}
-            >
-              <span
-                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                  selectedRating === r
-                    ? "bg-epf-500 border-epf-500"
-                    : "border-[#D1D5DB]"
-                }`}
-              >
-                {selectedRating === r && (
-                  <Check className="w-3 h-3 text-white" />
-                )}
-              </span>
-              <span className="flex items-center gap-1">
-                {r}
-                <EPFStar className="w-3 h-3 text-amber-400" /> & up
-              </span>
             </button>
           ))}
         </div>
@@ -578,23 +561,18 @@ export default function ProjectKitsPage() {
     setSearchQuery(appliedSearch);
   }, [appliedSearch, setSearchQuery]);
 
-  /* ---- Fetch project kits (sellable projects) ---- */
+  /* ---- Fetch project kits ---- */
   const { data, isLoading, isError } = useQuery<{ data: Kit[] }>({
     queryKey: ["project-kits-page", appliedSearch],
     queryFn: () => {
-      let url = "/api/projects?sellable=true";
+      let url = "/api/project-kits";
       if (appliedSearch)
-        url += `&search=${encodeURIComponent(appliedSearch)}`;
+        url += `?search=${encodeURIComponent(appliedSearch)}`;
       return apiFetch(url);
     },
   });
 
-  const allKits: Kit[] = data?.data ?? [];
-  // Prefer sellable kits; fall back to all projects if API returned none.
-  const sellableKits = allKits.filter(
-    (k) => k.isSellable && k.price != null,
-  );
-  const baseKits = sellableKits.length > 0 ? sellableKits : allKits;
+  const baseKits: Kit[] = data?.data ?? [];
 
   /* ---- Derived data with client-side sort + filter ---- */
   const processedKits = useMemo(() => {
@@ -607,11 +585,6 @@ export default function ProjectKitsPage() {
         const price = Number(k.salePrice || k.price || 0);
         return price >= range.min && price < range.max;
       });
-    }
-
-    // Rating filter
-    if (selectedRating !== null) {
-      arr = arr.filter((k) => Math.round(k.rating || 0) >= selectedRating);
     }
 
     // Sort
@@ -648,7 +621,7 @@ export default function ProjectKitsPage() {
     }
 
     return arr;
-  }, [baseKits, selectedPriceRange, selectedRating, sort]);
+  }, [baseKits, selectedPriceRange, sort]);
 
   /* ---- Pagination (client-side) ---- */
   const totalKits = processedKits.length;
@@ -663,7 +636,7 @@ export default function ProjectKitsPage() {
   /* ---- Reset page on filter change ---- */
   useEffect(() => {
     setPage(1);
-  }, [selectedPriceRange, selectedRating, appliedSearch, sort]);
+  }, [selectedPriceRange, appliedSearch, sort]);
 
   /* ---- Handlers ---- */
   const handleSortChange = (v: SortOption) => setSort(v);

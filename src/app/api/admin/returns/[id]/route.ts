@@ -1,55 +1,67 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { requireAdmin, jsonResponse, errorResponse, parseBody } from '@/lib/admin-api'
+import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
+import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
+
+const updateReturnSchema = z.object({
+  status: z.string().optional(),
+  adminNotes: z.string().optional(),
+}).passthrough()
+
+// ─── GET /api/admin/returns/[id] ──────────────────────────────────────────────
+
+export const GET = withErrorHandling(async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
   const { id } = await params
-  try {
-    const ret = await db.returnRequest.findUnique({
-      where: { id },
-      include: {
-        order: { select: { orderNumber: true } },
-        user: { select: { name: true, email: true } },
-      },
-    })
-    if (!ret) return errorResponse('Return request not found', 404)
-    return jsonResponse({ data: ret })
-  } catch (err: any) {
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const ret = await db.returnRequest.findUnique({
+    where: { id },
+    include: {
+      order: { select: { orderNumber: true } },
+      user: { select: { name: true, email: true } },
+    },
+  })
+  if (!ret) return errorResponse('Return request not found', 404)
+  return jsonResponse({ data: ret })
+})
+
+// ─── PUT /api/admin/returns/[id] ──────────────────────────────────────────────
+
+export const PUT = withErrorHandling(async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
   const { id } = await params
-  const body = await parseBody<any>(request)
-  if (!body) return errorResponse('Invalid body', 400)
+  const body = await validateBody(request, updateReturnSchema)
 
-  try {
-    const updated = await db.returnRequest.update({
-      where: { id },
-      data: {
-        ...(body.status ? { status: body.status } : {}),
-        ...(body.adminNotes ? { adminNotes: body.adminNotes } : {}),
-      },
-    })
-    return jsonResponse({ data: updated })
-  } catch (err: any) {
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  const updated = await db.returnRequest.update({
+    where: { id },
+    data: {
+      ...(body.status ? { status: body.status } : {}),
+      ...(body.adminNotes ? { adminNotes: body.adminNotes } : {}),
+    },
+  })
+  return jsonResponse({ data: updated })
+})
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// ─── DELETE /api/admin/returns/[id] ───────────────────────────────────────────
+
+export const DELETE = withErrorHandling(async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
   const { id } = await params
-  try {
-    await db.returnRequest.delete({ where: { id } })
-    return jsonResponse({ message: 'Return request deleted' })
-  } catch (err: any) {
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+
+  await db.returnRequest.delete({ where: { id } })
+  return jsonResponse({ message: 'Return request deleted' })
+})

@@ -4,8 +4,8 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
 } from '@/lib/admin-api'
+import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapBooking(b: any) {
   if (!b) return b
@@ -23,40 +23,31 @@ const BOOKING_INCLUDE = {
   service: { select: { id: true, name: true, basePrice: true } },
 }
 
+const updateBookingStatusSchema = z.object({
+  status: z.string().min(1),
+}).passthrough()
+
 /**
  * PUT /api/admin/bookings/[id]/status
- * Update only the booking status. Body: { status }.
- *
- * NOTE: The admin bookings page currently calls `PUT /api/admin/bookings/:id`
- * with `{ status }` (the [id] route handler also accepts `status`). This
- * dedicated `/status` endpoint is provided for clients that prefer it and
- * matches the worklog's recommended path.
  */
-export async function PUT(
+export const PUT = withErrorHandling(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
-  try {
-    const { id } = await params
-    const body = await parseBody<any>(request)
-    if (!body?.status) return errorResponse('status is required', 400)
+  const { id } = await params
+  const body = await validateBody(request, updateBookingStatusSchema)
 
-    const existing = await db.serviceBooking.findUnique({ where: { id } })
-    if (!existing) return errorResponse('Booking not found', 404)
+  const existing = await db.serviceBooking.findUnique({ where: { id } })
+  if (!existing) return errorResponse('Booking not found', 404)
 
-    const booking = await db.serviceBooking.update({
-      where: { id },
-      // Normalise to UPPERCASE to match DB values.
-      data: { status: body.status.toUpperCase() },
-      include: BOOKING_INCLUDE,
-    })
+  const booking = await db.serviceBooking.update({
+    where: { id },
+    data: { status: body.status.toUpperCase() },
+    include: BOOKING_INCLUDE,
+  })
 
-    return jsonResponse({ data: mapBooking(booking) })
-  } catch (err: any) {
-    console.error('admin/bookings/[id]/status PUT error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  return jsonResponse({ data: mapBooking(booking) })
+})

@@ -1,13 +1,12 @@
 "use client";
-
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Home, ChevronRight, ChevronLeft, Clock, FolderOpen, Bookmark,
-  Calendar, Search, Sparkles, Zap, Sun, Bot, Wifi, ArrowRight,
-} from "lucide-react";
 import Image from "next/image";
+import {
+  Home, ChevronRight, FolderOpen, Search, ChevronLeft, ChevronRight as ArrowRight,
+  Clock, Calendar,
+} from "lucide-react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
@@ -15,113 +14,104 @@ import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from "@/lib/api";
-import WishlistButton from "@/components/WishlistButton";
 
 interface ProjectItem {
   id: string;
   title: string;
-  titleBn?: string;
+  titleBn?: string | null;
+  slug: string;
   description: string;
-  category: string;
-  coverImage?: string;
-  images: string[];
-  price?: number | null;
-  salePrice?: number | null;
-  isSellable?: boolean;
-  isFeatured?: boolean;
-  isActive?: boolean;
+  coverImage?: string | null;
+  images?: string[];
+  client?: string | null;
+  location?: string | null;
+  status: string;
   createdAt: string;
 }
 
-const CATEGORIES = [
-  { key: "all", label: "All Projects", icon: FolderOpen },
-  { key: "electrical", label: "Electrical", icon: Zap },
-  { key: "solar", label: "Solar", icon: Sun },
-  { key: "automation", label: "Automation", icon: Bot },
-  { key: "iot", label: "IoT", icon: Wifi },
+const STATUS_FILTERS = [
+  { key: "all", label: "All Projects" },
+  { key: "COMPLETED", label: "Completed" },
+  { key: "IN_PROGRESS", label: "In Progress" },
+  { key: "PLANNED", label: "Planned" },
 ];
 const PAGE_SIZE = 6;
-
-const categoryLabel: Record<string, string> = { electrical: "Electrical", solar: "Solar", automation: "Automation", iot: "IoT" };
-const categoryIcon: Record<string, typeof Zap> = { electrical: Zap, solar: Sun, automation: Bot, iot: Wifi };
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function ProjectCard({ project, isSidebar, onNavigate }: {
-  project: ProjectItem; isSidebar?: boolean; onNavigate: (id: string) => void;
+function parseImages(val: unknown): string[] {
+  if (Array.isArray(val)) return val as string[];
+  if (typeof val === "string") {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch { /* ignore */ }
+  }
+  return [];
+}
+
+function ProjectCard({ project, onNavigate }: {
+  project: ProjectItem; onNavigate: (slug: string) => void;
 }) {
   const [imgError, setImgError] = useState(false);
-  const CatIcon = categoryIcon[project.category?.toLowerCase()] || FolderOpen;
-  const handleClick = () => onNavigate(project.id);
-
-  if (isSidebar) {
-    return (
-      <div onClick={handleClick} className="flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-white transition-all duration-200 group">
-        <div className="relative shrink-0 w-16 h-14 rounded-md overflow-hidden bg-[#f0f0f0] border border-[#e0e0e0]">
-          {!imgError && (project.coverImage || project.images?.[0]) ? (
-            <Image src={project.coverImage || project.images[0]} alt={project.title} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
-          ) : (<div className="w-full h-full flex items-center justify-center"><CatIcon className="w-5 h-5 text-[#ccc]" /></div>)}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h4 className="text-[13px] font-medium text-[#333] leading-snug line-clamp-1 group-hover:text-[#0EA5E9] transition-colors">{project.title}</h4>
-          <span className="text-[11px] text-[#999]">{categoryLabel[project.category?.toLowerCase()] || project.category}</span>
-          <span className="text-[11px] text-[#999] ml-2">· {formatDate(project.createdAt)}</span>
-        </div>
-      </div>
-    );
-  }
+  const images = project.images ? (Array.isArray(project.images) ? project.images : parseImages(project.images)) : [];
+  const cover = project.coverImage || images[0];
+  const handleClick = () => onNavigate(project.slug);
 
   return (
-    <div onClick={handleClick} className="flex gap-4 p-4 bg-white border border-[#e0e0e0] rounded-lg cursor-pointer transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:scale-[1.02] group">
+    <div onClick={handleClick} className="flex gap-4 p-4 bg-white border border-[#e0e0e0] rounded-lg cursor-pointer transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:scale-[1.01] group">
       <div className="relative shrink-0 w-[180px] h-[120px] rounded-lg overflow-hidden bg-[#f5f5f5] border border-[#e0e0e0] max-sm:w-[100px] max-sm:h-[80px]">
-        {!imgError && (project.coverImage || project.images?.[0]) ? (
-          <Image src={project.coverImage || project.images[0]} alt={project.title} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
-        ) : (<div className="w-full h-full flex items-center justify-center"><CatIcon className="w-10 h-10 text-[#ccc]" /></div>)}
-        <WishlistButton productId={project.id} initialFav={false} />
+        {!imgError && cover ? (
+          <Image src={cover} alt={project.title} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
+        ) : (<div className="w-full h-full flex items-center justify-center"><FolderOpen className="w-10 h-10 text-[#ccc]" /></div>)}
       </div>
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
           <h3 className="text-[16px] font-semibold text-[#333] leading-snug line-clamp-1 group-hover:text-[#0EA5E9] transition-colors mb-2">{project.title}</h3>
           <p className="text-[14px] text-[#666] leading-relaxed line-clamp-2 mb-3">{project.description}</p>
-          <div className="flex items-center gap-3 text-[12px] text-[#999] mb-3">
-            <span className="flex items-center gap-1"><FolderOpen className="w-3 h-3" />{categoryLabel[project.category?.toLowerCase()] || project.category}</span>
+          <div className="flex items-center gap-3 text-[12px] text-[#999] mb-3 flex-wrap">
+            <span className="flex items-center gap-1"><FolderOpen className="w-3 h-3" />{project.status.replace(/_/g, " ")}</span>
             <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{formatDate(project.createdAt)}</span>
+            {project.client && <span className="text-[#666]">· {project.client}</span>}
           </div>
         </div>
         <div className="flex items-end justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[12px] text-[#666] bg-[#f0f0f0] px-2 py-[2px] rounded-full">{categoryLabel[project.category?.toLowerCase()] || project.category}</span>
-          </div>
-          {project.isSellable && project.price != null && (
-            <span className="text-[16px] font-bold text-[#0EA5E9]">৳{Number(project.salePrice || project.price).toLocaleString()}</span>
-          )}
+          <span className="text-[12px] text-[#666] bg-[#f0f0f0] px-2 py-[2px] rounded-full">{project.location || "—"}</span>
+          <span className="text-[13px] font-medium text-[#0EA5E9]">View Details →</span>
         </div>
       </div>
     </div>
   );
 }
 
-function Sidebar({ projects, activeCategory, onCategoryChange, onNavigate }: {
-  projects: ProjectItem[]; activeCategory: string; onCategoryChange: (key: string) => void; onNavigate: (id: string) => void;
+function Sidebar({ projects, onNavigate }: {
+  projects: ProjectItem[]; onNavigate: (slug: string) => void;
 }) {
   const recent = useMemo(() => [...projects].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5), [projects]);
   return (
     <aside className="w-full lg:w-[30%] shrink-0">
-      <div className="bg-[#f8f9fa] rounded-lg p-5 mb-6">
-        <h3 className="text-[14px] font-semibold text-[#333] mb-3 flex items-center gap-2"><FolderOpen className="w-4 h-4 text-[#0EA5E9]" />Categories</h3>
-        <nav className="space-y-1">{CATEGORIES.map((cat) => {
-          const Icon = cat.icon; const isActive = activeCategory === cat.key;
-          return (<button key={cat.key} onClick={() => onCategoryChange(cat.key)}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[14px] font-medium transition-all duration-200 ${isActive ? "bg-[#0EA5E9] text-white shadow-sm" : "text-[#666] hover:bg-white hover:text-[#333]"}`}>
-            <Icon className="w-4 h-4" />{cat.label}</button>);
-        })}</nav>
-      </div>
       <div className="bg-[#f8f9fa] rounded-lg p-5">
         <h3 className="text-[14px] font-semibold text-[#333] mb-3 flex items-center gap-2"><Clock className="w-4 h-4 text-[#0EA5E9]" />Recent Projects</h3>
-        <div className="space-y-1">{recent.map((proj) => <ProjectCard key={proj.id} project={proj} isSidebar onNavigate={onNavigate} />)}</div>
+        <div className="space-y-2">
+          {recent.map((proj) => {
+            const images = proj.images ? (Array.isArray(proj.images) ? proj.images : parseImages(proj.images)) : [];
+            const cover = proj.coverImage || images[0];
+            return (
+              <div key={proj.id} onClick={() => onNavigate(proj.slug)} className="flex items-start gap-3 p-2 rounded-md cursor-pointer hover:bg-white transition-all duration-200 group">
+                <div className="relative shrink-0 w-14 h-12 rounded-md overflow-hidden bg-[#f0f0f0] border border-[#e0e0e0]">
+                  {cover ? (
+                    <Image src={cover} alt={proj.title} fill className="object-cover group-hover:scale-105 transition-transform" unoptimized />
+                  ) : (<div className="w-full h-full flex items-center justify-center"><FolderOpen className="w-4 h-4 text-[#ccc]" /></div>)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[13px] font-medium text-[#333] leading-snug line-clamp-1 group-hover:text-[#0EA5E9] transition-colors">{proj.title}</h4>
+                  <span className="text-[11px] text-[#999]">{formatDate(proj.createdAt)}</span>
+                </div>
+              </div>
+            );
+          })}
+          {recent.length === 0 && <p className="text-[13px] text-[#999]">No projects yet.</p>}
+        </div>
       </div>
     </aside>
   );
@@ -147,13 +137,13 @@ function Pagination({ current, total, onChange }: { current: number; total: numb
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeStatus, setActiveStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const navigate = (id: string) => router.push(`/projects/${id}`);
+  const navigate = (slug: string) => router.push(`/projects/${slug}`);
 
-  const { data: apiData, isLoading } = useQuery<{ success: boolean; data: ProjectItem[] }>({
+  const { data: apiData, isLoading } = useQuery<{ data: ProjectItem[] }>({
     queryKey: ["projects-page-live"],
     queryFn: () => apiFetch("/api/projects"),
   });
@@ -162,21 +152,20 @@ export default function ProjectsPage() {
 
   const filtered = useMemo(() => {
     let list = allProjects;
-    if (activeCategory !== "all") {
-      list = list.filter((p) => p.category?.toLowerCase() === activeCategory.toLowerCase());
+    if (activeStatus !== "all") {
+      list = list.filter((p) => p.status === activeStatus);
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter((p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
     }
     return list;
-  }, [allProjects, activeCategory, searchQuery]);
+  }, [allProjects, activeStatus, searchQuery]);
 
-  const nonFeatured = filtered;
-  const totalPages = Math.ceil(nonFeatured.length / PAGE_SIZE);
-  const paginated = useMemo(() => nonFeatured.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE), [nonFeatured, currentPage]);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = useMemo(() => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE), [filtered, currentPage]);
 
-  const handleCategoryChange = (key: string) => { setActiveCategory(key); setCurrentPage(1); };
+  const handleStatusChange = (key: string) => { setActiveStatus(key); setCurrentPage(1); };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -198,12 +187,16 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 lg:hidden scrollbar-none">
-          {CATEGORIES.map((cat) => {
-            const Icon = cat.icon; const isActive = activeCategory === cat.key;
-            return (<button key={cat.key} onClick={() => handleCategoryChange(cat.key)}
-              className={`shrink-0 h-9 px-4 text-[13px] font-medium rounded-lg flex items-center gap-1.5 transition-all duration-200 ${isActive ? "bg-[#0EA5E9] text-white shadow-sm" : "bg-[#f8f9fa] text-[#666] border border-[#e0e0e0] hover:border-[#0EA5E9] hover:text-[#0EA5E9]"}`}>
-              <Icon className="w-4 h-4" />{cat.label}</button>);
+        {/* Status filter pills */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
+          {STATUS_FILTERS.map((f) => {
+            const isActive = activeStatus === f.key;
+            return (
+              <button key={f.key} onClick={() => handleStatusChange(f.key)}
+                className={`shrink-0 h-9 px-4 text-[13px] font-medium rounded-lg flex items-center gap-1.5 transition-all duration-200 ${isActive ? "bg-[#0EA5E9] text-white shadow-sm" : "bg-[#f8f9fa] text-[#666] border border-[#e0e0e0] hover:border-[#0EA5E9] hover:text-[#0EA5E9]"}`}>
+                {f.label}
+              </button>
+            );
           })}
         </div>
 
@@ -222,16 +215,13 @@ export default function ProjectsPage() {
               <div className="flex flex-col items-center justify-center py-24 text-center">
                 <div className="w-16 h-16 rounded-full bg-[#f8f9fa] flex items-center justify-center mb-4"><FolderOpen className="w-7 h-7 text-[#ccc]" /></div>
                 <h3 className="text-[16px] font-medium text-[#333] mb-1">No projects found</h3>
-                <p className="text-[14px] text-[#666] mb-5">{searchQuery ? "Try a different search term." : "No projects in this category yet."}</p>
+                <p className="text-[14px] text-[#666] mb-5">{searchQuery ? "Try a different search term." : "No projects match this filter yet."}</p>
                 {searchQuery && <button onClick={() => setSearchQuery("")} className="h-9 px-5 text-[14px] font-medium bg-[#0EA5E9] text-white rounded-lg hover:bg-[#0284C7] transition-colors">Clear Search</button>}
               </div>
             ) : (
               <>
-                {paginated.length > 0 && (
-                  <><div className="flex flex-col gap-6">{paginated.map((proj) => <ProjectCard key={proj.id} project={proj} onNavigate={navigate} />)}</div>
-                    <Pagination current={currentPage} total={totalPages} onChange={setCurrentPage} />
-                  </>
-                )}
+                <div className="flex flex-col gap-6">{paginated.map((proj) => <ProjectCard key={proj.id} project={proj} onNavigate={navigate} />)}</div>
+                <Pagination current={currentPage} total={totalPages} onChange={setCurrentPage} />
               </>
             )}
 
@@ -243,7 +233,7 @@ export default function ProjectsPage() {
             )}
           </div>
 
-          <Sidebar projects={filtered} activeCategory={activeCategory} onCategoryChange={handleCategoryChange} onNavigate={navigate} />
+          <Sidebar projects={filtered} onNavigate={navigate} />
         </div>
       </main>
       <ChatWidget />

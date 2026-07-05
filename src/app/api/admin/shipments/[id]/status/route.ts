@@ -4,46 +4,47 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
 } from '@/lib/auth'
+import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
-/**
- * PUT /api/admin/shipments/[id]/status
- * Update only the status of a shipment (and optionally record shipped/delivered timestamps).
- * Body: { status, shippedAt?, deliveredAt? }
- */
-export async function PUT(
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
+
+const updateShipmentStatusSchema = z.object({
+  status: z.string().min(1),
+  shippedAt: z.string().optional(),
+  deliveredAt: z.string().optional(),
+}).passthrough()
+
+// ─── PUT /api/admin/shipments/[id]/status ─────────────────────────────────────
+
+export const PUT = withErrorHandling(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
-  try {
-    const { id } = await params
-    const body = await parseBody<any>(request)
-    if (!body?.status) return errorResponse('status is required', 400)
+  const { id } = await params
+  const body = await validateBody(request, updateShipmentStatusSchema)
 
-    const existing = await db.shipment.findUnique({ where: { id } })
-    if (!existing) return errorResponse('Shipment not found', 404)
+  if (!body?.status) return errorResponse('status is required', 400)
 
-    const data: any = { status: body.status }
-    if (body.status === 'SHIPPED' && !existing.shippedAt) {
-      data.shippedAt = new Date()
-    }
-    if (body.status === 'DELIVERED') {
-      data.deliveredAt = body.deliveredAt ? new Date(body.deliveredAt) : new Date()
-    }
+  const existing = await db.shipment.findUnique({ where: { id } })
+  if (!existing) return errorResponse('Shipment not found', 404)
 
-    const shipment = await db.shipment.update({
-      where: { id },
-      data,
-      include: { order: true },
-    })
-
-    return jsonResponse({ data: shipment, message: 'Shipment status updated' })
-  } catch (err: any) {
-    console.error('admin/shipments/[id]/status PUT error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const data: any = { status: body.status }
+  if (body.status === 'SHIPPED' && !existing.shippedAt) {
+    data.shippedAt = new Date()
   }
-}
+  if (body.status === 'DELIVERED') {
+    data.deliveredAt = body.deliveredAt ? new Date(body.deliveredAt) : new Date()
+  }
+
+  const shipment = await db.shipment.update({
+    where: { id },
+    data,
+    include: { order: true },
+  })
+
+  return jsonResponse({ data: shipment, message: 'Shipment status updated' })
+})

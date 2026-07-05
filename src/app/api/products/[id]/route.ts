@@ -47,6 +47,7 @@ export async function GET(
       ...product,
       images: parseJsonField(product.images),
       tags: parseJsonField(product.tags),
+      comparePrice: product.salePrice ?? null,
       reviews: product.reviews,
     }
 
@@ -54,6 +55,7 @@ export async function GET(
       ...p,
       images: parseJsonField(p.images),
       tags: parseJsonField(p.tags),
+      comparePrice: p.salePrice ?? null,
     }))
 
     return jsonResponse({ data: { product: parsed, related: parsedRelated } })

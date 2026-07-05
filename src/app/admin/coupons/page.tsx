@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -34,7 +35,8 @@ export default function CouponsPage() {
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState(false);
   const [editing, setEditing] = useState<Coupon | null>(null);
-  const [form, setForm] = useState({ code: "", discount: 0, discountType: "PERCENTAGE", minOrder: 0, maxUses: 0, validFrom: "", validTo: "", isActive: true });
+  const defaultCouponForm = { code: "", discount: 0, discountType: "PERCENTAGE", minOrder: 0, maxUses: 0, validFrom: "", validTo: "", isActive: true };
+  const [form, setForm] = useState(() => loadFormDraft("admin-coupon-add", defaultCouponForm));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Coupon | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -45,7 +47,10 @@ export default function CouponsPage() {
   };
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setEditing(null); setForm({ code: "", discount: 0, discountType: "PERCENTAGE", minOrder: 0, maxUses: 0, validFrom: "", validTo: "", isActive: true }); setDialog(true); };
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-coupon-add", !editing ? form : defaultCouponForm);
+
+  const openAdd = () => { setEditing(null); setForm(loadFormDraft("admin-coupon-add", defaultCouponForm)); setDialog(true); };
   const openEdit = (c: Coupon) => { setEditing(c); setForm({ code: c.code, discount: c.discount, discountType: c.discountType, minOrder: c.minOrder||0, maxUses: c.maxUses||0, validFrom: c.validFrom?.split("T")[0]||"", validTo: c.validTo?.split("T")[0]||"", isActive: c.isActive }); setDialog(true); };
 
   const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
@@ -58,7 +63,7 @@ export default function CouponsPage() {
       const payload = { ...form, minOrder: form.minOrder||null, maxUses: form.maxUses||null };
       if (editing) { await apiFetch(`/api/admin/coupons/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Coupon updated"); }
       else { await apiFetch("/api/admin/coupons", { method: "POST", body: JSON.stringify(payload) }); toast.success("Coupon created"); }
-      setDialog(false); load();
+      setDialog(false); if (!editing) clearFormDraft("admin-coupon-add"); load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };
 

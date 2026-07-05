@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -37,7 +38,8 @@ export default function ServicesPage() {
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState(false);
   const [editing, setEditing] = useState<Service | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", price: 0, duration: "", categoryId: "", image: "", isActive: true });
+  const defaultServiceForm = { name: "", description: "", price: 0, duration: "", categoryId: "", image: "", isActive: true };
+  const [form, setForm] = useState(() => loadFormDraft("admin-service-add", defaultServiceForm));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Service | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -56,7 +58,10 @@ export default function ServicesPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setEditing(null); setForm({ name: "", description: "", price: 0, duration: "", categoryId: "", image: "", isActive: true }); setDialog(true); };
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-service-add", !editing ? form : defaultServiceForm);
+
+  const openAdd = () => { setEditing(null); setForm(loadFormDraft("admin-service-add", defaultServiceForm)); setDialog(true); };
   const openEdit = (s: Service) => { setEditing(s); setForm({ name: s.name, description: s.description||"", price: s.price, duration: s.duration||"", categoryId: s.categoryId||"", image: s.image||"", isActive: s.isActive }); setDialog(true); };
 
   const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
@@ -69,7 +74,7 @@ export default function ServicesPage() {
       const payload = { ...form, categoryId: form.categoryId||null, image: form.image||null, description: form.description||null };
       if (editing) { await apiFetch(`/api/admin/services/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Service updated"); }
       else { await apiFetch("/api/admin/services", { method: "POST", body: JSON.stringify(payload) }); toast.success("Service created"); }
-      setDialog(false); load();
+      setDialog(false); if (!editing) clearFormDraft("admin-service-add"); load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };
 

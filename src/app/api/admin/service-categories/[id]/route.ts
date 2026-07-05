@@ -4,8 +4,8 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
 } from '@/lib/admin-api'
+import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function slugify(text: string): string {
   return text
@@ -16,103 +16,97 @@ function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
-/**
- * GET /api/admin/service-categories/[id]
- */
-export async function GET(
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
+
+const updateServiceCategorySchema = z.object({
+  name: z.string().optional(),
+  nameBn: z.string().optional(),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  icon: z.string().optional(),
+  image: z.string().optional(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough()
+
+// ─── GET /api/admin/service-categories/[id] ───────────────────────────────────
+
+export const GET = withErrorHandling(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
-  try {
-    const { id } = await params
-    const category = await db.serviceCategory.findUnique({
-      where: { id },
-      include: { _count: { select: { services: true } } },
+  const { id } = await params
+  const category = await db.serviceCategory.findUnique({
+    where: { id },
+    include: { _count: { select: { services: true } } },
+  })
+  if (!category) return errorResponse('Category not found', 404)
+  return jsonResponse({ data: category })
+})
+
+// ─── PUT /api/admin/service-categories/[id] ───────────────────────────────────
+
+export const PUT = withErrorHandling(async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) => {
+  const auth = await requireAdmin()
+  if (!auth.ok) return auth.response!
+
+  const { id } = await params
+  const body = await validateBody(request, updateServiceCategorySchema)
+
+  const existing = await db.serviceCategory.findUnique({ where: { id } })
+  if (!existing) return errorResponse('Category not found', 404)
+
+  const data: any = {}
+  if (body.name !== undefined) data.name = body.name
+  if (body.nameBn !== undefined) data.nameBn = body.nameBn || existing.name
+  if (body.icon !== undefined) data.icon = body.icon || null
+  if (body.image !== undefined) data.image = body.image || null
+  if (body.sortOrder !== undefined) data.sortOrder = Number(body.sortOrder)
+  if (body.isActive !== undefined) data.isActive = !!body.isActive
+
+  if (body.slug !== undefined && body.slug !== existing.slug) {
+    const finalSlug = body.slug || slugify(body.name || existing.name)
+    const owner = await db.serviceCategory.findUnique({
+      where: { slug: finalSlug },
     })
-    if (!category) return errorResponse('Category not found', 404)
-    return jsonResponse({ data: category })
-  } catch (err: any) {
-    console.error('admin/service-categories/[id] GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
-
-/**
- * PUT /api/admin/service-categories/[id]
- */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
-
-  try {
-    const { id } = await params
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
-
-    const existing = await db.serviceCategory.findUnique({ where: { id } })
-    if (!existing) return errorResponse('Category not found', 404)
-
-    const data: any = {}
-    if (body.name !== undefined) data.name = body.name
-    if (body.nameBn !== undefined) data.nameBn = body.nameBn || existing.name
-    if (body.icon !== undefined) data.icon = body.icon || null
-    if (body.image !== undefined) data.image = body.image || null
-    if (body.sortOrder !== undefined) data.sortOrder = Number(body.sortOrder)
-    if (body.isActive !== undefined) data.isActive = !!body.isActive
-
-    if (body.slug !== undefined && body.slug !== existing.slug) {
-      const finalSlug = body.slug || slugify(body.name || existing.name)
-      const owner = await db.serviceCategory.findUnique({
-        where: { slug: finalSlug },
-      })
-      if (owner && owner.id !== id) {
-        return errorResponse('Slug already in use', 400)
-      }
-      data.slug = finalSlug
+    if (owner && owner.id !== id) {
+      return errorResponse('Slug already in use', 400)
     }
-
-    const category = await db.serviceCategory.update({
-      where: { id },
-      data,
-      include: { _count: { select: { services: true } } },
-    })
-
-    return jsonResponse({ data: category })
-  } catch (err: any) {
-    console.error('admin/service-categories/[id] PUT error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+    data.slug = finalSlug
   }
-}
 
-/**
- * DELETE /api/admin/service-categories/[id] — soft-delete.
- */
-export async function DELETE(
+  const category = await db.serviceCategory.update({
+    where: { id },
+    data,
+    include: { _count: { select: { services: true } } },
+  })
+
+  return jsonResponse({ data: category })
+})
+
+// ─── DELETE /api/admin/service-categories/[id] ────────────────────────────────
+
+export const DELETE = withErrorHandling(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
-  try {
-    const { id } = await params
-    const existing = await db.serviceCategory.findUnique({ where: { id } })
-    if (!existing) return errorResponse('Category not found', 404)
+  const { id } = await params
+  const existing = await db.serviceCategory.findUnique({ where: { id } })
+  if (!existing) return errorResponse('Category not found', 404)
 
-    await db.serviceCategory.update({
-      where: { id },
-      data: { isDeleted: true, isActive: false },
-    })
+  await db.serviceCategory.update({
+    where: { id },
+    data: { isDeleted: true, isActive: false },
+  })
 
-    return jsonResponse({ message: 'Category deleted' })
-  } catch (err: any) {
-    console.error('admin/service-categories/[id] DELETE error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  return jsonResponse({ message: 'Category deleted' })
+})

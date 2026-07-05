@@ -1,10 +1,9 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { EPFCart, EPFStar } from "@/components/epf/icons/EPFIcons";
-import { Boxes } from "lucide-react";
 import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
+import { PremiumCard, PremiumCardSkeleton, type PremiumCardData } from "@/components/epf/PremiumCard";
 
 interface Product {
   id: string;
@@ -18,16 +17,19 @@ interface Product {
   category?: { name: string; slug: string } | null;
 }
 
-interface Project {
+interface ProjectKit {
   id: string;
   title: string;
   slug: string;
-  price: number | null;
+  description: string;
+  price: number;
   salePrice: number | null;
   coverImage: string | null;
   images: string[];
-  isSellable: boolean;
-  location?: string | null;
+  category: string | null;
+  difficulty: string | null;
+  stock: number;
+  itemCount?: number;
 }
 
 function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
@@ -92,15 +94,11 @@ export default function ShopSection() {
   });
   const products = (productsData?.data?.data ?? []).slice(0, 6);
 
-  const { data: projectsData, isLoading: projectsLoading } = useQuery<{ data: Project[] }>({
+  const { data: kitsData, isLoading: projectsLoading } = useQuery<{ data: ProjectKit[] }>({
     queryKey: ["project-kits-home"],
-    queryFn: () => apiFetch("/api/projects"),
+    queryFn: () => apiFetch("/api/project-kits"),
   });
-  // Kits are the sellable projects (Arduino/IoT/PLC build kits). Prefer sellable
-  // ones; if the catalogue has none yet, fall back to recent projects.
-  const allProjects = projectsData?.data ?? [];
-  const sellableKits = allProjects.filter((p) => p.isSellable && p.price != null);
-  const kits = (sellableKits.length > 0 ? sellableKits : allProjects).slice(0, 6);
+  const kits = (kitsData?.data ?? []).slice(0, 6);
 
   const addProduct = (e: React.MouseEvent, p: Product) => {
     e.preventDefault();
@@ -116,7 +114,7 @@ export default function ShopSection() {
     toast.success("Added to cart", { description: p.name });
   };
 
-  const addKit = (e: React.MouseEvent, k: Project) => {
+  const addKit = (e: React.MouseEvent, k: ProjectKit) => {
     e.preventDefault();
     e.stopPropagation();
     addItem({
@@ -142,62 +140,24 @@ export default function ShopSection() {
           />
           <div className={GRID}>
             {productsLoading
-              ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
-              : products.map((product) => {
-                  const compare = product.comparePrice;
-                  const price = Number(product.salePrice || product.price);
-                  const discount = compare ? Math.round((1 - price / compare) * 100) : 0;
-                  return (
-                    <a
-                      key={product.id}
-                      href={`/shop/${product.id}`}
-                      className="border border-dark-200/80 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group flex flex-col"
-                    >
-                      <div className="relative aspect-square bg-dark-100/40 overflow-hidden">
-                        {product.images?.[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-dark-50">
-                            <EPFCart size={32} className="text-dark-300" />
-                          </div>
-                        )}
-                        {discount > 0 && (
-                          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm">
-                            -{discount}%
-                          </span>
-                        )}
-                        <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                          <button
-                            onClick={(e) => addProduct(e, product)}
-                            className="w-full bg-dark-900/90 hover:bg-dark-900 text-white text-[12px] font-medium py-2 rounded-md flex items-center justify-center gap-1.5 backdrop-blur-sm"
-                          >
-                            <EPFCart size={13} /> Add to Cart
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-2.5 flex flex-col gap-1 flex-1">
-                        {product.category && (
-                          <p className="text-[10px] text-dark-400 line-clamp-1 uppercase tracking-wider font-medium">
-                            {product.category.name}
-                          </p>
-                        )}
-                        <h4 className="text-[12.5px] font-medium text-dark-900 line-clamp-2 leading-snug min-h-[2.2rem] group-hover:text-epf-500 transition-colors">
-                          {product.name}
-                        </h4>
-                        <StarRating rating={product.rating} reviews={product.reviews} />
-                        <div className="flex items-baseline gap-1.5 mt-0.5">
-                          <span className="text-[14px] font-bold text-dark-900">৳{price.toLocaleString()}</span>
-                          {compare && <span className="text-[11px] text-dark-400 line-through">৳{compare.toLocaleString()}</span>}
-                        </div>
-                      </div>
-                    </a>
-                  );
-                })}
+              ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
+              : products.map((product) => (
+                  <PremiumCard
+                    key={product.id}
+                    data={{
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      salePrice: product.salePrice,
+                      comparePrice: product.comparePrice,
+                      images: product.images,
+                      category: product.category?.name,
+                      isFeatured: true,
+                    }}
+                    onCardClick={(id) => { window.location.href = `/shop/${id}`; }}
+                    onAddToCart={(d) => addProduct({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, product)}
+                  />
+                ))}
           </div>
         </div>
 
@@ -210,64 +170,25 @@ export default function ShopSection() {
           />
           <div className={GRID}>
             {projectsLoading
-              ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
-              : kits.map((kit) => {
-                  const buyable = kit.isSellable && kit.price != null;
-                  const price = Number(kit.salePrice || kit.price || 0);
-                  return (
-                    <div
-                      key={kit.id}
-                      onClick={() => { setSelectedProjectId(kit.id); setProjectDetailOpen(true); }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedProjectId(kit.id); setProjectDetailOpen(true); } }}
-                      className="border border-dark-200/80 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group flex flex-col cursor-pointer"
-                    >
-                      <div className="relative aspect-square bg-dark-100/40 overflow-hidden">
-                        {kit.coverImage || kit.images?.[0] ? (
-                          <img
-                            src={kit.coverImage || kit.images[0]}
-                            alt={kit.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-dark-50">
-                            <Boxes className="w-8 h-8 text-dark-300" />
-                          </div>
-                        )}
-                        <span className="absolute top-2 left-2 bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1">
-                          <Boxes className="w-3 h-3" /> KIT
-                        </span>
-                        {buyable && (
-                          <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                            <button
-                              onClick={(e) => addKit(e, kit)}
-                              className="w-full bg-dark-900/90 hover:bg-dark-900 text-white text-[12px] font-medium py-2 rounded-md flex items-center justify-center gap-1.5 backdrop-blur-sm"
-                            >
-                              <EPFCart size={13} /> Add to Cart
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-2.5 flex flex-col gap-1 flex-1">
-                        <p className="text-[10px] text-dark-400 line-clamp-1 uppercase tracking-wider font-medium">
-                          Project Kit
-                        </p>
-                        <h4 className="text-[12.5px] font-medium text-dark-900 line-clamp-2 leading-snug min-h-[2.2rem] group-hover:text-epf-500 transition-colors">
-                          {kit.title}
-                        </h4>
-                        <div className="mt-auto pt-1">
-                          {buyable ? (
-                            <span className="text-[14px] font-bold text-dark-900">৳{price.toLocaleString()}</span>
-                          ) : (
-                            <span className="text-[12px] font-medium text-epf-500">View details</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
+              : kits.map((kit) => (
+                  <PremiumCard
+                    key={kit.id}
+                    data={{
+                      id: kit.id,
+                      name: kit.title,
+                      price: kit.price ?? 0,
+                      salePrice: kit.salePrice,
+                      coverImage: kit.coverImage,
+                      images: kit.images,
+                      badge: "KIT",
+                      itemType: "PROJECT",
+                      category: kit.category,
+                    }}
+                    onCardClick={(id) => { setSelectedProjectId(id); setProjectDetailOpen(true); }}
+                    onAddToCart={(d) => addKit({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, kit)}
+                  />
+                ))}
           </div>
           {!projectsLoading && kits.length === 0 && (
             <p className="text-sm text-dark-400 text-center py-8">No project kits available yet.</p>

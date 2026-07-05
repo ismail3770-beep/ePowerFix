@@ -27,7 +27,12 @@ import { useCartStore } from "@/store";
 import { useUIStore } from "@/store";
 import { useAuthStore } from "@/store";
 import { toast } from "sonner";
+import Header from "@/components/epf/Header";
+import Footer from "@/components/epf/Footer";
+import CartDrawer from "@/components/epf/CartDrawer";
+import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
+import BackToTopButton from "@/components/epf/BackToTopButton";
 
 interface Product {
   id: string;
@@ -196,26 +201,38 @@ export default function ProductDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-[#1E1E1E]" />
+      <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-[#1E1E1E]" />
+        </main>
+        <Footer />
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
-        <div className="text-center">
-          <Package className="size-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Product Not Found</h2>
-          <Link href="/" className="text-[#1E1E1E] hover:underline text-sm">Back to Home</Link>
-        </div>
+      <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Package className="size-16 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Product Not Found</h2>
+            <Link href="/" className="text-[#1E1E1E] hover:underline text-sm">Back to Home</Link>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+      <Header />
+      <CartDrawer />
+      <CheckoutDialog />
+      <main className="flex-1">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 py-3">
@@ -599,7 +616,10 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+      </main>
+      <div className="mt-auto"><Footer /></div>
       <ChatWidget />
+      <BackToTopButton />
     </div>
   );
 }

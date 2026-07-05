@@ -4,10 +4,10 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   getPagination,
   listResponse,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 /**
  * Maps a ServiceBooking DB row to the response shape expected by the admin
@@ -46,111 +46,104 @@ const BOOKING_INCLUDE = {
   service: { select: { id: true, name: true, nameBn: true, basePrice: true, category: { select: { name: true } } } },
 }
 
-/**
- * GET /api/admin/bookings
- * List service bookings with pagination, search, status filter.
- * Status is normalised to UPPERCASE to match DB values.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
-  try {
-    const { page, limit, skip, search } = getPagination(request.url)
-    const url = new URL(request.url)
-    const rawStatus = url.searchParams.get('status')
-    // Normalise to UPPERCASE so "pending" from the UI matches "PENDING" in DB.
-    const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
+const createBookingSchema = z.object({
+  userId: z.string().min(1),
+  serviceId: z.string().min(1),
+  bookingDate: z.string().optional(),
+  bookingTime: z.string().optional(),
+  scheduledAt: z.string().optional(),
+  status: z.string().optional(),
+  notes: z.string().optional(),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  customerPhone: z.string().optional(),
+  totalCost: z.number().optional(),
+  total: z.number().optional(),
+  paymentStatus: z.string().optional(),
+  paymentMethod: z.string().optional(),
+}).passthrough()
 
-    const where: any = {}
-    if (status) where.status = status
-    if (search) {
-      where.OR = [
-        { user: { name: { contains: search } } },
-        { user: { email: { contains: search } } },
-        { user: { phone: { contains: search } } },
-        { service: { name: { contains: search } } },
-        { address: { contains: search } },
-        { phone: { contains: search } },
-        { notes: { contains: search } },
-      ]
-    }
+// ─── GET /api/admin/bookings ──────────────────────────────────────────────────
 
-    const [bookings, total] = await Promise.all([
-      db.serviceBooking.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: BOOKING_INCLUDE,
-      }),
-      db.serviceBooking.count({ where }),
-    ])
+export const GET = adminGetRoute(async (request) => {
+  const { page, limit, skip, search } = getPagination(request.url)
+  const url = new URL(request.url)
+  const rawStatus = url.searchParams.get('status')
+  // Normalise to UPPERCASE so "pending" from the UI matches "PENDING" in DB.
+  const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
-    return listResponse(bookings.map(mapBooking), total, page, limit)
-  } catch (err: any) {
-    console.error('admin/bookings GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const where: any = {}
+  if (status) where.status = status
+  if (search) {
+    where.OR = [
+      { user: { name: { contains: search } } },
+      { user: { email: { contains: search } } },
+      { user: { phone: { contains: search } } },
+      { service: { name: { contains: search } } },
+      { address: { contains: search } },
+      { phone: { contains: search } },
+      { notes: { contains: search } },
+    ]
   }
-}
 
-/**
- * POST /api/admin/bookings
- * Create a booking. Body accepts both task-spec names (scheduledAt,
- * customerName, customerPhone, customerEmail) and schema names (bookingDate,
- * bookingTime, phone, address).
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
-
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
-
-    const userId = body.userId
-    const serviceId = body.serviceId
-    if (!userId) return errorResponse('userId is required', 400)
-    if (!serviceId) return errorResponse('serviceId is required', 400)
-
-    // bookingDate / bookingTime
-    const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null
-    const bookingDate = body.bookingDate
-      ? new Date(body.bookingDate)
-      : scheduledAt || new Date()
-    const bookingTime =
-      body.bookingTime ||
-      (scheduledAt
-        ? `${String(scheduledAt.getHours()).padStart(2, '0')}:${String(
-            scheduledAt.getMinutes()
-          ).padStart(2, '0')}`
-        : '10:00')
-
-    const booking = await db.serviceBooking.create({
-      data: {
-        userId,
-        serviceId,
-        bookingDate,
-        bookingTime,
-        status: body.status || 'PENDING',
-        notes: body.notes || null,
-        address: body.address || '',
-        phone: body.customerPhone || body.phone || '',
-        totalCost:
-          body.totalCost !== undefined
-            ? Number(body.totalCost)
-            : body.total !== undefined
-            ? Number(body.total)
-            : 0,
-        paymentStatus: body.paymentStatus || 'PENDING',
-        paymentMethod: body.paymentMethod || null,
-      },
+  const [bookings, total] = await Promise.all([
+    db.serviceBooking.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
       include: BOOKING_INCLUDE,
-    })
+    }),
+    db.serviceBooking.count({ where }),
+  ])
 
-    return jsonResponse({ data: mapBooking(booking) }, 201)
-  } catch (err: any) {
-    console.error('admin/bookings POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  return listResponse(bookings.map(mapBooking), total, page, limit)
+})
+
+// ─── POST /api/admin/bookings ─────────────────────────────────────────────────
+
+export const POST = adminRoute(createBookingSchema, async (request, body, user) => {
+  const userId = body.userId
+  const serviceId = body.serviceId
+  if (!userId) return errorResponse('userId is required', 400)
+  if (!serviceId) return errorResponse('serviceId is required', 400)
+
+  // bookingDate / bookingTime
+  const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null
+  const bookingDate = body.bookingDate
+    ? new Date(body.bookingDate)
+    : scheduledAt || new Date()
+  const bookingTime =
+    body.bookingTime ||
+    (scheduledAt
+      ? `${String(scheduledAt.getHours()).padStart(2, '0')}:${String(
+          scheduledAt.getMinutes()
+        ).padStart(2, '0')}`
+      : '10:00')
+
+  const booking = await db.serviceBooking.create({
+    data: {
+      userId,
+      serviceId,
+      bookingDate,
+      bookingTime,
+      status: body.status || 'PENDING',
+      notes: body.notes || null,
+      address: body.address || '',
+      phone: body.customerPhone || body.phone || '',
+      totalCost:
+        body.totalCost !== undefined
+          ? Number(body.totalCost)
+          : body.total !== undefined
+          ? Number(body.total)
+          : 0,
+      paymentStatus: body.paymentStatus || 'PENDING',
+      paymentMethod: body.paymentMethod || null,
+    },
+    include: BOOKING_INCLUDE,
+  })
+
+  return jsonResponse({ data: mapBooking(booking) }, 201)
+})

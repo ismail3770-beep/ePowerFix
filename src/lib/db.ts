@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 // Models that support soft-delete via the `isDeleted` field.
 const SOFT_DELETE_MODELS = new Set([
   'user', 'brand', 'productCategory', 'product', 'serviceCategory', 'service',
-  'serviceBooking', 'review', 'blogPost', 'project', 'coupon', 'contact',
+  'serviceBooking', 'review', 'blogPost', 'project', 'projectKit', 'coupon', 'contact',
   'quoteRequest', 'newsletter', 'flashSale', 'tax', 'productQuestion',
 ])
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -33,7 +34,8 @@ export default function CategoriesPage() {
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
-  const [form, setForm] = useState({ name: "", slug: "", icon: "", description: "", parentId: "", image: "" });
+  const defaultCatForm = { name: "", slug: "", icon: "", description: "", parentId: "", image: "" };
+  const [form, setForm] = useState(() => loadFormDraft("admin-category-add", defaultCatForm));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -45,7 +47,10 @@ export default function CategoriesPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openAdd = () => { setEditing(null); setForm({ name: "", slug: "", icon: "", description: "", parentId: "", image: "" }); setDialog(true); };
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-category-add", !editing ? form : defaultCatForm);
+
+  const openAdd = () => { setEditing(null); setForm(loadFormDraft("admin-category-add", defaultCatForm)); setDialog(true); };
   const openEdit = (c: Category) => { setEditing(c); setForm({ name: c.name, slug: c.slug, icon: c.icon||"", description: c.description||"", parentId: c.parentId||"", image: c.image||"" }); setDialog(true); };
 
   const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
@@ -60,7 +65,7 @@ export default function CategoriesPage() {
       const payload = { ...form, slug: form.slug || generateSlug(form.name), parentId: form.parentId || null, icon: form.icon || null, image: form.image || null, description: form.description || null };
       if (editing) { await apiFetch(`/api/admin/product-categories/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Category updated"); }
       else { await apiFetch("/api/admin/product-categories", { method: "POST", body: JSON.stringify(payload) }); toast.success("Category created"); }
-      setDialog(false); load();
+      setDialog(false); if (!editing) clearFormDraft("admin-category-add"); load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };
 

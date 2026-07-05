@@ -25,13 +25,12 @@ interface ServiceDetail {
   slug: string;
   basePrice: number;
   priceUnit: string;
-  image: string;
+  shortDesc?: string | null;
   images: string[];
   features: string;
   isFeatured: boolean;
   rating: number;
   reviewCount: number;
-  duration: string;
   category: { id: string; name: string; nameBn: string; slug: string } | null;
 }
 
@@ -79,7 +78,7 @@ export default function ServiceDetailPage() {
   }
 
   const features = parseJsonArray(service.features);
-  const duration = service.duration || "1-3 days";
+  const duration = service.shortDesc || "1-3 days";
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -96,7 +95,7 @@ export default function ServiceDetailPage() {
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0 lg:w-[70%]">
             <div className="relative w-full max-w-[600px] h-[300px] rounded-lg overflow-hidden bg-gradient-to-br from-[#0EA5E9]/20 via-[#0284C7]/10 to-[#111827] shadow-[0_4px_6px_rgba(0,0,0,0.1)] mb-6">
-              {service.image || service.images?.[0] ? <Image src={service.image || service.images![0]} alt={service.name} fill className="object-cover" unoptimized /> : <div className="w-full h-full flex items-center justify-center text-[#9CA3AF]">No Image</div>}
+              {service.images?.[0] ? <Image src={service.images[0]} alt={service.name} fill className="object-cover" unoptimized /> : <div className="w-full h-full flex items-center justify-center text-[#9CA3AF]">No Image</div>}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
             </div>
             <h1 className="text-[28px] font-bold text-[#111827] leading-tight mb-3">{service.name}</h1>

@@ -1,39 +1,28 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { jsonResponse, errorResponse, parseBody } from '@/lib/auth'
+import { jsonResponse, errorResponse } from '@/lib/auth'
+import { publicRoute, schemas } from '@/lib/api-handler'
 
 /**
  * POST /api/newsletter
- * Subscribe an email to the newsletter.
- * Body: { email }
+ * Subscribe an email to the newsletter with Zod validation.
  */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
+export const POST = publicRoute(schemas.newsletter, async (request, { email }) => {
+  const normalizedEmail = email.trim().toLowerCase()
 
-    const email = (body.email || '').toString().trim().toLowerCase()
-    if (!email) return errorResponse('email is required', 400)
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) return errorResponse('Invalid email', 400)
-
-    const existing = await db.newsletter.findUnique({ where: { email } })
-    if (existing) {
-      if (existing.status === 'ACTIVE') {
-        return errorResponse('Already subscribed', 409)
-      }
-      // Reactivate a previously-unsubscribed entry.
-      await db.newsletter.update({
-        where: { email },
-        data: { status: 'ACTIVE' },
-      })
-      return jsonResponse({ data: { email }, message: 'Re-subscribed successfully' })
+  const existing = await db.newsletter.findUnique({ where: { email: normalizedEmail } })
+  if (existing) {
+    if (existing.status === 'ACTIVE') {
+      return errorResponse('Already subscribed', 409)
     }
-
-    await db.newsletter.create({ data: { email, status: 'ACTIVE' } })
-    return jsonResponse({ data: { email }, message: 'Subscribed successfully' }, 201)
-  } catch (err: any) {
-    console.error('public/newsletter POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+    // Reactivate a previously-unsubscribed entry.
+    await db.newsletter.update({
+      where: { email: normalizedEmail },
+      data: { status: 'ACTIVE' },
+    })
+    return jsonResponse({ data: { email: normalizedEmail }, message: 'Re-subscribed successfully' })
   }
-}
+
+  await db.newsletter.create({ data: { email: normalizedEmail, status: 'ACTIVE' } })
+  return jsonResponse({ data: { email: normalizedEmail }, message: 'Subscribed successfully' }, 201)
+})

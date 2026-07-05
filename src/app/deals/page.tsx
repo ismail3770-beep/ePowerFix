@@ -358,12 +358,13 @@ export default function DealsPage() {
     data: { data: Product[]; pagination: any };
   }>({
     queryKey: ["all-deal-products"],
-    queryFn: () => apiFetch("/api/products?limit=50"),
+    queryFn: () => apiFetch("/api/products?limit=50&bestDeals=true"),
   });
 
   const allDeals = (() => {
     const products = productsEnvelope?.data?.data ?? [];
-    return products.filter((p) => p.comparePrice && p.comparePrice > p.price);
+    // The API already filters by isBestDeal=true, so just return all.
+    return products;
   })();
 
   const getDiscount = useCallback((p: Product) => {

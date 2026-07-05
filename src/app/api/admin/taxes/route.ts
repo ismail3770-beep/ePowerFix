@@ -4,10 +4,10 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   getPagination,
   listResponse,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 /**
  * Maps a Tax DB row to the response shape expected by the admin frontend.
@@ -22,81 +22,68 @@ function mapTax(t: any) {
   }
 }
 
-/**
- * GET /api/admin/taxes
- * List taxes with pagination.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
-  try {
-    const { page, limit, skip, search } = getPagination(request.url)
+const createTaxSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().optional(),
+  rate: z.number().nullable().optional(),
+  value: z.number().nullable().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough()
 
-    const where: any = {}
-    if (search) {
-      where.OR = [{ name: { contains: search } }]
-    }
+// ─── GET /api/admin/taxes ─────────────────────────────────────────────────────
 
-    const [taxes, total] = await Promise.all([
-      db.tax.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      db.tax.count({ where }),
-    ])
+export const GET = adminGetRoute(async (request) => {
+  const { page, limit, skip, search } = getPagination(request.url)
 
-    return listResponse(taxes.map(mapTax), total, page, limit)
-  } catch (err: any) {
-    console.error('admin/taxes GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const where: any = {}
+  if (search) {
+    where.OR = [{ name: { contains: search } }]
   }
-}
 
-/**
- * POST /api/admin/taxes
- * Create a tax. Accepts both `value` (task spec) and `rate` (schema).
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  const [taxes, total] = await Promise.all([
+    db.tax.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    }),
+    db.tax.count({ where }),
+  ])
 
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
+  return listResponse(taxes.map(mapTax), total, page, limit)
+})
 
-    const name = (body.name || '').toString().trim()
-    if (!name) return errorResponse('name is required', 400)
+// ─── POST /api/admin/taxes ────────────────────────────────────────────────────
 
-    const type = (body.type || 'PERCENTAGE').toString().toUpperCase()
-    if (!['PERCENTAGE', 'FLAT'].includes(type)) {
-      return errorResponse('type must be PERCENTAGE or FLAT', 400)
-    }
+export const POST = adminRoute(createTaxSchema, async (request, body, user) => {
+  const name = (body.name || '').toString().trim()
+  if (!name) return errorResponse('name is required', 400)
 
-    const rate =
-      body.rate !== undefined && body.rate !== null
-        ? Number(body.rate)
-        : body.value !== undefined && body.value !== null
-        ? Number(body.value)
-        : null
-    if (rate === null || Number.isNaN(rate)) {
-      return errorResponse('value (or rate) is required', 400)
-    }
-
-    const tax = await db.tax.create({
-      data: {
-        name,
-        type,
-        rate,
-        isActive: body.isActive !== undefined ? !!body.isActive : true,
-      },
-    })
-
-    return jsonResponse({ data: mapTax(tax) }, 201)
-  } catch (err: any) {
-    console.error('admin/taxes POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const type = (body.type || 'PERCENTAGE').toString().toUpperCase()
+  if (!['PERCENTAGE', 'FLAT'].includes(type)) {
+    return errorResponse('type must be PERCENTAGE or FLAT', 400)
   }
-}
+
+  const rate =
+    body.rate !== undefined && body.rate !== null
+      ? Number(body.rate)
+      : body.value !== undefined && body.value !== null
+      ? Number(body.value)
+      : null
+  if (rate === null || Number.isNaN(rate)) {
+    return errorResponse('value (or rate) is required', 400)
+  }
+
+  const tax = await db.tax.create({
+    data: {
+      name,
+      type,
+      rate,
+      isActive: body.isActive !== undefined ? !!body.isActive : true,
+    },
+  })
+
+  return jsonResponse({ data: mapTax(tax) }, 201)
+})

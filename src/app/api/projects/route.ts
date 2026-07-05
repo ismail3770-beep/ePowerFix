@@ -5,17 +5,15 @@ import { parseJsonField } from '@/lib/admin-api'
 
 /**
  * GET /api/projects
- * Public list of projects (portfolio + sellable kits).
- * Query: search, sellable (true = only sellable kits)
+ * Public list of portfolio projects (NOT sellable kits — those are at
+ * /api/project-kits). Query: search
  */
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
     const search = url.searchParams.get('search') || ''
-    const sellableOnly = url.searchParams.get('sellable') === 'true'
 
     const where: any = {}
-    if (sellableOnly) where.isSellable = true
     if (search) {
       where.OR = [
         { title: { contains: search } },

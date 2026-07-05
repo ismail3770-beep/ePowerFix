@@ -1,5 +1,5 @@
-// ePowerFix schema — works with PostgreSQL.
-// - Provider: postgresql
+// ePowerFix schema — SQLite (local file DB).
+// - Provider: sqlite
 // - Enums kept as String (UPPERCASE literal values) for cross-DB compatibility
 // - Prices use Float (works with both SQLite & PostgreSQL)
 // - JSON-array fields (images, tags) stored as String containing JSON —
@@ -11,7 +11,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -132,6 +132,7 @@ model Product {
   images      String   @default("[]") // JSON-stringified array of URLs
   specs       String?
   isFeatured  Boolean  @default(false) @map("is_featured")
+  isBestDeal  Boolean  @default(false) @map("is_best_deal")
   hasVariant  Boolean  @default(false) @map("has_variant")
   // Digital delivery: isDigital products skip stock/shipping and are delivered
   // via secure download. digitalFile is a PRIVATE path (never publicly served).
@@ -155,6 +156,7 @@ model Product {
   wishlistItems Wishlist[]
   cartItems CartItem[]
   orderItems OrderItem[]
+  kitItems  ProjectKitItem[]
   flashSaleId String?           @map("flash_sale_id")
   flashSale   FlashSale?        @relation(fields: [flashSaleId], references: [id])
   taxId       String?           @map("tax_id")
@@ -482,6 +484,7 @@ model Service {
   images      String   @default("[]") // JSON-stringified array of URLs
   features    String?
   isFeatured  Boolean  @default(false) @map("is_featured")
+  isBestDeal  Boolean  @default(false) @map("is_best_deal")
   isActive    Boolean  @default(true) @map("is_active")
   isDeleted   Boolean  @default(false) @map("is_deleted")
   categoryId  String   @map("category_id")
@@ -646,6 +649,50 @@ model Project {
   orderItems OrderItem[]
 
   @@map("projects")
+}
+
+// ─── Project Kits (sellable bundles, independent from portfolio Projects) ───
+model ProjectKit {
+  id          String   @id @default(uuid())
+  title       String
+  titleBn     String?  @map("title_bn")
+  slug        String   @unique
+  description String
+  coverImage  String?  @map("cover_image")
+  images      String   @default("[]") // JSON-stringified array of URLs
+  category    String?
+  difficulty  String?
+  price       Float
+  salePrice   Float?   @map("sale_price")
+  stock       Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  isFeatured  Boolean  @default(false) @map("is_featured")
+  isBestDeal  Boolean  @default(false) @map("is_best_deal")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  items       ProjectKitItem[]
+
+  @@index([isActive])
+  @@map("project_kits")
+}
+
+model ProjectKitItem {
+  id         String   @id @default(uuid())
+  kitId      String   @map("kit_id")
+  productId  String   @map("product_id")
+  quantity   Int      @default(1)
+  isRequired Boolean  @default(true) @map("is_required")
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  kit      ProjectKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  product  Product    @relation(fields: [productId], references: [id])
+
+  @@index([kitId])
+  @@index([productId])
+  @@map("project_kit_items")
 }
 
 model FlashSale {

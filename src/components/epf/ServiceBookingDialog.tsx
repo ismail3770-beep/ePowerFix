@@ -19,9 +19,7 @@ interface Service {
   nameBn: string;
   basePrice: number;
   priceUnit: string;
-  priceLabel: string;
-  icon?: string;
-  images?: string;
+  images?: string | string[];
 }
 
 const areas = [

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ interface Product {
   stock: number;
   images: string[];
   isFeatured: boolean;
+  isBestDeal: boolean;
   isActive: boolean;
   category: ProductCategory | null;
   brand: { id: string; name: string } | null;
@@ -59,7 +61,7 @@ interface Brand {
 
 const defaultProduct = {
   name: "", description: "", price: 0, comparePrice: 0, sku: "",
-  stock: 0, categoryId: "__none__", brandId: "__none__", imageUrls: [] as string[], isFeatured: false, isActive: true,
+  stock: 0, categoryId: "__none__", brandId: "__none__", imageUrls: [] as string[], isFeatured: false, isBestDeal: false, isActive: true,
 };
 
 type ProductForm = typeof defaultProduct;
@@ -73,7 +75,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(initialFilters);
   const [dialog, setDialog] = useState<{ open: boolean; edit?: Product }>({ open: false });
-  const [form, setForm] = useState<ProductForm>(defaultProduct);
+  const [form, setForm] = useState<ProductForm>(() => loadFormDraft<ProductForm>("admin-product-add", defaultProduct));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -120,8 +122,13 @@ export default function AdminProductsPage() {
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
   useEffect(() => { fetchCategories(); fetchBrands(); }, [fetchCategories, fetchBrands]);
 
+  // Persist the add-form draft to localStorage so a refresh / navigation
+  // doesn't lose progress. Only auto-save while in "add" mode (no edit target).
+  useFormDraft("admin-product-add", dialog.open && !dialog.edit ? form : defaultProduct);
+
   function openAdd() {
-    setForm(defaultProduct);
+    // Restore any previously-saved draft (or fall back to a blank form).
+    setForm(loadFormDraft<ProductForm>("admin-product-add", defaultProduct));
     setDialog({ open: true });
   }
 
@@ -131,12 +138,13 @@ export default function AdminProductsPage() {
       description: product.description,
       price: product.price,
       comparePrice: product.comparePrice ?? 0,
-      sku: product.sku,
+      sku: product.sku ?? "",
       stock: product.stock,
       categoryId: product.category?.id ?? "__none__",
       brandId: product.brand?.id ?? "__none__",
       imageUrls: product.images ?? [],
       isFeatured: product.isFeatured,
+      isBestDeal: product.isBestDeal,
       isActive: product.isActive,
     });
     setDialog({ open: true, edit: product });
@@ -165,6 +173,8 @@ export default function AdminProductsPage() {
         toast.success("Product created");
       }
       setDialog({ open: false });
+      // Clear the add-form draft now that the product was saved.
+      if (!dialog.edit) clearFormDraft("admin-product-add");
       fetchProducts();
     } catch (err: any) {
       toast.error(err.message || "Failed to save product");
@@ -394,10 +404,14 @@ export default function AdminProductsPage() {
                 label="Product Images"
               />
             </div>
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-8 flex-wrap">
               <div className="flex items-center gap-2">
                 <Switch id="isFeatured" checked={form.isFeatured} onCheckedChange={(v) => setForm((f) => ({ ...f, isFeatured: v }))} />
                 <Label htmlFor="isFeatured">Featured</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch id="isBestDeal" checked={form.isBestDeal} onCheckedChange={(v) => setForm((f) => ({ ...f, isBestDeal: v }))} />
+                <Label htmlFor="isBestDeal">Best Deal</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch id="isActive" checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} />

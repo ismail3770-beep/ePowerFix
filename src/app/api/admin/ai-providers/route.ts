@@ -4,9 +4,9 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   stringifyJsonField,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 /**
  * Maps an AiProvider DB row to the response shape expected by the admin
@@ -42,104 +42,95 @@ const VALID_TYPES = new Set([
   'CUSTOM',
 ])
 
-/**
- * GET /api/admin/ai-providers
- * List all AI providers ordered by sortOrder ascending.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
-  try {
-    const providers = await db.aiProvider.findMany({
-      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-    })
-    return jsonResponse({ data: providers.map(mapProvider) })
-  } catch (err: any) {
-    console.error('admin/ai-providers GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+const createProviderSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().min(1),
+  baseUrl: z.string().optional(),
+  defaultModel: z.string().optional(),
+  model: z.string().optional(),
+  apiKey: z.string().optional(),
+  isActive: z.boolean().optional(),
+  isDefault: z.boolean().optional(),
+  config: z.any().optional(),
+  sortOrder: z.number().int().optional(),
+}).passthrough()
+
+// ─── GET /api/admin/ai-providers ──────────────────────────────────────────────
+
+export const GET = adminGetRoute(async (request) => {
+  const providers = await db.aiProvider.findMany({
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+  })
+  return jsonResponse({ data: providers.map(mapProvider) })
+})
+
+// ─── POST /api/admin/ai-providers ─────────────────────────────────────────────
+
+export const POST = adminRoute(createProviderSchema, async (request, body, user) => {
+  const name = (body.name || '').toString().trim()
+  if (!name) return errorResponse('name is required', 400)
+
+  const type = (body.type || '').toString().toUpperCase()
+  if (!VALID_TYPES.has(type)) {
+    return errorResponse(
+      'type must be one of OPENAI, ANTHROPIC, GEMINI, OLLAMA, OPENROUTER, OPENCODE, CUSTOM',
+      400
+    )
   }
-}
 
-/**
- * POST /api/admin/ai-providers
- * Create a provider. If `isDefault` is true, bumps existing providers'
- * sortOrder so the new one becomes the sole default (sortOrder=0).
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
-
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
-
-    const name = (body.name || '').toString().trim()
-    if (!name) return errorResponse('name is required', 400)
-
-    const type = (body.type || '').toString().toUpperCase()
-    if (!VALID_TYPES.has(type)) {
-      return errorResponse(
-        'type must be one of OPENAI, ANTHROPIC, GEMINI, OLLAMA, OPENROUTER, OPENCODE, CUSTOM',
-        400
-      )
-    }
-
-    const baseUrl = (body.baseUrl || defaultBaseUrlFor(type)).toString()
-    const defaultModel = (body.defaultModel || body.model || defaultModelFor(type)).toString()
-    if (!defaultModel) {
-      return errorResponse('defaultModel is required', 400)
-    }
-
-    const isDefault = body.isDefault === true
-    const configValue =
-      body.config && typeof body.config === 'object'
-        ? stringifyJsonField(body.config)
-        : body.config
-        ? String(body.config)
-        : null
-
-    // If isDefault, push existing providers down so the new one is the default.
-    let sortOrder = 0
-    if (isDefault) {
-      const existing = await db.aiProvider.findMany({
-        orderBy: { sortOrder: 'asc' },
-      })
-      // Bump all existing providers' sortOrder by 1 (in a transaction).
-      await db.$transaction(
-        existing.map((p) =>
-          db.aiProvider.update({
-            where: { id: p.id },
-            data: { sortOrder: p.sortOrder + 1 },
-          })
-        )
-      )
-      sortOrder = 0
-    } else {
-      // Place at the end.
-      const count = await db.aiProvider.count()
-      sortOrder = count
-    }
-
-    const provider = await db.aiProvider.create({
-      data: {
-        name,
-        type,
-        apiKey: body.apiKey || null,
-        baseUrl,
-        defaultModel,
-        enabled: body.isActive !== undefined ? !!body.isActive : true,
-        sortOrder,
-        config: configValue,
-      },
-    })
-
-    return jsonResponse({ data: mapProvider(provider) }, 201)
-  } catch (err: any) {
-    console.error('admin/ai-providers POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const baseUrl = (body.baseUrl || defaultBaseUrlFor(type)).toString()
+  const defaultModel = (body.defaultModel || body.model || defaultModelFor(type)).toString()
+  if (!defaultModel) {
+    return errorResponse('defaultModel is required', 400)
   }
-}
+
+  const isDefault = body.isDefault === true
+  const configValue =
+    body.config && typeof body.config === 'object'
+      ? stringifyJsonField(body.config)
+      : body.config
+      ? String(body.config)
+      : null
+
+  // If isDefault, push existing providers down so the new one is the default.
+  let sortOrder = 0
+  if (isDefault) {
+    const existing = await db.aiProvider.findMany({
+      orderBy: { sortOrder: 'asc' },
+    })
+    // Bump all existing providers' sortOrder by 1 (in a transaction).
+    await db.$transaction(
+      existing.map((p) =>
+        db.aiProvider.update({
+          where: { id: p.id },
+          data: { sortOrder: p.sortOrder + 1 },
+        })
+      )
+    )
+    sortOrder = 0
+  } else {
+    // Place at the end.
+    const count = await db.aiProvider.count()
+    sortOrder = count
+  }
+
+  const provider = await db.aiProvider.create({
+    data: {
+      name,
+      type,
+      apiKey: body.apiKey || null,
+      baseUrl,
+      defaultModel,
+      enabled: body.isActive !== undefined ? !!body.isActive : true,
+      sortOrder,
+      config: configValue,
+    },
+  })
+
+  return jsonResponse({ data: mapProvider(provider) }, 201)
+})
 
 function defaultBaseUrlFor(type: string): string {
   switch (type) {

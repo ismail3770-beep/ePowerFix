@@ -5,10 +5,10 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
   getPagination,
   listResponse,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
 const PUBLIC_FIELDS = {
   id: true,
@@ -24,92 +24,82 @@ const PUBLIC_FIELDS = {
   updatedAt: true,
 }
 
-/**
- * GET /api/admin/users
- * List users with pagination, search, role filter. Excludes password.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
-  try {
-    const { page, limit, skip, search } = getPagination(request.url)
-    const url = new URL(request.url)
-    const role = url.searchParams.get('role') || undefined
+const createUserSchema = z.object({
+  name: z.string().min(1),
+  nameBn: z.string().optional(),
+  email: z.string().min(1),
+  phone: z.string().min(1),
+  password: z.string().min(1),
+  role: z.string().optional(),
+  avatar: z.string().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough()
 
-    const where: any = {}
-    if (role) where.role = role
-    if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { email: { contains: search } },
-        { phone: { contains: search } },
-      ]
-    }
+// ─── GET /api/admin/users ─────────────────────────────────────────────────────
 
-    const [users, total] = await Promise.all([
-      db.user.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        select: PUBLIC_FIELDS,
-      }),
-      db.user.count({ where }),
-    ])
+export const GET = adminGetRoute(async (request) => {
+  const { page, limit, skip, search } = getPagination(request.url)
+  const url = new URL(request.url)
+  const role = url.searchParams.get('role') || undefined
 
-    return listResponse(users, total, page, limit)
-  } catch (err: any) {
-    console.error('admin/users GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+  const where: any = {}
+  if (role) where.role = role
+  if (search) {
+    where.OR = [
+      { name: { contains: search } },
+      { email: { contains: search } },
+      { phone: { contains: search } },
+    ]
   }
-}
 
-/**
- * POST /api/admin/users
- * Create a user. Hashes the password with bcryptjs.
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
-
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
-
-    const { name, email, phone, password, role, nameBn, avatar, isActive } = body
-
-    if (!name) return errorResponse('name is required', 400)
-    if (!email) return errorResponse('email is required', 400)
-    if (!phone) return errorResponse('phone is required', 400)
-    if (!password) return errorResponse('password is required', 400)
-
-    const emailExists = await db.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    })
-    if (emailExists) return errorResponse('Email already in use', 400)
-
-    const phoneExists = await db.user.findUnique({ where: { phone } })
-    if (phoneExists) return errorResponse('Phone already in use', 400)
-
-    const hashed = bcrypt.hashSync(password, 10)
-    const user = await db.user.create({
-      data: {
-        name,
-        nameBn: nameBn || null,
-        email: email.toLowerCase().trim(),
-        phone,
-        password: hashed,
-        role: role || 'CUSTOMER',
-        avatar: avatar || null,
-        isActive: isActive !== undefined ? !!isActive : true,
-      },
+  const [users, total] = await Promise.all([
+    db.user.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
       select: PUBLIC_FIELDS,
-    })
+    }),
+    db.user.count({ where }),
+  ])
 
-    return jsonResponse({ data: user }, 201)
-  } catch (err: any) {
-    console.error('admin/users POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  return listResponse(users, total, page, limit)
+})
+
+// ─── POST /api/admin/users ────────────────────────────────────────────────────
+
+export const POST = adminRoute(createUserSchema, async (request, body, user) => {
+  const { name, email, phone, password, role, nameBn, avatar, isActive } = body
+
+  if (!name) return errorResponse('name is required', 400)
+  if (!email) return errorResponse('email is required', 400)
+  if (!phone) return errorResponse('phone is required', 400)
+  if (!password) return errorResponse('password is required', 400)
+
+  const emailExists = await db.user.findUnique({
+    where: { email: email.toLowerCase().trim() },
+  })
+  if (emailExists) return errorResponse('Email already in use', 400)
+
+  const phoneExists = await db.user.findUnique({ where: { phone } })
+  if (phoneExists) return errorResponse('Phone already in use', 400)
+
+  const hashed = bcrypt.hashSync(password, 10)
+  const created = await db.user.create({
+    data: {
+      name,
+      nameBn: nameBn || null,
+      email: email.toLowerCase().trim(),
+      phone,
+      password: hashed,
+      role: role || 'CUSTOMER',
+      avatar: avatar || null,
+      isActive: isActive !== undefined ? !!isActive : true,
+    },
+    select: PUBLIC_FIELDS,
+  })
+
+  return jsonResponse({ data: created }, 201)
+})

@@ -6,18 +6,15 @@ import { apiFetch } from "@/lib/api";
 interface Service {
   id: string;
   name: string;
-  nameBn: string;
+  nameBn?: string | null;
   description: string;
-  descriptionBn: string;
   basePrice: number;
   priceUnit: string;
-  priceLabel: string;
-  duration: string;
-  popular: boolean;
-  icon: string;
-  image?: string;
-  category: { id: string; name: string; icon: string } | null;
-  features: string;
+  shortDesc?: string | null;
+  isFeatured?: boolean;
+  images?: string[];
+  category: { id: string; name: string; nameBn?: string } | null;
+  features?: string;
 }
 
 export default function ServicesSection() {
@@ -80,9 +77,9 @@ export default function ServicesSection() {
                 className="bg-white border border-dark-200/80 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group"
               >
                 <a href="/services" className="block h-[160px] sm:h-[180px] overflow-hidden bg-dark-100">
-                  {svc.image ? (
+                  {svc.images?.[0] ? (
                     <img
-                      src={svc.image}
+                      src={svc.images[0]}
                       alt={svc.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
@@ -98,7 +95,7 @@ export default function ServicesSection() {
                     <h4 className="text-[14px] sm:text-[15px] font-semibold text-dark-900 leading-snug line-clamp-2 flex-1">
                       {svc.name}
                     </h4>
-                    {svc.popular && (
+                    {svc.isFeatured && (
                       <span className="bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 leading-none uppercase shrink-0 mt-0.5">
                         Popular
                       </span>
