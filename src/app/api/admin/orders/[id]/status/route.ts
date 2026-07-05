@@ -26,7 +26,9 @@ export async function PUT(
     const existing = await db.order.findUnique({ where: { id } })
     if (!existing) return errorResponse('Order not found', 404)
 
-    const { status, note } = body
+    const { note } = body
+    // Normalise status to UPPERCASE to match DB values.
+    const status = body.status.toUpperCase()
     const data: any = { status }
     if (status === 'DELIVERED' && !existing.deliveredAt) {
       data.deliveredAt = new Date()

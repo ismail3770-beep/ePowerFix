@@ -11,28 +11,45 @@ import {
 
 /**
  * Maps a ServiceBooking DB row to the response shape expected by the admin
- * frontend. The frontend reads `date`/`time` while the schema stores
- * `bookingDate`/`bookingTime`. We expose both names.
+ * frontend. Exposes both schema field names and convenience aliases.
  */
 function mapBooking(b: any) {
   if (!b) return b
   return {
     ...b,
+    // Aliases the frontend expects
+    customerName: b.user?.name || '',
+    customerPhone: b.phone || b.user?.phone || '',
+    customerEmail: b.user?.email || '',
+    preferredDate: b.bookingDate,
+    preferredTime: b.bookingTime,
+    description: b.notes || '',
+    totalPrice: b.totalCost,
+    // Short aliases
     date: b.bookingDate,
     time: b.bookingTime,
     scheduledAt: b.bookingDate,
     total: b.totalCost,
+    // Normalise service shape so the table can read service.name + category
+    service: b.service
+      ? {
+          ...b.service,
+          nameBn: b.service.nameBn || '',
+          category: (b.service as any).category || { name: 'General' },
+        }
+      : { name: 'Unknown', nameBn: '', category: { name: 'General' } },
   }
 }
 
 const BOOKING_INCLUDE = {
   user: { select: { id: true, name: true, email: true, phone: true } },
-  service: { select: { id: true, name: true, basePrice: true } },
+  service: { select: { id: true, name: true, nameBn: true, basePrice: true, category: { select: { name: true } } } },
 }
 
 /**
  * GET /api/admin/bookings
  * List service bookings with pagination, search, status filter.
+ * Status is normalised to UPPERCASE to match DB values.
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
@@ -41,7 +58,9 @@ export async function GET(request: NextRequest) {
   try {
     const { page, limit, skip, search } = getPagination(request.url)
     const url = new URL(request.url)
-    const status = url.searchParams.get('status') || undefined
+    const rawStatus = url.searchParams.get('status')
+    // Normalise to UPPERCASE so "pending" from the UI matches "PENDING" in DB.
+    const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
     const where: any = {}
     if (status) where.status = status

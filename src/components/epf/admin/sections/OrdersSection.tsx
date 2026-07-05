@@ -23,12 +23,12 @@ export default function OrdersSection({ orders, isLoading, error, filter, setFil
           <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Filter status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="shipped">Shipped</SelectItem>
-            <SelectItem value="delivered">Delivered</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+            <SelectItem value="PROCESSING">Processing</SelectItem>
+            <SelectItem value="SHIPPED">Shipped</SelectItem>
+            <SelectItem value="DELIVERED">Delivered</SelectItem>
+            <SelectItem value="CANCELLED">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -66,7 +66,7 @@ export default function OrdersSection({ orders, isLoading, error, filter, setFil
                         </div>
                       </TableCell>
                       <TableCell className="text-xs font-mono">{o.customerPhone}</TableCell>
-                      <TableCell className="text-xs font-medium">{formatTaka(o.totalAmount)}</TableCell>
+                      <TableCell className="text-xs font-medium">{formatTaka(o.total)}</TableCell>
                       <TableCell>
                         <StatusBadge status={o.paymentStatus} map={paymentStatusMap} />
                       </TableCell>
@@ -75,12 +75,12 @@ export default function OrdersSection({ orders, isLoading, error, filter, setFil
                         <Select value={o.status} onValueChange={(v) => updateMutation.mutate({ id: o.id, status: v })}>
                           <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="PENDING">Pending</SelectItem>
+                            <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                            <SelectItem value="PROCESSING">Processing</SelectItem>
+                            <SelectItem value="SHIPPED">Shipped</SelectItem>
+                            <SelectItem value="DELIVERED">Delivered</SelectItem>
+                            <SelectItem value="CANCELLED">Cancelled</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -92,7 +92,7 @@ export default function OrdersSection({ orders, isLoading, error, filter, setFil
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                               <div><span className="text-gray-500">Address:</span> <span className="font-medium">{o.address}, {o.area}</span></div>
                               <div><span className="text-gray-500">Subtotal:</span> <span className="font-medium">{formatTaka(o.subtotal)}</span></div>
-                              <div><span className="text-gray-500">Delivery:</span> <span className="font-medium">{formatTaka(o.deliveryFee)}</span></div>
+                              <div><span className="text-gray-500">Delivery:</span> <span className="font-medium">{formatTaka(o.deliveryCharge)}</span></div>
                               <div><span className="text-gray-500">Discount:</span> <span className="font-medium">{formatTaka(o.discount)}</span></div>
                               <div><span className="text-gray-500">Payment:</span> <span className="font-medium">{o.paymentMethod}</span></div>
                               <div><span className="text-gray-500">Date:</span> <span className="font-medium">{formatDate(o.createdAt)}</span></div>

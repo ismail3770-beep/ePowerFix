@@ -19,11 +19,11 @@ export default function BookingsSection({ bookings, isLoading, error, filter, se
           <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="Filter status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="confirmed">Confirmed</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+            <SelectItem value="COMPLETED">Completed</SelectItem>
+            <SelectItem value="CANCELLED">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -52,17 +52,17 @@ export default function BookingsSection({ bookings, isLoading, error, filter, se
                     <TableCell className="text-xs font-mono">{b.customerPhone}</TableCell>
                     <TableCell className="text-xs">{b.area || b.address}</TableCell>
                     <TableCell className="text-xs">{b.preferredDate ? formatDate(b.preferredDate) : "—"}</TableCell>
-                    <TableCell className="text-xs font-medium">{formatTaka(b.totalPrice)}</TableCell>
+                    <TableCell className="text-xs font-medium">{formatTaka(b.totalCost)}</TableCell>
                     <TableCell><StatusBadge status={b.status} map={bookingStatusMap} /></TableCell>
                     <TableCell>
                       <Select value={b.status} onValueChange={(v) => updateMutation.mutate({ id: b.id, status: v })}>
                         <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="PENDING">Pending</SelectItem>
+                          <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                          <SelectItem value="COMPLETED">Completed</SelectItem>
+                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>

@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url)
     const { page, limit, skip, search } = getPagination(url)
-    const status = url.searchParams.get('status')
+    const rawStatus = url.searchParams.get('status')
+    const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
     const where: any = {}
     if (status) where.status = status
