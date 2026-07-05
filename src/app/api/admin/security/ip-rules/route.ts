@@ -1,27 +1,24 @@
-import { NextRequest } from 'next/server'
-import { jsonResponse, requireAdmin, parseBody, errorResponse } from '@/lib/auth'
+import { jsonResponse, errorResponse } from '@/lib/auth'
 import { ipRules } from '@/lib/security-store'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
-/**
- * GET /api/admin/security/ip-rules
- */
-export async function GET(_request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
+const createIpRuleSchema = z.object({
+  type: z.string().optional(),
+  ip: z.string().min(1),
+  reason: z.string().optional(),
+}).passthrough()
+
+// ─── GET /api/admin/security/ip-rules ─────────────────────────────────────────
+
+export const GET = adminGetRoute(async (_request) => {
   return jsonResponse({ data: ipRules })
-}
+})
 
-/**
- * POST /api/admin/security/ip-rules
- * Body: { type, ip, reason }
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── POST /api/admin/security/ip-rules ────────────────────────────────────────
 
-  const body = await parseBody<any>(request)
-  if (!body) return errorResponse('Invalid request body', 400)
+export const POST = adminRoute(createIpRuleSchema, async (request, body, user) => {
   if (!body.ip) return errorResponse('ip is required', 400)
 
   const rule = {
@@ -34,4 +31,4 @@ export async function POST(request: NextRequest) {
   ipRules.push(rule)
 
   return jsonResponse({ data: rule, message: 'IP rule added' }, 201)
-}
+})

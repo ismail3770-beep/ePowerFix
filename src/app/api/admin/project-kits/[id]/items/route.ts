@@ -1,10 +1,7 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
-import { validateBody, z, withErrorHandlingWrapper } from '@/lib/api-handler'
-
-// Re-export the error handling wrapper for manual use
-import { withErrorHandling } from '@/lib/api-handler'
+import { validateBody, z, withErrorHandling } from '@/lib/api-handler'
 
 const addItemSchema = z.object({
   productId: z.string().min(1),

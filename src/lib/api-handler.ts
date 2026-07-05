@@ -74,7 +74,7 @@ type NoBodyPublicHandler = (
  * Wraps an async handler in a try/catch that NEVER leaks stack traces to
  * the client. Logs the full error server-side, returns a generic 500.
  */
-function withErrorHandling<T extends (...args: any[]) => Promise<Response | NextResponse>>(
+export function withErrorHandling<T extends (...args: any[]) => Promise<Response | NextResponse>>(
   handler: T,
 ): T {
   return (async (...args: Parameters<T>) => {

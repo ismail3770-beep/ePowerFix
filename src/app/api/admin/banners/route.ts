@@ -4,64 +4,53 @@ import {
   requireAdmin,
   jsonResponse,
   errorResponse,
-  parseBody,
 } from '@/lib/admin-api'
+import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
 
-/**
- * GET /api/admin/banners
- * List all banners ordered by position ascending. No pagination.
- */
-export async function GET(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── Zod Schema ───────────────────────────────────────────────────────────────
 
-  try {
-    const banners = await db.banner.findMany({
-      orderBy: { position: 'asc' },
-    })
-    return jsonResponse({ data: banners })
-  } catch (err: any) {
-    console.error('admin/banners GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+const createBannerSchema = z.object({
+  title: z.string().min(1),
+  image: z.string().min(1),
+  link: z.string().optional(),
+  subtitle: z.string().optional(),
+  type: z.string().optional(),
+  position: z.number().int().optional(),
+  isActive: z.boolean().optional(),
+}).passthrough()
 
-/**
- * POST /api/admin/banners
- * Create a banner. Body: { title, image, link?, position, isActive, startDate?, endDate?, subtitle?, type? }
- */
-export async function POST(request: NextRequest) {
-  const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+// ─── GET /api/admin/banners ───────────────────────────────────────────────────
 
-  try {
-    const body = await parseBody<any>(request)
-    if (!body) return errorResponse('Invalid request body', 400)
+export const GET = adminGetRoute(async (request) => {
+  const banners = await db.banner.findMany({
+    orderBy: { position: 'asc' },
+  })
+  return jsonResponse({ data: banners })
+})
 
-    const title = (body.title || '').toString().trim()
-    if (!title) return errorResponse('title is required', 400)
+// ─── POST /api/admin/banners ──────────────────────────────────────────────────
 
-    const image = (body.image || '').toString().trim()
-    if (!image) return errorResponse('image is required', 400)
+export const POST = adminRoute(createBannerSchema, async (request, body, user) => {
+  const title = (body.title || '').toString().trim()
+  if (!title) return errorResponse('title is required', 400)
 
-    const banner = await db.banner.create({
-      data: {
-        title,
-        subtitle: body.subtitle || null,
-        image,
-        link: body.link || null,
-        type: body.type || 'hero',
-        position:
-          body.position !== undefined && body.position !== null
-            ? Number(body.position)
-            : 0,
-        isActive: body.isActive !== undefined ? !!body.isActive : true,
-      },
-    })
+  const image = (body.image || '').toString().trim()
+  if (!image) return errorResponse('image is required', 400)
 
-    return jsonResponse({ data: banner }, 201)
-  } catch (err: any) {
-    console.error('admin/banners POST error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
-  }
-}
+  const banner = await db.banner.create({
+    data: {
+      title,
+      subtitle: body.subtitle || null,
+      image,
+      link: body.link || null,
+      type: body.type || 'hero',
+      position:
+        body.position !== undefined && body.position !== null
+          ? Number(body.position)
+          : 0,
+      isActive: body.isActive !== undefined ? !!body.isActive : true,
+    },
+  })
+
+  return jsonResponse({ data: banner }, 201)
+})
