@@ -138,7 +138,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: product.price,
       comparePrice: product.comparePrice ?? 0,
-      sku: product.sku,
+      sku: product.sku ?? "",
       stock: product.stock,
       categoryId: product.category?.id ?? "__none__",
       brandId: product.brand?.id ?? "__none__",
