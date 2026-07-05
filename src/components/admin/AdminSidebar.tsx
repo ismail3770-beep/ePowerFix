@@ -26,8 +26,7 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
       {
         key: "products", label: "Product Management", icon: "box",
         children: [
-          { key: "products-list", label: "All Products" },
-          { key: "products-add", label: "Add Product" },
+          { key: "products", label: "All Products" },
           { key: "categories", label: "Categories" },
           { key: "brands", label: "Brands" },
         ],
@@ -35,28 +34,17 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
       {
         key: "services", label: "Services", icon: "wrench",
         children: [
-          { key: "services-list", label: "All Services" },
-          { key: "services-add", label: "Add Service" },
+          { key: "services", label: "All Services" },
           { key: "service-categories", label: "Service Categories" },
         ],
       },
       { key: "project-kits", label: "Project Kits", icon: "package" },
-      { key: "categories-shortcut", label: "Categories", icon: "layers" },
-      { key: "brands-shortcut", label: "Brands", icon: "tag" },
     ],
   },
   {
     title: "ORDERS & SALES",
     items: [
-      {
-        key: "orders", label: "All Orders", icon: "shopping-cart",
-        children: [
-          { key: "orders-all", label: "All Orders" },
-          { key: "orders-pending", label: "Pending Orders" },
-          { key: "orders-processing", label: "Processing" },
-          { key: "orders-completed", label: "Completed" },
-        ],
-      },
+      { key: "orders", label: "Orders", icon: "shopping-cart" },
       { key: "bookings", label: "Bookings", icon: "calendar" },
       { key: "returns", label: "Returns", icon: "refresh-ccw" },
     ],
@@ -98,6 +86,7 @@ const menuSections: { title: string; items: MenuItem[] }[] = [
       { key: "general-settings", label: "General Settings", icon: "settings" },
       { key: "payment-gateways", label: "Payment Gateways", icon: "credit-card" },
       { key: "shipping", label: "Shipping", icon: "truck" },
+      { key: "taxes", label: "Taxes", icon: "file-text" },
       { key: "ai-providers", label: "AI Providers", icon: "bot" },
       { key: "media-library", label: "Media Library", icon: "folder" },
       { key: "security", label: "Security", icon: "shield" },
