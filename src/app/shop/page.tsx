@@ -21,7 +21,6 @@ import {
   List,
   PackageSearch,
   Check,
-  Boxes,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUIStore, useCartStore } from "@/store";
@@ -89,17 +88,6 @@ const PRODUCTS_PER_PAGE = 20;
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest";
 type ViewMode = "grid" | "list";
 
-interface Kit {
-  id: string;
-  title: string;
-  slug: string;
-  price: number | null;
-  salePrice: number | null;
-  coverImage: string | null;
-  images: string[];
-  isSellable: boolean;
-  location?: string | null;
-}
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "featured", label: "Featured" },
@@ -834,83 +822,6 @@ function EmptyState({ onClear }: { onClear: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Project Kit Card                                                   */
-/* ------------------------------------------------------------------ */
-function KitCard({ kit }: { kit: Kit }) {
-  const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
-  const addItem = useCartStore((s) => s.addItem);
-  const buyable = kit.isSellable && kit.price != null;
-  const price = Number(kit.salePrice || kit.price || 0);
-
-  const openDetail = () => {
-    setSelectedProjectId(kit.id);
-    setProjectDetailOpen(true);
-  };
-
-  const addToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem({
-      itemType: "PROJECT",
-      productId: kit.id,
-      productName: kit.title,
-      productImage: kit.coverImage || kit.images?.[0] || "",
-      price,
-      quantity: 1,
-    });
-    toast.success("Kit added to cart", { description: kit.title });
-  };
-
-  return (
-    <button
-      onClick={openDetail}
-      className="group flex flex-col text-left bg-white border border-[#E2E8F0] rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
-    >
-      <div className="relative aspect-square bg-[#F1F5F9] overflow-hidden">
-        {kit.coverImage || kit.images?.[0] ? (
-          <img
-            src={kit.coverImage || kit.images[0]}
-            alt={kit.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Boxes className="w-9 h-9 text-[#CBD5E1]" />
-          </div>
-        )}
-        <span className="absolute top-2 left-2 bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-1">
-          <Boxes className="w-3 h-3" /> KIT
-        </span>
-        {buyable && (
-          <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <button
-              onClick={addToCart}
-              className="w-full bg-[#111827]/90 hover:bg-[#111827] text-white text-[12px] font-medium py-2 rounded-md flex items-center justify-center gap-1.5 backdrop-blur-sm"
-            >
-              <ShoppingCart className="w-3.5 h-3.5" /> Add to Cart
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="p-2.5 flex flex-col gap-1 flex-1">
-        <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-medium">Project Kit</p>
-        <h4 className="text-[12.5px] font-medium text-[#111827] line-clamp-2 leading-snug min-h-[2.2rem] group-hover:text-epf-500 transition-colors">
-          {kit.title}
-        </h4>
-        <div className="mt-auto pt-1">
-          {buyable ? (
-            <span className="text-[14px] font-bold text-[#111827]">৳{price.toLocaleString()}</span>
-          ) : (
-            <span className="text-[12px] font-medium text-epf-500">View details</span>
-          )}
-        </div>
-      </div>
-    </button>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
 export default function ShopPage() {
@@ -922,9 +833,6 @@ export default function ShopPage() {
   const [page, setPage] = useState(1);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [tab, setTab] = useState<"products" | "kits">(
-    searchParams?.get("tab") === "kits" ? "kits" : "products"
-  );
 
   /* Filter state (client-side) */
   const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
@@ -954,16 +862,6 @@ export default function ShopPage() {
       return apiFetch(url);
     },
   });
-
-  /* ---- Fetch project kits (sellable projects) ---- */
-  const { data: kitsData, isLoading: kitsLoading } = useQuery<{ data: Kit[] }>({
-    queryKey: ["shop-project-kits"],
-    queryFn: () => apiFetch("/api/projects"),
-    enabled: tab === "kits",
-  });
-  const allKits = kitsData?.data ?? [];
-  const sellableKits = allKits.filter((k) => k.isSellable && k.price != null);
-  const kits = sellableKits.length > 0 ? sellableKits : allKits;
 
   /* ---- Fetch categories ---- */
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
@@ -1082,36 +980,7 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* Tabs: Products | Project Kits */}
-        <div className="bg-white border-b border-[#E2E8F0]">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
-            <div className="flex items-center gap-1">
-              {([
-                { key: "products", label: "Products", icon: Package },
-                { key: "kits", label: "Project Kits", icon: Boxes },
-              ] as const).map((t) => {
-                const Icon = t.icon;
-                const active = tab === t.key;
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => setTab(t.key)}
-                    className={`relative flex items-center gap-2 px-4 py-3 text-[14px] font-semibold transition-colors ${
-                      active ? "text-epf-500" : "text-[#6B7280] hover:text-[#111827]"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {t.label}
-                    {active && <span className="absolute inset-x-2 -bottom-px h-0.5 bg-epf-500 rounded-full" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Top Toolbar (products only) */}
-        {tab === "products" && (
+        {/* Top Toolbar */}
         <div className="bg-white border-b border-[#E2E8F0]">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <div className="flex items-center justify-between h-12 gap-4">
@@ -1194,10 +1063,9 @@ export default function ShopPage() {
             </div>
           </div>
         </div>
-        )}
 
         {/* Active Filter Tags */}
-        {tab === "products" && (selectedCategoryId || appliedSearch || selectedPriceRange !== null || selectedRating !== null) && (
+        {(selectedCategoryId || appliedSearch || selectedPriceRange !== null || selectedRating !== null) && (
           <div className="bg-white border-b border-[#E2E8F0]">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-2.5">
               <div className="flex items-center gap-2 flex-wrap">
@@ -1260,8 +1128,7 @@ export default function ShopPage() {
         {/* Main Content: Sidebar + Grid */}
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6">
           <div className="flex gap-6">
-            {/* ---- Desktop Sidebar (products only) ---- */}
-            {tab === "products" && (
+            {/* ---- Desktop Sidebar ---- */}
             <aside className="hidden lg:block w-[280px] shrink-0">
               <div className="sticky top-[80px]">
                 {categoriesLoading ? (
@@ -1281,27 +1148,10 @@ export default function ShopPage() {
                 )}
               </div>
             </aside>
-            )}
 
             {/* ---- Content Area ---- */}
             <div className="flex-1 min-w-0">
-              {tab === "kits" ? (
-                kitsLoading ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {Array.from({ length: 10 }).map((_, i) => <ProductCardSkeleton key={i} />)}
-                  </div>
-                ) : kits.length === 0 ? (
-                  <div className="bg-white border border-[#E2E8F0] rounded-lg flex flex-col items-center justify-center py-20 text-center px-4">
-                    <Boxes className="w-12 h-12 text-[#CBD5E1] mb-3" />
-                    <p className="text-[15px] font-medium text-[#6B7280]">No project kits available yet</p>
-                    <p className="text-[13px] text-[#94A3B8] mt-1">Check back soon for build-ready component kits.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {kits.map((kit) => <KitCard key={kit.id} kit={kit} />)}
-                  </div>
-                )
-              ) : isError ? (
+              {isError ? (
                 <div className="flex flex-col items-center justify-center py-20 px-4">
                   <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                     <X className="h-8 w-8 text-red-400" />
