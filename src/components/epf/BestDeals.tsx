@@ -1,132 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
-import { EPFCart, EPFCircuitBreaker } from "@/components/epf/icons/EPFIcons";
 import { apiFetch } from "@/lib/api";
-import { useCartStore } from "@/store";
-import { toast } from "sonner";
+import { PremiumCard } from "@/components/epf/PremiumCard";
 
 interface Product {
   id: string;
   name: string;
   price: number;
   comparePrice: number | null;
-  sold: number;
-  stock: number;
   images: string[];
 }
 
 const fallbackDeals: Product[] = [];
-
-function DealCard({ product }: { product: Product }) {
-  const addItem = useCartStore((s) => s.addItem);
-  const [added, setAdded] = useState(false);
-
-  const discount = product.comparePrice
-    ? Math.round((1 - product.price / product.comparePrice) * 100)
-    : 0;
-
-  const fmtPrice = (n: number) =>
-    "৳" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem({
-      productId: product.id,
-      productName: product.name,
-      productImage: product.images?.[0] ?? "",
-      price: product.price,
-      quantity: 1,
-    });
-    setAdded(true);
-    toast.success(`${product.name} added to cart!`);
-    setTimeout(() => setAdded(false), 1500);
-  };
-
-  return (
-    <a
-      href={`/product/${product.id}`}
-      className="block border border-dark-200/80 rounded-lg bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden"
-    >
-      {/* ── Image ── */}
-      <div className="relative aspect-square bg-dark-100/50 overflow-hidden">
-        {product.images?.[0] ? (
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-dark-50">
-            <EPFCircuitBreaker size={40} className="text-dark-300" />
-          </div>
-        )}
-
-        {/* Discount badge — red, top-left */}
-        {discount > 0 && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
-            -{discount}%
-          </span>
-        )}
-
-        {/* Hover cart — slides up, bg-dark-900/90 */}
-        <div className="absolute inset-x-0 bottom-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <button
-            onClick={handleAddToCart}
-            className={`w-full text-white text-[13px] font-medium py-2.5 rounded-md flex items-center justify-center gap-2 transition-colors backdrop-blur-sm ${
-              added ? "bg-green-600" : "bg-dark-900/90 hover:bg-dark-900"
-            }`}
-          >
-            {added ? (
-              <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            ) : (
-              <EPFCart size={14} />
-            )}
-            {added ? "Added!" : "Add to Cart"}
-          </button>
-        </div>
-      </div>
-
-      {/* ── Info — pointer-events-none so the <a> link works ── */}
-      <div className="p-3 sm:p-3.5 flex flex-col gap-1.5 pointer-events-none">
-        <h4 className="text-[13px] sm:text-[14px] font-medium text-dark-900 line-clamp-1 leading-snug">
-          {product.name}
-        </h4>
-
-        <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[15px] sm:text-[16px] font-bold text-dark-900">
-            {fmtPrice(product.price)}
-          </span>
-          {product.comparePrice && (
-            <span className="text-[12px] text-dark-400 line-through">
-              {fmtPrice(product.comparePrice)}
-            </span>
-          )}
-        </div>
-
-        {/* Mobile cart — always visible, bg-epf-500, pointer-events-auto */}
-        <button
-          onClick={handleAddToCart}
-          className="sm:hidden mt-1.5 h-8 bg-epf-500 hover:bg-epf-600 text-white text-[12px] font-semibold w-full flex items-center justify-center gap-1.5 rounded-md transition-colors pointer-events-auto"
-        >
-          {added ? (
-            <svg className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <EPFCart size={12} />
-          )}
-          {added ? "Added!" : "Add to Cart"}
-        </button>
-      </div>
-    </a>
-  );
-}
 
 export default function BestDeals() {
   const [deals, setDeals] = useState<Product[]>(fallbackDeals);
@@ -178,7 +63,18 @@ export default function BestDeals() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {deals.slice(0, 10).map((product) => (
-              <DealCard key={product.id} product={product} />
+              <PremiumCard
+                key={product.id}
+                data={{
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  comparePrice: product.comparePrice,
+                  images: product.images,
+                  isBestDeal: true,
+                }}
+                onCardClick={(id) => { window.location.href = `/product/${id}`; }}
+              />
             ))}
           </div>
         )}
