@@ -1,31 +1,53 @@
-'use client'
+import type { Metadata } from "next";
+import AnnouncementBar from "@/components/epf/AnnouncementBar";
+import Header from "@/components/epf/Header";
+import HeroBanner from "@/components/epf/HeroBanner";
+import BestDeals from "@/components/epf/BestDeals";
+import ServicesSection from "@/components/epf/ServicesSection";
+import ShopSection from "@/components/epf/ShopSection";
+import ProjectsSection from "@/components/epf/ProjectsSection";
+import TrustBar from "@/components/epf/TrustBar";
+import NewsletterBanner from "@/components/epf/NewsletterBanner";
+import Footer from "@/components/epf/Footer";
+import HomeClient from "@/components/epf/HomeClient";
+
+export const metadata: Metadata = {
+  title: "ePowerFix — Trusted Electrical Solutions in Bangladesh",
+  description:
+    "Professional electrical wiring, solar installation, industrial automation, and safety equipment. Shop quality electrical products with expert service across Dhaka, Bangladesh.",
+  keywords: [
+    "electrical services Bangladesh",
+    "solar panel installation Dhaka",
+    "home wiring",
+    "industrial automation",
+    "electrical products online",
+    "ePowerFix",
+  ],
+  openGraph: {
+    title: "ePowerFix — Trusted Electrical Solutions in Bangladesh",
+    description:
+      "Professional electrical wiring, solar installation, industrial automation, and safety equipment.",
+    type: "website",
+    locale: "en_BD",
+  },
+};
 
 export default function Home() {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      gap: '2rem',
-      padding: '1rem'
-    }}>
-      <div style={{
-        position: 'relative',
-        width: '6rem',
-        height: '6rem'
-      }}>
-        <img
-          src="/logo.svg"
-          alt="Z.ai Logo"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain'
-          }}
-        />
-      </div>
+    <div className="min-h-screen flex flex-col">
+      <AnnouncementBar />
+      <Header />
+      <main className="flex-1">
+        <HeroBanner />
+        <BestDeals />
+        <ServicesSection />
+        <ShopSection />
+        <ProjectsSection />
+        <TrustBar />
+        <NewsletterBanner />
+      </main>
+      <Footer />
+      <HomeClient />
     </div>
-  )
+  );
 }
