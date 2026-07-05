@@ -29,14 +29,13 @@ interface ServiceItem {
   slug: string;
   basePrice: number;
   priceUnit: string;
-  image: string;
+  shortDesc?: string | null;
   images: string[];
   features: string;
   isFeatured: boolean;
   isActive: boolean;
   rating: number;
   reviewCount: number;
-  duration: string;
   category: { id: string; name: string; nameBn: string; slug: string } | null;
 }
 
@@ -83,8 +82,8 @@ function ServiceCard({ service, isSidebar, onNavigate }: {
     return (
       <div onClick={handleClick} className="flex items-start gap-3 p-3 rounded-lg cursor-pointer hover:bg-white transition-all group">
         <div className="relative shrink-0 w-16 h-14 rounded-md overflow-hidden bg-[#f0f0f0] border border-[#e0e0e0]">
-          {!imgError && service.image ? (
-            <Image src={service.image} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
+          {!imgError && service.images?.[0] ? (
+            <Image src={service.images[0]} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
           ) : (
             <div className="w-full h-full flex items-center justify-center"><CatIcon className="w-5 h-5 text-[#ccc]" /></div>
           )}
@@ -101,8 +100,8 @@ function ServiceCard({ service, isSidebar, onNavigate }: {
   return (
     <div onClick={handleClick} className="flex gap-4 p-4 bg-white border border-[#e0e0e0] rounded-lg cursor-pointer transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:scale-[1.02] group">
       <div className="relative shrink-0 w-[180px] h-[120px] rounded-lg overflow-hidden bg-[#f5f5f5] border border-[#e0e0e0] max-sm:w-[100px] max-sm:h-[80px]">
-        {!imgError && service.image ? (
-          <Image src={service.image} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
+        {!imgError && service.images?.[0] ? (
+          <Image src={service.images?.[0]} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized />
         ) : (
           <div className="w-full h-full flex items-center justify-center"><CatIcon className="w-10 h-10 text-[#ccc]" /></div>
         )}
@@ -204,7 +203,7 @@ function FeaturedCard({ service, onNavigate }: { service: ServiceItem; onNavigat
   return (
     <div onClick={() => onNavigate(service.slug || service.id)} className="relative bg-white border border-[#e0e0e0] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:scale-[1.02] group">
       <div className="relative w-full h-[200px] bg-[#f5f5f5] overflow-hidden">
-        {!imgError && service.image ? <Image src={service.image} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized /> : <div className="w-full h-full flex items-center justify-center"><CatIcon className="w-12 h-12 text-[#ccc]" /></div>}
+        {!imgError && service.images?.[0] ? <Image src={service.images?.[0]} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized /> : <div className="w-full h-full flex items-center justify-center"><CatIcon className="w-12 h-12 text-[#ccc]" /></div>}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <span className="absolute top-3 left-3 bg-[#0EA5E9] text-white text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm"><Sparkles className="w-3 h-3" />Popular</span>
         <WishlistButton productId={service.id} initialFav={false} />
