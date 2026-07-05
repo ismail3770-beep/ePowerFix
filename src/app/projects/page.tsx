@@ -190,7 +190,7 @@ export default function ProjectsPage() {
         </nav>
 
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-          <div><h1 className="text-[24px] font-bold text-[#111827]">Engineering Projects</h1><p className="text-[14px] text-[#666] mt-1.5">Explore our portfolio of electrical, solar, automation &amp; IoT projects</p></div>
+          <div><h1 className="text-[24px] font-bold text-[#111827]">Projects</h1><p className="text-[14px] text-[#666] mt-1.5">Explore our portfolio of electrical, solar, automation &amp; IoT projects</p></div>
           <div className="relative w-full sm:w-[280px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999]" />
             <input type="text" placeholder="Search projects..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}

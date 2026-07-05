@@ -54,7 +54,7 @@ export default function ProjectsSection() {
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-dark-900">
-              Engineering Projects
+              Projects
             </h2>
             <p className="text-sm text-dark-500 mt-1">
               ইঞ্জিনিয়ারিং প্রজেক্ট কিট
