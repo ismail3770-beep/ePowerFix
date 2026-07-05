@@ -34,13 +34,6 @@ const timeSlots = [
   "05:00 PM", "06:00 PM",
 ];
 
-const fallbackService: Service = {
-  id: "s1", name: "Professional Electrical Wiring", description: "Expert home & industrial wiring.",
-  basePrice: 3500, priceUnit: "job", priceLabel: "Starting from", duration: "1-3 days",
-  image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=400&fit=crop",
-  category: { id: "c1", name: "Wiring", icon: "zap" },
-};
-
 export default function BookServicePage() {
   const params = useParams();
   const serviceId = params.id as string;
@@ -48,6 +41,7 @@ export default function BookServicePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [form, setForm] = useState({
     customerName: "",
     customerPhone: "",
@@ -66,9 +60,9 @@ export default function BookServicePage() {
         const services = res?.services || res?.data?.services || [];
         const found = services.find((s: Service) => s.id === serviceId);
         if (found) setService(found);
-        else setService(fallbackService);
+        else setNotFound(true);
       } catch {
-        setService(fallbackService);
+        setNotFound(true);
       } finally {
         setLoading(false);
       }
@@ -151,6 +145,22 @@ export default function BookServicePage() {
                   Go to Home
                 </a>
               </div>
+            </div>
+          ) : notFound ? (
+            /* ─── Not Found State ─── */
+            <div className="max-w-lg mx-auto text-center py-16">
+              <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <h2 className="text-[24px] font-bold text-[#111827] mb-2">Service Not Found</h2>
+              <p className="text-[15px] text-[#6B7280] mb-8">
+                The service you&apos;re trying to book is no longer available.
+              </p>
+              <a href="/services" className="h-11 px-6 bg-dark-900 hover:bg-dark-700 text-white text-[15px] font-semibold rounded-lg inline-flex items-center justify-center gap-2 transition-colors">
+                <ArrowLeft className="h-4 w-4" /> Back to Services
+              </a>
             </div>
           ) : (
             <div className="flex flex-col lg:flex-row gap-6">

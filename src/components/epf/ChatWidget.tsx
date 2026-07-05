@@ -9,22 +9,12 @@ interface Message {
   message: string;
 }
 
-const presetResponses = [
-  "Thank you for reaching out! How can I help with your electrical needs?",
-  "We offer professional home wiring, industrial installation, generator servicing, and solar panel installation.",
-  "Browse our shop for quality cables, circuit breakers, safety equipment, and digital guides.",
-  "Our online tools include cable size calculator, voltage drop calculator, LED savings, and more!",
-  "For project inquiries, check out our student projects section with Arduino and IoT kits.",
-  "Contact us at info@epowerfix.com or call +880 1XXX-XXXXXX to book a service.",
-];
-
 export default function ChatWidget() {
   const { chatOpen, setChatOpen } = useUIStore();
   const [messages, setMessages] = useState<Message[]>([
     { role: "bot", message: "Welcome to ePowerFix! How can I help you today?" },
   ]);
   const [input, setInput] = useState("");
-  const [responseIdx, setResponseIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -39,7 +29,6 @@ export default function ChatWidget() {
     setInput("");
     setLoading(true);
 
-    // Try API first, fallback to preset
     try {
       const res: any = await apiFetch("/api/ai/agent", {
         method: "POST",
@@ -47,12 +36,7 @@ export default function ChatWidget() {
       });
       setMessages((prev) => [...prev, { role: "bot", message: res?.data?.response || res?.message || "I'm here to help!" }]);
     } catch {
-      // Fallback to preset responses
-      const resp = presetResponses[responseIdx % presetResponses.length];
-      setResponseIdx((prev) => prev + 1);
-      setTimeout(() => {
-        setMessages((prev) => [...prev, { role: "bot", message: resp }]);
-      }, 500);
+      setMessages((prev) => [...prev, { role: "bot", message: "Sorry, I couldn't reach the assistant right now. Please try again later or contact us at info@epowerfix.com." }]);
     } finally {
       setLoading(false);
     }

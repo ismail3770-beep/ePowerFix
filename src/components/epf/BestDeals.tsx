@@ -15,18 +15,7 @@ interface Product {
   images: string[];
 }
 
-const fallbackDeals: Product[] = [
-  { id: "bd1", name: "Gold Wristwatch — Premium", price: 6693.75, comparePrice: 7875.0, sold: 12, stock: 8, images: [] },
-  { id: "bd2", name: "Solar Inverter 5kVA", price: 1879.5, comparePrice: 1890.0, sold: 18, stock: 14, images: [] },
-  { id: "bd3", name: "USB-C Fast Charger 65W", price: 12.6, comparePrice: null, sold: 34, stock: 22, images: [] },
-  { id: "bd4", name: "Industrial Safety Cap", price: 15.75, comparePrice: null, sold: 89, stock: 45, images: [] },
-  { id: "bd5", name: "3-core 4mm² PVC Cable", price: 1850.0, comparePrice: 2200.0, sold: 56, stock: 30, images: [] },
-  { id: "bd6", name: "MCB 32A Double Pole", price: 450.0, comparePrice: 550.0, sold: 73, stock: 18, images: [] },
-  { id: "bd7", name: "LED Panel Light 36W", price: 890.0, comparePrice: 1200.0, sold: 41, stock: 25, images: [] },
-  { id: "bd8", name: "Digital Multimeter Fluke", price: 3200.0, comparePrice: 3800.0, sold: 15, stock: 10, images: [] },
-  { id: "bd9", name: "Safety Boots — Industrial", price: 1250.0, comparePrice: null, sold: 67, stock: 20, images: [] },
-  { id: "bd10", name: "Solar Panel 400W Mono", price: 9500.0, comparePrice: 11000.0, sold: 8, stock: 12, images: [] },
-];
+const fallbackDeals: Product[] = [];
 
 function DealCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
@@ -182,11 +171,17 @@ export default function BestDeals() {
         </div>
 
         {/* ── Product Grid ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-          {deals.slice(0, 10).map((product) => (
-            <DealCard key={product.id} product={product} />
-          ))}
-        </div>
+        {deals.length === 0 ? (
+          <div className="bg-white border border-dark-200/80 rounded-lg py-16 text-center">
+            <p className="text-sm text-dark-500">No deals available yet. Please check back soon.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+            {deals.slice(0, 10).map((product) => (
+              <DealCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
 
         {/* ── Mobile "View All" ── */}
         <div className="sm:hidden mt-6 text-center">

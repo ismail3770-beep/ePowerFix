@@ -20,57 +20,6 @@ interface Service {
   features: string;
 }
 
-const fallbackServices: Service[] = [
-  {
-    id: "s1", name: "Professional Electrical Wiring", nameBn: "",
-    description: "Expert home & industrial wiring with certified materials and guaranteed safety standards.",
-    descriptionBn: "", basePrice: 3500, priceUnit: "job", priceLabel: "Starting from",
-    duration: "1-3 days", popular: true, icon: "zap",
-    category: { id: "c1", name: "Wiring", icon: "zap" }, features: "",
-    image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=400&fit=crop",
-  },
-  {
-    id: "s2", name: "Solar Panel Installation", nameBn: "",
-    description: "Complete solar system setup — panels, inverter, battery. Save up to 60% on electricity bills.",
-    descriptionBn: "", basePrice: 15000, priceUnit: "system", priceLabel: "Starting from",
-    duration: "2-5 days", popular: false, icon: "sun",
-    category: { id: "c2", name: "Solar", icon: "sun" }, features: "",
-    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400&h=400&fit=crop",
-  },
-  {
-    id: "s3", name: "Industrial Safety Equipment", nameBn: "",
-    description: "Certified PPE, helmets, boots, gloves & safety gear for your workforce.",
-    descriptionBn: "", basePrice: 500, priceUnit: "piece", priceLabel: "Starting from",
-    duration: "Same day", popular: false, icon: "shield",
-    category: { id: "c3", name: "Safety", icon: "shield" }, features: "",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=400&fit=crop",
-  },
-  {
-    id: "s4", name: "Generator & UPS Solutions", nameBn: "",
-    description: "Reliable backup power systems for homes, offices & factories with installation support.",
-    descriptionBn: "", basePrice: 8000, priceUnit: "unit", priceLabel: "Starting from",
-    duration: "1-2 days", popular: false, icon: "plug",
-    category: { id: "c4", name: "Power Backup", icon: "plug" }, features: "",
-    image: "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?w=400&h=400&fit=crop",
-  },
-  {
-    id: "s5", name: "Smart Home Automation", nameBn: "",
-    description: "Control lights, fans, AC & appliances with smart switches and IoT devices.",
-    descriptionBn: "", basePrice: 5000, priceUnit: "setup", priceLabel: "Starting from",
-    duration: "1-3 days", popular: true, icon: "lightbulb",
-    category: { id: "c5", name: "Automation", icon: "lightbulb" }, features: "",
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=400&h=400&fit=crop",
-  },
-  {
-    id: "s6", name: "AC & Appliance Repair", nameBn: "",
-    description: "Quick diagnosis and repair for air conditioners, refrigerators, and home appliances.",
-    descriptionBn: "", basePrice: 800, priceUnit: "visit", priceLabel: "Starting from",
-    duration: "Same day", popular: false, icon: "wrench",
-    category: { id: "c6", name: "Repair", icon: "wrench" }, features: "",
-    image: "https://images.unsplash.com/photo-1631545806609-d2fc67bcc13f?w=400&h=400&fit=crop",
-  },
-];
-
 export default function ServicesSection() {
   const { data: servicesData, isLoading } = useQuery<{
     data: { services: Service[] };
@@ -79,8 +28,7 @@ export default function ServicesSection() {
     queryFn: () => apiFetch("/api/services"),
   });
 
-  const apiServices = servicesData?.data?.services ?? [];
-  const services = apiServices.length > 0 ? apiServices : fallbackServices;
+  const services = servicesData?.data?.services ?? [];
   const displayServices = services.slice(0, 6);
 
   return (
@@ -120,6 +68,10 @@ export default function ServicesSection() {
               </div>
             ))}
           </div>
+        ) : displayServices.length === 0 ? (
+          <div className="bg-white border border-dark-200/80 rounded-lg py-16 text-center">
+            <p className="text-sm text-dark-500">No services available yet. Please check back soon.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {displayServices.map((svc) => (
@@ -128,12 +80,18 @@ export default function ServicesSection() {
                 className="bg-white border border-dark-200/80 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group"
               >
                 <a href="/services" className="block h-[160px] sm:h-[180px] overflow-hidden bg-dark-100">
-                  <img
-                    src={svc.image || "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=400&fit=crop"}
-                    alt={svc.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
+                  {svc.image ? (
+                    <img
+                      src={svc.image}
+                      alt={svc.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-dark-300 text-sm">
+                      No image
+                    </div>
+                  )}
                 </a>
                 <div className="p-4 flex flex-col gap-2">
                   <div className="flex items-start gap-2">
