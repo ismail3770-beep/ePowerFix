@@ -251,10 +251,13 @@ export default function AdminProjectKitsPage() {
       ) : (
         /* Kit items table */
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base flex items-center gap-2">
               <Package className="h-4 w-4 text-[#0EA5E9]" /> Kit Items
             </CardTitle>
+            <Button size="sm" onClick={() => { setAddForm({ productId: "__none__", quantity: 1, isRequired: true, notes: "" }); setAddDialog(true); }}>
+              <Plus className="h-4 w-4 mr-1.5" /> Add Item
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             {itemsLoading ? (
