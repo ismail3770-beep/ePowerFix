@@ -132,6 +132,7 @@ model Product {
   images      String   @default("[]") // JSON-stringified array of URLs
   specs       String?
   isFeatured  Boolean  @default(false) @map("is_featured")
+  isBestDeal  Boolean  @default(false) @map("is_best_deal")
   hasVariant  Boolean  @default(false) @map("has_variant")
   // Digital delivery: isDigital products skip stock/shipping and are delivered
   // via secure download. digitalFile is a PRIVATE path (never publicly served).

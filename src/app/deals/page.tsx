@@ -358,7 +358,7 @@ export default function DealsPage() {
     data: { data: Product[]; pagination: any };
   }>({
     queryKey: ["all-deal-products"],
-    queryFn: () => apiFetch("/api/products?limit=50"),
+    queryFn: () => apiFetch("/api/products?limit=50&bestDeals=true"),
   });
 
   const allDeals = (() => {

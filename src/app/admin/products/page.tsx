@@ -42,6 +42,7 @@ interface Product {
   stock: number;
   images: string[];
   isFeatured: boolean;
+  isBestDeal: boolean;
   isActive: boolean;
   category: ProductCategory | null;
   brand: { id: string; name: string } | null;
@@ -60,7 +61,7 @@ interface Brand {
 
 const defaultProduct = {
   name: "", description: "", price: 0, comparePrice: 0, sku: "",
-  stock: 0, categoryId: "__none__", brandId: "__none__", imageUrls: [] as string[], isFeatured: false, isActive: true,
+  stock: 0, categoryId: "__none__", brandId: "__none__", imageUrls: [] as string[], isFeatured: false, isBestDeal: false, isActive: true,
 };
 
 type ProductForm = typeof defaultProduct;
@@ -143,6 +144,7 @@ export default function AdminProductsPage() {
       brandId: product.brand?.id ?? "__none__",
       imageUrls: product.images ?? [],
       isFeatured: product.isFeatured,
+      isBestDeal: product.isBestDeal,
       isActive: product.isActive,
     });
     setDialog({ open: true, edit: product });
@@ -402,10 +404,14 @@ export default function AdminProductsPage() {
                 label="Product Images"
               />
             </div>
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-8 flex-wrap">
               <div className="flex items-center gap-2">
                 <Switch id="isFeatured" checked={form.isFeatured} onCheckedChange={(v) => setForm((f) => ({ ...f, isFeatured: v }))} />
                 <Label htmlFor="isFeatured">Featured</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch id="isBestDeal" checked={form.isBestDeal} onCheckedChange={(v) => setForm((f) => ({ ...f, isBestDeal: v }))} />
+                <Label htmlFor="isBestDeal">Best Deal</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch id="isActive" checked={form.isActive} onCheckedChange={(v) => setForm((f) => ({ ...f, isActive: v }))} />

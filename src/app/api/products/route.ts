@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     const categoryParam = url.searchParams.get('category') || url.searchParams.get('categoryId') || undefined
     const brandId = url.searchParams.get('brandId') || undefined
     const featured = url.searchParams.get('featured')
+    const bestDeals = url.searchParams.get('bestDeals')
     const sort = url.searchParams.get('sort') || 'featured'
 
     const where: any = { isActive: true }
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
     }
     if (brandId) where.brandId = brandId
     if (featured === 'true') where.isFeatured = true
+    if (bestDeals === 'true') where.isBestDeal = true
     if (search) {
       where.OR = [
         { name: { contains: search } },

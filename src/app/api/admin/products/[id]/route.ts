@@ -87,6 +87,7 @@ export async function PUT(
       tags,
       specs,
       isFeatured,
+      isBestDeal,
       hasVariant,
       isDigital,
       digitalFile,
@@ -133,6 +134,7 @@ export async function PUT(
     if (tags !== undefined) data.tags = stringifyJsonField(tags)
     if (specs !== undefined) data.specs = specs || null
     if (isFeatured !== undefined) data.isFeatured = !!isFeatured
+    if (isBestDeal !== undefined) data.isBestDeal = !!isBestDeal
     if (hasVariant !== undefined) data.hasVariant = !!hasVariant
     if (isDigital !== undefined) data.isDigital = !!isDigital
     if (digitalFile !== undefined) data.digitalFile = digitalFile || null

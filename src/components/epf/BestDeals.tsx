@@ -134,7 +134,7 @@ export default function BestDeals() {
   useEffect(() => {
     (async () => {
       try {
-        const res: any = await apiFetch("/api/products?limit=10");
+        const res: any = await apiFetch("/api/products?limit=10&bestDeals=true");
         const products = res.data?.data;
         if (Array.isArray(products) && products.length >= 4) {
           setDeals(products.slice(0, 10));
