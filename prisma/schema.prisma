@@ -52,6 +52,11 @@ model User {
   notifications   Notification[]
   questions       ProductQuestion[]
 
+  // Performance: index frequently queried fields
+  @@index([role])           // Admin panel filters by role (ADMIN vs CUSTOMER)
+  @@index([isActive])       // Soft-delete filter on every query
+  @@index([createdAt])      // Admin user list sorted by newest
+
   @@map("users")
 }
 
@@ -167,6 +172,13 @@ model Product {
   @@index([brandId])
   @@index([flashSaleId])
   @@index([isActive])
+  // Performance: additional indexes for storefront queries
+  @@index([isFeatured])     // Homepage "Featured Products" section
+  @@index([isBestDeal])     // Homepage "Best Deals" section + /deals page
+  @@index([price])          // Shop page price sort (asc/desc) + price filter
+  @@index([slug])           // Product detail page lookup by slug
+  @@index([createdAt])      // "Newest" sort option in shop
+
   @@map("products")
 }
 
@@ -270,6 +282,11 @@ model Order {
   @@index([addressId])
   @@index([status])
   @@index([createdAt])
+  // Performance: additional indexes for admin + tracking
+  @@index([orderNumber])   // Order tracking by order number
+  @@index([paymentStatus]) // Admin: filter by payment status
+  @@unique([orderNumber])  // Ensure no duplicate order numbers
+
   @@map("orders")
 }
 
@@ -499,6 +516,11 @@ model Service {
   reviews    Review[]
 
   @@index([categoryId])
+  // Performance: storefront service queries
+  @@index([isActive])      // Filter active services on public pages
+  @@index([isFeatured])    // Homepage "Our Services" section
+  @@index([slug])          // Service detail page lookup by slug
+
   @@map("services")
 }
 
@@ -567,6 +589,11 @@ model BlogPost {
   isDeleted  Boolean  @default(false) @map("is_deleted")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Performance: blog page queries
+  @@index([isPublished])   // Public blog page: only published posts
+  @@index([slug])          // Blog detail page lookup by slug
+  @@index([createdAt])     // Sort by newest
 
   @@map("blog_posts")
 }
@@ -669,6 +696,13 @@ model ProjectKit {
   cartItems  CartItem[]
   orderItems OrderItem[]
   items      ProjectKitItem[]
+
+  // Performance: storefront kit queries
+  @@index([isActive])      // Filter active kits on public pages
+  @@index([slug])          // Kit detail page lookup by slug
+  @@index([category])      // Filter by category (Arduino/IoT/PLC)
+  @@index([price])         // Sort by price in shop
+  @@index([createdAt])     // Sort by newest
 
   @@map("project_kits")
 }
