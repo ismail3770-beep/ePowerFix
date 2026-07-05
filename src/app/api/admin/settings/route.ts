@@ -172,6 +172,67 @@ export async function PUT(request: NextRequest) {
       if (body.meta.description !== undefined) data.metaDescription = body.meta.description
     }
 
+    // Payment Gateways — bKash
+    if (body.bkashEnabled !== undefined) data.bkashEnabled = !!body.bkashEnabled
+    if (body.bkashPhoneNumber !== undefined) data.bkashPhoneNumber = body.bkashPhoneNumber || null
+    if (body.bkashApiKey !== undefined) data.bkashApiKey = body.bkashApiKey || null
+    if (body.bkashSecretKey !== undefined) data.bkashSecretKey = body.bkashSecretKey || null
+    if (body.bkashSandbox !== undefined) data.bkashSandbox = !!body.bkashSandbox
+
+    // Payment Gateways — Nagad
+    if (body.nagadEnabled !== undefined) data.nagadEnabled = !!body.nagadEnabled
+    if (body.nagadPhoneNumber !== undefined) data.nagadPhoneNumber = body.nagadPhoneNumber || null
+    if (body.nagadApiKey !== undefined) data.nagadApiKey = body.nagadApiKey || null
+    if (body.nagadSecretKey !== undefined) data.nagadSecretKey = body.nagadSecretKey || null
+    if (body.nagadSandbox !== undefined) data.nagadSandbox = !!body.nagadSandbox
+
+    // Payment Gateways — SSLCommerz
+    if (body.sslcommerzEnabled !== undefined) data.sslcommerzEnabled = !!body.sslcommerzEnabled
+    if (body.sslcommerzStoreId !== undefined) data.sslcommerzStoreId = body.sslcommerzStoreId || null
+    if (body.sslcommerzStorePassword !== undefined) data.sslcommerzStorePassword = body.sslcommerzStorePassword || null
+    if (body.sslcommerzSandbox !== undefined) data.sslcommerzSandbox = !!body.sslcommerzSandbox
+
+    // Payment Gateways — Bank Transfer
+    if (body.bankTransferEnabled !== undefined) data.bankTransferEnabled = !!body.bankTransferEnabled
+    if (body.bankTransferInstructions !== undefined) data.bankTransferInstructions = body.bankTransferInstructions || null
+
+    // Payment Gateways — Cash on Delivery
+    if (body.codEnabled !== undefined) data.codEnabled = !!body.codEnabled
+    if (body.codFee !== undefined) data.codFee = Number(body.codFee) || 0
+
+    // Also accept a `paymentGateways` grouped object for convenience
+    if (body.paymentGateways && typeof body.paymentGateways === 'object') {
+      const pg = body.paymentGateways
+      if (pg.bkash) {
+        if (pg.bkash.enabled !== undefined) data.bkashEnabled = !!pg.bkash.enabled
+        if (pg.bkash.phoneNumber !== undefined) data.bkashPhoneNumber = pg.bkash.phoneNumber
+        if (pg.bkash.apiKey !== undefined) data.bkashApiKey = pg.bkash.apiKey
+        if (pg.bkash.secretKey !== undefined) data.bkashSecretKey = pg.bkash.secretKey
+        if (pg.bkash.sandbox !== undefined) data.bkashSandbox = !!pg.bkash.sandbox
+      }
+      if (pg.nagad) {
+        if (pg.nagad.enabled !== undefined) data.nagadEnabled = !!pg.nagad.enabled
+        if (pg.nagad.phoneNumber !== undefined) data.nagadPhoneNumber = pg.nagad.phoneNumber
+        if (pg.nagad.apiKey !== undefined) data.nagadApiKey = pg.nagad.apiKey
+        if (pg.nagad.secretKey !== undefined) data.nagadSecretKey = pg.nagad.secretKey
+        if (pg.nagad.sandbox !== undefined) data.nagadSandbox = !!pg.nagad.sandbox
+      }
+      if (pg.sslcommerz) {
+        if (pg.sslcommerz.enabled !== undefined) data.sslcommerzEnabled = !!pg.sslcommerz.enabled
+        if (pg.sslcommerz.storeId !== undefined) data.sslcommerzStoreId = pg.sslcommerz.storeId
+        if (pg.sslcommerz.storePassword !== undefined) data.sslcommerzStorePassword = pg.sslcommerz.storePassword
+        if (pg.sslcommerz.sandbox !== undefined) data.sslcommerzSandbox = !!pg.sslcommerz.sandbox
+      }
+      if (pg.bankTransfer) {
+        if (pg.bankTransfer.enabled !== undefined) data.bankTransferEnabled = !!pg.bankTransfer.enabled
+        if (pg.bankTransfer.instructions !== undefined) data.bankTransferInstructions = pg.bankTransfer.instructions
+      }
+      if (pg.cod) {
+        if (pg.cod.enabled !== undefined) data.codEnabled = !!pg.cod.enabled
+        if (pg.cod.fee !== undefined) data.codFee = Number(pg.cod.fee) || 0
+      }
+    }
+
     const settings = await db.siteSettings.upsert({
       where: { id: SETTINGS_ID },
       create: { id: SETTINGS_ID, ...data },
