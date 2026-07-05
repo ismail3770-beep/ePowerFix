@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
   try {
     const { page, limit, skip, search } = getPagination(request.url)
     const url = new URL(request.url)
-    const status = url.searchParams.get('status') || undefined
+    const rawStatus = url.searchParams.get('status')
+    const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
     const where: any = {}
     if (status) where.status = status

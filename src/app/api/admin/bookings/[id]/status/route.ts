@@ -49,7 +49,8 @@ export async function PUT(
 
     const booking = await db.serviceBooking.update({
       where: { id },
-      data: { status: body.status },
+      // Normalise to UPPERCASE to match DB values.
+      data: { status: body.status.toUpperCase() },
       include: BOOKING_INCLUDE,
     })
 

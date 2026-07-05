@@ -11,48 +11,52 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
 // ==================== Status maps ====================
+// All keys are UPPERCASE to match the database string values.
 export const bookingStatusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-  confirmed: { label: "Confirmed", color: "bg-green-100 text-green-800" },
-  in_progress: { label: "In Progress", color: "bg-sky-100 text-sky-800" },
-  completed: { label: "Completed", color: "bg-emerald-100 text-emerald-800" },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800" },
+  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+  CONFIRMED: { label: "Confirmed", color: "bg-green-100 text-green-800" },
+  IN_PROGRESS: { label: "In Progress", color: "bg-sky-100 text-sky-800" },
+  COMPLETED: { label: "Completed", color: "bg-emerald-100 text-emerald-800" },
+  CANCELLED: { label: "Cancelled", color: "bg-red-100 text-red-800" },
 };
 
 export const orderStatusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-  confirmed: { label: "Confirmed", color: "bg-green-100 text-green-800" },
-  processing: { label: "Processing", color: "bg-sky-100 text-sky-800" },
-  shipped: { label: "Shipped", color: "bg-purple-100 text-purple-800" },
-  delivered: { label: "Delivered", color: "bg-emerald-100 text-emerald-800" },
-  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800" },
+  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+  CONFIRMED: { label: "Confirmed", color: "bg-green-100 text-green-800" },
+  PROCESSING: { label: "Processing", color: "bg-sky-100 text-sky-800" },
+  SHIPPED: { label: "Shipped", color: "bg-purple-100 text-purple-800" },
+  DELIVERED: { label: "Delivered", color: "bg-emerald-100 text-emerald-800" },
+  CANCELLED: { label: "Cancelled", color: "bg-red-100 text-red-800" },
 };
 
 export const paymentStatusMap: Record<string, { label: string; color: string }> = {
-  paid: { label: "Paid", color: "bg-green-100 text-green-800" },
-  unpaid: { label: "Unpaid", color: "bg-red-100 text-red-800" },
+  PAID: { label: "Paid", color: "bg-green-100 text-green-800" },
+  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+  UNPAID: { label: "Unpaid", color: "bg-red-100 text-red-800" },
+  REFUNDED: { label: "Refunded", color: "bg-gray-100 text-gray-700" },
+  CONFIRMED: { label: "Confirmed", color: "bg-green-100 text-green-800" },
 };
 
 export const shipmentStatusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "Pending", color: "bg-gray-100 text-gray-700" },
-  picked_up: { label: "Picked Up", color: "bg-sky-100 text-sky-800" },
-  in_transit: { label: "In Transit", color: "bg-indigo-100 text-indigo-800" },
-  out_for_delivery: { label: "Out for Delivery", color: "bg-purple-100 text-purple-800" },
-  delivered: { label: "Delivered", color: "bg-emerald-100 text-emerald-800" },
-  failed: { label: "Failed", color: "bg-red-100 text-red-800" },
+  PENDING: { label: "Pending", color: "bg-gray-100 text-gray-700" },
+  PICKED_UP: { label: "Picked Up", color: "bg-sky-100 text-sky-800" },
+  IN_TRANSIT: { label: "In Transit", color: "bg-indigo-100 text-indigo-800" },
+  OUT_FOR_DELIVERY: { label: "Out for Delivery", color: "bg-purple-100 text-purple-800" },
+  DELIVERED: { label: "Delivered", color: "bg-emerald-100 text-emerald-800" },
+  FAILED: { label: "Failed", color: "bg-red-100 text-red-800" },
 };
 
 export const messageTypeMap: Record<string, { label: string; color: string }> = {
-  general: { label: "General", color: "bg-gray-100 text-gray-700" },
-  b2b: { label: "B2B", color: "bg-sky-100 text-sky-800" },
-  complaint: { label: "Complaint", color: "bg-red-100 text-red-800" },
-  feedback: { label: "Feedback", color: "bg-green-100 text-green-800" },
+  GENERAL: { label: "General", color: "bg-gray-100 text-gray-700" },
+  B2B: { label: "B2B", color: "bg-sky-100 text-sky-800" },
+  COMPLAINT: { label: "Complaint", color: "bg-red-100 text-red-800" },
+  FEEDBACK: { label: "Feedback", color: "bg-green-100 text-green-800" },
 };
 
 export const quoteStatusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-  replied: { label: "Replied", color: "bg-green-100 text-green-800" },
-  closed: { label: "Closed", color: "bg-gray-100 text-gray-700" },
+  PENDING: { label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+  REPLIED: { label: "Replied", color: "bg-green-100 text-green-800" },
+  CLOSED: { label: "Closed", color: "bg-gray-100 text-gray-700" },
 };
 
 export const returnStatusMap: Record<string, { label: string; color: string }> = {
@@ -63,8 +67,8 @@ export const returnStatusMap: Record<string, { label: string; color: string }> =
 };
 
 export const roleColorMap: Record<string, string> = {
-  admin: "bg-cyan-100 text-cyan-800",
-  customer: "bg-gray-100 text-gray-700",
+  ADMIN: "bg-cyan-100 text-cyan-800",
+  CUSTOMER: "bg-gray-100 text-gray-700",
 };
 
 // ==================== Components ====================

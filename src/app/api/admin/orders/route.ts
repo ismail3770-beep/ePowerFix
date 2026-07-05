@@ -19,8 +19,11 @@ export async function GET(request: NextRequest) {
   try {
     const { page, limit, skip, search } = getPagination(request.url)
     const url = new URL(request.url)
-    const status = url.searchParams.get('status') || undefined
-    const paymentStatus = url.searchParams.get('paymentStatus') || undefined
+    const rawStatus = url.searchParams.get('status')
+    const rawPaymentStatus = url.searchParams.get('paymentStatus')
+    // Normalise to UPPERCASE so "pending" from the UI matches "PENDING" in DB.
+    const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
+    const paymentStatus = rawPaymentStatus && rawPaymentStatus !== 'all' ? rawPaymentStatus.toUpperCase() : undefined
 
     const where: any = {}
     if (status) where.status = status
