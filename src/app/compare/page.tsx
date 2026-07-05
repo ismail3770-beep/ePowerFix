@@ -6,10 +6,16 @@ import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { X, ShoppingCart, Star } from 'lucide-react'
+import { X, ShoppingCart, Star, Home, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { useCartStore } from '@/store'
 import { toast } from 'sonner'
+import Header from '@/components/epf/Header'
+import Footer from '@/components/epf/Footer'
+import CartDrawer from '@/components/epf/CartDrawer'
+import CheckoutDialog from '@/components/epf/CheckoutDialog'
+import ChatWidget from '@/components/epf/ChatWidget'
+import BackToTopButton from '@/components/epf/BackToTopButton'
 
 interface Product {
   id: string
@@ -50,17 +56,29 @@ export default function ComparePage() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>
 
   if (error) return (
-    <div className="text-center py-16">
-      <p className="text-red-500 text-lg mb-4">{error}</p>
-      <button onClick={() => window.location.reload()} className="text-blue-500 hover:underline">Try Again</button>
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
+      <CartDrawer />
+      <main className="flex-1 flex items-center justify-center text-center py-16">
+        <div>
+          <p className="text-red-500 text-lg mb-4">{error}</p>
+          <button onClick={() => window.location.reload()} className="text-blue-500 hover:underline">Try Again</button>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 
   if (ids.length < 2) return (
-    <div className="mx-auto max-w-[1400px] py-16 text-center">
-      <h1 className="text-2xl font-bold mb-4">Product Comparison</h1>
-      <p className="text-gray-500">Select at least 2 products to compare. Use the "Add to Compare" button on product pages.</p>
-      <Link href="/"><Button className="mt-4">Browse Products</Button></Link>
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
+      <CartDrawer />
+      <main className="flex-1 mx-auto max-w-[1400px] w-full px-4 sm:px-12 py-16 text-center">
+        <h1 className="text-2xl font-bold mb-4">Product Comparison</h1>
+        <p className="text-gray-500">Select at least 2 products to compare. Use the "Add to Compare" button on product pages.</p>
+        <Link href="/"><Button className="mt-4">Browse Products</Button></Link>
+      </main>
+      <Footer />
     </div>
   )
 
@@ -87,34 +105,47 @@ export default function ComparePage() {
   ]
 
   return (
-    <div className="max-w-[1400px] mx-auto py-8 px-4 sm:px-12">
-      <h1 className="text-3xl font-bold mb-6">Product Comparison</h1>
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="p-4 text-left w-40 bg-gray-50 dark:bg-gray-800" />
-                {products.map((p) => (
-                  <th key={p.id} className="p-4 text-center bg-gray-50 dark:bg-gray-800 min-w-[200px]">
-                    <Button size="sm" variant="ghost" className="float-right" onClick={() => removeProduct(p.id)}><X className="w-4 h-4" /></Button>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr key={i} className="border-t">
-                  <td className="p-4 font-medium text-gray-500 bg-gray-50 dark:bg-gray-800">{row.label}</td>
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+      <Header />
+      <CartDrawer />
+      <CheckoutDialog />
+      <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 sm:px-12 py-8">
+        <nav className="flex items-center gap-1.5 mb-6 text-[13px]">
+          <a href="/" className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827]"><Home className="h-3.5 w-3.5" />Home</a>
+          <ChevronRight className="h-3 w-3 text-[#CBD5E1]" />
+          <span className="text-[#111827] font-medium">Compare Products</span>
+        </nav>
+        <h1 className="text-3xl font-bold mb-6 text-[#111827]">Product Comparison</h1>
+        <Card>
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th className="p-4 text-left w-40 bg-gray-50" />
                   {products.map((p) => (
-                    <td key={p.id} className="p-4 text-center">{row.render(p)}</td>
+                    <th key={p.id} className="p-4 text-center bg-gray-50 min-w-[200px]">
+                      <Button size="sm" variant="ghost" className="float-right" onClick={() => removeProduct(p.id)}><X className="w-4 h-4" /></Button>
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={i} className="border-t">
+                    <td className="p-4 font-medium text-gray-500 bg-gray-50">{row.label}</td>
+                    {products.map((p) => (
+                      <td key={p.id} className="p-4 text-center">{row.render(p)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      </main>
+      <div className="mt-auto"><Footer /></div>
+      <ChatWidget />
+      <BackToTopButton />
     </div>
   )
 }
