@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
@@ -34,16 +33,12 @@ interface Project {
   client?: string | null;
   location?: string | null;
   status: string;
-  isSellable?: boolean;
-  price?: number | null;
-  salePrice?: number | null;
   createdAt: string;
 }
 
 const defaultForm = {
   title: "", description: "", coverImage: "", images: "",
   client: "", location: "", status: "COMPLETED",
-  isSellable: false, price: "", salePrice: "",
 };
 
 export default function AdminProjectsPage() {
@@ -94,9 +89,6 @@ export default function AdminProjectsPage() {
       client: p.client || "",
       location: p.location || "",
       status: p.status,
-      isSellable: !!p.isSellable,
-      price: p.price?.toString() || "",
-      salePrice: p.salePrice?.toString() || "",
     });
     setDialog({ open: true, edit: p });
   }
@@ -115,9 +107,6 @@ export default function AdminProjectsPage() {
         client: form.client || null,
         location: form.location || null,
         status: form.status,
-        isSellable: form.isSellable,
-        price: form.price ? parseFloat(form.price) : null,
-        salePrice: form.salePrice ? parseFloat(form.salePrice) : null,
       };
       if (dialog.edit) {
         await apiFetch(`/api/admin/projects/${dialog.edit.id}`, { method: "PUT", body: JSON.stringify(payload) });
@@ -175,7 +164,6 @@ export default function AdminProjectsPage() {
                     <TableHead>Client</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Sellable</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -187,7 +175,6 @@ export default function AdminProjectsPage() {
                       <TableCell>{p.client || "—"}</TableCell>
                       <TableCell>{p.location || "—"}</TableCell>
                       <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
-                      <TableCell>{p.isSellable ? <Badge className="bg-green-100 text-green-800">Yes</Badge> : "—"}</TableCell>
                       <TableCell className="text-xs">{new Date(p.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -246,25 +233,7 @@ export default function AdminProjectsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5 flex items-end pb-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={form.isSellable} onCheckedChange={(c) => setForm({ ...form, isSellable: c === true })} />
-                  <span className="text-sm">Sellable as Kit</span>
-                </label>
-              </div>
             </div>
-            {form.isSellable && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Price (৳)</Label>
-                  <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Sale Price (৳)</Label>
-                  <Input type="number" value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: e.target.value })} />
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialog({ open: false })}>Cancel</Button>

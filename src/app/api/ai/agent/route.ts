@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server'
 import { jsonResponse, errorResponse, parseBody } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { headers } from 'next/headers'
 
 const SYSTEM_PROMPT = `You are the ePowerFix support assistant — a friendly, knowledgeable helper for an online electrical products & services marketplace in Bangladesh (Dhaka).
 
@@ -13,25 +15,37 @@ Keep replies short, friendly and practical. If a customer wants to place an orde
 
 Contact info: info@epowerfix.com, phone +880 1XXX-XXXXXX.`
 
+const MAX_MESSAGE_LENGTH = 500
+
 /**
  * POST /api/ai/agent
  * Public storefront chatbot backed by the ZAI SDK LLM.
  * Body: { message }
+ * Rate limited: 20 messages per 10 minutes per IP.
  */
 export async function POST(request: NextRequest) {
+  // Rate limit: 20 messages per 10 minutes per IP.
+  const ip = (await headers()).get('x-forwarded-for') || 'unknown'
+  const rl = checkRateLimit(`ai-agent:${ip}`, 20, 10 * 60 * 1000)
+  if (!rl.allowed) {
+    return errorResponse('Too many messages. Please slow down and try again later.', 429)
+  }
+
   try {
     const body = await parseBody<{ message?: string }>(request)
     if (!body?.message) return errorResponse('message is required', 400)
 
-    // Lazy import keeps the SDK out of the client bundle and avoids loading it
-    // on every cold start of unrelated routes.
+    // Truncate overly long messages to prevent abuse.
+    const message = body.message.slice(0, MAX_MESSAGE_LENGTH)
+    if (!message.trim()) return errorResponse('message cannot be empty', 400)
+
     const ZAI = (await import('z-ai-web-dev-sdk')).default
     const zai = await ZAI.create()
 
     const completion = await zai.chat.completions.create({
       messages: [
         { role: 'assistant', content: SYSTEM_PROMPT },
-        { role: 'user', content: body.message },
+        { role: 'user', content: message },
       ],
       thinking: { type: 'disabled' },
     })
@@ -44,7 +58,6 @@ export async function POST(request: NextRequest) {
     return jsonResponse({ data: { response } })
   } catch (err: any) {
     console.error('public/ai/agent POST error:', err)
-    // Fall back to a graceful message so the chat widget keeps working.
     return jsonResponse({
       data: {
         response:

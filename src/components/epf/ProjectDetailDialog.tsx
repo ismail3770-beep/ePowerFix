@@ -11,23 +11,25 @@ import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import ImageGallery from "@/components/epf/ImageGallery";
 
-interface Project {
+interface ProjectKit {
   id: string;
   title: string;
-  titleBn: string;
+  titleBn?: string | null;
   description: string;
-  descriptionBn: string;
-  category: string;
-  techStack: string;
-  image: string | null;
-  images: string;
-  coverImage?: string;
-  price: number | null;
-  githubUrl: string | null;
-  liveUrl: string | null;
-  features: string;
-  featured: boolean;
-  active: boolean;
+  category: string | null;
+  coverImage?: string | null;
+  images: string[];
+  price: number;
+  salePrice?: number | null;
+  difficulty?: string | null;
+  stock: number;
+  items?: Array<{
+    id: string;
+    quantity: number;
+    isRequired: boolean;
+    notes?: string | null;
+    product: { id: string; name: string; price: number; salePrice?: number | null };
+  }>;
 }
 
 const categoryBn: Record<string, string> = {
@@ -35,6 +37,7 @@ const categoryBn: Record<string, string> = {
   solar: "সোলার",
   automation: "অটোমেশন",
   iot: "আইওটি",
+  arduino: "আরডুইনো",
 };
 
 function parseJsonField(field: unknown): string[] {
@@ -46,12 +49,10 @@ function parseJsonField(field: unknown): string[] {
   return [];
 }
 
-function collectImages(project: Project): string[] {
+function collectImages(kit: ProjectKit): string[] {
   const imgs: string[] = [];
-  const cover = project.coverImage || project.image;
-  if (cover) imgs.push(cover);
-  const additional = parseJsonField(project.images);
-  for (const img of additional) {
+  if (kit.coverImage) imgs.push(kit.coverImage);
+  for (const img of (kit.images || [])) {
     if (img && !imgs.includes(img)) imgs.push(img);
   }
   return imgs;
@@ -60,19 +61,18 @@ function collectImages(project: Project): string[] {
 export default function ProjectDetailDialog() {
   const { projectDetailOpen, setProjectDetailOpen, selectedProjectId, setSelectedProjectId } = useUIStore();
   const { addItem } = useCartStore();
-  const [project, setProject] = useState<Project | null>(null);
-  const [features, setFeatures] = useState<string[]>([]);
-  const [techStack, setTechStack] = useState<string[]>([]);
+  const [kit, setKit] = useState<ProjectKit | null>(null);
 
   useEffect(() => {
     if (!selectedProjectId || !projectDetailOpen) return;
-    apiFetch<{ data: Project[] }>("/api/projects")
+    apiFetch<{ data: ProjectKit[] }>("/api/project-kits")
       .then((res) => {
-        const found = (res.data || []).find((p: Project) => p.id === selectedProjectId);
+        const found = (res.data || []).find((k: ProjectKit) => k.id === selectedProjectId);
         if (found) {
-          setProject(found);
-          setFeatures(parseJsonField(found.features));
-          setTechStack(parseJsonField(found.techStack));
+          setKit({
+            ...found,
+            images: Array.isArray(found.images) ? found.images : parseJsonField(found.images as any),
+          });
         }
       })
       .catch(() => {});
@@ -81,34 +81,35 @@ export default function ProjectDetailDialog() {
   const handleClose = () => {
     setProjectDetailOpen(false);
     setSelectedProjectId(null);
-    setProject(null);
+    setKit(null);
   };
 
   const handleBuy = () => {
-    if (!project) return;
+    if (!kit) return;
     addItem({
       itemType: "PROJECT",
-      productId: project.id,
-      productName: project.titleBn || project.title,
-      productImage: project.image || "",
-      price: project.price || 0,
+      productId: kit.id,
+      productName: kit.title,
+      productImage: kit.coverImage || (kit.images && kit.images[0]) || "",
+      price: Number(kit.salePrice ?? kit.price ?? 0),
       quantity: 1,
     });
     toast.success("কার্টে যোগ হয়েছে!");
     handleClose();
   };
 
-  const allImages = project ? collectImages(project) : [];
+  const allImages = kit ? collectImages(kit) : [];
+  const price = kit ? Number(kit.salePrice ?? kit.price ?? 0) : 0;
 
   return (
     <Dialog open={projectDetailOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{project?.titleBn || project?.title}</DialogTitle>
-          <DialogDescription>{project?.title}</DialogDescription>
+          <DialogTitle>{kit?.titleBn || kit?.title}</DialogTitle>
+          <DialogDescription>{kit?.title}</DialogDescription>
         </DialogHeader>
 
-        {project && (
+        {kit && (
           <>
             {/* Image Gallery */}
             <ImageGallery images={allImages} />
@@ -116,10 +117,13 @@ export default function ProjectDetailDialog() {
             {/* Category & Price */}
             <div className="flex items-center justify-between">
               <Badge variant="secondary" className="text-[13px]">
-                {categoryBn[project.category] || project.category}
+                {kit.category ? (categoryBn[kit.category.toLowerCase()] || kit.category) : "Project Kit"}
               </Badge>
-              {project.price ? (
-                <span className="text-xl font-bold text-epf-500">৳{project.price.toLocaleString()}</span>
+              {kit.difficulty && (
+                <Badge variant="outline" className="text-[12px]">{kit.difficulty}</Badge>
+              )}
+              {price > 0 ? (
+                <span className="text-xl font-bold text-epf-500">৳{price.toLocaleString()}</span>
               ) : (
                 <span className="text-sm font-medium text-dark-500 bg-dark-100 px-3 py-1 rounded-full">ফ্রি</span>
               )}
@@ -127,32 +131,23 @@ export default function ProjectDetailDialog() {
 
             {/* Description */}
             <p className="text-sm text-dark-500 leading-relaxed">
-              {project.descriptionBn || project.description}
+              {kit.description}
             </p>
 
             <Separator />
 
-            {/* Tech Stack */}
-            {techStack.length > 0 && (
+            {/* Kit contents (items) */}
+            {kit.items && kit.items.length > 0 && (
               <div>
-                <h4 className="font-semibold text-sm mb-2 text-dark-900">টেকনোলজি স্ট্যাক</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {techStack.map((t) => (
-                    <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Features */}
-            {features.length > 0 && (
-              <div>
-                <h4 className="font-semibold text-sm mb-2 text-dark-900">ফিচারসমূহ</h4>
+                <h4 className="font-semibold text-sm mb-2 text-dark-900">কিটে যা যা থাকছে</h4>
                 <ul className="space-y-1.5">
-                  {features.map((f, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-dark-500">
+                  {kit.items.map((item) => (
+                    <li key={item.id} className="flex items-start gap-2 text-sm text-dark-500">
                       <EPFTag className="size-3.5 mt-0.5 text-epf-500 shrink-0" />
-                      {f}
+                      <span>
+                        {item.product.name} × {item.quantity}
+                        {!item.isRequired && <span className="text-[11px] text-dark-400 ml-1">(optional)</span>}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -161,25 +156,9 @@ export default function ProjectDetailDialog() {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-2 pt-2">
-              {project.price && (
-                <Button onClick={handleBuy} className="flex-1 min-w-[140px] bg-epf-500 hover:bg-epf-600">
-                  কিনুন / Buy Now
-                </Button>
-              )}
-              {project.githubUrl && (
-                <Button variant="outline" className="flex-1 min-w-[140px]" asChild>
-                  <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                    কোড দেখুন
-                  </a>
-                </Button>
-              )}
-              {project.liveUrl && (
-                <Button variant="outline" className="flex-1 min-w-[140px]" asChild>
-                  <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                    লাইভ ডেমো
-                  </a>
-                </Button>
-              )}
+              <Button onClick={handleBuy} className="flex-1 min-w-[140px] bg-epf-500 hover:bg-epf-600">
+                কিনুন / Buy Now
+              </Button>
             </div>
           </>
         )}

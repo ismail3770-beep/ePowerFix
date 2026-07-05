@@ -13,7 +13,7 @@ export async function PUT(
   if (!auth.ok) return auth.response!
 
   try {
-    const { kitId, itemId } = await params
+    const { id: kitId, itemId } = await params
     const body = await request.json()
 
     const existing = await db.projectKitItem.findFirst({
@@ -50,7 +50,7 @@ export async function DELETE(
   if (!auth.ok) return auth.response!
 
   try {
-    const { kitId, itemId } = await params
+    const { id: kitId, itemId } = await params
     const existing = await db.projectKitItem.findFirst({
       where: { id: itemId, kitId },
     })

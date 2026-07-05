@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const order = await db.order.findFirst({
       where: {
         orderNumber,
-        customerPhone: { contains: phone },
+        customerPhone: phone,
       },
       include: {
         items: true,

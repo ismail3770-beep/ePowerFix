@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { z } from 'zod'
 import { initiatePayment } from '@/lib/payments'
-import { requireAuth } from '@/lib/auth-utils'
+import { requireAuth } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { headers } from 'next/headers'
 
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Too many payment attempts. Try again later.' }, { status: 429 })
   }
 
-  const auth = await requireAuth(request)
-  if (!auth.ok) return auth.response
+  const auth = await requireAuth()
+  if (!auth.ok) return auth.response!
 
   try {
     const body = await request.json()

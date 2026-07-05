@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, parseBody } from '@/lib/auth'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { headers } from 'next/headers'
 
 /**
  * POST /api/auth/register
@@ -10,6 +12,13 @@ import { jsonResponse, errorResponse, parseBody } from '@/lib/auth'
  * Body: { name, email, phone, password }
  */
 export async function POST(request: NextRequest) {
+  // Rate limit: 5 registrations per hour per IP.
+  const ip = (await headers()).get('x-forwarded-for') || 'unknown'
+  const rl = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000)
+  if (!rl.allowed) {
+    return errorResponse('Too many registration attempts. Please try again later.', 429)
+  }
+
   try {
     const body = await parseBody<{
       name?: string

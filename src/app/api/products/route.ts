@@ -72,6 +72,9 @@ export async function GET(request: NextRequest) {
       ...p,
       images: parseJsonField(p.images),
       tags: parseJsonField(p.tags),
+      // Storefront reads `comparePrice` for discount display. Map it
+      // from salePrice so strikethrough / discount badges work.
+      comparePrice: p.salePrice ?? null,
     }))
 
     return listResponse(parsed, total, page, limit)

@@ -100,16 +100,17 @@ export async function POST(request: NextRequest) {
       if (itemType === 'SERVICE') {
         const service = await db.service.findUnique({ where: { id: item.serviceId } })
         if (!service) return errorResponse('Service not found', 400)
-        unitPrice = service.salePrice ?? service.basePrice
+        unitPrice = service.basePrice
         productName = service.name
         const imgs = parseJsonField(service.images)
         productImage = imgs[0] || null
       } else if (itemType === 'PROJECT') {
-        const project = await db.project.findUnique({ where: { id: item.projectId } })
-        if (!project) return errorResponse('Project not found', 400)
-        unitPrice = project.salePrice ?? project.price ?? 0
-        productName = project.title
-        productImage = project.coverImage || parseJsonField(project.images)[0] || null
+        const kit = await db.projectKit.findUnique({ where: { id: item.projectId } })
+        if (!kit) return errorResponse('Project kit not found', 400)
+        if (!kit.isActive) return errorResponse('Kit is not available', 400)
+        unitPrice = kit.salePrice ?? kit.price ?? 0
+        productName = kit.title
+        productImage = kit.coverImage || parseJsonField(kit.images)[0] || null
       } else {
         const product = await db.product.findUnique({
           where: { id: item.productId },
@@ -157,7 +158,6 @@ export async function POST(request: NextRequest) {
     const outsideDhakaRate = siteSettings?.shippingOutsideDhaka ?? 120
     const freeShippingThreshold = siteSettings?.freeShippingThreshold ?? 0
 
-    const fullAddress = `${address}, ${area || ''}`.toLowerCase()
     const isInsideDhaka = area && /dhaka|ঢাকা/i.test(area)
     let deliveryCharge = isInsideDhaka ? insideDhakaRate : outsideDhakaRate
     // Free shipping if subtotal is above the threshold (and threshold > 0).

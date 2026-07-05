@@ -1,21 +1,20 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { EPFCpu } from "@/components/epf/icons/EPFIcons";
-import { useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 
 interface Project {
   id: string;
   title: string;
-  titleBn: string;
-  price: number | null;
-  category: string;
-  techStack: string;
-  image: string;
-  coverImage?: string;
-  images?: string[];
+  titleBn?: string | null;
+  slug: string;
   description: string;
-  featured: boolean;
+  coverImage?: string | null;
+  images?: string[];
+  client?: string | null;
+  location?: string | null;
+  status: string;
+  category?: string;
 }
 
 const categoryLabel: Record<string, string> = {
@@ -33,19 +32,12 @@ const categoryBadgeColor: Record<string, string> = {
 };
 
 export default function ProjectsSection() {
-  const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
-
   const { data: projectsData, isLoading } = useQuery<{ data: Project[] }>({
     queryKey: ["projects-home"],
     queryFn: () => apiFetch("/api/projects"),
   });
 
   const projects = (projectsData?.data ?? []).slice(0, 4);
-
-  const openProjectDetail = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setProjectDetailOpen(true);
-  };
 
   return (
     <section id="projects" className="bg-[#f8f9fa] py-10 sm:py-14">
@@ -103,10 +95,10 @@ export default function ProjectsSection() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
             {projects.map((proj) => (
-              <div
+              <a
                 key={proj.id}
-                className="bg-white rounded-lg border border-dark-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 overflow-hidden transition-all duration-300 cursor-pointer group"
-                onClick={() => openProjectDetail(proj.id)}
+                href={`/projects/${proj.slug}`}
+                className="bg-white rounded-lg border border-dark-200/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 overflow-hidden transition-all duration-300 cursor-pointer group block"
               >
                 {/* Image */}
                 <div className="relative aspect-[4/3] bg-dark-100 overflow-hidden">
@@ -117,9 +109,9 @@ export default function ProjectsSection() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                     />
-                  ) : proj.image ? (
+                  ) : proj.images && proj.images.length > 0 ? (
                     <img
-                      src={proj.image}
+                      src={proj.images[0]}
                       alt={proj.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
@@ -129,24 +121,24 @@ export default function ProjectsSection() {
                       <EPFCpu size={32} className="text-dark-300" />
                     </div>
                   )}
-                  {(!proj.price || proj.price === 0) && (
-                    <span className="absolute top-2 left-2 bg-success text-white text-[11px] font-bold px-1.5 py-0.5 rounded">
-                      Free
-                    </span>
-                  )}
+                  <span className="absolute top-2 left-2 bg-epf-500 text-white text-[11px] font-bold px-1.5 py-0.5 rounded">
+                    {proj.status || "Project"}
+                  </span>
                 </div>
 
                 {/* Content */}
                 <div className="p-3 flex flex-col gap-1.5">
                   {/* Category Badge */}
-                  <span
-                    className={`inline-flex w-fit text-[11px] font-semibold px-1.5 py-0.5 rounded ${
-                      categoryBadgeColor[proj.category] ||
-                      "bg-dark-100 text-dark-700"
-                    }`}
-                  >
-                    {categoryLabel[proj.category] || proj.category}
-                  </span>
+                  {proj.category && (
+                    <span
+                      className={`inline-flex w-fit text-[11px] font-semibold px-1.5 py-0.5 rounded ${
+                        categoryBadgeColor[proj.category] ||
+                        "bg-dark-100 text-dark-700"
+                      }`}
+                    >
+                      {categoryLabel[proj.category] || proj.category}
+                    </span>
+                  )}
 
                   {/* Title */}
                   <h4 className="text-[14px] font-semibold text-dark-900 line-clamp-2 leading-snug">
@@ -159,18 +151,13 @@ export default function ProjectsSection() {
                   </p>
 
                   {/* View Details Link */}
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openProjectDetail(proj.id);
-                    }}
+                  <span
                     className="text-[12px] font-semibold text-epf-500 hover:text-epf-600 transition-colors mt-auto pt-1"
                   >
                     View Details →
-                  </a>
+                  </span>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         )}
