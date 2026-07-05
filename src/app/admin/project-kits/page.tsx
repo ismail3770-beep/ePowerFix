@@ -61,6 +61,8 @@ export default function AdminProjectKitsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [addDialog, setAddDialog] = useState(false);
+  const [quickAddDialog, setQuickAddDialog] = useState(false);
+  const [quickAddForm, setQuickAddForm] = useState({ kitId: "__none__", productId: "__none__", quantity: 1, isRequired: true, notes: "" });
   const [editItem, setEditItem] = useState<KitItem | null>(null);
   const [addForm, setAddForm] = useState({ productId: "__none__", quantity: 1, isRequired: true, notes: "" });
   const [saving, setSaving] = useState(false);
@@ -105,9 +107,8 @@ export default function AdminProjectKitsPage() {
     }
   };
 
-  useEffect(() => { fetchKits(); }, []);
+  useEffect(() => { fetchKits(); fetchProducts(); }, []);
   useEffect(() => { if (selectedKit) fetchItems(selectedKit.id); }, [selectedKit]);
-  useEffect(() => { if (selectedKit) fetchProducts(); }, [selectedKit]);
 
   const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
   useEffect(() => {
@@ -139,6 +140,34 @@ export default function AdminProjectKitsPage() {
       toast.success("Item added to kit");
       setAddDialog(false);
       fetchItems(selectedKit!.id);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to add item");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleQuickAddItem() {
+    if (quickAddForm.kitId === "__none__") { toast.error("Select a kit"); return; }
+    if (quickAddForm.productId === "__none__") { toast.error("Select a product"); return; }
+    setSaving(true);
+    try {
+      await apiFetch(`/api/admin/project-kits/${quickAddForm.kitId}/items`, {
+        method: "POST",
+        body: JSON.stringify({
+          productId: quickAddForm.productId,
+          quantity: quickAddForm.quantity,
+          isRequired: quickAddForm.isRequired,
+          notes: quickAddForm.notes,
+        }),
+      });
+      toast.success("Item added to kit");
+      setQuickAddDialog(false);
+      setQuickAddForm({ kitId: "__none__", productId: "__none__", quantity: 1, isRequired: true, notes: "" });
+      // If the user is currently viewing that kit's items, refresh them.
+      if (selectedKit && selectedKit.id === quickAddForm.kitId) {
+        fetchItems(selectedKit.id);
+      }
     } catch (err: any) {
       toast.error(err?.message || "Failed to add item");
     } finally {
@@ -208,9 +237,14 @@ export default function AdminProjectKitsPage() {
           </div>
         </div>
         {!selectedKit && (
-          <Button variant="outline" size="sm" onClick={fetchKits} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => { setQuickAddForm({ kitId: "__none__", productId: "__none__", quantity: 1, isRequired: true, notes: "" }); setQuickAddDialog(true); }}>
+              <Plus className="h-4 w-4 mr-1.5" /> Add Product to Kit
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchKits} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} /> Refresh
+            </Button>
+          </div>
         )}
       </div>
 
@@ -395,6 +429,75 @@ export default function AdminProjectKitsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditItem(null)}>Cancel</Button>
             <Button onClick={handleUpdateItem} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Add Dialog — pick kit + product in one go */}
+      <Dialog open={quickAddDialog} onOpenChange={(o) => setQuickAddDialog(o)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Add Product to Kit</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Project Kit *</Label>
+              {kits.length === 0 ? (
+                <div className="border border-amber-300 bg-amber-50 rounded-md p-3 text-sm text-amber-800">
+                  <p className="font-medium mb-1">No project kits available.</p>
+                  <p className="text-xs">Create a project from the <a href="/admin/projects" className="text-[#0EA5E9] underline">Projects page</a> first and check "Sellable as Kit".</p>
+                </div>
+              ) : (
+                <Select value={quickAddForm.kitId} onValueChange={(v) => setQuickAddForm({ ...quickAddForm, kitId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select a kit" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Select a kit</SelectItem>
+                    {kits.map((k) => (
+                      <SelectItem key={k.id} value={k.id}>{k.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label>Product *</Label>
+              {productsLoading ? (
+                <div className="h-9 flex items-center px-3 border rounded-md text-sm text-muted-foreground">Loading products…</div>
+              ) : products.length === 0 ? (
+                <div className="border border-amber-300 bg-amber-50 rounded-md p-3 text-sm text-amber-800">
+                  <p className="font-medium mb-1">No products available.</p>
+                  <p className="text-xs">Create products first on the <a href="/admin/products" className="text-[#0EA5E9] underline">Products page</a>.</p>
+                </div>
+              ) : (
+                <Select value={quickAddForm.productId} onValueChange={(v) => setQuickAddForm({ ...quickAddForm, productId: v })}>
+                  <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Select a product</SelectItem>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}{p.sku ? ` (${p.sku})` : ""}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Quantity</Label>
+                <Input type="number" min={1} value={quickAddForm.quantity} onChange={(e) => setQuickAddForm({ ...quickAddForm, quantity: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-1.5 flex items-end pb-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={quickAddForm.isRequired} onCheckedChange={(c) => setQuickAddForm({ ...quickAddForm, isRequired: c === true })} />
+                  <span className="text-sm">Required</span>
+                </label>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Notes (optional)</Label>
+              <Input value={quickAddForm.notes} onChange={(e) => setQuickAddForm({ ...quickAddForm, notes: e.target.value })} placeholder="e.g. Main controller board" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuickAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleQuickAddItem} disabled={saving || kits.length === 0 || products.length === 0}>{saving ? "Adding..." : "Add Item"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
