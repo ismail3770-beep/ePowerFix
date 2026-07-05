@@ -1,20 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
   ChevronRight, Home, ArrowLeft, Phone, MessageCircle, Star,
-  Check, Clock, FolderOpen, ShoppingCart,
+  Check, Clock, FolderOpen, Calendar,
 } from "lucide-react";
 import Image from "next/image";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
 import CheckoutDialog from "@/components/epf/CheckoutDialog";
+import ServiceBookingDialog from "@/components/epf/ServiceBookingDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from "@/lib/api";
+import { useUIStore } from "@/store";
 
 interface ServiceDetail {
   id: string;
@@ -44,6 +45,7 @@ export default function ServiceDetailPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
+  const { setServiceBookingOpen, setBookingServiceId } = useUIStore();
 
   const { data: apiRes, isLoading } = useQuery<{ success: boolean; data: ServiceDetail }>({
     queryKey: ["service-detail", slug],
@@ -120,10 +122,15 @@ export default function ServiceDetailPage() {
             )}
             <div className="bg-[#F0F9FF] rounded-lg p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
               <div><p className="text-[14px] text-[#6B7280]">Price</p><p className="text-[28px] font-bold text-[#111827]">৳{Number(service.basePrice ?? 0).toLocaleString()}<span className="text-[14px] font-normal text-[#6B7280]"> BDT</span></p></div>
-              <div className="flex items-center gap-3">
-                <button className="h-11 px-6 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-semibold text-[15px] rounded-lg transition-all duration-200 flex items-center gap-2"><ShoppingCart className="w-4 h-4" />Book Now</button>
-                <button className="h-11 px-6 border border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white font-medium text-[15px] rounded-lg transition-all duration-200">Add to Cart</button>
-              </div>
+              <button
+                onClick={() => {
+                  setBookingServiceId(service.id);
+                  setServiceBookingOpen(true);
+                }}
+                className="h-11 px-8 bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-semibold text-[15px] rounded-lg transition-all duration-200 flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" /> Book Now
+              </button>
             </div>
           </div>
           <aside className="w-full lg:w-[30%] shrink-0 space-y-6">
@@ -137,12 +144,18 @@ export default function ServiceDetailPage() {
               <div className="space-y-3">
                 <a href="tel:+8801700000000" className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg hover:shadow-sm"><div className="w-10 h-10 rounded-full bg-[#0EA5E9]/10 flex items-center justify-center"><Phone className="w-5 h-5 text-[#0EA5E9]" /></div><div><p className="text-[13px] font-medium text-[#333]">Call Us</p><p className="text-[12px] text-[#999]">+880 1700-000000</p></div></a>
                 <a href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-lg hover:shadow-sm"><div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center"><MessageCircle className="w-5 h-5 text-[#25D366]" /></div><div><p className="text-[13px] font-medium text-[#333]">WhatsApp</p><p className="text-[12px] text-[#999]">Chat with us</p></div></a>
-                <button className="w-full py-2.5 px-4 border border-dashed border-[#0EA5E9] text-[#0EA5E9] text-[13px] font-medium rounded-lg hover:bg-[#0EA5E9] hover:text-white transition-all">Request a Callback</button>
+                <button
+                  onClick={() => router.push("/contact")}
+                  className="w-full py-2.5 px-4 border border-dashed border-[#0EA5E9] text-[#0EA5E9] text-[13px] font-medium rounded-lg hover:bg-[#0EA5E9] hover:text-white transition-all"
+                >
+                  Request a Callback
+                </button>
               </div>
             </div>
           </aside>
         </div>
       </main>
+      <ServiceBookingDialog />
       <ChatWidget /><BackToTopButton /><Footer />
     </div>
   );
