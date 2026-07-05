@@ -1,5 +1,5 @@
-// ePowerFix schema — adapted for SQLite (sandbox environment).
-// - Provider: sqlite
+// ePowerFix schema — works with PostgreSQL.
+// - Provider: postgresql
 // - Enums kept as String (UPPERCASE literal values) for cross-DB compatibility
 // - Prices use Float (works with both SQLite & PostgreSQL)
 // - JSON-array fields (images, tags) stored as String containing JSON —
@@ -11,7 +11,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

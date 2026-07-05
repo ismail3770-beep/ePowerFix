@@ -13,7 +13,7 @@
  * Usage:
  *   bun prisma/seed.ts
  */
-import { db } from "@epowerfix/db";
+import { db } from "../src/lib/db";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 

@@ -1,5 +1,5 @@
 // Verify seed data: counts, admin login, and customer credentials.
-import { db } from "@epowerfix/db";
+import { db } from "../src/lib/db";
 import bcrypt from "bcryptjs";
 
 async function main() {
