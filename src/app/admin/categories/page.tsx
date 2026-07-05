@@ -114,10 +114,10 @@ export default function CategoriesPage() {
             <div><Label>Slug</Label><Input value={form.slug} onChange={e=>setForm({...form,slug:e.target.value})} /></div>
             <div><Label>Icon (emoji or icon name)</Label><Input value={form.icon} onChange={e=>setForm({...form,icon:e.target.value})} /></div>
             <div><Label>Parent Category</Label>
-              <Select value={form.parentId} onValueChange={v=>setForm({...form,parentId:v})}>
+              <Select value={form.parentId || "__none__"} onValueChange={v=>setForm({...form,parentId: v === "__none__" ? "" : v})}>
                 <SelectTrigger><SelectValue placeholder="None (top level)" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None (top level)</SelectItem>
+                  <SelectItem value="__none__">None (top level)</SelectItem>
                   {cats.filter(c=>c.id!==editing?.id).map(c=><SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
