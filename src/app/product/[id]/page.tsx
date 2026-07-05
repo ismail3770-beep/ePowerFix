@@ -47,148 +47,6 @@ interface Product {
   sku?: string;
 }
 
-const demoProducts: Record<string, Product> = {
-  bd1: {
-    id: "bd1",
-    name: "Gold Wristwatch — Premium",
-    description: "High-quality premium gold wristwatch with stainless steel band, water-resistant up to 50m. Features Japanese quartz movement, sapphire crystal glass, and luminous hands. Perfect for both formal and casual occasions.\n\nKey Features:\n• Japanese Quartz Movement\n• Sapphire Crystal Glass\n• Water Resistant 50M\n• Stainless Steel Band\n• Luminous Hands & Markers",
-    price: 6693.75,
-    comparePrice: 7875.00,
-    images: [],
-    stock: 8,
-    sold: 12,
-    rating: 4.5,
-    reviewCount: 23,
-    specs: { "Movement": "Japanese Quartz", "Case Material": "Stainless Steel", "Band": "Gold Plated Steel", "Water Resistance": "50M", "Crystal": "Sapphire", "Diameter": "42mm" },
-    category: { id: "cat1", name: "Watches", slug: "watches" },
-  },
-  bd2: {
-    id: "bd2",
-    name: "Solar Inverter 5kVA",
-    description: "Powerful 5kVA solar inverter with MPPT charge controller. Supports 48V battery system, pure sine wave output, and multiple protection features. Ideal for home and small office solar setups.\n\nKey Features:\n• 5kVA / 5000W Output\n• MPPT Charge Controller\n• Pure Sine Wave\n• 48V Battery System\n• Overload & Short Circuit Protection",
-    price: 1879.50,
-    comparePrice: 1890.00,
-    images: [],
-    stock: 14,
-    sold: 18,
-    rating: 4.2,
-    reviewCount: 15,
-    specs: { "Capacity": "5kVA / 5000W", "Input Voltage": "48V DC", "Output": "220V AC Pure Sine Wave", "Charge Controller": "Built-in MPPT", "Efficiency": ">93%", "Protection": "Overload, Short Circuit, Over Temperature" },
-    category: { id: "cat2", name: "Solar", slug: "solar" },
-  },
-  bd3: {
-    id: "bd3",
-    name: "USB-C Fast Charger 65W",
-    description: "Compact 65W USB-C GaN fast charger with PD 3.0 support. Charges laptops, tablets, and phones quickly. Features foldable plug, universal compatibility, and multiple safety protections.\n\nKey Features:\n• 65W Maximum Output\n• GaN Technology (Compact)\n• PD 3.0 & QC 4.0\n• Foldable Plug Design\n• Universal Compatibility",
-    price: 12.60,
-    comparePrice: null,
-    images: [],
-    stock: 22,
-    sold: 34,
-    rating: 4.7,
-    reviewCount: 42,
-    specs: { "Max Output": "65W", "Ports": "USB-C x1, USB-A x1", "Technology": "GaN", "Protocol": "PD 3.0, QC 4.0", "Input": "100-240V AC", "Size": "55 x 55 x 28mm" },
-    category: { id: "cat3", name: "Chargers", slug: "chargers" },
-  },
-  bd4: {
-    id: "bd4",
-    name: "Industrial Safety Cap",
-    description: "Premium industrial safety helmet with adjustable headband, ventilation holes, and sweatband. Meets EN397 safety standards. Lightweight and durable for all-day comfort on construction sites.\n\nKey Features:\n• EN397 Certified\n• Adjustable Headband\n• Ventilation Design\n• Sweatband Included\n• UV Resistant Shell",
-    price: 15.75,
-    comparePrice: null,
-    images: [],
-    stock: 45,
-    sold: 89,
-    rating: 4.0,
-    reviewCount: 31,
-    specs: { "Standard": "EN397", "Material": "ABS + HDPE", "Weight": "350g", "Head Size": "52-62cm", "Color": "Yellow", "Certification": "CE, ISO" },
-    category: { id: "cat4", name: "Safety", slug: "safety" },
-  },
-  bd5: {
-    id: "bd5",
-    name: "3-core 4mm² PVC Cable",
-    description: "High-quality 3-core 4mm² PVC insulated copper cable suitable for residential and commercial wiring. Features pure copper conductor, flame retardant PVC insulation, and excellent durability.\n\nKey Features:\n• Pure Copper Conductor\n• 3-Core (Red, Yellow, Blue)\n• Flame Retardant PVC\n• ISI Certified\n• 100m Per Coil",
-    price: 1850.00,
-    comparePrice: 2200.00,
-    images: [],
-    stock: 30,
-    sold: 56,
-    rating: 4.3,
-    reviewCount: 28,
-    specs: { "Size": "4mm²", "Cores": "3", "Conductor": "Pure Copper", "Insulation": "PVC", "Voltage Rating": "600/1000V", "Length": "100m Coil" },
-    category: { id: "cat5", name: "Cables", slug: "cables" },
-  },
-  bd6: {
-    id: "bd6",
-    name: "MCB 32A Double Pole",
-    description: "32A double pole miniature circuit breaker for reliable protection against overcurrent and short circuit. Suitable for residential and light commercial installations.\n\nKey Features:\n• 32A Rated Current\n• Double Pole (DP)\n• C-Curve Tripping\n• 6kA Breaking Capacity\n• DIN Rail Mountable",
-    price: 450.00,
-    comparePrice: 550.00,
-    images: [],
-    stock: 18,
-    sold: 73,
-    rating: 4.4,
-    reviewCount: 37,
-    specs: { "Rating": "32A", "Poles": "Double Pole", "Curve": "C-Curve", "Breaking Capacity": "6kA", "Voltage": "240/415V AC", "Standard": "IEC 60898" },
-    category: { id: "cat6", name: "Circuit Breakers", slug: "circuit-breakers" },
-  },
-  bd7: {
-    id: "bd7",
-    name: "LED Panel Light 36W",
-    description: "Slim profile 36W LED panel light with uniform light distribution. Low energy consumption, long lifespan, and easy installation. Ideal for offices, homes, and commercial spaces.\n\nKey Features:\n• 36W Power Consumption\n• 6000K Cool White\n• 3600 Lumens Output\n• Slim Design (10mm)\n• 50,000hrs Lifespan",
-    price: 890.00,
-    comparePrice: 1200.00,
-    images: [],
-    stock: 25,
-    sold: 41,
-    rating: 4.1,
-    reviewCount: 19,
-    specs: { "Wattage": "36W", "Color Temp": "6000K Cool White", "Lumens": "3600lm", "Size": "595 x 595mm", "Input": "AC 175-265V", "Lifespan": "50,000 hours" },
-    category: { id: "cat7", name: "LED Lights", slug: "led-lights" },
-  },
-  bd8: {
-    id: "bd8",
-    name: "Digital Multimeter Fluke",
-    description: "Professional-grade digital multimeter with auto-ranging, data hold, and backlit display. Measures AC/DC voltage, current, resistance, capacitance, and more. Built to withstand drops up to 3 meters.\n\nKey Features:\n• Auto-ranging\n• AC/DC Voltage & Current\n• Resistance & Capacitance\n• Data Hold Function\n• Backlit Display",
-    price: 3200.00,
-    comparePrice: 3800.00,
-    images: [],
-    stock: 10,
-    sold: 15,
-    rating: 4.8,
-    reviewCount: 52,
-    specs: { "Display": "4000 Count Backlit LCD", "AC Voltage": "0.1mV - 600V", "DC Voltage": "0.1mV - 600V", "Resistance": "0.1Ω - 40MΩ", "Accuracy": "±0.5%", "Protection": "CAT III 600V" },
-    category: { id: "cat8", name: "Testing Tools", slug: "testing-tools" },
-  },
-  bd9: {
-    id: "bd9",
-    name: "Safety Boots — Industrial",
-    description: "Heavy-duty industrial safety boots with steel toe cap, puncture-resistant sole, and anti-slip design. Water-resistant leather upper with padded collar for all-day comfort on job sites.\n\nKey Features:\n• Steel Toe Cap\n• Puncture Resistant Sole\n• Anti-Slip Design\n• Water Resistant Leather\n• Padded Collar & Tongue",
-    price: 1250.00,
-    comparePrice: null,
-    images: [],
-    stock: 20,
-    sold: 67,
-    rating: 4.2,
-    reviewCount: 33,
-    specs: { "Toe Protection": "Steel Cap (200J)", "Sole": "Puncture Resistant + Anti-Slip", "Upper": "Water Resistant Leather", "Lining": "Breathable Textile", "Size Range": "6-12 UK", "Standard": "EN ISO 20345 S2" },
-    category: { id: "cat9", name: "Safety", slug: "safety-gear" },
-  },
-  bd10: {
-    id: "bd10",
-    name: "Solar Panel 400W Mono",
-    description: "High-efficiency 400W monocrystalline solar panel with PERC technology. Excellent low-light performance, anti-reflective coating, and durable aluminum frame. Perfect for residential and commercial solar installations.\n\nKey Features:\n• 400W Maximum Power\n• Monocrystalline PERC Cells\n• Anti-Reflective Coating\n• Aluminum Frame\n• 25-Year Performance Warranty",
-    price: 9500.00,
-    comparePrice: 11000.00,
-    images: [],
-    stock: 12,
-    sold: 8,
-    rating: 4.6,
-    reviewCount: 11,
-    specs: { "Max Power": "400W", "Cell Type": "Monocrystalline PERC", "Efficiency": "20.5%", "Voltage (Vmp)": "38V", "Current (Imp)": "10.53A", "Frame": "Anodized Aluminum", "Warranty": "25 Years" },
-    category: { id: "cat10", name: "Solar", slug: "solar-panels" },
-  },
-};
 
 /* ------------------------------------------------------------------ */
 /*  Star Rating                                                        */
@@ -290,18 +148,10 @@ export default function ProductDetailPage() {
           } catch {
             setSpecs({});
           }
-        } else if (demoProducts[productId]) {
-          const dp = demoProducts[productId];
-          setProduct(dp);
-          setSpecs(dp.specs as Record<string, string> || {});
         }
       })
       .catch(() => {
-        if (demoProducts[productId]) {
-          const dp = demoProducts[productId];
-          setProduct(dp);
-          setSpecs(dp.specs as Record<string, string> || {});
-        }
+        // product not found — leave product as null so the page shows "not found"
       })
       .finally(() => setIsLoading(false));
   }, [productId]);

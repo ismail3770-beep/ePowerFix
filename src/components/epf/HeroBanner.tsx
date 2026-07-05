@@ -11,35 +11,7 @@ interface BannerSlide {
   link: string | null;
 }
 
-const fallbackSlides: BannerSlide[] = [
-  {
-    id: "fallback-1",
-    title:
-      "পেশাদার ইলেকট্রিক্যাল সেবা \nProfessional Electrical Services You Can Trust",
-    subtitle:
-      "লাইসেন্সপ্রাপ্ত ইলেকট্রিশিয়ান — হোম ওয়্যারিং, ইন্ডাস্ট্রিয়াল ইনস্টলেশন ও সোলার প্যানেল সেটআপ।",
-    image: "",
-    link: "/services",
-  },
-  {
-    id: "fallback-2",
-    title:
-      "মানসম্মত যন্ত্রাংশ ও ডিজিটাল গাইড \nQuality Components & Digital Guides",
-    subtitle:
-      "ক্যাবল, ব্রেকার, সুরক্ষা সরঞ্জাম ও সেরা দামে বিস্তারিত PDF গাইড।",
-    image: "",
-    link: "/shop",
-  },
-  {
-    id: "fallback-3",
-    title:
-      "স্টুডেন্ট ইঞ্জিনিয়ারিং প্রজেক্ট \nStudent Engineering Projects",
-    subtitle:
-      "Arduino, IoT ও PLC প্রজেক্ট কিট — কোড, ডায়াগ্রাম ও হার্ডওয়্যার সারাদেশে ডেলিভারি।",
-    image: "",
-    link: "/projects",
-  },
-];
+const fallbackSlides: BannerSlide[] = [];
 
 export default function HeroBanner() {
   const [slides, setSlides] = useState<BannerSlide[]>(fallbackSlides);
@@ -58,7 +30,7 @@ export default function HeroBanner() {
           setSlides(banners);
         }
       } catch {
-        // keep fallback slides
+        // no banners available
       }
     })();
   }, []);
@@ -73,12 +45,12 @@ export default function HeroBanner() {
     [slides.length]
   );
 
-  /* ── Auto-slide every 5 s (pausable) ───────────────────── */
+  /* ── Auto-slide every 5 s (pausable, only when slides exist) */
   useEffect(() => {
-    if (paused) return;
+    if (paused || slides.length === 0) return;
     const id = setInterval(next, 5000);
     return () => clearInterval(id);
-  }, [next, paused]);
+  }, [next, paused, slides.length]);
 
   /* ── Touch swipe (50 px threshold, 3 s resume) ─────────── */
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -110,6 +82,21 @@ export default function HeroBanner() {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
+          {slides.length === 0 ? (
+            /* ── Empty state — no banners configured yet ── */
+            <div className="absolute inset-0 bg-gradient-to-br from-epf-500/10 via-white to-epf-500/5 flex items-center justify-center">
+              <div className="text-center px-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-dark-900 tracking-tight">
+                  Welcome to ePowerFix
+                </h2>
+                <p className="text-sm text-dark-500 mt-2">
+                  Your trusted electrical marketplace. Add banners from the
+                  admin panel to showcase promotions here.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
           {/* ── Slide backgrounds (stacked, cross-fade) ──── */}
           {slides.map((slide, i) => (
             <div
@@ -231,6 +218,8 @@ export default function HeroBanner() {
               />
             ))}
           </div>
+            </>
+          )}
         </div>
       </div>
     </section>

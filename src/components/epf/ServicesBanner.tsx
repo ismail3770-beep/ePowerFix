@@ -13,38 +13,7 @@ interface Banner {
   position: number;
 }
 
-const fallbackBanners: Banner[] = [
-  {
-    id: "fs1", title: "Professional Electrical Wiring",
-    subtitle: "Expert home & industrial wiring with quality materials",
-    image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=1344&h=768&fit=crop",
-    link: "/services", type: "services", position: 0,
-  },
-  {
-    id: "fs2", title: "Solar Panel Installation",
-    subtitle: "Go green with our solar solutions — save up to 60% on bills",
-    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1344&h=768&fit=crop",
-    link: "/services", type: "services", position: 1,
-  },
-  {
-    id: "fs3", title: "Industrial Safety Equipment",
-    subtitle: "Certified PPE, helmets, boots & more for your workforce",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1344&h=768&fit=crop",
-    link: "/services", type: "services", position: 2,
-  },
-  {
-    id: "fs4", title: "Generator & UPS Solutions",
-    subtitle: "Reliable backup power systems for homes, offices & factories",
-    image: "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?w=1344&h=768&fit=crop",
-    link: "/services", type: "services", position: 3,
-  },
-  {
-    id: "fs5", title: "Smart Home Automation",
-    subtitle: "Control your home with smart switches, sensors & IoT devices",
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=1344&h=768&fit=crop",
-    link: "/services", type: "services", position: 4,
-  },
-];
+const fallbackBanners: Banner[] = [];
 
 export default function ServicesBanner() {
   const [banners, setBanners] = useState<Banner[]>(fallbackBanners);
@@ -63,7 +32,7 @@ export default function ServicesBanner() {
   }, []);
 
   const maxOffset = banners.length <= 3 ? 0 : banners.length - 3;
-  const slidePercent = 100 / banners.length;
+  const slidePercent = banners.length > 0 ? 100 / banners.length : 0;
 
   const slideNext = useCallback(() => {
     if (isPaused) return;

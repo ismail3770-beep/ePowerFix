@@ -72,21 +72,9 @@ function CountdownTimer() {
   );
 }
 
-const fallbackFlashDeals: Product[] = [
-  { id: "fd1", name: "Gold Wristwatch — Premium", price: 6693.75, comparePrice: 7875.00, sold: 12, stock: 8, images: [] },
-  { id: "fd2", name: "Solar Inverter 5kVA", price: 1879.50, comparePrice: 1890.00, sold: 18, stock: 14, images: [] },
-  { id: "fd3", name: "USB-C Fast Charger 65W", price: 12.60, comparePrice: null, sold: 34, stock: 22, images: [] },
-  { id: "fd4", name: "Industrial Safety Cap", price: 15.75, comparePrice: null, sold: 89, stock: 45, images: [] },
-];
+const fallbackFlashDeals: Product[] = [];
 
-const fallbackTodaysDeals: Product[] = [
-  { id: "td1", name: "Industrial Safety Boots", price: 807.45, comparePrice: null, sold: 78, stock: 22, images: [] },
-  { id: "td2", name: "iPhone 17 Pro Max", price: 1091.16, comparePrice: 1363.95, sold: 142, stock: 58, images: [] },
-  { id: "td3", name: "Samsung Galaxy S25", price: 358.16, comparePrice: 397.95, sold: 56, stock: 18, images: [] },
-  { id: "td4", name: "Men's Winter Collection", price: 117.18, comparePrice: 126.00, sold: 67, stock: 35, images: [] },
-  { id: "td5", name: "Leather Wallet — Brown", price: 79.80, comparePrice: 84.00, sold: 21, stock: 11, images: [] },
-  { id: "td6", name: "Sweat Shirt — Red", price: 52.50, comparePrice: null, sold: 89, stock: 45, images: [] },
-];
+const fallbackTodaysDeals: Product[] = [];
 
 function ProductCard({ product }: { product: Product }) {
   return (
@@ -135,22 +123,16 @@ export default function FlashDeals() {
   const addItem = useCartStore((s) => s.addItem);
   const setCartOpen = useUIStore((s) => s.setCartOpen);
 
-  // Flash Deals — 4 products
+  // Flash Deals — first 4 products from API
   const flashDeals = (() => {
     const apiProducts = apiData?.data?.data ?? [];
-    if (apiProducts.length >= 4) return apiProducts.slice(0, 4);
-    if (apiProducts.length > 0)
-      return [...apiProducts, ...fallbackFlashDeals.slice(0, 4 - apiProducts.length)];
-    return fallbackFlashDeals;
+    return apiProducts.slice(0, 4);
   })();
 
-  // Today's Deals — 6 products
+  // Today's Deals — next 6 products from API
   const todaysDeals = (() => {
     const apiProducts = apiData?.data?.data ?? [];
-    if (apiProducts.length >= 6) return apiProducts.slice(0, 6);
-    if (apiProducts.length > 0)
-      return [...apiProducts, ...fallbackTodaysDeals.slice(0, 6 - apiProducts.length)];
-    return fallbackTodaysDeals;
+    return apiProducts.slice(0, 6);
   })();
 
   const handleAddToCart = (e: React.MouseEvent, product: Product) => {
