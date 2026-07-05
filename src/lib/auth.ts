@@ -8,7 +8,8 @@ import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 
 const COOKIE_NAME = 'token'
-const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days
+const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days (refresh happens via proxy header)
+const REFRESH_THRESHOLD_SECONDS = 5 * 60 // Refresh if < 5 min remaining
 const ISSUER = 'epowerfix'
 const AUDIENCE = 'epowerfix-users'
 
@@ -148,6 +149,41 @@ export async function requireAdmin(): Promise<AuthResult> {
  */
 export function jsonResponse(data: unknown, status = 200, init?: ResponseInit) {
   return Response.json(data, { status, ...init })
+}
+
+/**
+ * Refreshes the session token if it's near expiry.
+ * Called by API routes after requireAuth/requireAdmin to keep sessions alive
+ * without forcing re-login. The proxy.ts layer signals when refresh is needed
+ * via the 'X-Token-Refresh-Needed' header.
+ *
+ * Usage in API routes:
+ *   const auth = await requireAdmin()
+ *   if (!auth.ok) return auth.response!
+ *   await maybeRefreshSession(auth.user)  // Auto-refresh if near expiry
+ */
+export async function maybeRefreshSession(user: SessionUser): Promise<void> {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get(COOKIE_NAME)?.value
+    if (!token) return
+
+    const secret = getJwtSecret()
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: ISSUER,
+      audience: AUDIENCE,
+    })
+
+    const now = Math.floor(Date.now() / 1000)
+    const remaining = (payload.exp as number) - now
+
+    // Only refresh if token is within the refresh threshold
+    if (remaining < REFRESH_THRESHOLD_SECONDS) {
+      await createSession(user)
+    }
+  } catch {
+    // Token invalid or expired — silently skip (will be caught on next request)
+  }
 }
 
 /**
