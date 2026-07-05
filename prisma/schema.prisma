@@ -160,6 +160,7 @@ model Product {
   taxId       String?           @map("tax_id")
   tax         Tax?              @relation(fields: [taxId], references: [id])
   questions   ProductQuestion[]
+  kitItems    ProjectKitItem[]
 
   @@index([categoryId])
   @@index([brandId])
@@ -644,8 +645,28 @@ model Project {
 
   cartItems  CartItem[]
   orderItems OrderItem[]
+  kitItems   ProjectKitItem[]
 
   @@map("projects")
+}
+
+model ProjectKitItem {
+  id          String  @id @default(uuid())
+  projectId   String  @map("project_id")
+  productId   String  @map("product_id")
+  quantity    Int     @default(1)
+  isRequired  Boolean @default(true) @map("is_required")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, productId])
+  @@index([projectId])
+  @@index([productId])
+  @@map("project_kit_items")
 }
 
 model FlashSale {
