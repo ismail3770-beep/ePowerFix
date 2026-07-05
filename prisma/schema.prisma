@@ -283,9 +283,8 @@ model Order {
   @@index([status])
   @@index([createdAt])
   // Performance: additional indexes for admin + tracking
-  @@index([orderNumber])   // Order tracking by order number
+  // Note: orderNumber already has @unique on the field — no need for @@unique
   @@index([paymentStatus]) // Admin: filter by payment status
-  @@unique([orderNumber])  // Ensure no duplicate order numbers
 
   @@map("orders")
 }
