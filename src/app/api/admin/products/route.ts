@@ -10,6 +10,8 @@ import {
   stringifyJsonField,
 } from '@/lib/admin-api'
 import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
+import { cache } from '@/lib/cache'
+import { startSpan } from '@/lib/monitoring'
 
 function slugify(text: string): string {
   return text
@@ -75,24 +77,29 @@ export const GET = adminGetRoute(async (request) => {
     ]
   }
 
-  const [products, total] = await Promise.all([
-    db.product.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: { category: true, brand: true },
-    }),
-    db.product.count({ where }),
-  ])
+  const span = startSpan('admin.products.list')
+  try {
+    const [products, total] = await Promise.all([
+      db.product.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { category: true, brand: true },
+      }),
+      db.product.count({ where }),
+    ])
 
-  const parsed = products.map((p: any) => ({
-    ...p,
-    images: parseJsonField(p.images),
-    tags: parseJsonField(p.tags),
-  }))
+    const parsed = products.map((p: any) => ({
+      ...p,
+      images: parseJsonField(p.images),
+      tags: parseJsonField(p.tags),
+    }))
 
-  return listResponse(parsed, total, page, limit)
+    return listResponse(parsed, total, page, limit)
+  } finally {
+    span.finish()
+  }
 })
 
 // ─── POST: Create product ────────────────────────────────────────────────────
@@ -146,6 +153,9 @@ export const POST = adminRoute(createProductSchema, async (request, body, user) 
     },
     include: { category: true, brand: true },
   })
+
+  // Invalidate the public products cache so the new item shows up.
+  await cache.invalidatePattern('products:*')
 
   return jsonResponse({
     data: {

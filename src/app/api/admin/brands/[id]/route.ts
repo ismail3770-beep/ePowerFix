@@ -6,6 +6,7 @@ import {
   errorResponse,
 } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { cache } from '@/lib/cache'
 
 function slugify(text: string): string {
   return text
@@ -88,6 +89,9 @@ export const PUT = withErrorHandling(async (
     include: { _count: { select: { products: true } } },
   })
 
+  // Invalidate the public brands cache so the updated brand shows up.
+  await cache.del('brands:all')
+
   return jsonResponse({ data: brand })
 })
 
@@ -108,6 +112,9 @@ export const DELETE = withErrorHandling(async (
     where: { id },
     data: { isDeleted: true, isActive: false },
   })
+
+  // Invalidate the public brands cache so the deleted brand is removed.
+  await cache.del('brands:all')
 
   return jsonResponse({ message: 'Brand deleted' })
 })

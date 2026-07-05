@@ -6,6 +6,7 @@ import {
   errorResponse,
 } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { cache } from '@/lib/cache'
 
 function slugify(text: string): string {
   return text
@@ -107,6 +108,9 @@ export const PUT = withErrorHandling(async (
     },
   })
 
+  // Invalidate the public product-categories cache.
+  await cache.del('product-categories:all')
+
   return jsonResponse({ data: category })
 })
 
@@ -127,6 +131,9 @@ export const DELETE = withErrorHandling(async (
     where: { id },
     data: { isDeleted: true, isActive: false },
   })
+
+  // Invalidate the public product-categories cache.
+  await cache.del('product-categories:all')
 
   return jsonResponse({ message: 'Category deleted' })
 })

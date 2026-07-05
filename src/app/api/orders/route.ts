@@ -7,6 +7,7 @@ import {
 } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
 import { publicRoute, publicGetRoute, authGetRoute, z } from '@/lib/api-handler'
+import { startSpan } from '@/lib/monitoring'
 
 function orderNumber(seq: number): string {
   const d = new Date()
@@ -182,6 +183,7 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
   })
   const newOrderNumber = orderNumber(countToday + 1)
 
+  const span = startSpan('orders.create')
   const order = await db.order.create({
     data: {
       orderNumber: newOrderNumber,
@@ -203,6 +205,7 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
     },
     include: { items: true },
   })
+  span.finish()
 
   // Record an initial history entry.
   await db.orderHistory.create({

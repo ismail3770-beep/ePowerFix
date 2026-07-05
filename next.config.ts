@@ -42,7 +42,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   typescript: {
-    // TODO: Phase 2 — set to false after resolving all type errors
+    // TODO: Phase 2 — set to false after resolving all type errors.
+    // Last attempt (ROADMAP-COMPLETE) found 99 errors with noImplicitAny:true.
+    // Reverted to true to keep builds passing until errors are addressed.
     ignoreBuildErrors: true,
   },
   reactStrictMode: true,

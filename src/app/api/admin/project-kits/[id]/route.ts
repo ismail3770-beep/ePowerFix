@@ -7,6 +7,7 @@ import {
 } from '@/lib/admin-api'
 import { parseJsonField, stringifyJsonField } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { cache } from '@/lib/cache'
 
 // ─── Zod Schema for PUT (partial) ─────────────────────────────────────────────
 
@@ -88,6 +89,9 @@ export const PUT = withErrorHandling(async (
 
   const kit = await db.projectKit.update({ where: { id }, data })
 
+  // Invalidate the public project-kits cache so the updated kit shows up.
+  await cache.del('project-kits:active')
+
   return jsonResponse({ data: { ...kit, images: parseJsonField(kit.images) } })
 })
 
@@ -105,5 +109,9 @@ export const DELETE = withErrorHandling(async (
   if (!existing) return errorResponse('Kit not found', 404)
 
   await db.projectKit.delete({ where: { id } })
+
+  // Invalidate the public project-kits cache so the deleted kit is removed.
+  await cache.del('project-kits:active')
+
   return jsonResponse({ message: 'Kit deleted' })
 })

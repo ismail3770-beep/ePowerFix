@@ -10,6 +10,7 @@ import {
   stringifyJsonField,
 } from '@/lib/admin-api'
 import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
+import { cache } from '@/lib/cache'
 
 function slugify(text: string): string {
   return text
@@ -100,6 +101,9 @@ export const POST = adminRoute(createKitSchema, async (request, body, user) => {
       isActive: !!isActive,
     },
   })
+
+  // Invalidate the public project-kits cache so the new kit shows up.
+  await cache.del('project-kits:active')
 
   return jsonResponse({
     data: { ...kit, images: parseJsonField(kit.images) },

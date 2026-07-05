@@ -26,24 +26,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@epowerfix/db": [
-        "./packages/db/src"
-      ],
-      "@epowerfix/types": [
-        "./packages/types/src"
-      ],
-      "@epowerfix/config": [
-        "./packages/config/src"
-      ],
-      "@epowerfix/utils": [
-        "./packages/utils/src"
-      ],
-      "@epowerfix/security": [
-        "./packages/security/src"
-      ],
-      "@epowerfix/i18n": [
-        "./packages/i18n/src"
       ]
     }
   },
@@ -55,8 +37,6 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "ePowerFix",
-    "src_backup_starter"
+    "node_modules"
   ]
 }

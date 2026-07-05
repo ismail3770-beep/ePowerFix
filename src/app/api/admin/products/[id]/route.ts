@@ -8,6 +8,7 @@ import {
   stringifyJsonField,
 } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { cache } from '@/lib/cache'
 
 function slugify(text: string): string {
   return text
@@ -146,6 +147,9 @@ export const PUT = withErrorHandling(async (
     include: { category: true, brand: true },
   })
 
+  // Invalidate the public products cache so the updated item shows up.
+  await cache.invalidatePattern('products:*')
+
   return jsonResponse({
     data: {
       ...product,
@@ -172,6 +176,9 @@ export const DELETE = withErrorHandling(async (
     where: { id },
     data: { isDeleted: true, isActive: false },
   })
+
+  // Invalidate the public products cache so the deleted item is removed.
+  await cache.invalidatePattern('products:*')
 
   return jsonResponse({ message: 'Product deleted' })
 })

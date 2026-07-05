@@ -2,11 +2,14 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
+import { cache, cacheKeys } from '@/lib/cache'
 
 /**
  * GET /api/project-kits
  * Public list of active project kits (sellable bundles).
  * Query: search, category
+ *
+ * Cached for 5 minutes (TTL 300s) under the single key 'project-kits:active'.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -14,23 +17,25 @@ export async function GET(request: NextRequest) {
     const search = url.searchParams.get('search') || ''
     const category = url.searchParams.get('category') || undefined
 
-    const where: any = { isActive: true }
-    if (category) where.category = category
-    if (search) {
-      where.OR = [
-        { title: { contains: search } },
-        { titleBn: { contains: search } },
-        { description: { contains: search } },
-        { category: { contains: search } },
-      ]
-    }
+    const kits = await cache.getOrSet(cacheKeys.projectKits(), 300, async () => {
+      const where: any = { isActive: true }
+      if (category) where.category = category
+      if (search) {
+        where.OR = [
+          { title: { contains: search } },
+          { titleBn: { contains: search } },
+          { description: { contains: search } },
+          { category: { contains: search } },
+        ]
+      }
 
-    const kits = await db.projectKit.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        _count: { select: { items: true } },
-      },
+      return await db.projectKit.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { items: true } },
+        },
+      })
     })
 
     const parsed = kits.map((k: any) => ({

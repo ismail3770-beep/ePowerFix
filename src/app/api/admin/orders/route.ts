@@ -7,6 +7,7 @@ import {
 } from '@/lib/admin-api'
 import { getPagination, listResponse } from '@/lib/admin-api'
 import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
+import { startSpan } from '@/lib/monitoring'
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
@@ -53,21 +54,26 @@ export const GET = adminGetRoute(async (request) => {
     ]
   }
 
-  const [orders, total] = await Promise.all([
-    db.order.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: { select: { id: true, name: true, email: true, phone: true } },
-        items: true,
-      },
-    }),
-    db.order.count({ where }),
-  ])
+  const span = startSpan('admin.orders.list')
+  try {
+    const [orders, total] = await Promise.all([
+      db.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, name: true, email: true, phone: true } },
+          items: true,
+        },
+      }),
+      db.order.count({ where }),
+    ])
 
-  return listResponse(orders, total, page, limit)
+    return listResponse(orders, total, page, limit)
+  } finally {
+    span.finish()
+  }
 })
 
 // ─── POST /api/admin/orders ───────────────────────────────────────────────────
