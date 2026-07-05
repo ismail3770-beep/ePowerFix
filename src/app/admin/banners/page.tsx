@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
 import { toast } from "sonner";
@@ -73,7 +74,7 @@ export default function AdminBannersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("all");
   const [dialog, setDialog] = useState<{ open: boolean; edit?: Banner }>({ open: false });
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(() => loadFormDraft("admin-banner-add", defaultForm));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
 
@@ -103,6 +104,9 @@ export default function AdminBannersPage() {
 
   useEffect(() => { fetchBanners(); }, [fetchBanners]);
 
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-banner-add", dialog.open && !dialog.edit ? form : defaultForm);
+
   const filteredBanners = activeTab === "all"
     ? banners
     : banners.filter((b) => b.type === activeTab || (b.type == null && activeTab === "hero"));
@@ -111,7 +115,9 @@ export default function AdminBannersPage() {
     const sameTypeBanners = type === "all"
       ? banners
       : banners.filter((b) => b.type === type || (b.type == null && type === "hero"));
-    setForm({ ...defaultForm, type, position: sameTypeBanners.length });
+    // Restore draft if one exists, otherwise start with defaults for this type.
+    const draft = loadFormDraft("admin-banner-add", { ...defaultForm, type, position: sameTypeBanners.length });
+    setForm(draft);
     setDialog({ open: true });
   }
 
@@ -144,6 +150,7 @@ export default function AdminBannersPage() {
         toast.success("Banner created");
       }
       setDialog({ open: false });
+      if (!dialog.edit) clearFormDraft("admin-banner-add");
       fetchBanners();
     } catch (err: any) {
       toast.error(err.message || "Failed to save banner");

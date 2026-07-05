@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import {
@@ -77,7 +78,7 @@ export default function AdminBlogPage() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<BlogPost | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() => loadFormDraft("admin-blog-add", emptyForm));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -97,9 +98,12 @@ export default function AdminBlogPage() {
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-blog-add", dialogOpen && !editing ? form : emptyForm);
+
   function openCreate() {
     setEditing(null);
-    setForm(emptyForm);
+    setForm(loadFormDraft("admin-blog-add", emptyForm));
     setDialogOpen(true);
   }
 
@@ -147,6 +151,7 @@ export default function AdminBlogPage() {
       }
 
       setDialogOpen(false);
+      if (!editing) clearFormDraft("admin-blog-add");
       fetchPosts();
     } catch (err: any) {
       toast.error(err.message || "Failed to save post");

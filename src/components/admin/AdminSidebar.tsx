@@ -130,7 +130,7 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onTogg
 }) {
   const { user, logout } = useAuthStore();
   const router = useRouter();
-  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set(["products", "orders"]));
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [badgeCounts, setBadgeCounts] = useState<Record<string, number>>({});
 

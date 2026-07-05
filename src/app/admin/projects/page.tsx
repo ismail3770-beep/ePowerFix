@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
@@ -49,7 +50,7 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialog, setDialog] = useState<{ open: boolean; edit?: Project }>({ open: false });
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(() => loadFormDraft("admin-project-add", defaultForm));
   const [saving, setSaving] = useState(false);
 
   const fetchProjects = useCallback(async () => {
@@ -65,9 +66,12 @@ export default function AdminProjectsPage() {
     }
   }, []);
 
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-project-add", dialog.open && !dialog.edit ? form : defaultForm);
+
   const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
   useEffect(() => {
-    setAddNew("Add Project", () => { setForm(defaultForm); setDialog({ open: true }); });
+    setAddNew("Add Project", () => { setForm(loadFormDraft("admin-project-add", defaultForm)); setDialog({ open: true }); });
     return () => setAddNew("", null);
   }, [setAddNew]);
 
@@ -123,6 +127,7 @@ export default function AdminProjectsPage() {
         toast.success("Project created");
       }
       setDialog({ open: false });
+      if (!dialog.edit) clearFormDraft("admin-project-add");
       fetchProjects();
     } catch (err: any) {
       toast.error(err?.message || "Failed to save");

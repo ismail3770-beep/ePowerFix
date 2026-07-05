@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
 import { toast } from "sonner";
@@ -73,7 +74,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(initialFilters);
   const [dialog, setDialog] = useState<{ open: boolean; edit?: Product }>({ open: false });
-  const [form, setForm] = useState<ProductForm>(defaultProduct);
+  const [form, setForm] = useState<ProductForm>(() => loadFormDraft<ProductForm>("admin-product-add", defaultProduct));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -120,8 +121,13 @@ export default function AdminProductsPage() {
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
   useEffect(() => { fetchCategories(); fetchBrands(); }, [fetchCategories, fetchBrands]);
 
+  // Persist the add-form draft to localStorage so a refresh / navigation
+  // doesn't lose progress. Only auto-save while in "add" mode (no edit target).
+  useFormDraft("admin-product-add", dialog.open && !dialog.edit ? form : defaultProduct);
+
   function openAdd() {
-    setForm(defaultProduct);
+    // Restore any previously-saved draft (or fall back to a blank form).
+    setForm(loadFormDraft<ProductForm>("admin-product-add", defaultProduct));
     setDialog({ open: true });
   }
 
@@ -165,6 +171,8 @@ export default function AdminProductsPage() {
         toast.success("Product created");
       }
       setDialog({ open: false });
+      // Clear the add-form draft now that the product was saved.
+      if (!dialog.edit) clearFormDraft("admin-product-add");
       fetchProducts();
     } catch (err: any) {
       toast.error(err.message || "Failed to save product");

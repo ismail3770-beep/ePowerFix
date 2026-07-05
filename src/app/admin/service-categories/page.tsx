@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
@@ -40,7 +41,7 @@ export default function AdminServiceCategoriesPage() {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialog, setDialog] = useState<{ open: boolean; edit?: ServiceCategory }>({ open: false });
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(() => loadFormDraft("admin-service-category-add", defaultForm));
   const [saving, setSaving] = useState(false);
 
   const fetchCategories = useCallback(async () => {
@@ -56,9 +57,12 @@ export default function AdminServiceCategoriesPage() {
     }
   }, []);
 
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-service-category-add", dialog.open && !dialog.edit ? form : defaultForm);
+
   const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
   useEffect(() => {
-    setAddNew("Add Service Category", () => { setForm(defaultForm); setDialog({ open: true }); });
+    setAddNew("Add Service Category", () => { setForm(loadFormDraft("admin-service-category-add", defaultForm)); setDialog({ open: true }); });
     return () => setAddNew("", null);
   }, [setAddNew]);
 
@@ -96,6 +100,7 @@ export default function AdminServiceCategoriesPage() {
         toast.success("Category created");
       }
       setDialog({ open: false });
+      if (!dialog.edit) clearFormDraft("admin-service-category-add");
       fetchCategories();
     } catch (err: any) {
       toast.error(err?.message || "Failed to save");

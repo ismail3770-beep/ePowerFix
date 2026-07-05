@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -23,7 +24,8 @@ export default function BrandsPage() {
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState(false);
   const [editing, setEditing] = useState<Brand | null>(null);
-  const [form, setForm] = useState({ name: "", slug: "", logo: "", description: "" });
+  const defaultBrandForm = { name: "", slug: "", logo: "", description: "" };
+  const [form, setForm] = useState(() => loadFormDraft("admin-brand-add", defaultBrandForm));
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
@@ -37,9 +39,12 @@ export default function BrandsPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
+  useFormDraft("admin-brand-add", !editing ? form : defaultBrandForm);
+
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: "", slug: "", logo: "", description: "" });
+    setForm(loadFormDraft("admin-brand-add", defaultBrandForm));
     setDialog(true);
   };
 
@@ -62,6 +67,7 @@ export default function BrandsPage() {
       if (editing) { await apiFetch(`/api/admin/brands/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Brand updated"); }
       else { await apiFetch("/api/admin/brands", { method: "POST", body: JSON.stringify(payload) }); toast.success("Brand created"); }
       setDialog(false);
+      if (!editing) clearFormDraft("admin-brand-add");
       load();
     } catch { toast.error("Failed to save brand"); }
     finally { setSaving(false); }
