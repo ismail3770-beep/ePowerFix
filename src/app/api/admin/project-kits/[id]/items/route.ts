@@ -3,23 +3,23 @@ import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 
 /**
- * GET /api/admin/project-kits/[projectId]/items
+ * GET /api/admin/project-kits/[kitId]/items
  * List all product items (components) in a project kit.
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
   try {
-    const { projectId } = await params
-    const project = await db.project.findUnique({ where: { id: projectId } })
-    if (!project) return errorResponse('Project not found', 404)
+    const { id: kitId } = await params
+    const kit = await db.projectKit.findUnique({ where: { id: kitId } })
+    if (!kit) return errorResponse('Kit not found', 404)
 
     const items = await db.projectKitItem.findMany({
-      where: { projectId },
+      where: { kitId },
       include: {
         product: {
           select: {
@@ -44,31 +44,31 @@ export async function GET(
 }
 
 /**
- * POST /api/admin/project-kits/[projectId]/items
+ * POST /api/admin/project-kits/[kitId]/items
  * Add a product to a project kit.
  * Body: { productId, quantity?, isRequired?, notes? }
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
   try {
-    const { projectId } = await params
+    const { id: kitId } = await params
     const body = await request.json()
     if (!body?.productId) return errorResponse('productId is required', 400)
 
-    const project = await db.project.findUnique({ where: { id: projectId } })
-    if (!project) return errorResponse('Project not found', 404)
+    const kit = await db.projectKit.findUnique({ where: { id: kitId } })
+    if (!kit) return errorResponse('Kit not found', 404)
 
     const product = await db.product.findUnique({ where: { id: body.productId } })
     if (!product) return errorResponse('Product not found', 404)
 
     // Prevent duplicates — if already added, just update quantity.
     const existing = await db.projectKitItem.findUnique({
-      where: { projectId_productId: { projectId, productId: body.productId } },
+      where: { kitId_productId: { kitId, productId: body.productId } },
     })
     if (existing) {
       const updated = await db.projectKitItem.update({
@@ -81,7 +81,7 @@ export async function POST(
 
     const item = await db.projectKitItem.create({
       data: {
-        projectId,
+        kitId,
         productId: body.productId,
         quantity: Number(body.quantity) || 1,
         isRequired: body.isRequired !== undefined ? !!body.isRequired : true,

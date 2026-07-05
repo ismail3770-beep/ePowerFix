@@ -42,15 +42,14 @@ interface Kit {
   titleBn?: string | null;
   slug: string;
   description: string;
-  price: number | null;
+  price: number;
   salePrice: number | null;
   coverImage: string | null;
   images: string[];
-  isSellable: boolean;
-  status?: string;
-  client?: string | null;
-  location?: string | null;
-  rating?: number;
+  category: string | null;
+  difficulty: string | null;
+  stock: number;
+  itemCount?: number;
   createdAt?: string;
 }
 
@@ -139,7 +138,7 @@ function KitListCardSkeleton() {
 function KitCardGrid({ kit }: { kit: Kit }) {
   const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
   const addItem = useCartStore((s) => s.addItem);
-  const buyable = kit.isSellable && kit.price != null;
+  const buyable = kit.price != null;
   const price = Number(kit.salePrice || kit.price || 0);
   const hasDiscount =
     kit.salePrice != null && kit.price != null && kit.salePrice < kit.price;
@@ -261,7 +260,7 @@ function ShoppingCart({ className = "" }: { className?: string }) {
 function KitCardList({ kit }: { kit: Kit }) {
   const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
   const addItem = useCartStore((s) => s.addItem);
-  const buyable = kit.isSellable && kit.price != null;
+  const buyable = kit.price != null;
   const price = Number(kit.salePrice || kit.price || 0);
   const hasDiscount =
     kit.salePrice != null && kit.price != null && kit.salePrice < kit.price;
@@ -578,23 +577,18 @@ export default function ProjectKitsPage() {
     setSearchQuery(appliedSearch);
   }, [appliedSearch, setSearchQuery]);
 
-  /* ---- Fetch project kits (sellable projects) ---- */
+  /* ---- Fetch project kits ---- */
   const { data, isLoading, isError } = useQuery<{ data: Kit[] }>({
     queryKey: ["project-kits-page", appliedSearch],
     queryFn: () => {
-      let url = "/api/projects?sellable=true";
+      let url = "/api/project-kits";
       if (appliedSearch)
-        url += `&search=${encodeURIComponent(appliedSearch)}`;
+        url += `?search=${encodeURIComponent(appliedSearch)}`;
       return apiFetch(url);
     },
   });
 
-  const allKits: Kit[] = data?.data ?? [];
-  // Prefer sellable kits; fall back to all projects if API returned none.
-  const sellableKits = allKits.filter(
-    (k) => k.isSellable && k.price != null,
-  );
-  const baseKits = sellableKits.length > 0 ? sellableKits : allKits;
+  const baseKits: Kit[] = data?.data ?? [];
 
   /* ---- Derived data with client-side sort + filter ---- */
   const processedKits = useMemo(() => {

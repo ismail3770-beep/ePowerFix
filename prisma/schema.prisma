@@ -160,7 +160,7 @@ model Product {
   taxId       String?           @map("tax_id")
   tax         Tax?              @relation(fields: [taxId], references: [id])
   questions   ProductQuestion[]
-  kitItems    ProjectKitItem[]
+  kitItems    ProjectKitItem[]  @relation("ProductKitItems")
 
   @@index([categoryId])
   @@index([brandId])
@@ -197,7 +197,7 @@ model CartItem {
   productId String?   @map("product_id")
   variantId String?   @map("variant_id")
   serviceId String?   @map("service_id")
-  projectId String?   @map("project_id")
+  projectId String?   @map("kit_id")
   quantity  Int       @default(1)
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -206,7 +206,7 @@ model CartItem {
   product Product?        @relation(fields: [productId], references: [id])
   variant ProductVariant? @relation(fields: [variantId], references: [id])
   service Service?        @relation(fields: [serviceId], references: [id])
-  project Project?        @relation(fields: [projectId], references: [id])
+  kit     ProjectKit?     @relation(fields: [projectId], references: [id])
 
   @@index([userId])
   @@index([productId])
@@ -353,7 +353,7 @@ model OrderItem {
   productId    String?  @map("product_id")
   variantId    String?  @map("variant_id")
   serviceId    String?  @map("service_id")
-  projectId    String?  @map("project_id")
+  projectId    String?  @map("kit_id")
   productName  String   @map("product_name")
   productImage String?  @map("product_image")
   variantName  String?  @map("variant_name")
@@ -368,7 +368,7 @@ model OrderItem {
   product Product?        @relation(fields: [productId], references: [id])
   variant ProductVariant? @relation(fields: [variantId], references: [id])
   service Service?        @relation(fields: [serviceId], references: [id])
-  project Project?        @relation(fields: [projectId], references: [id])
+  kit     ProjectKit?     @relation(fields: [projectId], references: [id])
 
   @@index([orderId])
   @@index([productId])
@@ -633,26 +633,48 @@ model Project {
   client      String?
   location    String?
   status      String   @default("COMPLETED")
-  // Sellable-project fields. isSellable=false keeps a project as portfolio-only.
-  isSellable  Boolean  @default(false) @map("is_sellable")
-  price       Float?
-  salePrice   Float?   @map("sale_price")
   isDeleted   Boolean  @default(false) @map("is_deleted")
   startDate   DateTime? @map("start_date")
   endDate     DateTime? @map("end_date")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  @@map("projects")
+}
+
+// ============================================================
+// Project Kit — sellable bundle of products (separate from
+// portfolio Projects). A kit has its own title, price, and a
+// list of product components (ProjectKitItem).
+// ============================================================
+model ProjectKit {
+  id          String   @id @default(uuid())
+  title       String
+  titleBn     String?  @map("title_bn")
+  slug        String   @unique
+  description String
+  coverImage  String?  @map("cover_image")
+  images      String   @default("[]") // JSON-stringified array of URLs
+  category    String?  // e.g. "Arduino", "IoT", "PLC", "Solar"
+  difficulty  String?  // "Beginner", "Intermediate", "Advanced"
+  price       Float
+  salePrice   Float?   @map("sale_price")
+  stock       Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
   cartItems  CartItem[]
   orderItems OrderItem[]
-  kitItems   ProjectKitItem[]
+  items      ProjectKitItem[]
 
-  @@map("projects")
+  @@map("project_kits")
 }
 
 model ProjectKitItem {
   id          String  @id @default(uuid())
-  projectId   String  @map("project_id")
+  kitId       String  @map("kit_id")
   productId   String  @map("product_id")
   quantity    Int     @default(1)
   isRequired  Boolean @default(true) @map("is_required")
@@ -660,11 +682,11 @@ model ProjectKitItem {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  kit     ProjectKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  product Product    @relation("ProductKitItems", fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, productId])
-  @@index([projectId])
+  @@unique([kitId, productId])
+  @@index([kitId])
   @@index([productId])
   @@map("project_kit_items")
 }

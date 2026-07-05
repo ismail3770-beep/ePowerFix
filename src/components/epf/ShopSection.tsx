@@ -18,16 +18,19 @@ interface Product {
   category?: { name: string; slug: string } | null;
 }
 
-interface Project {
+interface ProjectKit {
   id: string;
   title: string;
   slug: string;
-  price: number | null;
+  description: string;
+  price: number;
   salePrice: number | null;
   coverImage: string | null;
   images: string[];
-  isSellable: boolean;
-  location?: string | null;
+  category: string | null;
+  difficulty: string | null;
+  stock: number;
+  itemCount?: number;
 }
 
 function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
@@ -92,15 +95,11 @@ export default function ShopSection() {
   });
   const products = (productsData?.data?.data ?? []).slice(0, 6);
 
-  const { data: projectsData, isLoading: projectsLoading } = useQuery<{ data: Project[] }>({
+  const { data: kitsData, isLoading: projectsLoading } = useQuery<{ data: ProjectKit[] }>({
     queryKey: ["project-kits-home"],
-    queryFn: () => apiFetch("/api/projects"),
+    queryFn: () => apiFetch("/api/project-kits"),
   });
-  // Kits are the sellable projects (Arduino/IoT/PLC build kits). Prefer sellable
-  // ones; if the catalogue has none yet, fall back to recent projects.
-  const allProjects = projectsData?.data ?? [];
-  const sellableKits = allProjects.filter((p) => p.isSellable && p.price != null);
-  const kits = (sellableKits.length > 0 ? sellableKits : allProjects).slice(0, 6);
+  const kits = (kitsData?.data ?? []).slice(0, 6);
 
   const addProduct = (e: React.MouseEvent, p: Product) => {
     e.preventDefault();
@@ -116,7 +115,7 @@ export default function ShopSection() {
     toast.success("Added to cart", { description: p.name });
   };
 
-  const addKit = (e: React.MouseEvent, k: Project) => {
+  const addKit = (e: React.MouseEvent, k: ProjectKit) => {
     e.preventDefault();
     e.stopPropagation();
     addItem({
@@ -212,7 +211,7 @@ export default function ShopSection() {
             {projectsLoading
               ? Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)
               : kits.map((kit) => {
-                  const buyable = kit.isSellable && kit.price != null;
+                  const buyable = kit.price != null;
                   const price = Number(kit.salePrice || kit.price || 0);
                   return (
                     <div

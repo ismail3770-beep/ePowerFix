@@ -3,22 +3,21 @@ import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 
 /**
- * PUT /api/admin/project-kits/[projectId]/items/[itemId]
- * Update a kit item (quantity, isRequired, notes).
+ * PUT /api/admin/project-kits/[kitId]/items/[itemId]
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; itemId: string }> }
+  { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
   try {
-    const { projectId, itemId } = await params
+    const { kitId, itemId } = await params
     const body = await request.json()
 
     const existing = await db.projectKitItem.findFirst({
-      where: { id: itemId, projectId },
+      where: { id: itemId, kitId },
     })
     if (!existing) return errorResponse('Kit item not found', 404)
 
@@ -41,20 +40,19 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/admin/project-kits/[projectId]/items/[itemId]
- * Remove a product from a project kit.
+ * DELETE /api/admin/project-kits/[kitId]/items/[itemId]
  */
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ projectId: string; itemId: string }> }
+  { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.response!
 
   try {
-    const { projectId, itemId } = await params
+    const { kitId, itemId } = await params
     const existing = await db.projectKitItem.findFirst({
-      where: { id: itemId, projectId },
+      where: { id: itemId, kitId },
     })
     if (!existing) return errorResponse('Kit item not found', 404)
 
