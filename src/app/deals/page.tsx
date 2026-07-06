@@ -114,7 +114,7 @@ function CountdownTimer() {
 /* ------------------------------------------------------------------ */
 function DealCardSkeleton() {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg animate-pulse">
+    <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] animate-pulse">
       <div className="aspect-square bg-[#F1F5F9] rounded-t-lg" />
       <div className="p-3.5 space-y-2.5">
         <div className="h-3.5 bg-[#F1F5F9] rounded w-full" />
@@ -196,10 +196,10 @@ function DealCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group flex flex-col">
+    <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 group flex flex-col">
       {/* Image Area */}
       <div
-        className="relative aspect-square bg-[#F8FAFC] flex items-center justify-center overflow-hidden rounded-t-lg cursor-pointer"
+        className="relative aspect-square bg-[#F8FAFC] flex items-center justify-center overflow-hidden cursor-pointer"
         onClick={handleViewDetails}
       >
         {isDigital ? (
@@ -209,75 +209,74 @@ function DealCard({ product }: { product: Product }) {
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <Package className="h-10 w-10 text-[#CBD5E1]" />
         )}
 
-        {/* Discount Badge */}
+        {/* Discount Badge — top left */}
         {discount > 0 && (
-          <span className="absolute top-2.5 left-2.5 bg-red-500 text-white text-[14px] font-bold px-2.5 py-1 rounded-lg shadow-sm">
-            Save {discount}%
+          <span className="absolute top-2 left-2 bg-epf-500 text-white text-[11px] font-bold px-1.5 py-0.5 leading-tight tracking-wide z-10">
+            -{discount}%
           </span>
         )}
 
-        {/* Flash Deal Ribbon */}
-        <span className="absolute top-2.5 right-2.5 bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm">
-          Flash Deal
+        {/* Flash Deal Ribbon — top right */}
+        <span className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 leading-tight z-10">
+          Flash
         </span>
-
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 rounded-t-lg">
-          <button
-            onClick={handleViewDetails}
-            className="flex items-center gap-1.5 bg-white text-[#111827] text-[13px] font-medium px-4 py-2 rounded-lg hover:bg-white/90 transition-colors"
-          >
-            <Eye className="h-4 w-4" />
-            View Details
-          </button>
-        </div>
       </div>
 
-      {/* Info Area */}
-      <div className="p-3.5 flex flex-col flex-1">
-        {/* Category label */}
-        {product.category?.name && (
-          <p className="text-[11px] text-[#6B7280] mb-1 uppercase tracking-wide">
-            {product.category.name}
-          </p>
+      {/* Add to Cart — full-width dark, directly under image */}
+      <button
+        onClick={handleAddToCart}
+        className={`w-full h-9 flex items-center justify-center gap-1.5 text-[13px] font-bold transition-colors duration-150 ${
+          added
+            ? "bg-green-600 text-white"
+            : "bg-slate-900 hover:bg-slate-800 text-white"
+        }`}
+      >
+        {added ? (
+          <>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Added
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-3.5 h-3.5" />
+            Add to Cart
+          </>
         )}
+      </button>
 
-        {/* Product Name */}
+      {/* Info Area */}
+      <div className="px-2.5 pt-2 pb-3 flex flex-col flex-1 gap-1">
+        {/* Product Name — 13px font-normal like reference */}
         <button
           onClick={handleViewDetails}
-          className="block text-[14px] text-[#374151] font-medium line-clamp-2 leading-snug mb-2 hover:text-epf-500 transition-colors text-left w-full"
+          className="block text-[13px] text-slate-800 font-normal line-clamp-2 leading-[1.4] hover:text-epf-600 transition-colors text-left w-full min-h-[2.4rem]"
         >
           {product.name}
         </button>
 
-        {/* Price Section */}
-        <div className="flex items-baseline gap-2 mb-1.5">
-          <span className="text-[18px] font-bold text-epf-500">
+        {/* Price Section — INLINE: strikethrough + bold */}
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          {product.comparePrice && (
+            <del className="text-[13px] font-normal text-slate-400">
+              ৳{(product.comparePrice ?? 0).toLocaleString()}
+            </del>
+          )}
+          <span className="text-[14px] font-bold text-epf-600">
             ৳{(product.price ?? 0).toLocaleString()}
           </span>
-          {product.comparePrice && (
-            <span className="text-[14px] text-[#9CA3AF] line-through">
-              ৳{(product.comparePrice ?? 0).toLocaleString()}
-            </span>
-          )}
         </div>
-
-        {/* You Save */}
-        {savings > 0 && (
-          <p className="text-[12px] text-red-500 font-medium mb-2.5">
-            Save ৳{savings.toLocaleString()}
-          </p>
-        )}
 
         {/* Rating */}
         {product.rating > 0 && (
-          <div className="flex items-center gap-1 mb-2.5">
+          <div className="flex items-center gap-1 mt-0.5">
             <div className="flex items-center gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Star
@@ -285,63 +284,36 @@ function DealCard({ product }: { product: Product }) {
                   className={`h-3 w-3 ${
                     i < Math.round(product.rating)
                       ? "fill-amber-400 text-amber-400"
-                      : "text-[#E5E7EB]"
+                      : "text-slate-200"
                   }`}
                 />
               ))}
             </div>
-            <span className="text-[12px] text-[#6B7280]">
+            <span className="text-[11px] text-slate-400">
               ({product.review_count ?? product.reviews ?? 0})
             </span>
           </div>
         )}
 
         {/* Stock Progress Bar */}
-        <div className="mb-3">
+        <div className="mt-1.5">
           {stock > 0 && sold > 0 && (
-            <p className="text-[11px] text-[#9CA3AF] mb-1">
-              {sold.toLocaleString()} sold out of {(sold + stock).toLocaleString()}
+            <p className="text-[11px] text-slate-400 mb-0.5">
+              {sold.toLocaleString()} sold / {(sold + stock).toLocaleString()}
             </p>
           )}
-          <div className="h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="bg-gradient-to-r from-red-500 to-orange-500 h-full rounded-full transition-all duration-500"
+              className="bg-epf-500 h-full rounded-full transition-all duration-500"
               style={{ width: `${claimedPercent}%` }}
             />
           </div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-[11px] text-red-500 font-medium">
-              {claimedPercent}% claimed
+          {isLowStock && (
+            <span className="text-[11px] text-red-500 font-medium block mt-0.5">
+              Only {stock} left!
             </span>
-            {isLowStock && (
-              <span className="text-[11px] text-red-500 font-semibold animate-pulse">
-                🔥 Only {stock} left!
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          className={`w-full h-10 flex items-center justify-center gap-1.5 text-[14px] font-medium rounded-lg transition-all duration-300 mt-auto ${
-            added
-              ? "bg-green-500 text-white"
-              : "bg-epf-500 hover:bg-epf-600 text-white"
-          }`}
-        >
-          {added ? (
-            <>
-              <span className="text-[16px]">✓</span>
-              Added!
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-4 w-4" />
-              Add to Cart
-            </>
           )}
-        </button>
+        </div>
       </div>
     </div>
   );

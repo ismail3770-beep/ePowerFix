@@ -8,22 +8,18 @@ import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Premium Product Card — Clean, Real E-commerce Design
+// Premium Product Card — matches Active eCommerce reference layout
 // ═══════════════════════════════════════════════════════════════════════════
-// Layout (top → bottom), matching the reference screenshot:
-//   1. Image area (object-cover, square) — discount badge top-left, wishlist top-right
-//   2. Full-width "Add to Cart" button (dark, directly under image)
-//   3. Title (2-line clamp)
-//   4. Original price (strikethrough, small, muted)
-//   5. Discounted / current price (bold, brand color, larger)
+// Structure (matches reference .aiz-card-box):
+//   1. Square (no radius), borderless white card, subtle shadow
+//   2. Image area (square, object-CONTAIN, centered, light bg)
+//      - Discount badge top-left (epf-500)
+//      - Wishlist top-right
+//   3. Full-width dark "Add to Cart" button (directly under image)
+//   4. Title (13px, font-normal/400, 2-line clamp)
+//   5. Price row INLINE: original strikethrough (gray) + discounted (bold, epf-600)
 //
-// Design principles (avoid "AI vibe"):
-//   - Visible 1px border, subtle shadow — no floating/glassmorphism
-//   - No translate-y hover lift; only shadow + border tone shift
-//   - Restrained image zoom (scale-[1.03]) on hover
-//   - No overlay eye/quick-view icon — keeps the card quiet
-//   - No rating stars — keeps focus on price + CTA
-//   - 8px corner radius throughout
+// Colors kept as ePowerFix brand (epf-500/epf-600/slate) per requirement.
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface PremiumCardData {
@@ -59,7 +55,6 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
 
   const addItem = useCartStore((s) => s.addItem);
 
-  // Determine image URL
   const images = data.images || [];
   const imageUrl = data.image || data.coverImage || images[0] || "";
 
@@ -73,7 +68,6 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
   const originalPrice = data.comparePrice ?? data.salePrice ?? null;
   const showOriginal = originalPrice != null && originalPrice > displayPrice;
 
-  // Badge (discount % takes priority, then custom badge, then flags)
   const badgeText =
     discountPercent > 0
       ? `-${discountPercent}%`
@@ -110,21 +104,20 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
     <div
       onClick={handleClick}
       className={cn(
-        "group relative flex flex-col bg-white rounded-lg overflow-hidden",
-        "border border-slate-200",
-        "shadow-sm hover:shadow-md hover:border-slate-300",
+        "group relative flex flex-col bg-white",
+        "shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md",
         "transition-all duration-200 ease-out",
         "cursor-pointer",
         className
       )}
     >
-      {/* ─── Image Area ─── */}
-      <div className="relative aspect-square bg-slate-50 overflow-hidden">
+      {/* ─── Image Area (square, object-contain, light bg) ─── */}
+      <div className="relative aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -138,7 +131,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
 
         {/* Discount/Feature Badge — top left */}
         {badgeText && (
-          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[10px] font-bold text-white bg-epf-500 leading-none tracking-wide">
+          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 text-[11px] font-bold text-white bg-epf-500 leading-tight tracking-wide">
             {badgeText}
           </span>
         )}
@@ -152,12 +145,12 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         </div>
       </div>
 
-      {/* ─── Add to Cart — directly under image (matches reference) ─── */}
+      {/* ─── Add to Cart — full-width dark, directly under image ─── */}
       <button
         onClick={handleAddToCart}
         disabled={added}
         className={cn(
-          "w-full h-9 flex items-center justify-center gap-1.5 text-[12px] font-semibold transition-colors duration-150",
+          "w-full h-9 flex items-center justify-center gap-1.5 text-[13px] font-bold transition-colors duration-150",
           added
             ? "bg-green-600 text-white"
             : "bg-slate-900 text-white hover:bg-slate-800"
@@ -179,23 +172,23 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       </button>
 
       {/* ─── Content Area ─── */}
-      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-3 gap-1">
-        {/* Title */}
+      <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
+        {/* Title — 13px, font-normal (400) like reference */}
         <h3
-          className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-snug min-h-[2.4rem] group-hover:text-epf-600 transition-colors"
+          className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors"
           title={data.name}
         >
           {data.name}
         </h3>
 
-        {/* Price — original (strikethrough) above discounted (bold) */}
-        <div className="mt-auto pt-1 flex flex-col">
+        {/* Price — INLINE: original strikethrough + discounted bold */}
+        <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
           {showOriginal && (
-            <span className="text-[11px] text-slate-400 line-through leading-none mb-0.5">
+            <del className="text-[13px] font-normal text-slate-400">
               ৳{Number(originalPrice).toLocaleString()}
-            </span>
+            </del>
           )}
-          <span className="text-[16px] font-bold text-epf-600 leading-tight">
+          <span className="text-[14px] font-bold text-epf-600">
             ৳{Number(displayPrice).toLocaleString()}
           </span>
         </div>
@@ -212,10 +205,10 @@ export const PremiumCard = memo(PremiumCardBase);
 
 export function PremiumCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+    <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="aspect-square bg-slate-100 animate-pulse" />
       <div className="h-9 bg-slate-200 animate-pulse" />
-      <div className="p-3 space-y-2">
+      <div className="p-2.5 space-y-2">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
         <div className="h-4 bg-slate-100 rounded animate-pulse w-1/3 mt-1" />

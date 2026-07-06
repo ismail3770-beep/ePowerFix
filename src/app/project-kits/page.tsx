@@ -177,15 +177,15 @@ function KitCardGrid({ kit }: { kit: Kit }) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
-      className="group flex flex-col text-left bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer"
+      className="group flex flex-col text-left bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 cursor-pointer"
     >
-      {/* ─── Image Area ─── */}
-      <div className="relative aspect-square bg-slate-50 overflow-hidden">
+      {/* ─── Image Area (square, object-contain) ─── */}
+      <div className="relative aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
         {cover ? (
           <img
             src={cover}
             alt={kit.title}
-            className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = "none";
             }}
@@ -195,42 +195,42 @@ function KitCardGrid({ kit }: { kit: Kit }) {
             <Boxes className="w-9 h-9 text-slate-300" />
           </div>
         )}
-        <span className="absolute top-2 left-2 z-10 bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded leading-none tracking-wide">
+        <span className="absolute top-2 left-2 z-10 bg-epf-500 text-white text-[11px] font-bold px-1.5 py-0.5 leading-tight tracking-wide">
           {kitBadge}
         </span>
       </div>
 
-      {/* ─── Add to Cart — directly under image ─── */}
+      {/* ─── Add to Cart — full-width dark, directly under image ─── */}
       {buyable ? (
         <button
           onClick={addToCart}
-          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[12px] font-semibold transition-colors duration-150"
+          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-bold transition-colors duration-150"
         >
           <ShoppingCart /> Add to Cart
         </button>
       ) : (
         <button
           onClick={(e) => { e.stopPropagation(); openDetail(); }}
-          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[12px] font-semibold transition-colors duration-150"
+          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-bold transition-colors duration-150"
         >
           View Details
         </button>
       )}
 
       {/* ─── Content ─── */}
-      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-3 gap-1">
-        <h4 className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-snug min-h-[2.4rem] group-hover:text-epf-600 transition-colors">
+      <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
+        <h4 className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors">
           {kit.title}
         </h4>
-        <div className="mt-auto pt-1 flex flex-col">
+        <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
           {buyable ? (
             <>
               {hasDiscount && (
-                <span className="text-[11px] text-slate-400 line-through leading-none mb-0.5">
+                <del className="text-[13px] font-normal text-slate-400">
                   ৳{Number(kit.price).toLocaleString()}
-                </span>
+                </del>
               )}
-              <span className="text-[16px] font-bold text-epf-600 leading-tight">
+              <span className="text-[14px] font-bold text-epf-600">
                 ৳{price.toLocaleString()}
               </span>
             </>
