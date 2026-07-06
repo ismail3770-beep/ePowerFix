@@ -52,3 +52,33 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Development screenshots / debug images
+/upload/
+
+# Tool output dumps (AI/dev tool results)
+/tool-results/
+
+# Empty download placeholder (runtime-generated)
+/download/
+
+# Nested duplicate prisma folder (accidental)
+/prisma/prisma/
+
+# Build output for local packages
+/packages/*/dist/
+
+# Runtime process id files
+*.pid
+
+# Dev worklog and internal report files (not needed for the website)
+worklog.md
+project-report.html
+PROJECT_REPORT.pdf
+PROJECT_REPORT.md
+ENTERPRISE_ROADMAP.md
+SENTRY_ALERTING_GUIDE.md
+TYPESCRIPT_STRICT_PLAN.md
+
+# Do not commit the report PDF into public assets
+/public/PROJECT_REPORT.pdf
