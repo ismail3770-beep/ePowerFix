@@ -32,7 +32,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { ZodSchema, ZodError } from 'zod'
+import { ZodSchema, ZodError, z } from 'zod'
 import { requireAdmin, requireAuth, jsonResponse, errorResponse } from '@/lib/auth'
 import { captureError } from '@/lib/monitoring'
 
