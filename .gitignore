@@ -82,3 +82,12 @@ TYPESCRIPT_STRICT_PLAN.md
 
 # Do not commit the report PDF into public assets
 /public/PROJECT_REPORT.pdf
+
+# SQLite database files (runtime data — never commit)
+/db/*.db
+/db/*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# Dev examples / demo folder
+/examples/
