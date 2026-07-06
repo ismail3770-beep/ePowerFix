@@ -80,7 +80,7 @@ const PRICE_RANGES: { label: string; min: number; max: number }[] = [
 const RATING_OPTIONS = [4, 3, 2, 1];
 
 const GRID =
-  "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4";
+  "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -849,7 +849,7 @@ export default function ProjectKitsPage() {
                 </div>
               ) : isLoading ? (
                 viewMode === "grid" ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                     {Array.from({ length: 8 }).map((_, i) => (
                       <KitCardSkeleton key={i} />
                     ))}

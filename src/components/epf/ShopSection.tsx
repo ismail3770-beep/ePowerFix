@@ -66,8 +66,8 @@ function RowHeader({ title, subtitle, href }: { title: string; subtitle: string;
   );
 }
 
-/* Smaller grid: up to 6 across on wide screens so cards stay compact at 1920px */
-const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
+/* Match BestDeals grid so all product/kit cards are the same size */
+const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4";
 
 function CardSkeleton() {
   return (

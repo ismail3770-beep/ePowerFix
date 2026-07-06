@@ -51,16 +51,17 @@ export default function ProjectsSection() {
 
         {/* ── Project Grid ── */}
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-lg border border-slate-200 overflow-hidden animate-pulse"
+                className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden animate-pulse"
               >
-                <div className="aspect-[4/3] bg-slate-100" />
-                <div className="p-3 space-y-2">
-                  <div className="h-4 bg-slate-100 w-3/4 rounded" />
-                  <div className="h-3 bg-slate-100 w-full rounded" />
+                <div className="aspect-square bg-slate-100" />
+                <div className="h-9 bg-slate-200" />
+                <div className="p-2.5 space-y-2">
+                  <div className="h-3 bg-slate-100 rounded w-3/4" />
+                  <div className="h-3 bg-slate-100 rounded w-full" />
                 </div>
               </div>
             ))}
@@ -71,22 +72,22 @@ export default function ProjectsSection() {
             <p className="text-sm text-slate-500">No projects available</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {projects.map((proj) => {
               const cover = proj.coverImage || proj.images?.[0];
               return (
                 <a
                   key={proj.id}
                   href={`/projects/${proj.slug}`}
-                  className="group block bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 overflow-hidden transition-all duration-200 cursor-pointer"
+                  className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 cursor-pointer"
                 >
-                  {/* Image */}
-                  <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
+                  {/* Image — square to match product cards */}
+                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
                     {cover ? (
                       <img
                         src={cover}
                         alt={proj.title}
-                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                        className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
                         loading="lazy"
                       />
                     ) : (
@@ -94,22 +95,24 @@ export default function ProjectsSection() {
                         <EPFCpu size={32} className="text-slate-300" />
                       </div>
                     )}
-                    <span className="absolute top-2 left-2 bg-white/95 text-slate-700 text-[10px] font-semibold px-1.5 py-0.5 rounded leading-none tracking-wide uppercase shadow-sm">
+                    <span className="absolute top-2 left-2 bg-epf-500 text-white text-[11px] font-bold px-1.5 py-0.5 leading-tight tracking-wide z-10">
                       {proj.category || "Project"}
                     </span>
                   </div>
 
+                  {/* Full-width dark button — matches product card structure */}
+                  <span className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 text-white text-[13px] font-bold group-hover:bg-slate-800 transition-colors">
+                    View Details
+                  </span>
+
                   {/* Content */}
-                  <div className="p-3 flex flex-col gap-1.5">
-                    <h4 className="text-[13px] font-semibold text-slate-800 line-clamp-2 leading-snug group-hover:text-epf-600 transition-colors min-h-[2.4rem]">
+                  <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
+                    <h4 className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] group-hover:text-epf-600 transition-colors min-h-[2.4rem]">
                       {proj.title}
                     </h4>
-                    <p className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed">
+                    <p className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed mt-auto pt-1">
                       {proj.description}
                     </p>
-                    <span className="text-[12px] font-semibold text-epf-600 group-hover:text-epf-700 transition-colors mt-auto pt-1">
-                      View Details →
-                    </span>
                   </div>
                 </a>
               );
