@@ -1,17 +1,16 @@
-// ePowerFix schema — SQLite (local file DB).
-// - Provider: sqlite
+// ePowerFix schema — PostgreSQL.
+// - Provider: postgresql
 // - Enums kept as String (UPPERCASE literal values) for cross-DB compatibility
-// - Prices use Float (works with both SQLite & PostgreSQL)
+// - Prices use Float
 // - JSON-array fields (images, tags) stored as String containing JSON —
 //   app code uses parseJsonField/stringifyJsonField helpers.
-//   This avoids String[] / Json differences between DB engines.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
