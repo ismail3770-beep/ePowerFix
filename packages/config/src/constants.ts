@@ -1,5 +1,0 @@
-export const SITE_NAME = 'ePowerFix'
-export const SITE_NAME_BN = 'ইপাওয়ারফিক্স'
-export const CURRENCY = 'BDT'
-export const CURRENCY_SYMBOL = '৳'
-export const DEFAULT_CITY = 'Dhaka'
