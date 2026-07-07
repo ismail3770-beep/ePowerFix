@@ -84,7 +84,8 @@ TYPESCRIPT_STRICT_PLAN.md
 /public/PROJECT_REPORT.pdf
 
 # Environment variables (secrets — never commit)
-.env
+.env*
+!.env.example
 
 # SQLite database files (runtime data — never commit)
 /db/*.db
