@@ -83,6 +83,9 @@ TYPESCRIPT_STRICT_PLAN.md
 # Do not commit the report PDF into public assets
 /public/PROJECT_REPORT.pdf
 
+# Environment variables (secrets — never commit)
+.env
+
 # SQLite database files (runtime data — never commit)
 /db/*.db
 /db/*.db-journal
