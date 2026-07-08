@@ -143,9 +143,8 @@ export default function ShopSection() {
             {productsLoading
               ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
               : products.map((product) => (
-                  <FadeInItem>
+                  <FadeInItem key={product.id}>
                   <PremiumCard
-                    key={product.id}
                     data={{
                       id: product.id,
                       name: product.name,
@@ -175,9 +174,8 @@ export default function ShopSection() {
             {projectsLoading
               ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
               : kits.map((kit) => (
-                  <FadeInItem>
+                  <FadeInItem key={kit.id}>
                   <PremiumCard
-                    key={kit.id}
                     data={{
                       id: kit.id,
                       name: kit.title,
