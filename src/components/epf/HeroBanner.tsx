@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import { EPFArrowLeft, EPFArrowRight } from "@/components/epf/icons/EPFIcons";
 import { apiFetch } from "@/lib/api";
 
@@ -15,10 +16,18 @@ const fallbackSlides: BannerSlide[] = [];
 
 export default function HeroBanner() {
   const [slides, setSlides] = useState<BannerSlide[]>(fallbackSlides);
-  const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
-  const touchStartX = useRef<number | null>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressRafRef = useRef<number | null>(null);
+  const progressStartRef = useRef<number>(0);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start" },
+    []
+  );
 
   /* ── Fetch banners from API ─────────────────────────────── */
   useEffect(() => {
@@ -35,50 +44,132 @@ export default function HeroBanner() {
     })();
   }, []);
 
-  /* ── Navigation helpers ─────────────────────────────────── */
-  const next = useCallback(
-    () => setCurrent((c) => (c + 1) % slides.length),
-    [slides.length]
-  );
-  const prev = useCallback(
-    () => setCurrent((c) => (c - 1 + slides.length) % slides.length),
-    [slides.length]
-  );
+  /* ── Sync Embla onSelect with state ─────────────────────── */
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+    setProgress(0);
+    progressStartRef.current = Date.now();
+  }, [emblaApi]);
 
-  /* ── Auto-slide every 5 s (pausable, only when slides exist) */
   useEffect(() => {
-    if (paused || slides.length === 0) return;
-    const id = setInterval(next, 5000);
-    return () => clearInterval(id);
-  }, [next, paused, slides.length]);
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
 
-  /* ── Touch swipe (50 px threshold, 3 s resume) ─────────── */
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setPaused(true);
-    touchStartX.current = e.touches[0].clientX;
-  };
+  /* ── Smooth Embla transition ────────────────────────────── */
+  useEffect(() => {
+    if (!emblaApi) return;
+    const root = emblaApi.rootNode();
+    const container = root.querySelector(
+      "[data-embla-container]"
+    ) as HTMLElement | null;
+    if (!container) return;
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) next();
-      else prev();
+    container.style.transition = "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)";
+
+    const handler = () => {
+      container.style.transition =
+        "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)";
+    };
+
+    emblaApi.on("settle", handler);
+    return () => {
+      emblaApi.off("settle", handler);
+    };
+  }, [emblaApi]);
+
+  /* ── Autoplay (setInterval 5s) ──────────────────────────── */
+  const scrollNext = useCallback(() => {
+    emblaApi?.scrollNext();
+  }, [emblaApi]);
+
+  const scrollPrev = useCallback(() => {
+    emblaApi?.scrollPrev();
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (paused || slides.length === 0 || !emblaApi) return;
+    progressStartRef.current = Date.now();
+    autoplayRef.current = setInterval(() => {
+      scrollNext();
+    }, 5000);
+    return () => {
+      if (autoplayRef.current) clearInterval(autoplayRef.current);
+    };
+  }, [paused, slides.length, emblaApi, scrollNext]);
+
+  /* ── Progress bar animation (RAF) ───────────────────────── */
+  useEffect(() => {
+    if (paused || slides.length === 0) {
+      setProgress(0);
+      return;
     }
-    touchStartX.current = null;
-    setTimeout(() => setPaused(false), 3000);
-  };
+
+    progressStartRef.current = Date.now();
+
+    const tick = () => {
+      const elapsed = Date.now() - progressStartRef.current;
+      const pct = Math.min((elapsed / 5000) * 100, 100);
+      setProgress(pct);
+      progressRafRef.current = requestAnimationFrame(tick);
+    };
+
+    progressRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (progressRafRef.current) cancelAnimationFrame(progressRafRef.current);
+    };
+  }, [paused, slides.length, selectedIndex]);
+
+  /* ── Pause / Resume handlers ────────────────────────────── */
+  const handleMouseEnter = useCallback(() => setPaused(true), []);
+  const handleMouseLeave = useCallback(() => {
+    setPaused(false);
+    progressStartRef.current = Date.now();
+  }, []);
+
+  const handleTouchStart = useCallback(() => {
+    setPaused(true);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => {
+      setPaused(false);
+      progressStartRef.current = Date.now();
+    }, 3000);
+  }, []);
+
+  /* ── Dot click ──────────────────────────────────────────── */
+  const scrollTo = useCallback(
+    (index: number) => {
+      emblaApi?.scrollTo(index);
+    },
+    [emblaApi]
+  );
+
+  /* ── Cleanup ────────────────────────────────────────────── */
+  useEffect(() => {
+    return () => {
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+      if (autoplayRef.current) clearInterval(autoplayRef.current);
+      if (progressRafRef.current) cancelAnimationFrame(progressRafRef.current);
+    };
+  }, []);
 
   /* ── Render ─────────────────────────────────────────────── */
   return (
     <section className="bg-[#f8f9fa]">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-6 sm:py-10">
-        {/* ── Slider wrapper ──────────────────────────────── */}
         <div
-          ref={sliderRef}
           className="relative overflow-hidden rounded-lg group min-h-[280px] sm:min-h-[350px] lg:min-h-[420px]"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -97,127 +188,136 @@ export default function HeroBanner() {
             </div>
           ) : (
             <>
-          {/* ── Slide backgrounds (stacked, cross-fade) ──── */}
-          {slides.map((slide, i) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-opacity duration-500 ${
-                i === current ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {slide.image ? (
-                <>
-                  <img
-                    src={slide.image}
-                    alt={slide.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {/* Dark overlay for image slides */}
-                  <div className="absolute inset-0 bg-black/50" />
-                </>
-              ) : (
-                /* Light gradient for non-image slides */
-                <div className="absolute inset-0 bg-gradient-to-br from-epf-500/10 via-white to-epf-500/5" />
-              )}
-            </div>
-          ))}
-
-          {/* ── Slide content (stacked, cross-fade) ──────── */}
-          {slides.map((slide, i) => {
-            const hasImage = Boolean(slide.image);
-            const titleParts = slide.title.split("\n");
-            return (
-              <div
-                key={`content-${slide.id}`}
-                className={`absolute inset-0 z-10 flex items-center px-6 sm:px-10 lg:px-14 transition-opacity duration-500 ${
-                  i === current
-                    ? "opacity-100"
-                    : "opacity-0 pointer-events-none"
-                }`}
-              >
-                <div className="max-w-md lg:max-w-lg">
-                  {/* Title */}
-                  <h1
-                    className={`text-[22px] sm:text-[28px] lg:text-[36px] font-bold leading-[1.25] tracking-tight ${
-                      hasImage ? "text-white" : "text-dark-900"
-                    }`}
-                  >
-                    {titleParts.map((part, idx) => (
-                      <span key={idx}>
-                        {idx > 0 && <br />}
-                        {part}
-                      </span>
-                    ))}
-                  </h1>
-
-                  {/* Subtitle */}
-                  {slide.subtitle && (
-                    <p
-                      className={`text-[14px] sm:text-[15px] mt-2 max-w-md leading-relaxed ${
-                        hasImage ? "text-white/70" : "text-dark-500"
-                      }`}
-                    >
-                      {slide.subtitle}
-                    </p>
-                  )}
-
-                  {/* CTA */}
-                  {slide.link && (
-                    <a
-                      href={slide.link}
-                      className="inline-flex items-center gap-2 mt-4 bg-epf-500 hover:bg-epf-600 text-white font-semibold h-10 px-6 text-[14px] rounded-md transition-colors"
-                    >
-                      Explore Now
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+              {/* ── Embla root ──────────────────────────────── */}
+              <div ref={emblaRef} className="overflow-hidden h-full">
+                <div
+                  className="flex h-full"
+                  style={{
+                    transition:
+                      "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                  }}
+                >
+                  {slides.map((slide) => {
+                    const hasImage = Boolean(slide.image);
+                    const titleParts = slide.title.split("\n");
+                    return (
+                      <div
+                        key={slide.id}
+                        className="min-w-0 flex-[0_0_100%] h-full relative"
                       >
-                        <path d="M5 12h14" />
-                        <path d="m12 5 7 7-7 7" />
-                      </svg>
-                    </a>
-                  )}
+                        {/* Background */}
+                        {hasImage ? (
+                          <>
+                            <img
+                              src={slide.image}
+                              alt={slide.title}
+                              className="absolute inset-0 w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50" />
+                          </>
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-epf-500/10 via-white to-epf-500/5" />
+                        )}
+
+                        {/* Content */}
+                        <div className="absolute inset-0 z-10 flex items-center px-6 sm:px-10 lg:px-14">
+                          <div className="max-w-md lg:max-w-lg">
+                            <h1
+                              className={`text-[22px] sm:text-[28px] lg:text-[36px] font-bold leading-[1.25] tracking-tight ${
+                                hasImage
+                                  ? "text-white"
+                                  : "text-dark-900"
+                              }`}
+                            >
+                              {titleParts.map((part, idx) => (
+                                <span key={idx}>
+                                  {idx > 0 && <br />}
+                                  {part}
+                                </span>
+                              ))}
+                            </h1>
+
+                            {slide.subtitle && (
+                              <p
+                                className={`text-[14px] sm:text-[15px] mt-2 max-w-md leading-relaxed ${
+                                  hasImage
+                                    ? "text-white/70"
+                                    : "text-dark-500"
+                                }`}
+                              >
+                                {slide.subtitle}
+                              </p>
+                            )}
+
+                            {slide.link && (
+                              <a
+                                href={slide.link}
+                                className="inline-flex items-center gap-2 mt-4 bg-epf-500 hover:bg-epf-600 text-white font-semibold h-10 px-6 text-[14px] rounded-md transition-colors"
+                              >
+                                Explore Now
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M5 12h14" />
+                                  <path d="m12 5 7 7-7 7" />
+                                </svg>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            );
-          })}
 
-          {/* ── Arrow buttons (visible on hover only) ────── */}
-          <button
-            onClick={prev}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-dark-700 transition-all opacity-0 group-hover:opacity-100"
-            aria-label="Previous slide"
-          >
-            <EPFArrowLeft size={16} />
-          </button>
-          <button
-            onClick={next}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-dark-700 transition-all opacity-0 group-hover:opacity-100"
-            aria-label="Next slide"
-          >
-            <EPFArrowRight size={16} />
-          </button>
-
-          {/* ── Dot indicators (dark, bottom-4) ─────────── */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-            {slides.map((_, i) => (
+              {/* ── Arrow buttons ───────────────────────────── */}
               <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`h-2 rounded-full transition-all ${
-                  i === current ? "bg-dark-900 w-7" : "bg-dark-400 w-2"
-                }`}
-                aria-label={`Slide ${i + 1}`}
-              />
-            ))}
-          </div>
+                onClick={scrollPrev}
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-dark-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                aria-label="Previous slide"
+              >
+                <EPFArrowLeft size={16} />
+              </button>
+              <button
+                onClick={scrollNext}
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-dark-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                aria-label="Next slide"
+              >
+                <EPFArrowRight size={16} />
+              </button>
+
+              {/* ── Progress bar ────────────────────────────── */}
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-dark-200 z-20">
+                <div
+                  className="h-full bg-epf-500 transition-[width] duration-100 ease-linear"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              {/* ── Dot indicators ──────────────────────────── */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => scrollTo(i)}
+                    className={`h-2 rounded-full transition-all ${
+                      i === selectedIndex
+                        ? "bg-dark-900 w-7"
+                        : "bg-dark-400 w-2"
+                    }`}
+                    aria-label={`Slide ${i + 1}`}
+                  />
+                ))}
+              </div>
             </>
           )}
         </div>

@@ -105,7 +105,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       onClick={handleClick}
       className={cn(
         "group relative flex flex-col bg-white",
-        "shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md",
+        "shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5",
         "transition-all duration-200 ease-out",
         "cursor-pointer",
         className

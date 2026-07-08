@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import FadeIn from "@/components/epf/FadeIn";
 import {
   EPFCable,
   EPFCircuitBreaker,
@@ -80,18 +81,19 @@ export default function CategoryGrid() {
         </div>
 
         {/* Grid — table-style borders: container provides left edge, header provides top edge, cells provide right & bottom */}
+        <FadeIn delay={0.05}>
         <div className="border-l border-dark-200">
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
             {categories.map((cat) => {
               const Icon = cat.icon;
               return (
                 <Link
                   key={cat.slug}
                   href={`/shop?category=${cat.slug}`}
-                  className="flex flex-col items-center justify-center py-5 px-2 border-r border-b border-dark-200 hover:bg-dark-50 transition-colors group"
+                  className="flex flex-col items-center justify-center py-5 px-2 border-r border-b border-dark-200 hover:bg-dark-50 hover:-translate-y-0.5 transition-all duration-200 group"
                 >
                   {/* Square icon area */}
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center bg-dark-50 text-epf-500 group-hover:bg-white transition-colors">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center bg-dark-50 text-epf-500 group-hover:bg-white group-hover:scale-105 transition-all duration-200">
                     <Icon size={28} className="sm:w-7 sm:h-7" />
                   </div>
 
@@ -109,6 +111,7 @@ export default function CategoryGrid() {
             })}
           </div>
         </div>
+        </FadeIn>
       </div>
     </section>
   );

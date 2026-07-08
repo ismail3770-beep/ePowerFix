@@ -1,10 +1,14 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import { EPFArrowLeft, EPFArrowRight } from "@/components/epf/icons/EPFIcons";
 
 const banglaDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
 function toBangla(n: number): string {
-  return String(n).split("").map((c) => (/\d/.test(c) ? banglaDigits[parseInt(c)] : c)).join("");
+  return String(n)
+    .split("")
+    .map((c) => (/\d/.test(c) ? banglaDigits[parseInt(c)] : c))
+    .join("");
 }
 
 interface ImageGalleryProps {
@@ -25,36 +29,77 @@ export default function ImageGallery({
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const touchStartX = useRef(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const total = images.length;
 
-  const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total]);
-  const prev = useCallback(() => setCurrent((c) => (c - 1 + total) % total), [total]);
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
 
+  // Sync current index from Embla
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      setCurrent(emblaApi.selectedScrollSnap());
+    };
+    emblaApi.on("select", onSelect);
+    onSelect();
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi]);
+
+  const next = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
+  const prev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollTo = useCallback(
+    (index: number) => {
+      if (emblaApi) emblaApi.scrollTo(index);
+    },
+    [emblaApi]
+  );
+
+  // Autoplay
   useEffect(() => {
     if (!autoPlay || paused || total <= 1) return;
     const id = setInterval(next, interval);
     return () => clearInterval(id);
   }, [autoPlay, paused, interval, next, total]);
 
+  // Touch handlers with 30px threshold and 3s resume delay
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     setPaused(true);
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
+    if (Math.abs(diff) > 30) {
       if (diff > 0) next();
       else prev();
     }
-    setPaused(false);
+    // Resume autoplay 3s after touch ends
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => setPaused(false), 3000);
   };
+
+  // Cleanup touch timer on unmount
+  useEffect(() => {
+    return () => {
+      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    };
+  }, []);
 
   if (total === 0) {
     return (
-      <div className={`${aspectRatio} bg-dark-100 flex items-center justify-center rounded-lg`}>
+      <div
+        className={`${aspectRatio} bg-dark-100 flex items-center justify-center rounded-lg`}
+      >
         <span className="text-[13px] text-dark-400">কোনো ছবি নেই</span>
       </div>
     );
@@ -69,23 +114,34 @@ export default function ImageGallery({
   }
 
   return (
-    <div ref={containerRef}>
+    <div>
       {/* Main Image */}
       <div
-        className={`relative ${aspectRatio} bg-dark-100 rounded-lg overflow-hidden group`}
+        className={`relative ${aspectRatio} bg-dark-100 rounded-lg overflow-hidden group cursor-zoom-in`}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {images.map((img, i) => (
-          <img
-            key={i}
-            src={img}
-            alt=""
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === current ? "opacity-100" : "opacity-0"}`}
-          />
-        ))}
+        <div ref={emblaRef} className="h-full overflow-hidden">
+          <div
+            className="flex h-full"
+            style={{
+              transition:
+                "transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)",
+            }}
+          >
+            {images.map((img, i) => (
+              <div key={i} className="flex-none w-full h-full relative">
+                <img
+                  src={img}
+                  alt=""
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-150"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Left Arrow */}
         <button
@@ -115,13 +171,18 @@ export default function ImageGallery({
 
       {/* Thumbnail Strip */}
       {total > 1 && (
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+        <div
+          className="flex gap-2 mt-3 overflow-x-auto pb-1"
+          style={{ scrollbarWidth: "none" }}
+        >
           {images.map((img, i) => (
             <button
               key={i}
-              onClick={() => setCurrent(i)}
+              onClick={() => scrollTo(i)}
               className={`shrink-0 h-14 w-20 rounded overflow-hidden border-2 transition-all ${
-                i === current ? "border-epf-500" : "border-transparent opacity-60 hover:opacity-100"
+                i === current
+                  ? "border-epf-500 scale-105"
+                  : "border-transparent opacity-50 hover:opacity-80"
               }`}
             >
               <img src={img} alt="" className="w-full h-full object-cover" />

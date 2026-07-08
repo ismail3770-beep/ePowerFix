@@ -79,7 +79,7 @@ const fallbackTodaysDeals: Product[] = [];
 function ProductCard({ product }: { product: Product }) {
   return (
     <div
-      className="hover:shadow-md transition-shadow cursor-pointer group flex flex-col overflow-hidden bg-[#F5F5F5] rounded-lg"
+      className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden bg-[#F5F5F5] rounded-lg"
       onClick={() => {
         window.location.href = "/best-deals";
       }}
@@ -205,7 +205,7 @@ export default function FlashDeals() {
               </div>
 
               {/* 4 product cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
                 {flashDeals.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

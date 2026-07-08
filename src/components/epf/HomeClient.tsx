@@ -8,6 +8,7 @@ import ProjectDetailDialog from "@/components/epf/ProjectDetailDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import NewsletterPopup from "@/components/epf/NewsletterPopup";
 import BackToTopButton from "@/components/epf/BackToTopButton";
+import MobileBottomNav from "@/components/epf/MobileBottomNav";
 
 export default function HomeClient() {
   return (
@@ -20,6 +21,7 @@ export default function HomeClient() {
       <ChatWidget />
       <NewsletterPopup />
       <BackToTopButton />
+      <MobileBottomNav />
     </>
   );
 }

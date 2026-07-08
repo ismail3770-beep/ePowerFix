@@ -10,6 +10,7 @@ import TrustBar from "@/components/epf/TrustBar";
 import NewsletterBanner from "@/components/epf/NewsletterBanner";
 import Footer from "@/components/epf/Footer";
 import HomeClient from "@/components/epf/HomeClient";
+import FadeIn from "@/components/epf/FadeIn";
 
 export const metadata: Metadata = {
   title: "ePowerFix — Trusted Electrical Solutions in Bangladesh",
@@ -39,12 +40,12 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <HeroBanner />
-        <BestDeals />
-        <ServicesSection />
-        <ShopSection />
-        <ProjectsSection />
-        <TrustBar />
-        <NewsletterBanner />
+        <FadeIn delay={0.1}><BestDeals /></FadeIn>
+        <FadeIn delay={0.15}><ServicesSection /></FadeIn>
+        <FadeIn delay={0.2}><ShopSection /></FadeIn>
+        <FadeIn delay={0.25}><ProjectsSection /></FadeIn>
+        <FadeIn delay={0.3}><TrustBar /></FadeIn>
+        <FadeIn delay={0.35}><NewsletterBanner /></FadeIn>
       </main>
       <Footer />
       <HomeClient />

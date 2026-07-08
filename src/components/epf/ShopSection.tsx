@@ -4,6 +4,7 @@ import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { PremiumCard, PremiumCardSkeleton, type PremiumCardData } from "@/components/epf/PremiumCard";
+import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
 
 interface Product {
   id: string;
@@ -138,10 +139,11 @@ export default function ShopSection() {
             subtitle="Quality electrical products at best prices"
             href="/shop"
           />
-          <div className={GRID}>
+          <FadeInStagger className={GRID}>
             {productsLoading
               ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
               : products.map((product) => (
+                  <FadeInItem>
                   <PremiumCard
                     key={product.id}
                     data={{
@@ -157,8 +159,9 @@ export default function ShopSection() {
                     onCardClick={(id) => { window.location.href = `/shop/${id}`; }}
                     onAddToCart={(d) => addProduct({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, product)}
                   />
+                  </FadeInItem>
                 ))}
-          </div>
+          </FadeInStagger>
         </div>
 
         {/* ── Row 2: Project Kits ── */}
@@ -168,10 +171,11 @@ export default function ShopSection() {
             subtitle="Everything you need to build your project — components, code & guides"
             href="/project-kits"
           />
-          <div className={GRID}>
+          <FadeInStagger className={GRID}>
             {projectsLoading
               ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
               : kits.map((kit) => (
+                  <FadeInItem>
                   <PremiumCard
                     key={kit.id}
                     data={{
@@ -188,8 +192,9 @@ export default function ShopSection() {
                     onCardClick={(id) => { setSelectedProjectId(id); setProjectDetailOpen(true); }}
                     onAddToCart={(d) => addKit({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, kit)}
                   />
+                  </FadeInItem>
                 ))}
-          </div>
+          </FadeInStagger>
           {!projectsLoading && kits.length === 0 && (
             <p className="text-sm text-dark-400 text-center py-8">No project kits available yet.</p>
           )}

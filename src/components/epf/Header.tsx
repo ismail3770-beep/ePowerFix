@@ -194,6 +194,17 @@ export default function Header() {
   const hasResults = searchResults.products.length > 0 || searchResults.services.length > 0 || searchResults.projects.length > 0;
 
   return (
+    <>
+    <style>{`
+      @keyframes slideInRight {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    `}</style>
     <header className="sticky top-0 z-50 bg-white">
       {/* ROW 1 */}
       <div className="border-b border-dark-200">
@@ -561,7 +572,7 @@ export default function Header() {
       {/* Mobile Slide Menu */}
       {mobileOpen && (
         <>
-          <div className="fixed inset-y-0 right-0 w-80 bg-white z-[70] shadow-xl overflow-y-auto">
+          <div className="fixed inset-y-0 right-0 w-80 bg-white z-[70] shadow-xl overflow-y-auto pb-20" style={{ animation: 'slideInRight 0.25s ease-out' }}>
             <div className="bg-dark-900 p-5">
               <div className="flex items-center justify-between">
                 <Link href="/" onClick={() => setMobileOpen(false)}>
@@ -627,9 +638,10 @@ export default function Header() {
               <button onClick={() => window.location.href = '/login'} className="flex-1 h-10 bg-epf-500 text-white text-[14px] font-bold rounded-[4px] hover:bg-epf-600">Login / Register</button>
             </div>
           </div>
-          <div className="fixed inset-0 bg-black/30 z-[65]" onClick={() => setMobileOpen(false)} />
+          <div className="fixed inset-0 bg-black/30 z-[65]" style={{ animation: 'fadeIn 0.2s ease-out' }} onClick={() => setMobileOpen(false)} />
         </>
       )}
     </header>
+    </>
   );
 }

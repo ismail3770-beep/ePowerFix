@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Facebook, Youtube, Instagram, Twitter, Phone, Mail, MapPin } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import FadeIn from "@/components/epf/FadeIn";
 
 const infoLinks = [
   { label: "About Us", href: "/contact" },
@@ -61,7 +62,7 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
 function FooterItem({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
-      <a href={href} className="text-[14px] text-white/50 hover:text-[#0EA5E9] transition-colors leading-relaxed">
+      <a href={href} className="text-[14px] text-white/50 hover:text-epf-500 transition-colors duration-150 leading-relaxed">
         {children}
       </a>
     </li>
@@ -86,83 +87,87 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#111827] border-t border-white/5">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-10 lg:py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-6">
-          {/* Brand Column */}
-          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-<Link href="/" className="flex flex-col shrink-0 mb-4">
-              <span className="text-[30px] font-extrabold tracking-tight text-white leading-none">
-                e<span className="text-[#0EA5E9]">Power</span>Fix
-              </span>
-  <span className="text-[11px] text-white/40 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>
-</Link>
-            <p className="text-[14px] text-white/50 leading-relaxed mb-5 max-w-[260px]">
-              Your trusted partner for professional electrical services, quality components and engineering project kits in Bangladesh.
-            </p>
-            <ul className="space-y-2 mb-5">
-              {settings.address && (
-                <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                  <MapPin className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
-                  <span>{settings.address}</span>
-                </li>
+      <FadeIn>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-10 lg:py-12">
+          <div className="lg:grid lg:grid-cols-5 lg:gap-6">
+            {/* Brand Column */}
+            <div className="mb-8 lg:mb-0 lg:col-span-1">
+              <Link href="/" className="flex flex-col shrink-0 mb-4">
+                <span className="text-[30px] font-extrabold tracking-tight text-white leading-none">
+                  e<span className="text-[#0EA5E9]">Power</span>Fix
+                </span>
+                <span className="text-[11px] text-white/40 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>
+              </Link>
+              <p className="text-[14px] text-white/50 leading-relaxed mb-5 max-w-[260px]">
+                Your trusted partner for professional electrical services, quality components and engineering project kits in Bangladesh.
+              </p>
+              <ul className="space-y-2 mb-5">
+                {settings.address && (
+                  <li className="flex items-center gap-2.5 text-[14px] text-white/50">
+                    <MapPin className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                    <span>{settings.address}</span>
+                  </li>
+                )}
+                {settings.phone && (
+                  <li className="flex items-center gap-2.5 text-[14px] text-white/50">
+                    <Phone className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                    <span>{settings.phone}</span>
+                  </li>
+                )}
+                {settings.email && (
+                  <li className="flex items-center gap-2.5 text-[14px] text-white/50">
+                    <Mail className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                    <span>{settings.email}</span>
+                  </li>
+                )}
+              </ul>
+              {socials.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3">
+                  {socials.map((s) => (
+                    <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
+                      className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-[#0EA5E9] hover:bg-[#0EA5E9] text-white/50 hover:text-white transition-colors"
+                      aria-label={s.label}>
+                      <s.icon className="h-4 w-4" />
+                    </a>
+                  ))}
+                </div>
               )}
-              {settings.phone && (
-                <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                  <Phone className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
-                  <span>{settings.phone}</span>
-                </li>
-              )}
-              {settings.email && (
-                <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                  <Mail className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
-                  <span>{settings.email}</span>
-                </li>
-              )}
-            </ul>
-            {socials.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                {socials.map((s) => (
-                  <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-[#0EA5E9] hover:bg-[#0EA5E9] text-white/50 hover:text-white transition-colors"
-                    aria-label={s.label}>
-                    <s.icon className="h-4 w-4" />
-                  </a>
-                ))}
+            </div>
+
+            {/* Link Columns */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 px-2 md:px-0 lg:col-span-4">
+              {/* Information */}
+              <div>
+                <FooterHeading>Information</FooterHeading>
+                <ul className="space-y-2.5">{infoLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
               </div>
-            )}
-          </div>
 
-          {/* Information */}
-          <div>
-            <FooterHeading>Information</FooterHeading>
-            <ul className="space-y-2.5">{infoLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
-          </div>
+              {/* Customer Service */}
+              <div>
+                <FooterHeading>Customer Service</FooterHeading>
+                <ul className="space-y-2.5">{serviceLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
+              </div>
 
-          {/* Customer Service */}
-          <div>
-            <FooterHeading>Customer Service</FooterHeading>
-            <ul className="space-y-2.5">{serviceLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
-          </div>
+              {/* Extras */}
+              <div>
+                <FooterHeading>Extras</FooterHeading>
+                <ul className="space-y-2.5">{extrasLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
+              </div>
 
-          {/* Extras */}
-          <div>
-            <FooterHeading>Extras</FooterHeading>
-            <ul className="space-y-2.5">{extrasLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
-          </div>
-
-          {/* My Account */}
-          <div>
-            <FooterHeading>My Account</FooterHeading>
-            <ul className="space-y-2.5">{accountLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
+              {/* My Account */}
+              <div>
+                <FooterHeading>My Account</FooterHeading>
+                <ul className="space-y-2.5">{accountLinks.map((l) => <FooterItem key={l.label} href={l.href}>{l.label}</FooterItem>)}</ul>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-white/5">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[13px] text-white/30">{settings.copyrightText || `© ${new Date().getFullYear()} ${settings.siteName || "ePowerFix"}. All rights reserved.`}</p>
-          <div className="flex items-center gap-2">
+        {/* Bottom Bar */}
+        <div className="border-t border-white/5">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-4 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[13px] text-white/30">{settings.copyrightText || `© ${new Date().getFullYear()} ${settings.siteName || "ePowerFix"}. All rights reserved.`}</p>
+            <div className="flex flex-wrap items-center gap-3">
               <span className="text-[13px] text-white/30">Safe Payments:</span>
               {/* VISA */}
               <span className="h-6 w-10 bg-white rounded flex items-center justify-center">
@@ -181,8 +186,9 @@ export default function Footer() {
                 <svg viewBox="0 0 48 32" className="h-4 w-auto"><rect width="48" height="32" rx="2" fill="#F6921E"/><text x="24" y="22" textAnchor="middle" fill="white" fontFamily="Arial,sans-serif" fontWeight="bold" fontSize="15">N</text></svg>
               </span>
             </div>
+          </div>
         </div>
-      </div>
+      </FadeIn>
     </footer>
   );
 }

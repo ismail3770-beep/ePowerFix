@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api";
 import { PremiumCard } from "@/components/epf/PremiumCard";
+import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
 
 interface Product {
   id: string;
@@ -61,8 +62,9 @@ export default function BestDeals() {
             <p className="text-sm text-dark-500">No deals available yet. Please check back soon.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <FadeInStagger className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
             {deals.slice(0, 10).map((product) => (
+              <FadeInItem>
               <PremiumCard
                 key={product.id}
                 data={{
@@ -75,8 +77,9 @@ export default function BestDeals() {
                 }}
                 onCardClick={(id) => { window.location.href = `/product/${id}`; }}
               />
+              </FadeInItem>
             ))}
-          </div>
+          </FadeInStagger>
         )}
 
         {/* ── Mobile "View All" ── */}
