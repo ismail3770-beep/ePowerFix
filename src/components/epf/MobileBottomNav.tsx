@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -46,6 +47,8 @@ export default function MobileBottomNav() {
   const pathname = usePathname();
   const setCartOpen = useUIStore((s) => s.setCartOpen);
   const cartCount = useCartStore((s) => s.getItemCount());
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const items: NavItem[] = [
     {
@@ -108,7 +111,7 @@ export default function MobileBottomNav() {
               >
                 {item.icon}
                 <span className="text-[11px] leading-tight">{item.label}</span>
-                {item.badge != null && item.badge > 0 && (
+                {mounted && item.badge != null && item.badge > 0 && (
                   <span className="absolute -right-2.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-epf-500 px-1 text-[10px] font-semibold leading-none text-white">
                     {item.badge > 99 ? "99+" : item.badge}
                   </span>
