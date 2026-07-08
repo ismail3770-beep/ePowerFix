@@ -8,18 +8,7 @@ import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Premium Product Card — matches Active eCommerce reference layout
-// ═══════════════════════════════════════════════════════════════════════════
-// Structure (matches reference .aiz-card-box):
-//   1. Square (no radius), borderless white card, subtle shadow
-//   2. Image area (square, object-CONTAIN, centered, light bg)
-//      - Discount badge top-left (epf-500)
-//      - Wishlist top-right
-//   3. Full-width dark "Add to Cart" button (directly under image)
-//   4. Title (13px, font-normal/400, 2-line clamp)
-//   5. Price row INLINE: original strikethrough (gray) + discounted (bold, epf-600)
-//
-// Colors kept as ePowerFix brand (epf-500/epf-600/slate) per requirement.
+// Premium Product Card — clean e-commerce card with hover-reveal cart button
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface PremiumCardData {
@@ -111,13 +100,13 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         className
       )}
     >
-      {/* ─── Image Area (square, object-contain, light bg) ─── */}
-      <div className="relative aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
+      {/* ─── Image Area (slightly taller than square, fills button space) ─── */}
+      <div className="relative aspect-[4/4.6] bg-slate-50 overflow-hidden flex items-center justify-center">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -143,37 +132,42 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         >
           <WishlistButton productId={data.id} initialFav={false} />
         </div>
-      </div>
 
-      {/* ─── Add to Cart — full-width dark, directly under image ─── */}
-      <button
-        onClick={handleAddToCart}
-        disabled={added}
-        className={cn(
-          "w-full h-9 flex items-center justify-center gap-1.5 text-[13px] font-bold transition-colors duration-150",
-          added
-            ? "bg-green-600 text-white"
-            : "bg-slate-900 text-white hover:bg-slate-800"
-        )}
-      >
-        {added ? (
-          <>
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            Added
-          </>
-        ) : (
-          <>
-            <ShoppingCart className="w-3.5 h-3.5" />
-            Add to Cart
-          </>
-        )}
-      </button>
+        {/* ─── Add to Cart — hidden, reveals on hover/touch ─── */}
+        <button
+          onClick={handleAddToCart}
+          disabled={added}
+          className={cn(
+            "absolute bottom-0 left-0 right-0 z-10",
+            "h-10 flex items-center justify-center gap-1.5 text-[13px] font-bold",
+            "bg-slate-900/95 text-white backdrop-blur-sm",
+            "translate-y-full opacity-0",
+            "group-hover:translate-y-0 group-hover:opacity-100",
+            "group-focus-within:translate-y-0 group-focus-within:opacity-100",
+            "active:translate-y-0 active:opacity-100",
+            "transition-all duration-200 ease-out",
+            added && "bg-green-600"
+          )}
+        >
+          {added ? (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Added
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-3.5 h-3.5" />
+              Add to Cart
+            </>
+          )}
+        </button>
+      </div>
 
       {/* ─── Content Area ─── */}
       <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
-        {/* Title — 13px, font-normal (400) like reference */}
+        {/* Title */}
         <h3
           className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors"
           title={data.name}
@@ -181,7 +175,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
           {data.name}
         </h3>
 
-        {/* Price — INLINE: original strikethrough + discounted bold */}
+        {/* Price */}
         <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
           {showOriginal && (
             <del className="text-[13px] font-normal text-slate-400">
@@ -200,14 +194,13 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
 export const PremiumCard = memo(PremiumCardBase);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Skeleton loader (matching card dimensions)
+// Skeleton loader
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function PremiumCardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="aspect-square bg-slate-100 animate-pulse" />
-      <div className="h-9 bg-slate-200 animate-pulse" />
+      <div className="aspect-[4/4.6] bg-slate-100 animate-pulse" />
       <div className="p-2.5 space-y-2">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
