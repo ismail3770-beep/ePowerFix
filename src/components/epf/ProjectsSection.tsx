@@ -2,7 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { EPFCpu } from "@/components/epf/icons/EPFIcons";
 import { apiFetch } from "@/lib/api";
-import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 
 interface Project {
   id: string;
@@ -58,7 +57,7 @@ export default function ProjectsSection() {
                 key={i}
                 className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden animate-pulse"
               >
-                <div className={`${CARD_IMAGE_ASPECT} bg-slate-100`} />
+                <div className="aspect-[4/3] bg-slate-100" />
                 <div className="h-9 bg-slate-200" />
                 <div className="p-2.5 space-y-2">
                   <div className="h-3 bg-slate-100 rounded w-3/4" />
@@ -82,13 +81,13 @@ export default function ProjectsSection() {
                   href={`/projects/${proj.slug}`}
                   className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
-                  {/* Image — taller proportion to match product cards */}
-                  <div className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 overflow-hidden`}>
+                  {/* Image — landscape proportion (compact, since card now only shows title) */}
+                  <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
                     {cover ? (
                       <img
                         src={cover}
                         alt={proj.title}
-                        className="w-full h-full object-contain p-1.5 sm:p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
                         loading="lazy"
                       />
                     ) : (
