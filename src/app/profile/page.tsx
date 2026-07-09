@@ -168,11 +168,12 @@ export default function ProfilePage() {
 
   const { data: user, isLoading: userLoading, isError } = useQuery<AuthUser>({
     queryKey: ["auth-me"],
-    queryFn: () => apiFetch<{ success: boolean; data: AuthUser }>("/api/auth/me").then((j) => {
-      if (!j.success) throw new Error("Not authenticated");
+    queryFn: () => apiFetch<{ data: AuthUser }>("/api/auth/me").then((j) => {
+      if (!j.data) throw new Error("Not authenticated");
       return j.data;
     }),
     retry: false,
+    staleTime: 0,
   });
 
   // Sync to store
@@ -262,7 +263,7 @@ export default function ProfilePage() {
                 You need to be logged in to view your account.
               </p>
               <a
-                href="/login"
+                href="/login?redirect=/profile"
                 className="inline-flex items-center justify-center h-11 px-6 bg-slate-900 hover:bg-epf-500 text-white font-semibold text-[15px] rounded-md transition-colors"
               >
                 Sign In

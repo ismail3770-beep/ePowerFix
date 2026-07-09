@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 
 export default function LoginPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setUser, clearUser } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,16 +53,25 @@ export default function LoginPage() {
         return;
       }
 
-      const userRole = res.data?.user?.role;
-
-      if (userRole === "ADMIN") {
-        toast.error("ইমেইল অথবা পাসওয়ার্ড সঠিক নয়");
-        return;
-      }
-
-      setUser(res.data?.user);
+      const loggedInUser = res.data?.user;
+      setUser(loggedInUser);
+      // Clear any stale "not authenticated" cache so protected pages (e.g.
+      // /profile) refetch with the new session cookie on next visit.
+      queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+      queryClient.removeQueries({ queryKey: ["auth-me"], exact: false });
       toast.success("সফলভাবে লগইন হয়েছে!");
-      router.push("/");
+
+      // Redirect: prefer explicit ?redirect= param (e.g. when sent here from
+      // /profile), otherwise admins go to the admin panel and customers home.
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirect");
+      if (redirectTo && redirectTo.startsWith("/")) {
+        router.push(redirectTo);
+      } else if (loggedInUser.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       toast.error(
         err?.message || "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।"
