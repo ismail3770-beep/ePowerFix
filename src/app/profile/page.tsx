@@ -25,6 +25,8 @@ import {
   ShoppingBag,
   Star,
   Eye,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -191,7 +193,7 @@ function InfoRow({
 /* ------------------------------------------------------------------ */
 /*  Sidebar config                                                     */
 /* ------------------------------------------------------------------ */
-type SectionKey = "dashboard" | "orders" | "downloads";
+type SectionKey = "dashboard" | "orders" | "downloads" | "addresses";
 
 type SidebarItem =
   | { type: "section"; key: SectionKey; label: string; icon: React.ElementType }
@@ -205,10 +207,26 @@ const sidebarItems: SidebarItem[] = [
   { type: "section", key: "downloads", label: "My Downloads", icon: Download },
   { type: "link", href: "/wishlist", label: "My Wishlist", icon: Heart },
   { type: "link", href: "/", label: "My Reviews", icon: Star },
-  { type: "dialog", label: "My Addresses", icon: MapPin },
+  { type: "section", key: "addresses", label: "My Addresses", icon: MapPin },
   { type: "dialog", label: "My Profile", icon: User },
   { type: "logout", label: "Logout", icon: LogOut },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Address types                                                      */
+/* ------------------------------------------------------------------ */
+interface UserAddress {
+  id: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  area: string | null;
+  city: string;
+  postalCode: string | null;
+  label: string | null;
+  isDefault: boolean;
+  createdAt: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Profile page                                                       */
@@ -226,6 +244,14 @@ export default function ProfilePage() {
     name: "", nameBn: "", phone: "", address: "", area: "", city: "", postalCode: "",
   });
   const [savingProfile, setSavingProfile] = useState(false);
+
+  // Address book state
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
+  const [addressForm, setAddressForm] = useState({
+    fullName: "", phone: "", address: "", area: "", city: "", postalCode: "", label: "", isDefault: false,
+  });
+  const [savingAddress, setSavingAddress] = useState(false);
 
   const { data: user, isLoading: userLoading, isError } = useQuery<AuthUser>({
     queryKey: ["auth-me"],
@@ -262,6 +288,14 @@ export default function ProfilePage() {
     enabled: !!user,
   });
   const downloads = downloadsEnvelope?.data ?? [];
+
+  // Addresses list
+  const { data: addressesEnvelope, isLoading: addressesLoading } = useQuery<{ data: UserAddress[] }>({
+    queryKey: ["my-addresses"],
+    queryFn: () => apiFetch("/api/addresses"),
+    enabled: !!user,
+  });
+  const addresses = addressesEnvelope?.data ?? [];
 
   const createReturnMutation = useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
@@ -329,6 +363,95 @@ export default function ProfilePage() {
     setReturnReason("");
     setReturnDialogOpen(true);
   }
+
+  // ---------- Address book handlers ----------
+  function openAddAddress() {
+    setEditingAddress(null);
+    setAddressForm({
+      fullName: user?.name || "", phone: user?.phone || "",
+      address: "", area: "", city: "", postalCode: "", label: "", isDefault: addresses.length === 0,
+    });
+    setAddressDialogOpen(true);
+  }
+
+  function openEditAddress(addr: UserAddress) {
+    setEditingAddress(addr);
+    setAddressForm({
+      fullName: addr.fullName || "",
+      phone: addr.phone || "",
+      address: addr.address || "",
+      area: addr.area || "",
+      city: addr.city || "",
+      postalCode: addr.postalCode || "",
+      label: addr.label || "",
+      isDefault: addr.isDefault,
+    });
+    setAddressDialogOpen(true);
+  }
+
+  const handleSaveAddress = async () => {
+    if (!addressForm.fullName.trim() || !addressForm.phone.trim() || !addressForm.address.trim() || !addressForm.city.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    setSavingAddress(true);
+    try {
+      const payload = {
+        fullName: addressForm.fullName.trim(),
+        phone: addressForm.phone.trim(),
+        address: addressForm.address.trim(),
+        area: addressForm.area.trim() || undefined,
+        city: addressForm.city.trim(),
+        postalCode: addressForm.postalCode.trim() || undefined,
+        label: addressForm.label.trim() || undefined,
+        isDefault: addressForm.isDefault,
+      };
+      if (editingAddress) {
+        await apiFetch(`/api/addresses/${editingAddress.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Address updated successfully");
+      } else {
+        await apiFetch("/api/addresses", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        toast.success("Address added successfully");
+      }
+      queryClient.invalidateQueries({ queryKey: ["my-addresses"] });
+      setAddressDialogOpen(false);
+      setEditingAddress(null);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to save address");
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    if (!confirm("Delete this address?")) return;
+    try {
+      await apiFetch(`/api/addresses/${id}`, { method: "DELETE" });
+      queryClient.invalidateQueries({ queryKey: ["my-addresses"] });
+      toast.success("Address deleted");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to delete address");
+    }
+  };
+
+  const handleSetDefaultAddress = async (id: string) => {
+    try {
+      await apiFetch(`/api/addresses/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ isDefault: true }),
+      });
+      queryClient.invalidateQueries({ queryKey: ["my-addresses"] });
+      toast.success("Default address updated");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to set default address");
+    }
+  };
 
   function handleSidebarClick(item: SidebarItem) {
     switch (item.type) {
@@ -796,6 +919,123 @@ export default function ProfilePage() {
                       </CardContent>
                     </Card>
                   )}
+
+                {/* ---- My Addresses (addresses section OR dashboard if any) ---- */}
+                {(activeSection === "addresses" ||
+                  (activeSection === "dashboard" && addresses.length > 0)) && (
+                  <Card className="rounded-xl border border-slate-200 shadow-sm">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
+                        <MapPin className="h-5 w-5 text-slate-500" />
+                        My Addresses
+                        {addresses.length > 0 && (
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-epf-50 text-epf-600 text-[11px] font-semibold">
+                            {addresses.length}
+                          </span>
+                        )}
+                      </CardTitle>
+                      <Button
+                        type="button"
+                        onClick={openAddAddress}
+                        className="h-9 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg gap-1.5"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add New Address
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {addressesLoading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {[1, 2].map((i) => (
+                            <Skeleton key={i} className="h-36 w-full rounded-xl" />
+                          ))}
+                        </div>
+                      ) : addresses.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                          <div className="h-14 w-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
+                            <MapPin className="h-6 w-6 text-slate-300" />
+                          </div>
+                          <p className="text-[15px] font-medium text-slate-700">No saved addresses</p>
+                          <p className="text-[13px] text-slate-400 mt-1 max-w-xs">
+                            Add an address so you don't have to type it every time you checkout.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={openAddAddress}
+                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+                          >
+                            Add Your First Address
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {addresses.map((addr) => (
+                            <div
+                              key={addr.id}
+                              className="relative border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow bg-white"
+                            >
+                              {addr.isDefault && (
+                                <span className="absolute top-3 right-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-epf-500">
+                                  Default
+                                </span>
+                              )}
+                              <div className="flex items-start gap-2.5 mb-2">
+                                <User className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                                <p className="text-[14px] font-semibold text-slate-900">{addr.fullName}</p>
+                              </div>
+                              <div className="flex items-start gap-2.5 mb-1">
+                                <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                                <p className="text-[13px] text-slate-600 leading-relaxed">
+                                  {addr.address}
+                                  {addr.area && <>, {addr.area}</>}
+                                  <br />
+                                  {addr.city}
+                                  {addr.postalCode && <> {addr.postalCode}</>}
+                                </p>
+                              </div>
+                              <div className="flex items-start gap-2.5 mb-3">
+                                <Phone className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                                <p className="text-[13px] text-slate-600">{addr.phone}</p>
+                              </div>
+                              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                                <button
+                                  type="button"
+                                  onClick={() => openEditAddress(addr)}
+                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-600 hover:text-epf-600 transition-colors"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                  Edit
+                                </button>
+                                <span className="text-slate-300">|</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAddress(addr.id)}
+                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-600 hover:text-red-600 transition-colors"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                  Delete
+                                </button>
+                                {!addr.isDefault && (
+                                  <>
+                                    <span className="text-slate-300">|</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetDefaultAddress(addr.id)}
+                                      className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-600 hover:text-epf-600 transition-colors"
+                                    >
+                                      <CheckCircle2 className="h-3.5 w-3.5" />
+                                      Set Default
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}
@@ -911,6 +1151,121 @@ export default function ProfilePage() {
                 </>
               ) : (
                 "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Address Add/Edit Dialog — matching reference design */}
+      <Dialog open={addressDialogOpen} onOpenChange={(open) => { if (!open) { setAddressDialogOpen(false); setEditingAddress(null); } }}>
+        <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingAddress ? "Edit Address" : "New Address"}</DialogTitle>
+            <DialogDescription>
+              {editingAddress ? "Update your address details." : "Save an address for faster checkout next time."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Full Name <span className="text-red-500">*</span></Label>
+                <Input
+                  value={addressForm.fullName}
+                  onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
+                  placeholder="e.g. Ismail Hossen"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Phone <span className="text-red-500">*</span></Label>
+                <Input
+                  value={addressForm.phone}
+                  onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
+                  placeholder="01XXXXXXXXX"
+                  className="h-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px] text-slate-700">Street Address <span className="text-red-500">*</span></Label>
+              <Input
+                value={addressForm.address}
+                onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })}
+                placeholder="House, road, street"
+                className="h-10"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Area</Label>
+                <Input
+                  value={addressForm.area}
+                  onChange={(e) => setAddressForm({ ...addressForm, area: e.target.value })}
+                  placeholder="e.g. Gulshan"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">City <span className="text-red-500">*</span></Label>
+                <Input
+                  value={addressForm.city}
+                  onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                  placeholder="e.g. Dhaka"
+                  className="h-10"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Postal Code</Label>
+                <Input
+                  value={addressForm.postalCode}
+                  onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
+                  placeholder="e.g. 1212"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Label (optional)</Label>
+                <Input
+                  value={addressForm.label}
+                  onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}
+                  placeholder="Home, Office, etc."
+                  className="h-10"
+                />
+              </div>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer pt-1">
+              <input
+                type="checkbox"
+                checked={addressForm.isDefault}
+                onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
+                className="h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500"
+              />
+              <span className="text-[13px] text-slate-700">Set as default address</span>
+            </label>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setAddressDialogOpen(false); setEditingAddress(null); }}
+              disabled={savingAddress}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveAddress}
+              disabled={savingAddress}
+              className="bg-epf-500 hover:bg-epf-600 text-white"
+            >
+              {savingAddress ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Address"
               )}
             </Button>
           </DialogFooter>
