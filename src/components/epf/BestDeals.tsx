@@ -37,10 +37,10 @@ export default function BestDeals() {
         {/* ── Section Header ── */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-dark-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               Best Deals
             </h2>
-            <p className="text-sm text-dark-500 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               Don&apos;t miss the chance — limited stock!
             </p>
           </div>
@@ -58,8 +58,8 @@ export default function BestDeals() {
 
         {/* ── Product Grid ── */}
         {deals.length === 0 ? (
-          <div className="bg-white border border-dark-200/80 rounded-lg py-16 text-center">
-            <p className="text-sm text-dark-500">No deals available yet. Please check back soon.</p>
+          <div className="bg-white border border-slate-200 rounded-lg py-16 text-center">
+            <p className="text-sm text-slate-500">No deals available yet. Please check back soon.</p>
           </div>
         ) : (
           <FadeInStagger className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">

@@ -106,7 +106,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-contain p-2 sm:p-3 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-1.5 sm:p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />

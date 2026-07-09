@@ -79,15 +79,15 @@ export default function ProjectsSection() {
                 <a
                   key={proj.id}
                   href={`/projects/${proj.slug}`}
-                  className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 cursor-pointer"
+                  className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
-                  {/* Image — square to match product cards */}
-                  <div className="relative aspect-square bg-slate-50 overflow-hidden">
+                  {/* Image — slightly taller to match product cards */}
+                  <div className="relative aspect-[4/4.6] bg-slate-50 overflow-hidden">
                     {cover ? (
                       <img
                         src={cover}
                         alt={proj.title}
-                        className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+                        className="w-full h-full object-contain p-1.5 sm:p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
                         loading="lazy"
                       />
                     ) : (
@@ -99,11 +99,6 @@ export default function ProjectsSection() {
                       {proj.category || "Project"}
                     </span>
                   </div>
-
-                  {/* Full-width dark button — matches product card structure */}
-                  <span className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 text-white text-[13px] font-bold group-hover:bg-slate-800 transition-colors">
-                    View Details
-                  </span>
 
                   {/* Content */}
                   <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">

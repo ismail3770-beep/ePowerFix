@@ -33,26 +33,13 @@ interface ProjectKit {
   itemCount?: number;
 }
 
-function StarRating({ rating, reviews }: { rating: number; reviews: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <div className="flex items-center">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <EPFStar key={s} size={11} className={s <= Math.round(rating) ? "text-amber-400" : "text-dark-200"} />
-        ))}
-      </div>
-      <span className="text-[10px] text-dark-400">({reviews})</span>
-    </div>
-  );
-}
-
 /* Compact section header with a "View All" link */
 function RowHeader({ title, subtitle, href }: { title: string; subtitle: string; href: string }) {
   return (
     <div className="flex items-end justify-between mb-5">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-dark-900 tracking-tight">{title}</h2>
-        <p className="text-sm text-dark-500 mt-1">{subtitle}</p>
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h2>
+        <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
       </div>
       <a
         href={href}
@@ -72,13 +59,12 @@ const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-
 
 function CardSkeleton() {
   return (
-    <div className="border border-dark-200/80 rounded-lg overflow-hidden bg-white">
+    <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="animate-pulse">
-        <div className="aspect-square bg-dark-100" />
-        <div className="p-3 space-y-2">
-          <div className="h-3 bg-dark-100 rounded w-full" />
-          <div className="h-3 bg-dark-100 rounded w-3/4" />
-          <div className="h-3 bg-dark-100 rounded w-1/2" />
+        <div className="aspect-[4/4.6] bg-slate-100" />
+        <div className="p-2.5 space-y-2">
+          <div className="h-3 bg-slate-100 rounded w-3/4" />
+          <div className="h-4 bg-slate-100 rounded w-1/3 mt-1" />
         </div>
       </div>
     </div>
