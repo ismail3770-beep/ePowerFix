@@ -105,6 +105,7 @@ interface ProductsResponse {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 const PRODUCTS_PER_PAGE = 20;
+const BRAND_PREVIEW_COUNT = 5;
 
 type SortOption = "featured" | "newest" | "price-asc" | "price-desc" | "popular";
 type ViewMode = "grid" | "list";
@@ -117,14 +118,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "price-desc", label: "Price: High to Low" },
 ];
 
-const PRICE_RANGES = [
-  { label: "Under ৳500", min: 0, max: 500 },
-  { label: "৳500 – ৳2,000", min: 500, max: 2000 },
-  { label: "৳2,000 – ৳5,000", min: 2000, max: 5000 },
-  { label: "Above ৳5,000", min: 5000, max: Infinity },
-];
-
-const RATING_OPTIONS = [5, 4, 3, 2, 1];
+const RATING_OPTIONS = [4, 3, 2, 1];
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -298,7 +292,7 @@ function ProductCardList({ product }: { product: Product }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Filter Sidebar                                                     */
+/*  Filter Sidebar  —  5 sections (Categories, Price, Brands, Rating, Availability) */
 /* ------------------------------------------------------------------ */
 interface FilterSidebarProps {
   categories: Category[];
@@ -307,8 +301,13 @@ interface FilterSidebarProps {
   onSelectCategory: (id: string | null) => void;
   selectedBrandId: string | null;
   onSelectBrand: (id: string | null) => void;
-  selectedPriceRange: number | null;
-  onSelectPriceRange: (idx: number | null) => void;
+  minPriceInput: string;
+  maxPriceInput: string;
+  onMinPriceInputChange: (val: string) => void;
+  onMaxPriceInputChange: (val: string) => void;
+  onApplyPrice: () => void;
+  appliedMinPrice: number | null;
+  appliedMaxPrice: number | null;
   selectedRating: number | null;
   onSelectRating: (rating: number | null) => void;
   inStockOnly: boolean;
@@ -324,8 +323,13 @@ function FilterSidebar({
   onSelectCategory,
   selectedBrandId,
   onSelectBrand,
-  selectedPriceRange,
-  onSelectPriceRange,
+  minPriceInput,
+  maxPriceInput,
+  onMinPriceInputChange,
+  onMaxPriceInputChange,
+  onApplyPrice,
+  appliedMinPrice,
+  appliedMaxPrice,
   selectedRating,
   onSelectRating,
   inStockOnly,
@@ -333,25 +337,25 @@ function FilterSidebar({
   isLoading,
   onClearAll,
 }: FilterSidebarProps) {
-  const [catOpen, setCatOpen] = useState(true);
-  const [brandOpen, setBrandOpen] = useState(true);
-  const [priceOpen, setPriceOpen] = useState(true);
-  const [ratingOpen, setRatingOpen] = useState(true);
+  /* Show-more for brands */
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const visibleBrands = showAllBrands ? brands : brands.slice(0, BRAND_PREVIEW_COUNT);
 
   const hasActiveFilters =
     selectedCategoryId ||
     selectedBrandId ||
-    selectedPriceRange !== null ||
+    appliedMinPrice != null ||
+    appliedMaxPrice != null ||
     selectedRating !== null ||
     inStockOnly;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-      {/* Clear All header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-white">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-slate-700" />
-          <h2 className="text-[15px] font-semibold text-slate-900">Filters</h2>
+          <h2 className="text-[14px] font-semibold text-slate-900">Filters</h2>
         </div>
         {hasActiveFilters && (
           <button
@@ -363,311 +367,268 @@ function FilterSidebar({
         )}
       </div>
 
-      <div className="p-5 space-y-5">
-        {/* In-Stock Toggle */}
-        <label className="flex items-center justify-between cursor-pointer group">
-          <span className="text-[13px] font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
-            In Stock Only
-          </span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={inStockOnly}
-            onClick={() => onToggleInStock(!inStockOnly)}
-            className={cn(
-              "relative h-6 w-11 rounded-full transition-colors",
-              inStockOnly ? "bg-epf-500" : "bg-slate-200"
-            )}
-          >
-            <span
+      <div className="px-5 py-2 divide-y divide-slate-100">
+        {/* ── 1. Categories ─────────────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-2">
+            Categories
+          </h3>
+          <div className="space-y-0.5 max-h-72 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
+            <button
+              onClick={() => onSelectCategory(null)}
               className={cn(
-                "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
-                inStockOnly && "translate-x-5"
+                "flex items-center justify-between w-full h-10 px-3 rounded-lg text-left transition-colors group",
+                selectedCategoryId === null
+                  ? "text-epf-600 font-medium bg-epf-50/60"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               )}
-            />
-          </button>
-        </label>
-
-        <div className="h-px bg-slate-100" />
-
-        {/* Categories */}
-        <div>
-          <button
-            onClick={() => setCatOpen(!catOpen)}
-            className="flex items-center justify-between w-full mb-3"
-          >
-            <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
-              Categories
-            </h3>
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 text-slate-500 transition-transform duration-200",
-                catOpen && "rotate-180"
-              )}
-            />
-          </button>
-          {catOpen && (
-            <div className="space-y-1 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-              <button
-                onClick={() => onSelectCategory(null)}
+            >
+              <span className="text-[13px]">All Products</span>
+              <ChevronRight
                 className={cn(
-                  "flex items-center gap-2.5 w-full py-1.5 px-1.5 rounded-lg text-left transition-colors",
+                  "h-4 w-4 transition-colors",
                   selectedCategoryId === null
-                    ? "bg-epf-50 text-epf-700"
-                    : "text-slate-700 hover:bg-slate-50"
+                    ? "text-epf-500"
+                    : "text-slate-300 group-hover:text-slate-400"
                 )}
+              />
+            </button>
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2.5 h-10 px-3 animate-pulse"
+                  >
+                    <div className="h-3.5 bg-slate-100 rounded w-3/4" />
+                  </div>
+                ))
+              : categories.map((cat) => {
+                  const active = selectedCategoryId === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => onSelectCategory(active ? null : cat.id)}
+                      className={cn(
+                        "flex items-center justify-between w-full h-10 px-3 rounded-lg text-left transition-colors group",
+                        active
+                          ? "text-epf-600 font-medium bg-epf-50/60"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      )}
+                    >
+                      <span className="text-[13px] truncate">{cat.name}</span>
+                      <ChevronRight
+                        className={cn(
+                          "h-4 w-4 shrink-0 ml-2 transition-colors",
+                          active
+                            ? "text-epf-500"
+                            : "text-slate-300 group-hover:text-slate-400"
+                        )}
+                      />
+                    </button>
+                  );
+                })}
+          </div>
+        </section>
+
+        {/* ── 2. Price ──────────────────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+            Price Range
+          </h3>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              placeholder="Min"
+              value={minPriceInput}
+              onChange={(e) => onMinPriceInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onApplyPrice();
+              }}
+              className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
+            />
+            <span className="text-slate-400 text-[13px] select-none">—</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              placeholder="Max"
+              value={maxPriceInput}
+              onChange={(e) => onMaxPriceInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onApplyPrice();
+              }}
+              className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
+            />
+          </div>
+          <button
+            onClick={onApplyPrice}
+            className="mt-3 w-full h-9 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+          >
+            Apply
+          </button>
+        </section>
+
+        {/* ── 3. Brands ─────────────────────────────────────────────── */}
+        {brands.length > 0 && (
+          <section className="py-4">
+            <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+              Brands
+            </h3>
+            <div className="space-y-0.5">
+              <button
+                onClick={() => onSelectBrand(null)}
+                className="flex items-center gap-2.5 w-full h-9 px-1.5 rounded-lg text-left transition-colors group"
               >
-                <div
+                <span
                   className={cn(
                     "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                    selectedCategoryId === null
+                    selectedBrandId === null
                       ? "bg-epf-500 border-epf-500"
-                      : "border-slate-300"
+                      : "border-slate-300 group-hover:border-slate-400"
                   )}
                 >
-                  {selectedCategoryId === null && (
+                  {selectedBrandId === null && (
                     <Check className="h-3 w-3 text-white" strokeWidth={3} />
                   )}
-                </div>
-                <span className="text-[13px] font-medium">All Products</span>
-              </button>
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2.5 py-1.5 animate-pulse"
-                    >
-                      <div className="h-4 w-4 bg-slate-100 rounded" />
-                      <div className="h-3.5 bg-slate-100 rounded w-24 flex-1" />
-                    </div>
-                  ))
-                : categories.map((cat) => {
-                    const active = selectedCategoryId === cat.id;
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => onSelectCategory(active ? null : cat.id)}
-                        className={cn(
-                          "flex items-center gap-2.5 w-full py-1.5 px-1.5 rounded-lg text-left transition-colors",
-                          active ? "bg-epf-50 text-epf-700" : "text-slate-700 hover:bg-slate-50"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                            active ? "bg-epf-500 border-epf-500" : "border-slate-300"
-                          )}
-                        >
-                          {active && (
-                            <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                          )}
-                        </div>
-                        <span
-                          className={cn(
-                            "text-[13px] flex-1 truncate",
-                            active ? "font-semibold" : "font-medium"
-                          )}
-                        >
-                          {cat.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-            </div>
-          )}
-        </div>
-
-        <div className="h-px bg-slate-100" />
-
-        {/* Brands */}
-        {brands.length > 0 && (
-          <>
-            <div>
-              <button
-                onClick={() => setBrandOpen(!brandOpen)}
-                className="flex items-center justify-between w-full mb-3"
-              >
-                <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
-                  Brands
-                </h3>
-                <ChevronDown
+                </span>
+                <span
                   className={cn(
-                    "h-4 w-4 text-slate-500 transition-transform duration-200",
-                    brandOpen && "rotate-180"
+                    "text-[13px]",
+                    selectedBrandId === null
+                      ? "text-slate-900 font-medium"
+                      : "text-slate-600 group-hover:text-slate-900"
                   )}
-                />
+                >
+                  All Brands
+                </span>
               </button>
-              {brandOpen && (
-                <div className="space-y-1 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
-                  <button
-                    onClick={() => onSelectBrand(null)}
-                    className={cn(
-                      "flex items-center gap-2.5 w-full py-1.5 px-1.5 rounded-lg text-left transition-colors",
-                      selectedBrandId === null
-                        ? "bg-epf-50 text-epf-700"
-                        : "text-slate-700 hover:bg-slate-50"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                        selectedBrandId === null
-                          ? "bg-epf-500 border-epf-500"
-                          : "border-slate-300"
-                      )}
-                    >
-                      {selectedBrandId === null && (
-                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                      )}
-                    </div>
-                    <span className="text-[13px] font-medium">All Brands</span>
-                  </button>
-                  {brands.map((b) => {
-                    const active = selectedBrandId === b.id;
-                    return (
-                      <button
-                        key={b.id}
-                        onClick={() => onSelectBrand(active ? null : b.id)}
-                        className={cn(
-                          "flex items-center gap-2.5 w-full py-1.5 px-1.5 rounded-lg text-left transition-colors",
-                          active ? "bg-epf-50 text-epf-700" : "text-slate-700 hover:bg-slate-50"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                            active ? "bg-epf-500 border-epf-500" : "border-slate-300"
-                          )}
-                        >
-                          {active && (
-                            <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                          )}
-                        </div>
-                        <span
-                          className={cn(
-                            "text-[13px] flex-1 truncate",
-                            active ? "font-semibold" : "font-medium"
-                          )}
-                        >
-                          {b.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            <div className="h-px bg-slate-100" />
-          </>
-        )}
-
-        {/* Price Range */}
-        <div>
-          <button
-            onClick={() => setPriceOpen(!priceOpen)}
-            className="flex items-center justify-between w-full mb-3"
-          >
-            <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
-              Price Range
-            </h3>
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 text-slate-500 transition-transform duration-200",
-                priceOpen && "rotate-180"
-              )}
-            />
-          </button>
-          {priceOpen && (
-            <div className="grid grid-cols-1 gap-1.5">
-              {PRICE_RANGES.map((range, idx) => {
-                const active = selectedPriceRange === idx;
+              {visibleBrands.map((b) => {
+                const active = selectedBrandId === b.id;
                 return (
                   <button
-                    key={idx}
-                    onClick={() =>
-                      onSelectPriceRange(active ? null : idx)
-                    }
-                    className={cn(
-                      "flex items-center gap-2 text-[13px] font-medium px-2.5 h-9 rounded-lg border text-left transition-all duration-200",
-                      active
-                        ? "bg-epf-50 text-epf-700 border-epf-500"
-                        : "border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                    )}
+                    key={b.id}
+                    onClick={() => onSelectBrand(active ? null : b.id)}
+                    className="flex items-center gap-2.5 w-full h-9 px-1.5 rounded-lg text-left transition-colors group"
                   >
-                    <div
+                    <span
                       className={cn(
-                        "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
-                        active ? "border-epf-500" : "border-slate-300"
+                        "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                        active
+                          ? "bg-epf-500 border-epf-500"
+                          : "border-slate-300 group-hover:border-slate-400"
                       )}
                     >
                       {active && (
-                        <div className="h-2 w-2 rounded-full bg-epf-500" />
+                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
                       )}
-                    </div>
-                    {range.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="h-px bg-slate-100" />
-
-        {/* Rating */}
-        <div>
-          <button
-            onClick={() => setRatingOpen(!ratingOpen)}
-            className="flex items-center justify-between w-full mb-3"
-          >
-            <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-700">
-              Rating
-            </h3>
-            <ChevronDown
-              className={cn(
-                "h-4 w-4 text-slate-500 transition-transform duration-200",
-                ratingOpen && "rotate-180"
-              )}
-            />
-          </button>
-          {ratingOpen && (
-            <div className="space-y-1">
-              {RATING_OPTIONS.map((r) => {
-                const active = selectedRating === r;
-                return (
-                  <button
-                    key={r}
-                    onClick={() => onSelectRating(active ? null : r)}
-                    className={cn(
-                      "flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-left transition-colors",
-                      active ? "bg-epf-50" : "hover:bg-slate-50"
-                    )}
-                  >
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={cn(
-                            "h-3.5 w-3.5",
-                            i < r ? "fill-amber-400 text-amber-400" : "text-slate-300"
-                          )}
-                        />
-                      ))}
-                    </div>
+                    </span>
                     <span
                       className={cn(
-                        "text-[12px]",
-                        active ? "text-epf-700 font-semibold" : "text-slate-500"
+                        "text-[13px] truncate",
+                        active
+                          ? "text-slate-900 font-medium"
+                          : "text-slate-600 group-hover:text-slate-900"
                       )}
                     >
-                      & up
+                      {b.name}
                     </span>
                   </button>
                 );
               })}
+              {brands.length > BRAND_PREVIEW_COUNT && (
+                <button
+                  onClick={() => setShowAllBrands((v) => !v)}
+                  className="mt-1 text-[12px] font-semibold text-epf-600 hover:text-epf-700 transition-colors px-1.5"
+                >
+                  {showAllBrands
+                    ? "Show less"
+                    : `Show ${brands.length - BRAND_PREVIEW_COUNT} more`}
+                </button>
+              )}
             </div>
-          )}
-        </div>
+          </section>
+        )}
+
+        {/* ── 4. Rating ─────────────────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+            Rating
+          </h3>
+          <div className="space-y-0.5">
+            {RATING_OPTIONS.map((r) => {
+              const active = selectedRating === r;
+              return (
+                <button
+                  key={r}
+                  onClick={() => onSelectRating(active ? null : r)}
+                  className={cn(
+                    "flex items-center gap-2.5 w-full h-9 px-1.5 rounded-lg text-left transition-colors group",
+                    active ? "bg-epf-50/70" : "hover:bg-slate-50"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
+                      active ? "border-epf-500" : "border-slate-300 group-hover:border-slate-400"
+                    )}
+                  >
+                    {active && <span className="h-2 w-2 rounded-full bg-epf-500" />}
+                  </span>
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          i < r ? "fill-amber-400 text-amber-400" : "text-slate-300"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[12px]",
+                      active ? "text-epf-700 font-semibold" : "text-slate-500"
+                    )}
+                  >
+                    &amp; up
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── 5. Availability ───────────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+            Availability
+          </h3>
+          <label className="flex items-center justify-between cursor-pointer group">
+            <span className="text-[13px] font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
+              In Stock Only
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={inStockOnly}
+              onClick={() => onToggleInStock(!inStockOnly)}
+              className={cn(
+                "relative h-6 w-11 rounded-full transition-colors",
+                inStockOnly ? "bg-epf-500" : "bg-slate-200"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                  inStockOnly && "translate-x-5"
+                )}
+              />
+            </button>
+          </label>
+        </section>
       </div>
     </div>
   );
@@ -718,7 +679,7 @@ function Pagination({
         p === "..." ? (
           <span
             key={`ellipsis-${i}`}
-            className="h-9 w-9 flex items-center justify-center text-slate-500 text-[14px]"
+            className="h-9 w-9 flex items-center justify-center text-slate-500 text-[13px]"
           >
             ...
           </span>
@@ -727,7 +688,7 @@ function Pagination({
             key={p}
             onClick={() => onPageChange(p)}
             className={cn(
-              "h-9 min-w-9 px-2 flex items-center justify-center rounded-lg text-[14px] font-semibold transition-colors",
+              "h-9 min-w-9 px-2 flex items-center justify-center rounded-lg text-[13px] font-semibold transition-colors",
               p === currentPage
                 ? "bg-epf-500 text-white shadow-sm hover:bg-epf-600"
                 : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
@@ -754,20 +715,18 @@ function Pagination({
 /* ------------------------------------------------------------------ */
 function EmptyState({ onClear }: { onClear: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-5">
-        <PackageSearch className="h-10 w-10 text-slate-300" />
-      </div>
-      <h3 className="text-[18px] font-bold text-slate-900 mb-2">
+    <div className="flex flex-col items-center justify-center py-20 px-4">
+      <PackageSearch className="h-16 w-16 text-slate-200 mb-4" />
+      <h3 className="text-[18px] font-medium text-slate-900 mb-1.5">
         No products found
       </h3>
       <p className="text-[14px] text-slate-500 mb-6 text-center max-w-md">
-        We couldn&apos;t find any products matching your filters. Try adjusting
-        your selection or search terms.
+        Try adjusting your filters or search terms to find what you&apos;re
+        looking for.
       </p>
       <button
         onClick={onClear}
-        className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-semibold rounded-lg transition-colors shadow-sm"
+        className="h-10 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors shadow-sm"
       >
         Clear All Filters
       </button>
@@ -819,7 +778,10 @@ export default function ShopPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   /* Client-side filters */
-  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
+  const [appliedMinPrice, setAppliedMinPrice] = useState<number | null>(null);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
+  const [minPriceInput, setMinPriceInput] = useState<string>("");
+  const [maxPriceInput, setMaxPriceInput] = useState<string>("");
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [inStockOnly, setInStockOnly] = useState(false);
 
@@ -876,9 +838,11 @@ export default function ShopPage() {
     let arr = [...products];
 
     // Client-side price range filter
-    if (selectedPriceRange !== null) {
-      const range = PRICE_RANGES[selectedPriceRange];
-      arr = arr.filter((p) => p.price >= range.min && p.price < range.max);
+    if (appliedMinPrice != null) {
+      arr = arr.filter((p) => (p.price ?? 0) >= appliedMinPrice);
+    }
+    if (appliedMaxPrice != null) {
+      arr = arr.filter((p) => (p.price ?? 0) <= appliedMaxPrice);
     }
 
     // Client-side rating filter
@@ -917,7 +881,7 @@ export default function ShopPage() {
         break;
     }
     return arr;
-  }, [data?.data?.data, sort, selectedPriceRange, selectedRating, inStockOnly]);
+  }, [data?.data?.data, sort, appliedMinPrice, appliedMaxPrice, selectedRating, inStockOnly]);
 
   /* ---- Handlers ---- */
   useEffect(() => {
@@ -931,7 +895,10 @@ export default function ShopPage() {
     setAppliedSearch("");
     setSort("featured");
     setPage(1);
-    setSelectedPriceRange(null);
+    setAppliedMinPrice(null);
+    setAppliedMaxPrice(null);
+    setMinPriceInput("");
+    setMaxPriceInput("");
     setSelectedRating(null);
     setInStockOnly(false);
   }, []);
@@ -946,31 +913,32 @@ export default function ShopPage() {
     setPage(1);
   }, []);
 
+  const handleApplyPrice = useCallback(() => {
+    const min = minPriceInput.trim() === "" ? null : Number(minPriceInput);
+    const max = maxPriceInput.trim() === "" ? null : Number(maxPriceInput);
+    setAppliedMinPrice(min != null && !Number.isNaN(min) ? min : null);
+    setAppliedMaxPrice(max != null && !Number.isNaN(max) ? max : null);
+    setPage(1);
+  }, [minPriceInput, maxPriceInput]);
+
   const handleSortChange = useCallback((newSort: SortOption) => {
     setSort(newSort);
     setPage(1);
   }, []);
 
+  const hasActiveFilters =
+    !!selectedCategoryId ||
+    !!selectedBrandId ||
+    !!appliedSearch ||
+    appliedMinPrice != null ||
+    appliedMaxPrice != null ||
+    selectedRating !== null ||
+    inStockOnly;
+
   /* ---- Scroll to top on page change ---- */
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
-
-  /* ---- Active labels ---- */
-  const activeCategoryName = useMemo(() => {
-    if (!selectedCategoryId) return null;
-    return categories.find((c) => c.id === selectedCategoryId)?.name ?? null;
-  }, [selectedCategoryId, categories]);
-
-  const activeBrandName = useMemo(() => {
-    if (!selectedBrandId) return null;
-    return brands.find((b) => b.id === selectedBrandId)?.name ?? null;
-  }, [selectedBrandId, brands]);
-
-  const activePriceLabel = useMemo(() => {
-    if (selectedPriceRange === null) return null;
-    return PRICE_RANGES[selectedPriceRange]?.label ?? null;
-  }, [selectedPriceRange]);
 
   const showingFrom = (page - 1) * PRODUCTS_PER_PAGE + 1;
   const showingTo = Math.min(page * PRODUCTS_PER_PAGE, totalProducts);
@@ -990,8 +958,13 @@ export default function ShopPage() {
     onSelectCategory: handleCategorySelect,
     selectedBrandId,
     onSelectBrand: handleBrandSelect,
-    selectedPriceRange,
-    onSelectPriceRange: setSelectedPriceRange,
+    minPriceInput,
+    maxPriceInput,
+    onMinPriceInputChange: setMinPriceInput,
+    onMaxPriceInputChange: setMaxPriceInput,
+    onApplyPrice: handleApplyPrice,
+    appliedMinPrice,
+    appliedMaxPrice,
     selectedRating,
     onSelectRating: setSelectedRating,
     inStockOnly,
@@ -1001,13 +974,14 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
 
       <main className="flex-1">
-        {/* Breadcrumb */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12">
+        {/* ── Top Bar: Breadcrumb + Title + Toolbar ─────────────── */}
+        <div className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 h-11 text-[13px]">
               <a
                 href="/"
@@ -1019,45 +993,50 @@ export default function ShopPage() {
               <ChevronRight className="h-3 w-3 text-slate-300" />
               <span className="text-slate-900 font-medium">Shop</span>
             </nav>
-          </div>
-        </div>
 
-        {/* Page Heading + Toolbar */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-5">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-              {/* Left: Title + count */}
-              <div>
+            {/* Title + Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 pt-1">
+              {/* Title */}
+              <div className="flex items-center gap-3 min-w-0">
                 <h1 className="text-[24px] font-bold text-slate-900 tracking-tight">
                   Shop
                 </h1>
-                <p className="text-[13px] text-slate-500 mt-1">
-                  {isLoading ? (
-                    <span className="inline-block w-40 h-4 bg-slate-100 rounded animate-pulse align-middle" />
-                  ) : processedProducts.length > 0 ? (
-                    <>
-                      Showing{" "}
-                      <span className="text-slate-900 font-semibold">{showingFrom}</span>
-                      {" – "}
-                      <span className="text-slate-900 font-semibold">{showingTo}</span>
-                      {" of "}
-                      <span className="text-slate-900 font-semibold">{totalProducts}</span>
-                      {" products"}
-                    </>
-                  ) : (
-                    <>
-                      Showing <span className="text-slate-900 font-semibold">0</span> products
-                    </>
-                  )}
-                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="hidden sm:inline-flex items-center gap-1 text-[12px] text-slate-500 hover:text-epf-600 font-medium transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    Clear
+                  </button>
+                )}
               </div>
 
-              {/* Right: Sort + View toggle + Mobile filter */}
-              <div className="flex items-center gap-2.5">
+              {/* Toolbar */}
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* Result count */}
+                <span className="text-[13px] text-slate-500 mr-auto sm:mr-0">
+                  {isLoading ? (
+                    <span className="inline-block w-28 h-4 bg-slate-100 rounded animate-pulse align-middle" />
+                  ) : (
+                    <>
+                      Showing{" "}
+                      <span className="text-slate-900 font-semibold">
+                        {processedProducts.length > 0 ? showingTo : 0}
+                      </span>{" "}
+                      of{" "}
+                      <span className="text-slate-900 font-semibold">
+                        {totalProducts}
+                      </span>{" "}
+                      products
+                    </>
+                  )}
+                </span>
+
                 {/* Mobile filter button */}
                 <button
                   onClick={() => setMobileFilterOpen(true)}
-                  className="lg:hidden flex items-center gap-1.5 h-10 px-3.5 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                  className="lg:hidden flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-lg text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-colors"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   <span>Filters</span>
@@ -1068,7 +1047,7 @@ export default function ShopPage() {
                   <select
                     value={sort}
                     onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                    className="appearance-none h-10 pl-3.5 pr-9 border border-slate-200 rounded-lg bg-white text-[13px] font-medium text-slate-700 cursor-pointer hover:border-slate-300 focus:outline-none focus:border-epf-500 focus:ring-2 focus:ring-epf-500/20 transition-colors"
+                    className="appearance-none h-9 pl-3 pr-9 border border-slate-200 rounded-lg bg-white text-[13px] font-medium text-slate-700 cursor-pointer hover:border-slate-300 focus:outline-none focus:border-epf-500 focus:ring-2 focus:ring-epf-500/20 transition-colors"
                   >
                     {SORT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -1084,7 +1063,7 @@ export default function ShopPage() {
                   <button
                     onClick={() => setViewMode("grid")}
                     className={cn(
-                      "h-10 w-10 flex items-center justify-center transition-colors",
+                      "h-9 w-9 flex items-center justify-center transition-colors",
                       viewMode === "grid"
                         ? "bg-epf-500 text-white"
                         : "text-slate-500 hover:bg-slate-50"
@@ -1097,7 +1076,7 @@ export default function ShopPage() {
                   <button
                     onClick={() => setViewMode("list")}
                     className={cn(
-                      "h-10 w-10 flex items-center justify-center transition-colors",
+                      "h-9 w-9 flex items-center justify-center transition-colors",
                       viewMode === "list"
                         ? "bg-epf-500 text-white"
                         : "text-slate-500 hover:bg-slate-50"
@@ -1113,97 +1092,12 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* Active Filter Tags */}
-        {(selectedCategoryId || selectedBrandId || appliedSearch || selectedPriceRange !== null || selectedRating !== null || inStockOnly) && (
-          <div className="bg-white border-b border-slate-200">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[12px] text-slate-500 font-semibold uppercase tracking-wider">
-                  Active:
-                </span>
-                {activeCategoryName && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-epf-50 border border-epf-200 rounded-full text-[12px] text-epf-700 font-medium">
-                    {activeCategoryName}
-                    <button
-                      onClick={() => setSelectedCategoryId(null)}
-                      className="text-epf-400 hover:text-epf-700 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                {activeBrandName && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-epf-50 border border-epf-200 rounded-full text-[12px] text-epf-700 font-medium">
-                    {activeBrandName}
-                    <button
-                      onClick={() => setSelectedBrandId(null)}
-                      className="text-epf-400 hover:text-epf-700 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                {activePriceLabel && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-epf-50 border border-epf-200 rounded-full text-[12px] text-epf-700 font-medium">
-                    {activePriceLabel}
-                    <button
-                      onClick={() => setSelectedPriceRange(null)}
-                      className="text-epf-400 hover:text-epf-700 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                {selectedRating !== null && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-epf-50 border border-epf-200 rounded-full text-[12px] text-epf-700 font-medium">
-                    {selectedRating}★ & up
-                    <button
-                      onClick={() => setSelectedRating(null)}
-                      className="text-epf-400 hover:text-epf-700 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                {inStockOnly && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-epf-50 border border-epf-200 rounded-full text-[12px] text-epf-700 font-medium">
-                    In Stock
-                    <button
-                      onClick={() => setInStockOnly(false)}
-                      className="text-epf-400 hover:text-epf-700 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                {appliedSearch && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-3 bg-epf-50 border border-epf-200 rounded-full text-[12px] text-epf-700 font-medium">
-                    &quot;{appliedSearch}&quot;
-                    <button
-                      onClick={() => setAppliedSearch("")}
-                      className="text-epf-400 hover:text-epf-700 transition-colors"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                <button
-                  onClick={handleClearFilters}
-                  className="text-[12px] text-epf-600 font-semibold hover:text-epf-700 transition-colors ml-1"
-                >
-                  Clear all
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content: Sidebar + Grid */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-6">
+        {/* ── Main Content: Sidebar + Grid ─────────────────────── */}
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex gap-6">
             {/* ---- Desktop Sidebar ---- */}
-            <aside className="hidden lg:block w-[280px] shrink-0">
-              <div className="sticky top-[80px]">
+            <aside className="hidden lg:block w-[260px] shrink-0">
+              <div className="sticky top-[88px]">
                 {categoriesLoading ? (
                   <SidebarSkeleton />
                 ) : (
