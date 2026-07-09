@@ -83,8 +83,8 @@ function ProductCard({ product }: { product: Product }) {
         window.location.href = `/shop/${product.id}`;
       }}
     >
-      {/* Image — square, centered */}
-      <div className="aspect-square flex items-center justify-center p-3 bg-white">
+      {/* Image — landscape 4:3, centered */}
+      <div className="aspect-[4/3] flex items-center justify-center p-2 bg-white">
         {product.images?.[0] ? (
           <img
             src={product.images[0]}
@@ -95,7 +95,7 @@ function ProductCard({ product }: { product: Product }) {
             }}
           />
         ) : (
-          <EPFCircuitBreaker size={48} className="text-slate-300" />
+          <EPFCircuitBreaker size={36} className="text-slate-300" />
         )}
       </div>
 
