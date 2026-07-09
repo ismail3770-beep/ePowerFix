@@ -27,6 +27,7 @@ import {
   Eye,
   Plus,
   Trash2,
+  Package,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -193,7 +194,7 @@ function InfoRow({
 /* ------------------------------------------------------------------ */
 /*  Sidebar config                                                     */
 /* ------------------------------------------------------------------ */
-type SectionKey = "dashboard" | "orders" | "downloads" | "addresses";
+type SectionKey = "dashboard" | "orders" | "downloads" | "addresses" | "reviews";
 
 type SidebarItem =
   | { type: "section"; key: SectionKey; label: string; icon: React.ElementType }
@@ -206,7 +207,7 @@ const sidebarItems: SidebarItem[] = [
   { type: "section", key: "orders", label: "My Orders", icon: ShoppingBag },
   { type: "section", key: "downloads", label: "My Downloads", icon: Download },
   { type: "link", href: "/wishlist", label: "My Wishlist", icon: Heart },
-  { type: "link", href: "/", label: "My Reviews", icon: Star },
+  { type: "section", key: "reviews", label: "My Reviews", icon: Star },
   { type: "section", key: "addresses", label: "My Addresses", icon: MapPin },
   { type: "dialog", label: "My Profile", icon: User },
   { type: "logout", label: "Logout", icon: LogOut },
@@ -226,6 +227,41 @@ interface UserAddress {
   label: string | null;
   isDefault: boolean;
   createdAt: string;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Review types + helpers                                             */
+/* ------------------------------------------------------------------ */
+interface ReviewItem {
+  id: string;
+  rating: number;
+  title: string;
+  comment: string;
+  status: string;
+  createdAt: string;
+  product: { id: string; name: string; slug: string; images: string } | null;
+  service: { id: string; name: string; slug: string; images: string } | null;
+}
+
+function parseImages(val: unknown): string[] {
+  if (Array.isArray(val)) return val as string[];
+  if (typeof val === "string") {
+    try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch { /* ignore */ }
+  }
+  return [];
+}
+
+function reviewStatusBadge(status: string): { label: string; className: string } {
+  switch (status) {
+    case "APPROVED":
+      return { label: "Approved", className: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+    case "PENDING":
+      return { label: "Unapproved", className: "bg-amber-50 text-amber-700 border-amber-200" };
+    case "REJECTED":
+      return { label: "Rejected", className: "bg-red-50 text-red-700 border-red-200" };
+    default:
+      return { label: status, className: "bg-slate-100 text-slate-700 border-slate-200" };
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -296,6 +332,14 @@ export default function ProfilePage() {
     enabled: !!user,
   });
   const addresses = addressesEnvelope?.data ?? [];
+
+  // Reviews list (current user's reviews, any status)
+  const { data: reviewsEnvelope, isLoading: reviewsLoading } = useQuery<{ data: ReviewItem[] }>({
+    queryKey: ["my-reviews"],
+    queryFn: () => apiFetch("/api/reviews/mine"),
+    enabled: !!user,
+  });
+  const reviews = reviewsEnvelope?.data ?? [];
 
   const createReturnMutation = useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
@@ -1031,6 +1075,127 @@ export default function ProfilePage() {
                               </div>
                             </div>
                           ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* ---- My Reviews (reviews section OR dashboard if any) ---- */}
+                {(activeSection === "reviews" ||
+                  (activeSection === "dashboard" && reviews.length > 0)) && (
+                  <Card className="rounded-xl border border-slate-200 shadow-sm">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
+                        <Star className="h-5 w-5 text-slate-500" />
+                        My Reviews
+                        {reviews.length > 0 && (
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-epf-50 text-epf-600 text-[11px] font-semibold">
+                            {reviews.length}
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {reviewsLoading ? (
+                        <div className="space-y-2">
+                          {[1, 2].map((i) => (
+                            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                          ))}
+                        </div>
+                      ) : reviews.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                          <div className="h-14 w-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
+                            <Star className="h-6 w-6 text-slate-300" />
+                          </div>
+                          <p className="text-[15px] font-medium text-slate-700">No reviews yet</p>
+                          <p className="text-[13px] text-slate-400 mt-1 max-w-xs">
+                            Share your experience with products you've purchased to help other buyers.
+                          </p>
+                          <a
+                            href="/shop"
+                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+                          >
+                            Browse Products
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="-mx-2 overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3 w-[60px]">
+                                  Image
+                                </TableHead>
+                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                  Product
+                                </TableHead>
+                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                  Status
+                                </TableHead>
+                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                  Date
+                                </TableHead>
+                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                  Rating
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {reviews.map((rv) => {
+                                const item = rv.product || rv.service;
+                                const imgs = item ? parseImages(item.images) : [];
+                                const img = imgs[0] || null;
+                                const href = rv.product ? `/product/${rv.product.id}` : rv.service ? `/services/${rv.service.slug}` : "#";
+                                const badge = reviewStatusBadge(rv.status);
+                                return (
+                                  <TableRow key={rv.id} className="border-slate-200 hover:bg-slate-50/60">
+                                    <TableCell className="px-4 py-3">
+                                      <div className="h-11 w-11 rounded-md overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                                        {img ? (
+                                          <img src={img} alt={item?.name || "product"} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <Package className="h-5 w-5 text-slate-300" />
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="px-4 py-3">
+                                      <a
+                                        href={href}
+                                        className="text-[13px] font-medium text-slate-800 hover:text-epf-600 transition-colors line-clamp-2"
+                                        title={item?.name || "Product"}
+                                      >
+                                        {item?.name || "Product removed"}
+                                      </a>
+                                      {rv.title && (
+                                        <p className="text-[12px] text-slate-500 mt-0.5 line-clamp-1">{rv.title}</p>
+                                      )}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-3">
+                                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${badge.className}`}>
+                                        {badge.label}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="px-4 py-3 text-[13px] text-slate-500 whitespace-nowrap">
+                                      {formatDate(rv.createdAt)}
+                                    </TableCell>
+                                    <TableCell className="px-4 py-3">
+                                      <div className="flex items-center gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                          <Star
+                                            key={s}
+                                            className={`h-[14px] w-[14px] ${
+                                              s <= rv.rating ? "fill-amber-400 text-amber-400" : "text-slate-200 fill-slate-200"
+                                            }`}
+                                          />
+                                        ))}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                          </Table>
                         </div>
                       )}
                     </CardContent>
