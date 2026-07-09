@@ -91,7 +91,6 @@ function ServiceCard({ service, isSidebar, onNavigate }: {
         <div className="min-w-0 flex-1">
           <h4 className="text-[13px] font-medium text-slate-700 leading-snug line-clamp-1 group-hover:text-epf-500 transition-colors">{service.name}</h4>
           <span className="text-[11px] text-slate-400">{service.category?.name || "Service"}</span>
-          <span className="text-[11px] text-epf-500 ml-2 font-medium">৳{service.basePrice.toLocaleString()}</span>
         </div>
       </div>
     );
@@ -127,8 +126,9 @@ function ServiceCard({ service, isSidebar, onNavigate }: {
             <span className="text-[12px] text-slate-500 bg-slate-100 px-2 py-[2px] rounded-full">{service.priceUnit || "fixed"}</span>
           </div>
           <div className="shrink-0 text-right">
-            <span className="text-[11px] text-slate-400 block leading-tight">Starting from</span>
-            <span className="text-[16px] font-bold text-epf-500">৳{service.basePrice.toLocaleString()}</span>
+            <span className="text-[13px] font-semibold text-epf-500 inline-flex items-center gap-1">
+              Get Quote <ArrowRight className="w-3.5 h-3.5" />
+            </span>
           </div>
         </div>
       </div>
@@ -215,8 +215,9 @@ function FeaturedCard({ service, onNavigate }: { service: ServiceItem; onNavigat
             <span className="flex items-center gap-1"><Star className="w-3 h-3 text-amber-400" />{Number(service.rating || 0).toFixed(1)}</span>
           </div>
           <div className="text-right">
-            <span className="text-[11px] text-slate-400 block leading-tight">Starting from</span>
-            <span className="text-[16px] font-bold text-epf-500">৳{service.basePrice.toLocaleString()}</span>
+            <span className="text-[13px] font-semibold text-epf-500 inline-flex items-center gap-1">
+              Get Quote <ArrowRight className="w-3.5 h-3.5" />
+            </span>
           </div>
         </div>
       </div>

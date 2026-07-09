@@ -120,16 +120,27 @@ export default function ServiceDetailPage() {
               </div>
             )}
             <div className="bg-epf-50 rounded-lg p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-              <div><p className="text-[14px] text-slate-500">Price</p><p className="text-[28px] font-bold text-slate-900">৳{Number(service.basePrice ?? 0).toLocaleString()}<span className="text-[14px] font-normal text-slate-500"> BDT</span></p></div>
-              <button
-                onClick={() => {
-                  setBookingServiceId(service.id);
-                  setServiceBookingOpen(true);
-                }}
-                className="h-11 px-8 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-[15px] rounded-lg transition-all duration-200 flex items-center gap-2"
-              >
-                <Calendar className="w-4 h-4" /> Book Now
-              </button>
+              <div>
+                <p className="text-[14px] text-slate-500">Pricing</p>
+                <p className="text-[20px] font-bold text-slate-900">Price on request</p>
+                <p className="text-[13px] text-slate-500 mt-1">Contact us for a custom quote based on your needs.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <a
+                  href="/get-quote"
+                  className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-[14px] rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" /> Request Quote
+                </a>
+                <a
+                  href="https://wa.me/8801700000000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-11 px-6 bg-white border border-epf-500 text-epf-500 hover:bg-epf-50 font-semibold text-[14px] rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-4 h-4" /> Contact Us
+                </a>
+              </div>
             </div>
           </div>
           <aside className="w-full lg:w-[30%] shrink-0 space-y-6">

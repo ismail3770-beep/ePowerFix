@@ -101,14 +101,11 @@ export default function ProjectsSection() {
                     </span>
                   </div>
 
-                  {/* Content */}
+                  {/* Content — project name only (pricing/details on request) */}
                   <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
-                    <h4 className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] group-hover:text-epf-600 transition-colors min-h-[2.4rem]">
+                    <h4 className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-[1.4] group-hover:text-epf-600 transition-colors min-h-[2.4rem]">
                       {proj.title}
                     </h4>
-                    <p className="text-[12px] text-slate-500 line-clamp-2 leading-relaxed mt-auto pt-1">
-                      {proj.description}
-                    </p>
                   </div>
                 </a>
               );

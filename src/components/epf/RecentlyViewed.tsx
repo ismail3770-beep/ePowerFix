@@ -102,7 +102,7 @@ export default function RecentlyViewed() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              সম্প্রতি দেখা পণ্য / Recently Viewed
+              Recently Viewed
             </h2>
             <p className="text-sm text-slate-500 mt-1">
               Pick up where you left off

@@ -8,6 +8,7 @@ interface Service {
   name: string;
   nameBn?: string | null;
   description: string;
+  slug?: string;
   basePrice: number;
   priceUnit: string;
   shortDesc?: string | null;
@@ -76,7 +77,7 @@ export default function ServicesSection() {
               return (
                 <a
                   key={svc.id}
-                  href="/services"
+                  href={svc.slug ? `/services/${svc.slug}` : "/services"}
                   className="group flex flex-col bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200"
                 >
                   {/* Image */}
@@ -114,16 +115,13 @@ export default function ServicesSection() {
                       {svc.shortDesc || svc.description}
                     </p>
 
-                    {/* Footer: price + CTA */}
+                    {/* Footer: contact CTA (pricing on request via quote) */}
                     <div className="mt-auto pt-3 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] text-slate-400 leading-none">From</span>
-                        <span className="text-[16px] font-bold text-epf-600 leading-tight">
-                          ৳{Number(svc.basePrice ?? 0).toLocaleString()}
-                        </span>
-                      </div>
+                      <span className="text-[13px] font-medium text-slate-500">
+                        Price on request
+                      </span>
                       <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-slate-900 group-hover:text-epf-600 transition-colors">
-                        Book Now
+                        Get Quote
                         <EPFArrowRight size={13} />
                       </span>
                     </div>
