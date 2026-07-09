@@ -19,6 +19,10 @@ const updateProfileSchema = z.object({
   avatar: z.string().optional(),
   email: z.string().optional(),
   currentPassword: z.string().optional(),
+  address: z.string().optional(),
+  area: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
 }).passthrough()
 
 // ─── PUT /api/auth/profile ────────────────────────────────────────────────────
@@ -54,6 +58,11 @@ export const PUT = authRoute(updateProfileSchema, async (request, body, user) =>
   if (body.email !== undefined) data.email = body.email.toLowerCase()
   // nameBn kept in sync if the frontend ever sends it.
   if (body.nameBn !== undefined) data.nameBn = body.nameBn || null
+  // Address fields (editable from /profile page)
+  if (body.address !== undefined) data.address = body.address || null
+  if (body.area !== undefined) data.area = body.area || null
+  if (body.city !== undefined) data.city = body.city || null
+  if (body.postalCode !== undefined) data.postalCode = body.postalCode || null
 
   const updated = await db.user.update({
     where: { id: currentUser.id },
@@ -61,11 +70,16 @@ export const PUT = authRoute(updateProfileSchema, async (request, body, user) =>
     select: {
       id: true,
       name: true,
+      nameBn: true,
       email: true,
       role: true,
       phone: true,
       avatar: true,
       isActive: true,
+      address: true,
+      area: true,
+      city: true,
+      postalCode: true,
     },
   })
 

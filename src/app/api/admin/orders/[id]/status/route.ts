@@ -6,6 +6,7 @@ import {
   errorResponse,
 } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { notifyUser } from '@/lib/notifications'
 
 const updateOrderStatusSchema = z.object({
   status: z.string().min(1),
@@ -63,6 +64,29 @@ export const PUT = withErrorHandling(async (
 
     return updated
   })
+
+  // Notify the customer that their order status changed (e.g. confirmed,
+  // shipped, delivered, or cancelled). Only notify if the order belongs to
+  // a registered user (guest orders have userId = null).
+  if (order.userId && status !== existing.status) {
+    const statusMessages: Record<string, string> = {
+      PENDING: 'is pending confirmation',
+      CONFIRMED: 'has been confirmed',
+      PROCESSING: 'is being processed',
+      SHIPPED: 'has been shipped',
+      DELIVERED: 'has been delivered',
+      CANCELLED: 'has been cancelled',
+      RETURNED: 'return has been processed',
+    }
+    const detail = statusMessages[status] || `updated to ${status}`
+    await notifyUser(
+      order.userId,
+      'Order Status Updated',
+      `Your order ${order.orderNumber} ${detail}.`,
+      'ORDER',
+      order.id,
+    )
+  }
 
   return jsonResponse({ data: order })
 })

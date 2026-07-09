@@ -40,11 +40,16 @@ export const POST = publicRoute(schemas.login, async (request, { email, password
   const safeUser = {
     id: user.id,
     name: user.name,
+    nameBn: user.nameBn,
     email: user.email,
     role: user.role,
     phone: user.phone,
     avatar: user.avatar,
     isActive: user.isActive,
+    address: user.address,
+    area: user.area,
+    city: user.city,
+    postalCode: user.postalCode,
   }
 
   await createSession(safeUser)

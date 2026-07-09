@@ -8,6 +8,7 @@ import {
 import { parseJsonField } from '@/lib/admin-api'
 import { publicRoute, publicGetRoute, authGetRoute, z } from '@/lib/api-handler'
 import { startSpan } from '@/lib/monitoring'
+import { notifyAdmins } from '@/lib/notifications'
 
 function orderNumber(seq: number, rand: number = 0): string {
   const d = new Date()
@@ -234,6 +235,14 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
       data: { usedCount: { increment: 1 } },
     })
   }
+
+  // Notify all admins about the new order (shows up in the admin bell icon).
+  await notifyAdmins(
+    'New Order Placed',
+    `Order ${order.orderNumber} (৳${order.total}) has been placed by ${customerName}.`,
+    'ORDER',
+    order.id,
+  )
 
   return jsonResponse(
     { success: true, data: order, message: 'Order created successfully' },

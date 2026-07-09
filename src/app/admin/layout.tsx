@@ -6,7 +6,8 @@ import { useAuthStore } from "@/store/auth-store";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminAIChat from "@/components/admin/AdminAIChat";
-import { Bell, ChevronDown, LogOut, ExternalLink, Plus, Menu } from "lucide-react";
+import NotificationBell from "@/components/epf/NotificationBell";
+import { ChevronDown, LogOut, ExternalLink, Plus, Menu, UserCircle } from "lucide-react";
 
 interface AdminTabContextType {
   activeTab: string;
@@ -227,15 +228,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </button>
               )}
 
-              {/* Notification */}
-              <button
-                onClick={() => router.push('/admin/messages')}
-                className="relative h-9 w-9 flex items-center justify-center rounded-lg hover:bg-[#F3F4F6] transition-colors"
-                title="Messages"
-              >
-                <Bell className="h-[18px] w-[18px] text-gray-500" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
-              </button>
+              {/* Notifications — real dropdown with latest order/return/status alerts */}
+              <NotificationBell />
 
               {/* Profile */}
               <div className="relative">
@@ -256,6 +250,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       <p className="text-[13px] font-medium text-[#111827]">{user.name}</p>
                       <p className="text-[11px] text-[#6B7280]">{user.email}</p>
                     </div>
+                    <a href="/admin/profile" className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#374151] hover:bg-[#F9FAFB]">
+                      <UserCircle className="h-3.5 w-3.5" /> My Profile
+                    </a>
                     <a href="/" className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#374151] hover:bg-[#F9FAFB]">
                       <ExternalLink className="h-3.5 w-3.5" /> View Website
                     </a>

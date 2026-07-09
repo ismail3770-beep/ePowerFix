@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -27,6 +27,11 @@ model User {
   avatar    String?
   isActive  Boolean  @default(true) @map("is_active")
   isDeleted Boolean  @default(false) @map("is_deleted")
+  // Customer profile fields (editable from /profile page)
+  address    String?  @map("address")
+  area       String?  @map("area")
+  city       String?  @map("city")
+  postalCode String?  @map("postal_code")
   // Email verification + password reset. Tokens store a sha256 hash of the
   // random token that was emailed — never the raw value.
   emailVerified        Boolean   @default(false) @map("email_verified")

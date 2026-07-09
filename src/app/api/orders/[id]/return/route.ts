@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { notifyAdmins } from '@/lib/notifications'
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
@@ -48,6 +49,14 @@ export const POST = withErrorHandling(async (
       refundAmount: order.total,
     },
   })
+
+  // Notify all admins that a return request was submitted.
+  await notifyAdmins(
+    'Return Request Submitted',
+    `A return request was submitted for order ${order.orderNumber} (৳${order.total}).`,
+    'RETURN',
+    returnRequest.id,
+  )
 
   return jsonResponse({ data: returnRequest, message: 'Return request submitted' }, 201)
 })

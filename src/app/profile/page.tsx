@@ -21,7 +21,9 @@ import {
   XCircle,
   Download,
   Lock,
+  Pencil,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -56,11 +58,13 @@ import NotificationBell from "@/components/epf/NotificationBell";
 interface AuthUser {
   id: string;
   name: string;
+  nameBn?: string | null;
   email: string;
   phone: string | null;
   address: string | null;
   area: string | null;
   city: string | null;
+  postalCode?: string | null;
   role: string;
 }
 
@@ -165,6 +169,11 @@ export default function ProfilePage() {
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [returnOrderId, setReturnOrderId] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "", nameBn: "", phone: "", address: "", area: "", city: "", postalCode: "",
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const { data: user, isLoading: userLoading, isError } = useQuery<AuthUser>({
     queryKey: ["auth-me"],
@@ -227,6 +236,40 @@ export default function ProfilePage() {
       // ignore — clear local state regardless
     }
     router.push("/");
+  };
+
+  function openEditDialog() {
+    if (!user) return;
+    setEditForm({
+      name: user.name || "",
+      nameBn: user.nameBn || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      area: user.area || "",
+      city: user.city || "",
+      postalCode: user.postalCode || "",
+    });
+    setEditDialogOpen(true);
+  }
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const res = await apiFetch<{ data: AuthUser }>("/api/auth/profile", {
+        method: "PUT",
+        body: JSON.stringify(editForm),
+      });
+      if (res.data) {
+        setUser(res.data as Parameters<typeof setUser>[0]);
+        queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+        toast.success("প্রোফাইল সফলভাবে আপডেট হয়েছে");
+        setEditDialogOpen(false);
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "প্রোফাইল আপডেট করতে সমস্যা হয়েছে");
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   function openReturnDialog(orderId: string) {
@@ -330,8 +373,17 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 {/* Profile Info Card */}
                 <Card className="border border-slate-200">
-                  <CardHeader className="pb-0">
+                  <CardHeader className="pb-0 flex-row items-center justify-between space-y-0">
                     <CardTitle className="text-[16px] font-semibold text-slate-900">Profile Info</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-[13px] text-epf-500 hover:text-epf-600 gap-1.5"
+                      onClick={openEditDialog}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
+                    </Button>
                   </CardHeader>
                   <CardContent className="pt-2">
                     <div className="flex flex-col items-center mb-4">
@@ -349,6 +401,7 @@ export default function ProfilePage() {
                     <InfoRow icon={MapPin} label="Address" value={user?.address} />
                     <InfoRow icon={MapPin} label="Area" value={user?.area} />
                     <InfoRow icon={MapPin} label="City" value={user?.city} />
+                    <InfoRow icon={MapPin} label="Postal Code" value={user?.postalCode} />
                   </CardContent>
                 </Card>
 
@@ -601,6 +654,104 @@ export default function ProfilePage() {
       <ProjectDetailDialog />
       <ChatWidget />
       <BackToTopButton />
+
+      {/* Edit Profile Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your personal information and delivery address.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Name (English)</Label>
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Your name"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">নাম (বাংলা)</Label>
+                <Input
+                  value={editForm.nameBn}
+                  onChange={(e) => setEditForm({ ...editForm, nameBn: e.target.value })}
+                  placeholder="আপনার নাম"
+                  className="h-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[13px] text-slate-700">Phone</Label>
+              <Input
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                placeholder="01XXXXXXXXX"
+                className="h-10"
+              />
+              <p className="text-[12px] text-slate-400">Email change requires password verification — contact support.</p>
+            </div>
+            <Separator />
+            <div className="space-y-1.5">
+              <Label className="text-[13px] text-slate-700">Address</Label>
+              <Input
+                value={editForm.address}
+                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                placeholder="House, road, street"
+                className="h-10"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Area</Label>
+                <Input
+                  value={editForm.area}
+                  onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}
+                  placeholder="Area"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">City</Label>
+                <Input
+                  value={editForm.city}
+                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                  placeholder="City"
+                  className="h-10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[13px] text-slate-700">Postal Code</Label>
+                <Input
+                  value={editForm.postalCode}
+                  onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
+                  placeholder="XXXX"
+                  className="h-10"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={savingProfile}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveProfile} disabled={savingProfile || !editForm.name}>
+              {savingProfile ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Return Request Dialog */}
       <Dialog open={returnDialogOpen} onOpenChange={() => { setReturnDialogOpen(false); setReturnReason(""); }}>

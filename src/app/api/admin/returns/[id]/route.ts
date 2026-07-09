@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
+import { notifyUser } from '@/lib/notifications'
 
 // ─── Zod Schema ───────────────────────────────────────────────────────────────
 
@@ -48,7 +49,28 @@ export const PUT = withErrorHandling(async (
       ...(body.status ? { status: body.status } : {}),
       ...(body.adminNotes ? { adminNotes: body.adminNotes } : {}),
     },
+    include: { order: { select: { orderNumber: true } } },
   })
+
+  // Notify the customer when their return request status changes
+  // (e.g. approved / rejected / completed).
+  if (body.status && updated.userId) {
+    const statusMessages: Record<string, string> = {
+      PENDING: 'is under review',
+      APPROVED: 'has been approved',
+      REJECTED: 'has been rejected',
+      COMPLETED: 'has been completed — refund processed',
+    }
+    const detail = statusMessages[body.status.toUpperCase()] || `updated to ${body.status}`
+    await notifyUser(
+      updated.userId,
+      'Return Request Update',
+      `Your return request for order ${updated.order.orderNumber} ${detail}.`,
+      'RETURN',
+      updated.id,
+    )
+  }
+
   return jsonResponse({ data: updated })
 })
 

@@ -26,11 +26,16 @@ function getJwtSecret() {
 export interface SessionUser {
   id: string
   name: string
+  nameBn?: string | null
   email: string
   role: string
   phone?: string | null
   avatar?: string | null
   isActive?: boolean
+  address?: string | null
+  area?: string | null
+  city?: string | null
+  postalCode?: string | null
 }
 
 export interface AuthResult {
@@ -98,8 +103,9 @@ export async function getSession(): Promise<SessionUser | null> {
     const user = await db.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, name: true, email: true, role: true,
+        id: true, name: true, nameBn: true, email: true, role: true,
         phone: true, avatar: true, isActive: true,
+        address: true, area: true, city: true, postalCode: true,
       },
     })
     if (!user || !user.isActive) return null
