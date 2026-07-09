@@ -141,8 +141,8 @@ export default function ServiceBookingDialog() {
             )}
 
             <div className="bg-epf-50 border border-epf-500/15 rounded-lg p-3">
-              <p className="font-semibold text-sm text-dark-900">{service.name}</p>
-              {service.nameBn && <p className="text-xs text-dark-500">{service.nameBn}</p>}
+              <p className="font-semibold text-sm text-slate-900">{service.name}</p>
+              {service.nameBn && <p className="text-xs text-slate-500">{service.nameBn}</p>}
               <p className="text-epf-500 font-bold text-sm mt-1">৳{(service.basePrice ?? 0).toLocaleString()}{service.priceUnit ? `/${service.priceUnit}` : ""}</p>
             </div>
           </>

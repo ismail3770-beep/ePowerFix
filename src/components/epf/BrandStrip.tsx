@@ -13,7 +13,7 @@ export default function BrandStrip() {
           Trusted by leading brands & professionals across Bangladesh
         </p>
       </div>
-      <div className="flex whitespace-nowrap brand-scroll">
+      <div className="flex whitespace-nowrap animate-[marquee_25s_linear_infinite]">
         <div className="flex items-center gap-16 px-6">
           {brands.map((b) => (
             <span key={b} className="text-[16px] font-bold text-slate-300 hover:text-slate-500 transition-colors cursor-default tracking-tight select-none">{b}</span>

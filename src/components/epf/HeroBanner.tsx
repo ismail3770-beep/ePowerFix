@@ -177,10 +177,10 @@ export default function HeroBanner() {
             /* ── Empty state — no banners configured yet ── */
             <div className="absolute inset-0 bg-gradient-to-br from-epf-500/10 via-white to-epf-500/5 flex items-center justify-center">
               <div className="text-center px-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-dark-900 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                   Welcome to ePowerFix
                 </h2>
-                <p className="text-sm text-dark-500 mt-2">
+                <p className="text-sm text-slate-500 mt-2">
                   Your trusted electrical marketplace. Add banners from the
                   admin panel to showcase promotions here.
                 </p>
@@ -226,7 +226,7 @@ export default function HeroBanner() {
                               className={`text-[22px] sm:text-[28px] lg:text-[36px] font-bold leading-[1.25] tracking-tight ${
                                 hasImage
                                   ? "text-white"
-                                  : "text-dark-900"
+                                  : "text-slate-900"
                               }`}
                             >
                               {titleParts.map((part, idx) => (
@@ -242,7 +242,7 @@ export default function HeroBanner() {
                                 className={`text-[14px] sm:text-[15px] mt-2 max-w-md leading-relaxed ${
                                   hasImage
                                     ? "text-white/70"
-                                    : "text-dark-500"
+                                    : "text-slate-500"
                                 }`}
                               >
                                 {slide.subtitle}
@@ -282,21 +282,21 @@ export default function HeroBanner() {
               {/* ── Arrow buttons ───────────────────────────── */}
               <button
                 onClick={scrollPrev}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-dark-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-slate-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                 aria-label="Previous slide"
               >
                 <EPFArrowLeft size={16} />
               </button>
               <button
                 onClick={scrollNext}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-dark-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-slate-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                 aria-label="Next slide"
               >
                 <EPFArrowRight size={16} />
               </button>
 
               {/* ── Progress bar ────────────────────────────── */}
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-dark-200 z-20">
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-200 z-20">
                 <div
                   className="h-full bg-epf-500 transition-[width] duration-100 ease-linear"
                   style={{ width: `${progress}%` }}
@@ -311,8 +311,8 @@ export default function HeroBanner() {
                     onClick={() => scrollTo(i)}
                     className={`h-2 rounded-full transition-all ${
                       i === selectedIndex
-                        ? "bg-dark-900 w-7"
-                        : "bg-dark-400 w-2"
+                        ? "bg-slate-900 w-7"
+                        : "bg-slate-400 w-2"
                     }`}
                     aria-label={`Slide ${i + 1}`}
                   />

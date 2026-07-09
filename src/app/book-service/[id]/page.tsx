@@ -109,20 +109,20 @@ export default function BookServicePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
 
       <main className="flex-1">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6">
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 mb-5">
-            <a href="/" className="flex items-center gap-1 text-[14px] text-[#6B7280] hover:text-[#111827] transition-colors">
+            <a href="/" className="flex items-center gap-1 text-[14px] text-slate-500 hover:text-slate-900 transition-colors">
               <Home className="h-4 w-4" /> Home
             </a>
-            <ChevronRight className="h-3.5 w-3.5 text-[#94A3B8]" />
-            <a href="/services" className="text-[14px] text-[#6B7280] hover:text-[#111827] transition-colors">Services</a>
-            <ChevronRight className="h-3.5 w-3.5 text-[#94A3B8]" />
-            <span className="text-[14px] font-medium text-[#111827]">Book Service</span>
+            <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+            <a href="/services" className="text-[14px] text-slate-500 hover:text-slate-900 transition-colors">Services</a>
+            <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-[14px] font-medium text-slate-900">Book Service</span>
           </nav>
 
           {success ? (
@@ -133,15 +133,15 @@ export default function BookServicePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-[24px] font-bold text-[#111827] mb-2">Booking Confirmed!</h2>
-              <p className="text-[15px] text-[#6B7280] mb-8">
+              <h2 className="text-[24px] font-bold text-slate-900 mb-2">Booking Confirmed!</h2>
+              <p className="text-[15px] text-slate-500 mb-8">
                 Thank you for booking. Our team will contact you shortly to confirm the details.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="/services" className="h-11 px-6 bg-dark-900 hover:bg-dark-700 text-white text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors">
+                <a href="/services" className="h-11 px-6 bg-slate-900 hover:bg-slate-700 text-white text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors">
                   <ArrowLeft className="h-4 w-4" /> Back to Services
                 </a>
-                <a href="/" className="h-11 px-6 border border-gray-300 hover:border-dark-900 text-dark-900 text-[15px] font-semibold rounded-lg flex items-center justify-center transition-colors">
+                <a href="/" className="h-11 px-6 border border-slate-300 hover:border-slate-900 text-slate-900 text-[15px] font-semibold rounded-lg flex items-center justify-center transition-colors">
                   Go to Home
                 </a>
               </div>
@@ -154,11 +154,11 @@ export default function BookServicePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <h2 className="text-[24px] font-bold text-[#111827] mb-2">Service Not Found</h2>
-              <p className="text-[15px] text-[#6B7280] mb-8">
+              <h2 className="text-[24px] font-bold text-slate-900 mb-2">Service Not Found</h2>
+              <p className="text-[15px] text-slate-500 mb-8">
                 The service you&apos;re trying to book is no longer available.
               </p>
-              <a href="/services" className="h-11 px-6 bg-dark-900 hover:bg-dark-700 text-white text-[15px] font-semibold rounded-lg inline-flex items-center justify-center gap-2 transition-colors">
+              <a href="/services" className="h-11 px-6 bg-slate-900 hover:bg-slate-700 text-white text-[15px] font-semibold rounded-lg inline-flex items-center justify-center gap-2 transition-colors">
                 <ArrowLeft className="h-4 w-4" /> Back to Services
               </a>
             </div>
@@ -167,21 +167,21 @@ export default function BookServicePage() {
               {/* ─── LEFT: Booking Form ─── */}
               <div className="flex-1 max-w-2xl">
                 <div className="mb-5">
-                  <h1 className="text-[24px] font-bold text-[#111827]">Book a Service</h1>
-                  <p className="text-[15px] text-[#6B7280] mt-1">Fill in the details below and we&apos;ll get back to you.</p>
+                  <h1 className="text-[24px] font-bold text-slate-900">Book a Service</h1>
+                  <p className="text-[15px] text-slate-500 mt-1">Fill in the details below and we&apos;ll get back to you.</p>
                 </div>
 
                 {loading ? (
-                  <div className="bg-white border border-gray-200 rounded-lg p-8 animate-pulse space-y-4">
+                  <div className="bg-white border border-slate-200 rounded-lg p-8 animate-pulse space-y-4">
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="h-10 bg-gray-200 rounded" />
+                      <div key={i} className="h-10 bg-slate-200 rounded" />
                     ))}
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 space-y-5">
+                  <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-lg p-6 sm:p-8 space-y-5">
                     {/* Name */}
                     <div className="space-y-1.5">
-                      <label htmlFor="b-name" className="text-[14px] font-medium text-[#111827]">
+                      <label htmlFor="b-name" className="text-[14px] font-medium text-slate-900">
                         Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -191,13 +191,13 @@ export default function BookServicePage() {
                         placeholder="Enter your name"
                         value={form.customerName}
                         onChange={(e) => update("customerName", e.target.value)}
-                        className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors"
+                        className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors"
                       />
                     </div>
 
                     {/* Phone */}
                     <div className="space-y-1.5">
-                      <label htmlFor="b-phone" className="text-[14px] font-medium text-[#111827]">
+                      <label htmlFor="b-phone" className="text-[14px] font-medium text-slate-900">
                         Phone Number <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -207,14 +207,14 @@ export default function BookServicePage() {
                         placeholder="01XXXXXXXXX"
                         value={form.customerPhone}
                         onChange={(e) => update("customerPhone", e.target.value)}
-                        className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors"
+                        className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors"
                       />
                     </div>
 
                     {/* Email */}
                     <div className="space-y-1.5">
-                      <label htmlFor="b-email" className="text-[14px] font-medium text-[#111827]">
-                        Email <span className="text-[13px] text-[#9CA3AF] font-normal">(optional)</span>
+                      <label htmlFor="b-email" className="text-[14px] font-medium text-slate-900">
+                        Email <span className="text-[13px] text-slate-400 font-normal">(optional)</span>
                       </label>
                       <input
                         id="b-email"
@@ -222,26 +222,26 @@ export default function BookServicePage() {
                         placeholder="email@example.com"
                         value={form.customerEmail}
                         onChange={(e) => update("customerEmail", e.target.value)}
-                        className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors"
+                        className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors"
                       />
                     </div>
 
                     {/* Address */}
                     <div className="space-y-1.5">
-                      <label htmlFor="b-address" className="text-[14px] font-medium text-[#111827]">Address</label>
+                      <label htmlFor="b-address" className="text-[14px] font-medium text-slate-900">Address</label>
                       <input
                         id="b-address"
                         type="text"
                         placeholder="House #, Road #, Block"
                         value={form.address}
                         onChange={(e) => update("address", e.target.value)}
-                        className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors"
+                        className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors"
                       />
                     </div>
 
                     {/* Area */}
                     <div className="space-y-1.5">
-                      <label htmlFor="b-area" className="text-[14px] font-medium text-[#111827]">
+                      <label htmlFor="b-area" className="text-[14px] font-medium text-slate-900">
                         Area <span className="text-red-500">*</span>
                       </label>
                       <select
@@ -249,7 +249,7 @@ export default function BookServicePage() {
                         required
                         value={form.area}
                         onChange={(e) => update("area", e.target.value)}
-                        className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors bg-white"
+                        className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors bg-white"
                       >
                         <option value="">Select your area</option>
                         {areas.map((a) => (
@@ -261,23 +261,23 @@ export default function BookServicePage() {
                     {/* Date & Time */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label htmlFor="b-date" className="text-[14px] font-medium text-[#111827]">Preferred Date</label>
+                        <label htmlFor="b-date" className="text-[14px] font-medium text-slate-900">Preferred Date</label>
                         <input
                           id="b-date"
                           type="date"
                           value={form.preferredDate}
                           min={new Date().toISOString().split("T")[0]}
                           onChange={(e) => update("preferredDate", e.target.value)}
-                          className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors"
+                          className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor="b-time" className="text-[14px] font-medium text-[#111827]">Preferred Time</label>
+                        <label htmlFor="b-time" className="text-[14px] font-medium text-slate-900">Preferred Time</label>
                         <select
                           id="b-time"
                           value={form.preferredTime}
                           onChange={(e) => update("preferredTime", e.target.value)}
-                          className="w-full h-11 px-3 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors bg-white"
+                          className="w-full h-11 px-3 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors bg-white"
                         >
                           <option value="">Select time</option>
                           {timeSlots.map((t) => (
@@ -289,14 +289,14 @@ export default function BookServicePage() {
 
                     {/* Description */}
                     <div className="space-y-1.5">
-                      <label htmlFor="b-desc" className="text-[14px] font-medium text-[#111827]">Describe Your Problem</label>
+                      <label htmlFor="b-desc" className="text-[14px] font-medium text-slate-900">Describe Your Problem</label>
                       <textarea
                         id="b-desc"
                         rows={4}
                         placeholder="Tell us about your problem or requirements in detail..."
                         value={form.description}
                         onChange={(e) => update("description", e.target.value)}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-[14px] focus:outline-none focus:border-dark-900 transition-colors resize-none"
+                        className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-[14px] focus:outline-none focus:border-slate-900 transition-colors resize-none"
                       />
                     </div>
 
@@ -304,7 +304,7 @@ export default function BookServicePage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full h-12 bg-dark-900 hover:bg-dark-700 disabled:bg-gray-400 text-white text-[16px] font-bold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      className="w-full h-12 bg-slate-900 hover:bg-slate-700 disabled:bg-slate-400 text-white text-[16px] font-bold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
                     >
                       {submitting ? (
                         <>
@@ -326,7 +326,7 @@ export default function BookServicePage() {
               <div className="w-full lg:w-[360px] shrink-0 space-y-5">
                 {/* Service Card */}
                 {service && (
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                     <div className="relative h-[160px] overflow-hidden">
                       <img
                         src={service.image || "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=400&fit=crop"}
@@ -344,11 +344,11 @@ export default function BookServicePage() {
                     </div>
                     <div className="p-4 space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-[14px] text-[#6B7280]">Duration</span>
-                        <span className="text-[14px] font-medium text-[#111827]">{service.duration || "TBD"}</span>
+                        <span className="text-[14px] text-slate-500">Duration</span>
+                        <span className="text-[14px] font-medium text-slate-900">{service.duration || "TBD"}</span>
                       </div>
-                      <div className="border-t border-gray-100" />
-                      <div className="text-[14px] text-[#6B7280]">
+                      <div className="border-t border-slate-100" />
+                      <div className="text-[14px] text-slate-500">
                         Price will be discussed after inspection.
                       </div>
                     </div>
@@ -356,24 +356,24 @@ export default function BookServicePage() {
                 )}
 
                 {/* Contact Info */}
-                <div className="bg-white border border-gray-200 rounded-lg p-5">
-                  <h3 className="text-[15px] font-bold text-[#111827] mb-3">Need Help?</h3>
+                <div className="bg-white border border-slate-200 rounded-lg p-5">
+                  <h3 className="text-[15px] font-bold text-slate-900 mb-3">Need Help?</h3>
                   <div className="space-y-3">
-                    <a href="tel:+8801700000000" className="flex items-center gap-3 text-[14px] text-[#374151] hover:text-epf-500 transition-colors">
-                      <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                        <Phone className="h-4 w-4 text-[#6B7280]" />
+                    <a href="tel:+8801700000000" className="flex items-center gap-3 text-[14px] text-slate-700 hover:text-epf-500 transition-colors">
+                      <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                        <Phone className="h-4 w-4 text-slate-500" />
                       </div>
                       +880 1700-000000
                     </a>
-                    <a href="mailto:info@epowerfix.com" className="flex items-center gap-3 text-[14px] text-[#374151] hover:text-epf-500 transition-colors">
-                      <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                        <Mail className="h-4 w-4 text-[#6B7280]" />
+                    <a href="mailto:info@epowerfix.com" className="flex items-center gap-3 text-[14px] text-slate-700 hover:text-epf-500 transition-colors">
+                      <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                        <Mail className="h-4 w-4 text-slate-500" />
                       </div>
                       info@epowerfix.com
                     </a>
-                    <div className="flex items-start gap-3 text-[14px] text-[#374151]">
-                      <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <MapPin className="h-4 w-4 text-[#6B7280]" />
+                    <div className="flex items-start gap-3 text-[14px] text-slate-700">
+                      <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <MapPin className="h-4 w-4 text-slate-500" />
                       </div>
                       House #12, Road #7, Dhanmondi, Dhaka-1209, Bangladesh
                     </div>

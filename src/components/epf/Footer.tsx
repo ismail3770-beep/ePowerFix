@@ -86,7 +86,7 @@ export default function Footer() {
   ].filter((s) => s.url);
 
   return (
-    <footer className="bg-[#111827] border-t border-white/5">
+    <footer className="bg-slate-900 border-t border-white/5">
       <FadeIn>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-10 lg:py-12">
           <div className="lg:grid lg:grid-cols-5 lg:gap-6">
@@ -94,7 +94,7 @@ export default function Footer() {
             <div className="mb-8 lg:mb-0 lg:col-span-1">
               <Link href="/" className="flex flex-col shrink-0 mb-4">
                 <span className="text-[30px] font-extrabold tracking-tight text-white leading-none">
-                  e<span className="text-[#0EA5E9]">Power</span>Fix
+                  e<span className="text-epf-500">Power</span>Fix
                 </span>
                 <span className="text-[11px] text-white/40 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>
               </Link>
@@ -104,19 +104,19 @@ export default function Footer() {
               <ul className="space-y-2 mb-5">
                 {settings.address && (
                   <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                    <MapPin className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                    <MapPin className="h-4 w-4 text-epf-500/70 shrink-0" />
                     <span>{settings.address}</span>
                   </li>
                 )}
                 {settings.phone && (
                   <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                    <Phone className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                    <Phone className="h-4 w-4 text-epf-500/70 shrink-0" />
                     <span>{settings.phone}</span>
                   </li>
                 )}
                 {settings.email && (
                   <li className="flex items-center gap-2.5 text-[14px] text-white/50">
-                    <Mail className="h-4 w-4 text-[#0EA5E9]/70 shrink-0" />
+                    <Mail className="h-4 w-4 text-epf-500/70 shrink-0" />
                     <span>{settings.email}</span>
                   </li>
                 )}
@@ -125,7 +125,7 @@ export default function Footer() {
                 <div className="flex flex-wrap items-center gap-3">
                   {socials.map((s) => (
                     <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-[#0EA5E9] hover:bg-[#0EA5E9] text-white/50 hover:text-white transition-colors"
+                      className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-epf-500 hover:bg-epf-500 text-white/50 hover:text-white transition-colors"
                       aria-label={s.label}>
                       <s.icon className="h-4 w-4" />
                     </a>

@@ -115,17 +115,17 @@ function CountdownTimer() {
 function DealCardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] animate-pulse">
-      <div className="aspect-square bg-[#F1F5F9] rounded-t-lg" />
+      <div className="aspect-square bg-slate-100 rounded-t-lg" />
       <div className="p-3.5 space-y-2.5">
-        <div className="h-3.5 bg-[#F1F5F9] rounded w-full" />
-        <div className="h-3.5 bg-[#F1F5F9] rounded w-3/4" />
+        <div className="h-3.5 bg-slate-100 rounded w-full" />
+        <div className="h-3.5 bg-slate-100 rounded w-3/4" />
         <div className="flex items-center gap-2">
-          <div className="h-5 bg-[#F1F5F9] rounded w-20" />
-          <div className="h-4 bg-[#F1F5F9] rounded w-16" />
+          <div className="h-5 bg-slate-100 rounded w-20" />
+          <div className="h-4 bg-slate-100 rounded w-16" />
         </div>
-        <div className="h-2 bg-[#E5E7EB] rounded-full" />
-        <div className="h-3 bg-[#F1F5F9] rounded w-24" />
-        <div className="h-10 bg-[#F1F5F9] rounded-lg w-full" />
+        <div className="h-2 bg-slate-200 rounded-full" />
+        <div className="h-3 bg-slate-100 rounded w-24" />
+        <div className="h-10 bg-slate-100 rounded-lg w-full" />
       </div>
     </div>
   );
@@ -199,11 +199,11 @@ function DealCard({ product }: { product: Product }) {
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 group flex flex-col">
       {/* Image Area */}
       <div
-        className="relative aspect-square bg-[#F8FAFC] flex items-center justify-center overflow-hidden cursor-pointer"
+        className="relative aspect-square bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer"
         onClick={handleViewDetails}
       >
         {isDigital ? (
-          <EPFFileText className="h-10 w-10 text-[#CBD5E1]" />
+          <EPFFileText className="h-10 w-10 text-slate-300" />
         ) : product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -212,7 +212,7 @@ function DealCard({ product }: { product: Product }) {
             className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <Package className="h-10 w-10 text-[#CBD5E1]" />
+          <Package className="h-10 w-10 text-slate-300" />
         )}
 
         {/* Discount Badge — top left */}
@@ -386,14 +386,14 @@ export default function DealsPage() {
   })();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
 
       <main className="flex-1">
         {/* ------------------------------------------------------------------ */}
         {/*  Top Banner with Gradient                                           */}
         {/* ------------------------------------------------------------------ */}
-        <section className="relative bg-gradient-to-r from-[#111827] to-[#1E3A8A] overflow-hidden">
+        <section className="relative bg-gradient-to-r from-slate-900 to-epf-600 overflow-hidden">
           {/* Dot pattern overlay */}
           <div
             className="absolute inset-0 opacity-[0.07]"
@@ -462,11 +462,11 @@ export default function DealsPage() {
         {/*  Filter / Sort Bar                                                  */}
         {/* ------------------------------------------------------------------ */}
         {!isLoading && !isError && allDeals.length > 0 && (
-          <section className="bg-white border-b border-[#E2E8F0] sticky top-0 z-20">
+          <section className="bg-white border-b border-slate-200 sticky top-0 z-20">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 {/* Results count */}
-                <p className="text-[14px] text-[#374151] font-medium">
+                <p className="text-[14px] text-slate-700 font-medium">
                   {sortedDeals.length} deal{sortedDeals.length !== 1 ? "s" : ""}{" "}
                   available
                 </p>
@@ -477,7 +477,7 @@ export default function DealsPage() {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as SortOption)}
-                      className="appearance-none bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-[13px] text-[#374151] font-medium pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 cursor-pointer"
+                      className="appearance-none bg-slate-50 border border-slate-200 rounded-lg text-[13px] text-slate-700 font-medium pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 cursor-pointer"
                     >
                       {SORT_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -485,7 +485,7 @@ export default function DealsPage() {
                         </option>
                       ))}
                     </select>
-                    <ChevronRight className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280] rotate-90 pointer-events-none" />
+                    <ChevronRight className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 rotate-90 pointer-events-none" />
                   </div>
 
                   {/* Discount Filter Pills */}
@@ -497,7 +497,7 @@ export default function DealsPage() {
                         className={`text-[12px] font-medium px-3 py-1.5 rounded-full border transition-all duration-200 ${
                           discountFilter === f.value
                             ? "bg-epf-500 text-white border-epf-500"
-                            : "bg-white text-[#6B7280] border-[#E2E8F0] hover:border-epf-500 hover:text-epf-500"
+                            : "bg-white text-slate-500 border-slate-200 hover:border-epf-500 hover:text-epf-500"
                         }`}
                       >
                         {f.label}
@@ -529,10 +529,10 @@ export default function DealsPage() {
               <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                 <FlameKindling className="h-8 w-8 text-red-400" />
               </div>
-              <p className="text-[18px] text-[#111827] font-semibold mb-1">
+              <p className="text-[18px] text-slate-900 font-semibold mb-1">
                 Something went wrong
               </p>
-              <p className="text-[14px] text-[#6B7280] mb-5">
+              <p className="text-[14px] text-slate-500 mb-5">
                 We couldn&apos;t load the deals. Please try again.
               </p>
               <button
@@ -551,10 +551,10 @@ export default function DealsPage() {
               <div className="h-20 w-20 rounded-full bg-orange-50 flex items-center justify-center mb-5">
                 <Flame className="h-10 w-10 text-orange-300" />
               </div>
-              <p className="text-[20px] text-[#111827] font-semibold mb-1">
+              <p className="text-[20px] text-slate-900 font-semibold mb-1">
                 No deals available right now
               </p>
-              <p className="text-[14px] text-[#6B7280] mb-6">
+              <p className="text-[14px] text-slate-500 mb-6">
                 Check back soon for new flash deals and discounts
               </p>
               <a
@@ -573,11 +573,11 @@ export default function DealsPage() {
             allDeals.length > 0 &&
             sortedDeals.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <TrendingDown className="h-12 w-12 text-[#CBD5E1] mb-4" />
-                <p className="text-[16px] text-[#111827] font-medium mb-1">
+                <TrendingDown className="h-12 w-12 text-slate-300 mb-4" />
+                <p className="text-[16px] text-slate-900 font-medium mb-1">
                   No deals match this filter
                 </p>
-                <p className="text-[14px] text-[#6B7280] mb-4">
+                <p className="text-[14px] text-slate-500 mb-4">
                   Try adjusting your discount range
                 </p>
                 <button
@@ -606,16 +606,16 @@ export default function DealsPage() {
         {/*  Bottom CTA Section                                                */}
         {/* ------------------------------------------------------------------ */}
         {!isLoading && !isError && allDeals.length > 0 && (
-          <section className="bg-white border-t border-[#E2E8F0]">
+          <section className="bg-white border-t border-slate-200">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-12 sm:py-16">
               <div className="max-w-2xl mx-auto text-center space-y-4">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Flame className="h-6 w-6 text-orange-500" />
-                  <h2 className="text-[22px] sm:text-[26px] font-bold text-[#111827]">
+                  <h2 className="text-[22px] sm:text-[26px] font-bold text-slate-900">
                     Don&apos;t miss out!
                   </h2>
                 </div>
-                <p className="text-[15px] text-[#6B7280]">
+                <p className="text-[15px] text-slate-500">
                   Subscribe to our newsletter for exclusive deals and
                   early access to flash sales.
                 </p>
@@ -623,7 +623,7 @@ export default function DealsPage() {
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className="flex-1 w-full h-11 px-4 border border-[#E2E8F0] rounded-lg text-[14px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500"
+                    className="flex-1 w-full h-11 px-4 border border-slate-200 rounded-lg text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500"
                   />
                   <button className="w-full sm:w-auto h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-medium rounded-lg transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
                     Subscribe

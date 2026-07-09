@@ -75,7 +75,7 @@ export default function ComparePage() {
       <CartDrawer />
       <main className="flex-1 mx-auto max-w-[1400px] w-full px-4 sm:px-12 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Product Comparison</h1>
-        <p className="text-gray-500">Select at least 2 products to compare. Use the "Add to Compare" button on product pages.</p>
+        <p className="text-slate-500">Select at least 2 products to compare. Use the "Add to Compare" button on product pages.</p>
         <Link href="/"><Button className="mt-4">Browse Products</Button></Link>
       </main>
       <Footer />
@@ -85,8 +85,8 @@ export default function ComparePage() {
   const rows = [
     { label: 'Image', render: (p: Product) => <img src={p.images?.[0] || '/placeholder.png'} alt={p.name} className="h-32 w-32 object-contain mx-auto" /> },
     { label: 'Name', render: (p: Product) => <Link href={`/product/${p.id}`} className="font-medium hover:text-primary">{p.name}</Link> },
-    { label: 'Price', render: (p: Product) => <div><span className="text-xl font-bold">৳{p.salePrice || p.price}</span>{p.salePrice && p.salePrice < p.price && <span className="ml-2 text-gray-400 line-through">৳{p.price}</span>}</div> },
-    { label: 'Rating', render: (p: Product) => <div className="flex items-center gap-1 justify-center"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /><span>{p.averageRating || 0}</span><span className="text-gray-400">({p._count?.reviews || 0})</span></div> },
+    { label: 'Price', render: (p: Product) => <div><span className="text-xl font-bold">৳{p.salePrice || p.price}</span>{p.salePrice && p.salePrice < p.price && <span className="ml-2 text-slate-400 line-through">৳{p.price}</span>}</div> },
+    { label: 'Rating', render: (p: Product) => <div className="flex items-center gap-1 justify-center"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /><span>{p.averageRating || 0}</span><span className="text-slate-400">({p._count?.reviews || 0})</span></div> },
     { label: 'Stock', render: (p: Product) => <Badge variant={p.stock > 0 ? 'default' : 'destructive'}>{p.stock > 0 ? `In Stock (${p.stock})` : 'Out of Stock'}</Badge> },
     { label: 'Category', render: (p: Product) => p.category?.name || '-' },
     { label: 'Brand', render: (p: Product) => p.brand?.name || '-' },
@@ -105,25 +105,25 @@ export default function ComparePage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
       <CartDrawer />
       <CheckoutDialog />
       <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 sm:px-12 py-8">
         <nav className="flex items-center gap-1.5 mb-6 text-[13px]">
-          <a href="/" className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827]"><Home className="h-3.5 w-3.5" />Home</a>
-          <ChevronRight className="h-3 w-3 text-[#CBD5E1]" />
-          <span className="text-[#111827] font-medium">Compare Products</span>
+          <a href="/" className="flex items-center gap-1 text-slate-500 hover:text-slate-900"><Home className="h-3.5 w-3.5" />Home</a>
+          <ChevronRight className="h-3 w-3 text-slate-300" />
+          <span className="text-slate-900 font-medium">Compare Products</span>
         </nav>
-        <h1 className="text-3xl font-bold mb-6 text-[#111827]">Product Comparison</h1>
+        <h1 className="text-3xl font-bold mb-6 text-slate-900">Product Comparison</h1>
         <Card>
           <CardContent className="p-0 overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr>
-                  <th className="p-4 text-left w-40 bg-gray-50" />
+                  <th className="p-4 text-left w-40 bg-slate-50" />
                   {products.map((p) => (
-                    <th key={p.id} className="p-4 text-center bg-gray-50 min-w-[200px]">
+                    <th key={p.id} className="p-4 text-center bg-slate-50 min-w-[200px]">
                       <Button size="sm" variant="ghost" className="float-right" onClick={() => removeProduct(p.id)}><X className="w-4 h-4" /></Button>
                     </th>
                   ))}
@@ -132,7 +132,7 @@ export default function ComparePage() {
               <tbody>
                 {rows.map((row, i) => (
                   <tr key={i} className="border-t">
-                    <td className="p-4 font-medium text-gray-500 bg-gray-50">{row.label}</td>
+                    <td className="p-4 font-medium text-slate-500 bg-slate-50">{row.label}</td>
                     {products.map((p) => (
                       <td key={p.id} className="p-4 text-center">{row.render(p)}</td>
                     ))}

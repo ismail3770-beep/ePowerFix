@@ -56,13 +56,13 @@ export default function OrderTrackPage() {
     : -1;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
       <main className="flex-1">
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-8 text-center">
-            <h1 className="text-[28px] font-bold text-[#111827] mb-2">Track Your Order</h1>
-            <p className="text-[15px] text-[#6B7280] mb-6">Enter your Order ID and the phone number used on the order to track its status</p>
+            <h1 className="text-[28px] font-bold text-slate-900 mb-2">Track Your Order</h1>
+            <p className="text-[15px] text-slate-500 mb-6">Enter your Order ID and the phone number used on the order to track its status</p>
             <div className="flex flex-col sm:flex-row max-w-[640px] mx-auto gap-2">
               <input
                 type="text"
@@ -70,7 +70,7 @@ export default function OrderTrackPage() {
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 h-[46px] px-4 text-[15px] bg-white rounded border border-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+                className="flex-1 h-[46px] px-4 text-[15px] bg-white rounded border border-slate-200 focus:outline-none focus:border-epf-500"
               />
               <input
                 type="tel"
@@ -78,12 +78,12 @@ export default function OrderTrackPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 h-[46px] px-4 text-[15px] bg-white rounded border border-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+                className="flex-1 h-[46px] px-4 text-[15px] bg-white rounded border border-slate-200 focus:outline-none focus:border-epf-500"
               />
               <button
                 onClick={handleSearch}
                 disabled={loading}
-                className="h-[46px] bg-[#0EA5E9] text-white px-6 rounded flex items-center justify-center gap-2 hover:bg-[#0284C7] transition-colors disabled:opacity-60"
+                className="h-[46px] bg-epf-500 text-white px-6 rounded flex items-center justify-center gap-2 hover:bg-epf-600 transition-colors disabled:opacity-60"
               >
                 <Search className="h-4 w-4" />
                 <span className="text-[14px] font-semibold">{loading ? "Searching..." : "Track"}</span>
@@ -98,13 +98,13 @@ export default function OrderTrackPage() {
           )}
 
           {result && (
-            <div className="bg-white border border-[#E2E8F0] rounded-lg overflow-hidden">
-              <div className="p-5 border-b border-[#E2E8F0]">
+            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+              <div className="p-5 border-b border-slate-200">
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-[18px] font-bold text-[#111827]">Order #{result.orderNumber}</h2>
-                  <span className="text-[13px] font-medium bg-[#0EA5E9]/10 text-[#0EA5E9] px-2.5 py-1 rounded">{result.status}</span>
+                  <h2 className="text-[18px] font-bold text-slate-900">Order #{result.orderNumber}</h2>
+                  <span className="text-[13px] font-medium bg-epf-500/10 text-epf-500 px-2.5 py-1 rounded">{result.status}</span>
                 </div>
-                <p className="text-[13px] text-[#6B7280]">Placed on {new Date(result.createdAt).toLocaleDateString("en-BD", { year: "numeric", month: "long", day: "numeric" })}</p>
+                <p className="text-[13px] text-slate-500">Placed on {new Date(result.createdAt).toLocaleDateString("en-BD", { year: "numeric", month: "long", day: "numeric" })}</p>
               </div>
 
               {/* Status Timeline */}
@@ -116,12 +116,12 @@ export default function OrderTrackPage() {
                     const isCurrent = i === currentStepIndex;
                     return (
                       <div key={step.key} className="flex flex-col items-center flex-1">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-2 transition-colors ${isCompleted ? "bg-[#0EA5E9] text-white" : "bg-[#F1F5F9] text-[#94A3B8]"} ${isCurrent ? "ring-2 ring-[#0EA5E9]/30" : ""}`}>
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-2 transition-colors ${isCompleted ? "bg-epf-500 text-white" : "bg-slate-100 text-slate-400"} ${isCurrent ? "ring-2 ring-epf-500/30" : ""}`}>
                           <Icon className="h-5 w-5" />
                         </div>
-                        <span className={`text-[12px] font-medium ${isCompleted ? "text-[#0EA5E9]" : "text-[#94A3B8]"}`}>{step.label}</span>
+                        <span className={`text-[12px] font-medium ${isCompleted ? "text-epf-500" : "text-slate-400"}`}>{step.label}</span>
                         {i < statusSteps.length - 1 && (
-                          <div className={`absolute h-0.5 w-16 ${isCompleted ? "bg-[#0EA5E9]" : "bg-[#E2E8F0]"}`} />
+                          <div className={`absolute h-0.5 w-16 ${isCompleted ? "bg-epf-500" : "bg-slate-200"}`} />
                         )}
                       </div>
                     );
@@ -129,17 +129,17 @@ export default function OrderTrackPage() {
                 </div>
 
                 {/* Order Items */}
-                <div className="border-t border-[#E2E8F0] pt-4">
-                  <h3 className="text-[14px] font-semibold text-[#111827] mb-3">Items</h3>
+                <div className="border-t border-slate-200 pt-4">
+                  <h3 className="text-[14px] font-semibold text-slate-900 mb-3">Items</h3>
                   {result.items?.map((item, i) => (
                     <div key={i} className="flex items-center justify-between py-2 text-[14px]">
-                      <span className="text-[#374151]">{item.productName} × {item.quantity}</span>
-                      <span className="font-medium text-[#111827]">৳{Number(item.price).toLocaleString()}</span>
+                      <span className="text-slate-700">{item.productName} × {item.quantity}</span>
+                      <span className="font-medium text-slate-900">৳{Number(item.price).toLocaleString()}</span>
                     </div>
                   ))}
-                  <div className="flex items-center justify-between pt-3 mt-2 border-t border-[#E2E8F0]">
-                    <span className="text-[15px] font-bold text-[#111827]">Total</span>
-                    <span className="text-[16px] font-bold text-[#0EA5E9]">৳{Number(result.total).toLocaleString()}</span>
+                  <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-200">
+                    <span className="text-[15px] font-bold text-slate-900">Total</span>
+                    <span className="text-[16px] font-bold text-epf-500">৳{Number(result.total).toLocaleString()}</span>
                   </div>
                 </div>
               </div>

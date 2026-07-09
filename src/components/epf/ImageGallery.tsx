@@ -98,16 +98,16 @@ export default function ImageGallery({
   if (total === 0) {
     return (
       <div
-        className={`${aspectRatio} bg-dark-100 flex items-center justify-center rounded-lg`}
+        className={`${aspectRatio} bg-slate-100 flex items-center justify-center rounded-lg`}
       >
-        <span className="text-[13px] text-dark-400">কোনো ছবি নেই</span>
+        <span className="text-[13px] text-slate-400">কোনো ছবি নেই</span>
       </div>
     );
   }
 
   if (total === 1) {
     return (
-      <div className={`${aspectRatio} bg-dark-100 rounded-lg overflow-hidden`}>
+      <div className={`${aspectRatio} bg-slate-100 rounded-lg overflow-hidden`}>
         <img src={images[0]} alt="" className="w-full h-full object-cover" />
       </div>
     );
@@ -117,7 +117,7 @@ export default function ImageGallery({
     <div>
       {/* Main Image */}
       <div
-        className={`relative ${aspectRatio} bg-dark-100 rounded-lg overflow-hidden group cursor-zoom-in`}
+        className={`relative ${aspectRatio} bg-slate-100 rounded-lg overflow-hidden group cursor-zoom-in`}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onTouchStart={handleTouchStart}

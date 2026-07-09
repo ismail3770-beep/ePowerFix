@@ -53,7 +53,7 @@ export default function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <Header /><div className="flex-1 flex items-center justify-center"><div className="animate-pulse text-[#999]">Loading...</div></div><Footer />
+        <Header /><div className="flex-1 flex items-center justify-center"><div className="animate-pulse text-slate-400">Loading...</div></div><Footer />
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="min-h-screen flex flex-col bg-white">
         <Header />
-        <div className="flex-1 flex items-center justify-center"><div className="text-center"><h1 className="text-[24px] font-bold text-[#111827] mb-2">Project not found</h1><button onClick={() => router.push("/projects")} className="h-10 px-6 bg-[#0EA5E9] text-white rounded-lg hover:bg-[#0284C7] transition-colors mt-5">Back to Projects</button></div></div>
+        <div className="flex-1 flex items-center justify-center"><div className="text-center"><h1 className="text-[24px] font-bold text-slate-900 mb-2">Project not found</h1><button onClick={() => router.push("/projects")} className="h-10 px-6 bg-epf-500 text-white rounded-lg hover:bg-epf-600 transition-colors mt-5">Back to Projects</button></div></div>
         <Footer />
       </div>
     );
@@ -78,41 +78,41 @@ export default function ProjectDetailPage() {
       <CartDrawer />
       <CheckoutDialog />
       <main className="flex-1 mx-auto w-full max-w-[1400px] px-4 sm:px-12 py-8">
-        <div className="flex items-center justify-between flex-wrap gap-2 bg-[#F9FAFB] px-4 py-2.5 rounded-lg mb-6">
-          <nav className="flex items-center gap-1.5 text-[13px] text-[#6B7280] flex-wrap">
-            <a href="/" className="hover:text-[#0EA5E9] hover:underline">Home</a>
+        <div className="flex items-center justify-between flex-wrap gap-2 bg-slate-50 px-4 py-2.5 rounded-lg mb-6">
+          <nav className="flex items-center gap-1.5 text-[13px] text-slate-500 flex-wrap">
+            <a href="/" className="hover:text-epf-500 hover:underline">Home</a>
             <ChevronRight className="w-3 h-3 shrink-0" />
-            <a href="/projects" className="hover:text-[#0EA5E9] hover:underline">Projects</a>
+            <a href="/projects" className="hover:text-epf-500 hover:underline">Projects</a>
             <ChevronRight className="w-3 h-3 shrink-0" />
-            <span className="text-[#374151] font-medium truncate max-w-[200px]">{p.title}</span>
+            <span className="text-slate-700 font-medium truncate max-w-[200px]">{p.title}</span>
           </nav>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1 min-w-0 lg:w-[70%]">
-            <div className="relative w-full max-w-[600px] h-[300px] rounded-lg overflow-hidden bg-gradient-to-br from-[#0EA5E9]/20 via-[#0284C7]/10 to-[#111827] shadow-[0_4px_6px_rgba(0,0,0,0.1)] mb-6">
+            <div className="relative w-full max-w-[600px] h-[300px] rounded-lg overflow-hidden bg-gradient-to-br from-epf-500/20 via-epf-600/10 to-slate-900 shadow-[0_4px_6px_rgba(0,0,0,0.1)] mb-6">
               {thumb ? <img src={thumb} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><BookOpen className="w-16 h-16 text-white/40 mx-auto" /></div>}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
             </div>
 
-            <h1 className="text-[28px] font-bold text-[#111827] leading-tight mb-3">{p.title}</h1>
-            <div className="flex flex-wrap items-center gap-3 text-[14px] text-[#6B7280] mb-4">
+            <h1 className="text-[28px] font-bold text-slate-900 leading-tight mb-3">{p.title}</h1>
+            <div className="flex flex-wrap items-center gap-3 text-[14px] text-slate-500 mb-4">
               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" />{formatDate(p.createdAt)}</span>
-              <span className="w-1 h-1 rounded-full bg-[#D1D5DB]" />
+              <span className="w-1 h-1 rounded-full bg-slate-300" />
               <span className="flex items-center gap-1.5"><FolderOpen className="w-4 h-4" />{statusLabel}</span>
-              {p.client && (<><span className="w-1 h-1 rounded-full bg-[#D1D5DB]" /><span>Client: {p.client}</span></>)}
+              {p.client && (<><span className="w-1 h-1 rounded-full bg-slate-300" /><span>Client: {p.client}</span></>)}
             </div>
 
             <div className="mb-6">
-              <p className="text-[16px] leading-relaxed text-[#374151] mb-4">{p.description}</p>
+              <p className="text-[16px] leading-relaxed text-slate-700 mb-4">{p.description}</p>
             </div>
 
             {images.length > 1 && (
               <div className="mb-6">
-                <h3 className="text-[18px] font-semibold text-[#111827] mb-3">Gallery</h3>
+                <h3 className="text-[18px] font-semibold text-slate-900 mb-3">Gallery</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {images.map((img, i) => (
-                    <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-[#F1F5F9]">
+                    <div key={i} className="relative aspect-[4/3] rounded-lg overflow-hidden bg-slate-100">
                       <img src={img} alt={`${p.title} ${i + 1}`} className="w-full h-full object-cover" />
                     </div>
                   ))}
@@ -122,22 +122,22 @@ export default function ProjectDetailPage() {
           </div>
 
           <aside className="w-full lg:w-[30%] shrink-0 space-y-6">
-            <a href="/projects" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[#0EA5E9] hover:underline"><ArrowLeft className="w-4 h-4" />Back to Projects</a>
-            <div className="bg-white border border-[#E5E7EB] rounded-lg p-5">
-              <h3 className="text-[15px] font-semibold text-[#111827] mb-3">Project Info</h3>
+            <a href="/projects" className="inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-500 hover:underline"><ArrowLeft className="w-4 h-4" />Back to Projects</a>
+            <div className="bg-white border border-slate-200 rounded-lg p-5">
+              <h3 className="text-[15px] font-semibold text-slate-900 mb-3">Project Info</h3>
               <div className="space-y-2.5">
-                <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Status</span><span className="text-[#0EA5E9] font-medium">{statusLabel}</span></div>
-                <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Published</span><span className="text-[#374151]">{formatDate(p.createdAt)}</span></div>
-                {p.client && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Client</span><span className="text-[#374151]">{p.client}</span></div>}
-                {p.location && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Location</span><span className="text-[#374151]">{p.location}</span></div>}
-                {p.startDate && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">Start Date</span><span className="text-[#374151]">{formatDate(p.startDate)}</span></div>}
-                {p.endDate && <div className="flex justify-between text-[14px]"><span className="text-[#6B7280]">End Date</span><span className="text-[#374151]">{formatDate(p.endDate)}</span></div>}
+                <div className="flex justify-between text-[14px]"><span className="text-slate-500">Status</span><span className="text-epf-500 font-medium">{statusLabel}</span></div>
+                <div className="flex justify-between text-[14px]"><span className="text-slate-500">Published</span><span className="text-slate-700">{formatDate(p.createdAt)}</span></div>
+                {p.client && <div className="flex justify-between text-[14px]"><span className="text-slate-500">Client</span><span className="text-slate-700">{p.client}</span></div>}
+                {p.location && <div className="flex justify-between text-[14px]"><span className="text-slate-500">Location</span><span className="text-slate-700">{p.location}</span></div>}
+                {p.startDate && <div className="flex justify-between text-[14px]"><span className="text-slate-500">Start Date</span><span className="text-slate-700">{formatDate(p.startDate)}</span></div>}
+                {p.endDate && <div className="flex justify-between text-[14px]"><span className="text-slate-500">End Date</span><span className="text-slate-700">{formatDate(p.endDate)}</span></div>}
               </div>
             </div>
-            <div className="bg-[#f8f9fa] rounded-lg p-5">
-              <h3 className="text-[15px] font-semibold text-[#111827] mb-3">Need a similar project?</h3>
-              <p className="text-[13px] text-[#6B7280] mb-3">We can build custom electrical, solar, or IoT projects tailored to your needs.</p>
-              <a href="/get-quote" className="block text-center bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[14px] font-medium py-2.5 rounded-lg transition-colors">Request a Quote</a>
+            <div className="bg-slate-50 rounded-lg p-5">
+              <h3 className="text-[15px] font-semibold text-slate-900 mb-3">Need a similar project?</h3>
+              <p className="text-[13px] text-slate-500 mb-3">We can build custom electrical, solar, or IoT projects tailored to your needs.</p>
+              <a href="/get-quote" className="block text-center bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-medium py-2.5 rounded-lg transition-colors">Request a Quote</a>
             </div>
           </aside>
         </div>

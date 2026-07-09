@@ -125,12 +125,12 @@ export default function ProjectDetailDialog() {
               {price > 0 ? (
                 <span className="text-xl font-bold text-epf-500">৳{price.toLocaleString()}</span>
               ) : (
-                <span className="text-sm font-medium text-dark-500 bg-dark-100 px-3 py-1 rounded-full">ফ্রি</span>
+                <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">ফ্রি</span>
               )}
             </div>
 
             {/* Description */}
-            <p className="text-sm text-dark-500 leading-relaxed">
+            <p className="text-sm text-slate-500 leading-relaxed">
               {kit.description}
             </p>
 
@@ -139,14 +139,14 @@ export default function ProjectDetailDialog() {
             {/* Kit contents (items) */}
             {kit.items && kit.items.length > 0 && (
               <div>
-                <h4 className="font-semibold text-sm mb-2 text-dark-900">কিটে যা যা থাকছে</h4>
+                <h4 className="font-semibold text-sm mb-2 text-slate-900">কিটে যা যা থাকছে</h4>
                 <ul className="space-y-1.5">
                   {kit.items.map((item) => (
-                    <li key={item.id} className="flex items-start gap-2 text-sm text-dark-500">
+                    <li key={item.id} className="flex items-start gap-2 text-sm text-slate-500">
                       <EPFTag className="size-3.5 mt-0.5 text-epf-500 shrink-0" />
                       <span>
                         {item.product.name} × {item.quantity}
-                        {!item.isRequired && <span className="text-[11px] text-dark-400 ml-1">(optional)</span>}
+                        {!item.isRequired && <span className="text-[11px] text-slate-400 ml-1">(optional)</span>}
                       </span>
                     </li>
                   ))}

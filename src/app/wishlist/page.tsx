@@ -94,16 +94,16 @@ export default function WishlistPage() {
 
       {items.length === 0 ? (
         <div className="text-center py-16">
-          <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h2 className="text-xl font-medium mb-2">Your wishlist is empty</h2>
-          <p className="text-gray-500 mb-4">Save items you love for later</p>
+          <p className="text-slate-500 mb-4">Save items you love for later</p>
           <Link href="/"><Button>Browse Products</Button></Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((item) => (
             <Card key={item.id} className="overflow-hidden">
-              <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative">
+              <div className="aspect-square bg-slate-100 relative">
                 <img src={item.product.images?.[0] || '/placeholder.png'} alt={item.product.name} className="w-full h-full object-contain p-4" />
                 <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => handleRemove(item.id)}>
                   <Trash2 className="w-4 h-4" />
@@ -111,12 +111,12 @@ export default function WishlistPage() {
               </div>
               <CardContent className="p-4">
                 <Link href={`/product/${item.product.id}`} className="font-medium hover:text-primary line-clamp-2">{item.product.name}</Link>
-                <p className="text-sm text-gray-500">{item.product.category?.name}</p>
+                <p className="text-sm text-slate-500">{item.product.category?.name}</p>
                 <div className="flex items-center justify-between mt-3">
                   <div>
                     <span className="text-lg font-bold">৳{item.product.salePrice || item.product.price}</span>
                     {item.product.salePrice && item.product.salePrice < item.product.price && (
-                      <span className="ml-2 text-sm text-gray-400 line-through">৳{item.product.price}</span>
+                      <span className="ml-2 text-sm text-slate-400 line-through">৳{item.product.price}</span>
                     )}
                   </div>
                   <Button size="sm" onClick={() => handleMoveToCart(item)}>

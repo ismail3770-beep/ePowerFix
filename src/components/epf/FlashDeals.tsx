@@ -58,13 +58,12 @@ function CountdownTimer() {
       {cells.map((cell, i) => (
         <div key={i} className="flex items-center gap-1.5">
           <span
-            className="text-white text-sm font-bold px-2 py-1.5 min-w-[32px] text-center tabular-nums leading-none"
-            style={{ backgroundColor: "#7B2CBF", borderRadius: "4px" }}
+            className="text-white text-sm font-bold px-2 py-1.5 min-w-[32px] text-center tabular-nums leading-none bg-purple-700 rounded-[4px]"
           >
             {cell.value}
           </span>
           {i < cells.length - 1 && (
-            <span className="font-bold text-sm text-gray-900">:</span>
+            <span className="font-bold text-sm text-slate-900">:</span>
           )}
         </div>
       ))}
@@ -79,7 +78,7 @@ const fallbackTodaysDeals: Product[] = [];
 function ProductCard({ product }: { product: Product }) {
   return (
     <div
-      className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden bg-[#F5F5F5] rounded-lg"
+      className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden bg-slate-100 rounded-lg"
       onClick={() => {
         window.location.href = "/best-deals";
       }}
@@ -96,17 +95,17 @@ function ProductCard({ product }: { product: Product }) {
             }}
           />
         ) : (
-          <EPFCircuitBreaker size={48} className="text-gray-300" />
+          <EPFCircuitBreaker size={48} className="text-slate-300" />
         )}
       </div>
 
       {/* Price only */}
       <div className="px-3 pb-3 flex items-baseline gap-1.5 flex-wrap">
-        <span className="text-sm font-bold text-gray-900">
+        <span className="text-sm font-bold text-slate-900">
           ৳{product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
         {product.comparePrice && product.comparePrice > product.price && (
-          <span className="text-xs text-gray-400 line-through">
+          <span className="text-xs text-slate-400 line-through">
             ৳{product.comparePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         )}
@@ -148,7 +147,7 @@ export default function FlashDeals() {
   };
 
   return (
-    <section id="deals" className="bg-white border-b border-gray-200">
+    <section id="deals" className="bg-white border-b border-slate-200">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
         {/* Two-column layout — Flash Deals (wider) | Today's Deals */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
@@ -156,12 +155,7 @@ export default function FlashDeals() {
           <div className="lg:col-span-5 bg-white flex gap-4">
             {/* Vertical Promotional Banner — leftmost, full height */}
             <div
-              className="hidden sm:flex items-center justify-center overflow-hidden shrink-0 self-stretch"
-              style={{
-                width: "160px",
-                backgroundColor: "#1E293B",
-                borderRadius: "8px",
-              }}
+              className="hidden sm:flex items-center justify-center overflow-hidden shrink-0 self-stretch w-[160px] rounded-lg bg-slate-800"
             >
               <img
                 src="https://sfile.chatglm.cn/images-ppt/f8fbf23c3db0.jpg"
@@ -177,20 +171,19 @@ export default function FlashDeals() {
               <div style={{ minHeight: '56px' }}>
                 {/* Heading row */}
                 <div className="flex items-start justify-between gap-2 flex-wrap">
-                  <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                     Flash deals
                   </h3>
                   <div className="flex items-center gap-2">
                     <a
                       href="/best-deals"
-                      className="text-xs font-medium text-gray-900 px-3 py-1.5 transition-colors bg-white rounded"
+                      className="text-xs font-medium text-slate-900 px-3 py-1.5 transition-colors bg-white rounded"
                     >
                       View All Products
                     </a>
                     <a
                       href="/best-deals"
-                      className="inline-flex items-center gap-1 text-white text-xs font-semibold px-4 py-1.5 transition-colors rounded-full"
-                      style={{ backgroundColor: "#1E1E1E" }}
+                      className="inline-flex items-center gap-1 text-white text-xs font-semibold px-4 py-1.5 transition-colors rounded-full bg-slate-900"
                     >
                       All Deals
                       <EPFArrowRight size={12} />
@@ -218,17 +211,16 @@ export default function FlashDeals() {
             {/* Header area — fixed height to align with left side */}
             <div style={{ minHeight: '56px' }} className="flex items-start justify-between gap-2 flex-wrap">
               <div>
-                <h3 className="text-xl font-bold text-gray-900 tracking-tight">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                   Today&apos;s Deals
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Deals Available only for today, Hurry Up!
                 </p>
               </div>
               <a
                 href="/best-deals"
-                className="inline-flex items-center gap-1 text-white text-xs font-semibold px-3.5 py-1.5 transition-colors self-start rounded"
-                style={{ backgroundColor: "#333333" }}
+                className="inline-flex items-center gap-1 text-white text-xs font-semibold px-3.5 py-1.5 transition-colors self-start rounded bg-slate-700"
               >
                 View All
                 <EPFChevronRight size={12} />

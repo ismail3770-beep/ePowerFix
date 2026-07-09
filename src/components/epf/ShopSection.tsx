@@ -180,7 +180,7 @@ export default function ShopSection() {
                 ))}
           </FadeInStagger>
           {!projectsLoading && kits.length === 0 && (
-            <p className="text-sm text-dark-400 text-center py-8">No project kits available yet.</p>
+            <p className="text-sm text-slate-400 text-center py-8">No project kits available yet.</p>
           )}
         </div>
       </div>

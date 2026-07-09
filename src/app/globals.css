@@ -114,8 +114,8 @@ section[id] { scroll-margin-top: 120px; }
 /* Custom scrollbar — minimal like Martfury */
 .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 0; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 0; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748B; }
 
 /* Hide number input spinners */
 input[type="number"]::-webkit-outer-spin-button,
@@ -129,7 +129,7 @@ input[type="number"] { -moz-appearance: textfield; }
   display: flex; align-items: center; justify-content: center; gap: 6px;
   opacity: 0; transform: translateY(100%);
   transition: all 0.25s ease;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid #E2E8F0;
 }
 .product-card:hover .product-actions { opacity: 1; transform: translateY(0); }
 .product-card:hover .product-thumb img,
@@ -142,31 +142,12 @@ input[type="number"] { -moz-appearance: textfield; }
   padding: 2px 8px; position: absolute; top: 0; left: 0; z-index: 2;
 }
 
-/* Section header pattern — high-tech style */
-.mf-section-header {
-  background: #F9FAFB;
-  border-bottom: 2px solid #D1D5DB;
-  border-radius: 8px 8px 0 0;
-  padding: 18px 20px 18px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-  overflow: visible;
-  position: relative;
-  z-index: 1;
-  border-left: 4px solid #0EA5E9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.mf-section-header h3 { font-size: 21px; font-weight: 800; color: #111827; margin: 0; letter-spacing: -0.02em; line-height: 1.3; padding-left: 12px; }
-
 /* Line clamp */
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* Announcement bar marquee */
 .announce-bar { animation: marquee 35s linear infinite; }
 @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
-/* Brand logos scroll */
-.brand-scroll { animation: brand-scroll 25s linear infinite; }
-@keyframes brand-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
 /* Scrollbar for search dropdown */
 .search-dropdown::-webkit-scrollbar { width: 4px; }

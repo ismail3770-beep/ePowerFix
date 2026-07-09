@@ -82,27 +82,27 @@ export default function BlogDetailPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[#F8FAFC]">
+      <main className="min-h-screen bg-slate-50">
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <nav className="flex items-center gap-1.5 h-[44px] text-[14px]">
               <a
                 href="/"
-                className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827] transition-colors"
+                className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors"
               >
                 <Home className="h-3.5 w-3.5" />
                 <span>Home</span>
               </a>
-              <ChevronRight className="h-3 w-3 text-[#94A3B8]" />
+              <ChevronRight className="h-3 w-3 text-slate-400" />
               <a
                 href="/blog"
-                className="text-[#6B7280] hover:text-[#111827] transition-colors"
+                className="text-slate-500 hover:text-slate-900 transition-colors"
               >
                 Blog
               </a>
-              <ChevronRight className="h-3 w-3 text-[#94A3B8]" />
-              <span className="text-[#111827] font-medium truncate max-w-[200px] sm:max-w-[400px]">
+              <ChevronRight className="h-3 w-3 text-slate-400" />
+              <span className="text-slate-900 font-medium truncate max-w-[200px] sm:max-w-[400px]">
                 {post?.title || "Loading..."}
               </span>
             </nav>
@@ -112,20 +112,20 @@ export default function BlogDetailPage() {
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-8">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 text-[#0EA5E9] animate-spin" />
+              <Loader2 className="h-8 w-8 text-epf-500 animate-spin" />
             </div>
           ) : notFound || !post ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <BookOpen className="h-12 w-12 text-[#CBD5E1] mb-4" />
-              <h2 className="text-xl font-semibold text-[#111827] mb-2">
+              <BookOpen className="h-12 w-12 text-slate-300 mb-4" />
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">
                 Article not found
               </h2>
-              <p className="text-[#6B7280] text-[15px] mb-4">
+              <p className="text-slate-500 text-[15px] mb-4">
                 The article you are looking for does not exist or has been removed.
               </p>
               <Link
                 href="/blog"
-                className="flex items-center gap-1.5 text-[14px] font-medium text-[#0EA5E9] hover:text-[#0284C7] transition-colors"
+                className="flex items-center gap-1.5 text-[14px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Blog
@@ -136,7 +136,7 @@ export default function BlogDetailPage() {
               {/* Back Link */}
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[#6B7280] hover:text-[#0EA5E9] transition-colors mb-6"
+                className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-500 hover:text-epf-500 transition-colors mb-6"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Blog
@@ -144,7 +144,7 @@ export default function BlogDetailPage() {
 
               {/* Cover Image */}
               {post.coverImage && (
-                <div className="rounded-lg overflow-hidden mb-6 border border-[#E2E8F0]">
+                <div className="rounded-lg overflow-hidden mb-6 border border-slate-200">
                   <img
                     src={post.coverImage}
                     alt={post.title}
@@ -154,18 +154,18 @@ export default function BlogDetailPage() {
               )}
 
               {/* Title */}
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] leading-tight mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight mb-4">
                 {post.title}
               </h1>
 
               {/* Meta bar */}
-              <div className="flex flex-wrap items-center gap-4 text-[14px] text-[#6B7280] mb-6 pb-6 border-b border-[#E2E8F0]">
+              <div className="flex flex-wrap items-center gap-4 text-[14px] text-slate-500 mb-6 pb-6 border-b border-slate-200">
                 <span className="flex items-center gap-1.5">
-                  <User className="h-4 w-4 text-[#94A3B8]" />
+                  <User className="h-4 w-4 text-slate-400" />
                   {post.author}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4 text-[#94A3B8]" />
+                  <Calendar className="h-4 w-4 text-slate-400" />
                   {new Date(post.createdAt).toLocaleDateString("en-BD", {
                     month: "long",
                     day: "numeric",
@@ -173,11 +173,11 @@ export default function BlogDetailPage() {
                   })}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-[#94A3B8]" />
+                  <Clock className="h-4 w-4 text-slate-400" />
                   {estimateReadTime(post.content)}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Eye className="h-4 w-4 text-[#94A3B8]" />
+                  <Eye className="h-4 w-4 text-slate-400" />
                   {post.views} views
                 </span>
               </div>
@@ -188,7 +188,7 @@ export default function BlogDetailPage() {
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-[13px] font-medium text-[#0EA5E9] bg-[#F0F9FF] px-2.5 py-1 rounded border border-[#BAE6FD]"
+                      className="text-[13px] font-medium text-epf-500 bg-epf-50 px-2.5 py-1 rounded border border-epf-100"
                     >
                       {tag}
                     </span>
@@ -199,30 +199,30 @@ export default function BlogDetailPage() {
               {/* Content */}
               <div
                 className="prose prose-slate max-w-none
-                  [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-[#111827] [&_h1]:mb-4 [&_h1]:mt-8
-                  [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-[#111827] [&_h2]:mb-3 [&_h2]:mt-7
-                  [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-[#111827] [&_h3]:mb-2 [&_h3]:mt-6
-                  [&_p]:text-[15px] [&_p]:leading-relaxed [&_p]:text-[#374151] [&_p]:mb-4
+                  [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-slate-900 [&_h1]:mb-4 [&_h1]:mt-8
+                  [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:mb-3 [&_h2]:mt-7
+                  [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-slate-900 [&_h3]:mb-2 [&_h3]:mt-6
+                  [&_p]:text-[15px] [&_p]:leading-relaxed [&_p]:text-slate-700 [&_p]:mb-4
                   [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1
                   [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1
-                  [&_li]:text-[15px] [&_li]:leading-relaxed [&_li]:text-[#374151]
-                  [&_a]:text-[#0EA5E9] [&_a]:hover:text-[#0284C7] [&_a]:underline
-                  [&_strong]:font-semibold [&_strong]:text-[#111827]
-                  [&_code]:text-[13px] [&_code]:bg-[#F1F5F9] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[#0EA5E9]
-                  [&_pre]:bg-[#111827] [&_pre]:text-[#F8FAFC] [&_pre]:rounded-lg [&_pre]:p-5 [&_pre]:overflow-x-auto [&_pre]:mb-6
-                  [&_pre_code]:bg-transparent [&_pre_code]:text-[#F8FAFC] [&_pre_code]:px-0 [&_pre_code]:py-0
-                  [&_blockquote]:border-l-4 [&_blockquote]:border-[#0EA5E9] [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-[#6B7280] [&_blockquote]:mb-4
+                  [&_li]:text-[15px] [&_li]:leading-relaxed [&_li]:text-slate-700
+                  [&_a]:text-epf-500 [&_a]:hover:text-epf-600 [&_a]:underline
+                  [&_strong]:font-semibold [&_strong]:text-slate-900
+                  [&_code]:text-[13px] [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-epf-500
+                  [&_pre]:bg-slate-900 [&_pre]:text-slate-50 [&_pre]:rounded-lg [&_pre]:p-5 [&_pre]:overflow-x-auto [&_pre]:mb-6
+                  [&_pre_code]:bg-transparent [&_pre_code]:text-slate-50 [&_pre_code]:px-0 [&_pre_code]:py-0
+                  [&_blockquote]:border-l-4 [&_blockquote]:border-epf-500 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-slate-500 [&_blockquote]:mb-4
                   [&_img]:rounded-lg [&_img]:my-4
-                  [&_hr]:border-[#E2E8F0] [&_hr]:my-6
+                  [&_hr]:border-slate-200 [&_hr]:my-6
                 "
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
               />
 
               {/* Bottom Back Link */}
-              <div className="mt-10 pt-6 border-t border-[#E2E8F0]">
+              <div className="mt-10 pt-6 border-t border-slate-200">
                 <Link
                   href="/blog"
-                  className="inline-flex items-center gap-1.5 text-[14px] font-medium text-[#6B7280] hover:text-[#0EA5E9] transition-colors"
+                  className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-500 hover:text-epf-500 transition-colors"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to Blog

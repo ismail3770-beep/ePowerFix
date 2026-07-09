@@ -105,13 +105,13 @@ function parseImages(val: unknown): string[] {
 
 function KitCardSkeleton() {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg overflow-hidden">
-      <div className="aspect-square bg-[#F1F5F9] animate-pulse" />
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+      <div className="aspect-square bg-slate-100 animate-pulse" />
       <div className="p-3 space-y-2">
-        <div className="h-2 w-16 bg-[#F1F5F9] rounded animate-pulse" />
-        <div className="h-3 w-full bg-[#F1F5F9] rounded animate-pulse" />
-        <div className="h-3 w-2/3 bg-[#F1F5F9] rounded animate-pulse" />
-        <div className="h-4 w-20 bg-[#F1F5F9] rounded animate-pulse" />
+        <div className="h-2 w-16 bg-slate-100 rounded animate-pulse" />
+        <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
+        <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
+        <div className="h-4 w-20 bg-slate-100 rounded animate-pulse" />
       </div>
     </div>
   );
@@ -119,13 +119,13 @@ function KitCardSkeleton() {
 
 function KitListCardSkeleton() {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg p-3 flex gap-4">
-      <div className="w-32 h-32 bg-[#F1F5F9] rounded animate-pulse shrink-0" />
+    <div className="bg-white border border-slate-200 rounded-lg p-3 flex gap-4">
+      <div className="w-32 h-32 bg-slate-100 rounded animate-pulse shrink-0" />
       <div className="flex-1 space-y-2 py-2">
-        <div className="h-2 w-16 bg-[#F1F5F9] rounded animate-pulse" />
-        <div className="h-4 w-3/4 bg-[#F1F5F9] rounded animate-pulse" />
-        <div className="h-3 w-full bg-[#F1F5F9] rounded animate-pulse" />
-        <div className="h-4 w-24 bg-[#F1F5F9] rounded animate-pulse" />
+        <div className="h-2 w-16 bg-slate-100 rounded animate-pulse" />
+        <div className="h-4 w-3/4 bg-slate-100 rounded animate-pulse" />
+        <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
+        <div className="h-4 w-24 bg-slate-100 rounded animate-pulse" />
       </div>
     </div>
   );
@@ -390,9 +390,9 @@ function FilterSidebar({
   onClearAll: () => void;
 }) {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg p-5 space-y-6">
+    <div className="bg-white border border-slate-200 rounded-lg p-5 space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-[14px] font-semibold text-[#111827] flex items-center gap-2">
+        <h3 className="text-[14px] font-semibold text-slate-900 flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4" /> Filters
         </h3>
         <button
@@ -405,7 +405,7 @@ function FilterSidebar({
 
       {/* Price */}
       <div>
-        <h4 className="text-[13px] font-semibold text-[#374151] mb-3">
+        <h4 className="text-[13px] font-semibold text-slate-700 mb-3">
           Price Range
         </h4>
         <div className="space-y-2">
@@ -418,14 +418,14 @@ function FilterSidebar({
               className={`flex items-center gap-2 w-full text-left text-[13px] py-1.5 transition-colors ${
                 selectedPriceRange === i
                   ? "text-epf-500 font-medium"
-                  : "text-[#6B7280] hover:text-[#111827]"
+                  : "text-slate-500 hover:text-slate-900"
               }`}
             >
               <span
                 className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                   selectedPriceRange === i
                     ? "bg-epf-500 border-epf-500"
-                    : "border-[#D1D5DB]"
+                    : "border-slate-300"
                 }`}
               >
                 {selectedPriceRange === i && (
@@ -473,13 +473,13 @@ function Pagination({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="h-9 w-9 flex items-center justify-center rounded-lg border border-[#E2E8F0] text-[#374151] hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
       {pages.map((p, i) =>
         p === "…" ? (
-          <span key={`e${i}`} className="px-2 text-[#9CA3AF]">
+          <span key={`e${i}`} className="px-2 text-slate-400">
             …
           </span>
         ) : (
@@ -489,7 +489,7 @@ function Pagination({
             className={`h-9 min-w-9 px-3 flex items-center justify-center rounded-lg text-[13px] font-medium transition-colors ${
               p === currentPage
                 ? "bg-epf-500 text-white"
-                : "border border-[#E2E8F0] text-[#374151] hover:bg-[#F8FAFC]"
+                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
             }`}
           >
             {p}
@@ -499,7 +499,7 @@ function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="h-9 w-9 flex items-center justify-center rounded-lg border border-[#E2E8F0] text-[#374151] hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <ChevronRight className="w-4 h-4" />
       </button>
@@ -514,13 +514,13 @@ function Pagination({
 function EmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="h-16 w-16 rounded-full bg-[#F1F5F9] flex items-center justify-center mb-4">
-        <Boxes className="h-8 w-8 text-[#9CA3AF]" />
+      <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+        <Boxes className="h-8 w-8 text-slate-400" />
       </div>
-      <h3 className="text-[16px] font-semibold text-[#111827] mb-1">
+      <h3 className="text-[16px] font-semibold text-slate-900 mb-1">
         No project kits found
       </h3>
-      <p className="text-[13px] text-[#6B7280] mb-4">
+      <p className="text-[13px] text-slate-500 mb-4">
         Try adjusting your filters or search terms.
       </p>
       <button
@@ -653,54 +653,54 @@ export default function ProjectKitsPage() {
       : null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
 
       <main className="flex-1">
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <nav className="flex items-center gap-1.5 h-11 text-[13px]">
               <a
                 href="/"
-                className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827] transition-colors"
+                className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors"
               >
                 <Home className="h-3.5 w-3.5" />
                 <span>Home</span>
               </a>
-              <ChevronRight className="h-3 w-3 text-[#CBD5E1]" />
-              <span className="text-[#111827] font-medium">Project Kits</span>
+              <ChevronRight className="h-3 w-3 text-slate-300" />
+              <span className="text-slate-900 font-medium">Project Kits</span>
             </nav>
           </div>
         </div>
 
         {/* Top Toolbar */}
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <div className="flex items-center justify-between h-12 gap-4">
               {/* Left: Results count */}
-              <div className="text-[13px] text-[#6B7280]">
+              <div className="text-[13px] text-slate-500">
                 {isLoading ? (
-                  <span className="inline-block w-40 h-4 bg-[#F1F5F9] rounded animate-pulse" />
+                  <span className="inline-block w-40 h-4 bg-slate-100 rounded animate-pulse" />
                 ) : totalKits > 0 ? (
                   <>
                     Showing{" "}
-                    <span className="text-[#111827] font-medium">
+                    <span className="text-slate-900 font-medium">
                       {showingFrom}
                     </span>
                     {" – "}
-                    <span className="text-[#111827] font-medium">
+                    <span className="text-slate-900 font-medium">
                       {showingTo}
                     </span>
                     {" of "}
-                    <span className="text-[#111827] font-medium">
+                    <span className="text-slate-900 font-medium">
                       {totalKits}
                     </span>
                     {" project kits"}
                   </>
                 ) : (
                   <>
-                    Showing <span className="text-[#111827] font-medium">0</span>{" "}
+                    Showing <span className="text-slate-900 font-medium">0</span>{" "}
                     project kits
                   </>
                 )}
@@ -710,7 +710,7 @@ export default function ProjectKitsPage() {
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => setMobileFilterOpen(true)}
-                  className="lg:hidden flex items-center gap-1.5 h-8.5 px-3 border border-[#E2E8F0] rounded-lg text-[13px] text-[#374151] hover:bg-[#F8FAFC] transition-colors"
+                  className="lg:hidden flex items-center gap-1.5 h-8.5 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5" />
                   <span>Filter</span>
@@ -723,7 +723,7 @@ export default function ProjectKitsPage() {
                     onChange={(e) =>
                       handleSortChange(e.target.value as SortOption)
                     }
-                    className="appearance-none h-8.5 pl-3 pr-8 border border-[#E2E8F0] rounded-lg bg-white text-[13px] text-[#374151] cursor-pointer hover:border-[#9CA3AF] focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                    className="appearance-none h-8.5 pl-3 pr-8 border border-slate-200 rounded-lg bg-white text-[13px] text-slate-700 cursor-pointer hover:border-slate-400 focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
                   >
                     {SORT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -731,17 +731,17 @@ export default function ProjectKitsPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280] pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
                 </div>
 
                 {/* View toggle */}
-                <div className="hidden sm:flex items-center border border-[#E2E8F0] rounded-lg overflow-hidden">
+                <div className="hidden sm:flex items-center border border-slate-200 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`h-8.5 w-9 flex items-center justify-center transition-colors ${
                       viewMode === "grid"
-                        ? "bg-[#111827] text-white"
-                        : "text-[#6B7280] hover:bg-[#F8FAFC]"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-500 hover:bg-slate-50"
                     }`}
                     title="Grid view"
                     aria-label="Grid view"
@@ -752,8 +752,8 @@ export default function ProjectKitsPage() {
                     onClick={() => setViewMode("list")}
                     className={`h-8.5 w-9 flex items-center justify-center transition-colors ${
                       viewMode === "list"
-                        ? "bg-[#111827] text-white"
-                        : "text-[#6B7280] hover:bg-[#F8FAFC]"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-500 hover:bg-slate-50"
                     }`}
                     title="List view"
                     aria-label="List view"
@@ -770,40 +770,40 @@ export default function ProjectKitsPage() {
         {(appliedSearch ||
           selectedPriceRange !== null ||
           selectedRating !== null) && (
-          <div className="bg-white border-b border-[#E2E8F0]">
+          <div className="bg-white border-b border-slate-200">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-2.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[12px] text-[#6B7280] font-medium">
+                <span className="text-[12px] text-slate-500 font-medium">
                   Active:
                 </span>
                 {appliedSearch && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     Search: “{appliedSearch}”
                     <button
                       onClick={() => setAppliedSearch("")}
-                      className="text-[#9CA3AF] hover:text-[#111827]"
+                      className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {activePriceLabel && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     {activePriceLabel}
                     <button
                       onClick={() => setSelectedPriceRange(null)}
-                      className="text-[#9CA3AF] hover:text-[#111827]"
+                      className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {selectedRating !== null && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     {selectedRating}★ & up
                     <button
                       onClick={() => setSelectedRating(null)}
-                      className="text-[#9CA3AF] hover:text-[#111827]"
+                      className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -843,7 +843,7 @@ export default function ProjectKitsPage() {
                   <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                     <X className="h-8 w-8 text-red-400" />
                   </div>
-                  <p className="text-[14px] text-[#6B7280]">
+                  <p className="text-[14px] text-slate-500">
                     Failed to load project kits. Please try again later.
                   </p>
                 </div>
@@ -862,7 +862,7 @@ export default function ProjectKitsPage() {
                   </div>
                 )
               ) : pagedKits.length === 0 ? (
-                <div className="bg-white border border-[#E2E8F0] rounded-lg">
+                <div className="bg-white border border-slate-200 rounded-lg">
                   <EmptyState onClear={handleClearFilters} />
                 </div>
               ) : (
@@ -909,7 +909,7 @@ export default function ProjectKitsPage() {
               <h3 className="text-[15px] font-semibold">Filters</h3>
               <button
                 onClick={() => setMobileFilterOpen(false)}
-                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-[#F8FAFC]"
+                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-50"
               >
                 <X className="h-4 w-4" />
               </button>

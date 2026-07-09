@@ -116,7 +116,7 @@ const orderStatusColor: Record<string, string> = {
   SHIPPED: "bg-purple-100 text-purple-800",
   DELIVERED: "bg-emerald-100 text-emerald-800",
   CANCELLED: "bg-red-100 text-red-800",
-  RETURNED: "bg-gray-100 text-gray-700",
+  RETURNED: "bg-slate-100 text-slate-700",
 };
 
 const returnStatusColor: Record<string, { color: string; icon: React.ElementType }> = {
@@ -144,12 +144,12 @@ function formatDate(dateStr: string) {
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | null | undefined }) {
   return (
     <div className="flex items-start gap-3 py-3">
-      <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] shrink-0">
-        <Icon className="h-4 w-4 text-[#6B7280]" />
+      <div className="flex items-center justify-center h-9 w-9 rounded-lg bg-slate-50 border border-slate-200 shrink-0">
+        <Icon className="h-4 w-4 text-slate-500" />
       </div>
       <div className="min-w-0">
-        <p className="text-[12px] text-[#6B7280] uppercase tracking-wider font-medium">{label}</p>
-        <p className="text-[15px] text-[#111827] font-medium mt-0.5">{value || "—"}</p>
+        <p className="text-[12px] text-slate-500 uppercase tracking-wider font-medium">{label}</p>
+        <p className="text-[15px] text-slate-900 font-medium mt-0.5">{value || "—"}</p>
       </div>
     </div>
   );
@@ -239,31 +239,31 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 bg-[#F8FAFC]">
-          <div className="bg-white border-b border-[#E2E8F0]">
+        <main className="flex-1 bg-slate-50">
+          <div className="bg-white border-b border-slate-200">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
               <nav className="flex items-center gap-1.5 h-[44px] text-[14px]">
-                <a href="/" className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827] transition-colors">
+                <a href="/" className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors">
                   <Home className="h-3.5 w-3.5" />
                   <span>Home</span>
                 </a>
-                <ChevronRight className="h-3 w-3 text-[#94A3B8]" />
-                <span className="text-[#111827] font-medium">My Account</span>
+                <ChevronRight className="h-3 w-3 text-slate-400" />
+                <span className="text-slate-900 font-medium">My Account</span>
               </nav>
             </div>
           </div>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-270px)]">
-            <div className="bg-white rounded-lg border border-[#E2E8F0] p-8 text-center max-w-sm w-full">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center">
-                <User className="h-8 w-8 text-[#94A3B8]" />
+            <div className="bg-white rounded-lg border border-slate-200 p-8 text-center max-w-sm w-full">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
+                <User className="h-8 w-8 text-slate-400" />
               </div>
-              <h2 className="text-[18px] font-semibold text-[#111827] mb-2">Please Login</h2>
-              <p className="text-[14px] text-[#6B7280] mb-6">
+              <h2 className="text-[18px] font-semibold text-slate-900 mb-2">Please Login</h2>
+              <p className="text-[14px] text-slate-500 mb-6">
                 You need to be logged in to view your account.
               </p>
               <a
                 href="/login"
-                className="inline-flex items-center justify-center h-11 px-6 bg-[#111827] hover:bg-[#0EA5E9] text-white font-semibold text-[15px] rounded-md transition-colors"
+                className="inline-flex items-center justify-center h-11 px-6 bg-slate-900 hover:bg-epf-500 text-white font-semibold text-[15px] rounded-md transition-colors"
               >
                 Sign In
               </a>
@@ -286,18 +286,18 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 bg-[#F8FAFC]">
+      <main className="flex-1 bg-slate-50">
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <nav className="flex items-center justify-between gap-4 h-[44px] text-[14px]">
               <div className="flex items-center gap-1.5">
-                <a href="/" className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827] transition-colors">
+                <a href="/" className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors">
                   <Home className="h-3.5 w-3.5" />
                   <span>Home</span>
                 </a>
-                <ChevronRight className="h-3 w-3 text-[#94A3B8]" />
-                <span className="text-[#111827] font-medium">My Account</span>
+                <ChevronRight className="h-3 w-3 text-slate-400" />
+                <span className="text-slate-900 font-medium">My Account</span>
               </div>
               <NotificationBell />
             </nav>
@@ -308,7 +308,7 @@ export default function ProfilePage() {
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-8">
           {userLoading ? (
             <div className="mx-auto max-w-[1400px] grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border border-[#E2E8F0]">
+              <Card className="border border-slate-200">
                 <CardContent className="p-6 space-y-4">
                   <Skeleton className="h-6 w-32" />
                   <Skeleton className="h-4 w-48" />
@@ -316,7 +316,7 @@ export default function ProfilePage() {
                   <Skeleton className="h-4 w-52" />
                 </CardContent>
               </Card>
-              <Card className="border border-[#E2E8F0] md:col-span-2">
+              <Card className="border border-slate-200 md:col-span-2">
                 <CardContent className="p-6 space-y-4">
                   <Skeleton className="h-6 w-40" />
                   <Skeleton className="h-20 w-full" />
@@ -328,19 +328,19 @@ export default function ProfilePage() {
               {/* Left Sidebar */}
               <div className="space-y-6">
                 {/* Profile Info Card */}
-                <Card className="border border-[#E2E8F0]">
+                <Card className="border border-slate-200">
                   <CardHeader className="pb-0">
-                    <CardTitle className="text-[16px] font-semibold text-[#111827]">Profile Info</CardTitle>
+                    <CardTitle className="text-[16px] font-semibold text-slate-900">Profile Info</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-2">
                     <div className="flex flex-col items-center mb-4">
-                      <div className="h-16 w-16 rounded-full bg-[#111827] flex items-center justify-center mb-3">
+                      <div className="h-16 w-16 rounded-full bg-slate-900 flex items-center justify-center mb-3">
                         <span className="text-[22px] font-bold text-white">
                           {user?.name?.charAt(0)?.toUpperCase() || "U"}
                         </span>
                       </div>
-                      <h2 className="text-[17px] font-semibold text-[#111827]">{user?.name}</h2>
-                      <p className="text-[13px] text-[#6B7280]">{user?.role || "Customer"}</p>
+                      <h2 className="text-[17px] font-semibold text-slate-900">{user?.name}</h2>
+                      <p className="text-[13px] text-slate-500">{user?.role || "Customer"}</p>
                     </div>
                     <Separator className="mb-2" />
                     <InfoRow icon={Mail} label="Email" value={user?.email} />
@@ -352,11 +352,11 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* Quick Links */}
-                <Card className="border border-[#E2E8F0]">
+                <Card className="border border-slate-200">
                   <CardContent className="p-4 space-y-2">
                     <a
                       href="/wishlist"
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-[#374151] hover:bg-[#F8FAFC] hover:text-[#0EA5E9] transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors"
                     >
                       <Heart className="h-4 w-4" />
                       <span>My Wishlist</span>
@@ -376,10 +376,10 @@ export default function ProfilePage() {
               <div className="md:col-span-2 space-y-6">
 
                 {/* Recent Orders */}
-                <Card className="border border-[#E2E8F0]">
+                <Card className="border border-slate-200">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-[#111827]">
-                      <Package className="h-5 w-5 text-[#6B7280]" />
+                    <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
+                      <Package className="h-5 w-5 text-slate-500" />
                       Recent Orders
                     </CardTitle>
                   </CardHeader>
@@ -392,16 +392,16 @@ export default function ProfilePage() {
                       </div>
                     ) : orders.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <div className="h-14 w-14 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center mb-3">
-                          <Package className="h-6 w-6 text-[#CBD5E1]" />
+                        <div className="h-14 w-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
+                          <Package className="h-6 w-6 text-slate-300" />
                         </div>
-                        <p className="text-[15px] font-medium text-[#6B7280]">No orders yet</p>
-                        <p className="text-[13px] text-[#94A3B8] mt-1">
+                        <p className="text-[15px] font-medium text-slate-500">No orders yet</p>
+                        <p className="text-[13px] text-slate-400 mt-1">
                           When you place orders, they will appear here.
                         </p>
                         <a
                           href="/shop"
-                          className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-[#111827] hover:bg-[#0EA5E9] text-white text-[13px] font-semibold rounded-md transition-colors"
+                          className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-slate-900 hover:bg-epf-500 text-white text-[13px] font-semibold rounded-md transition-colors"
                         >
                           Start Shopping
                         </a>
@@ -409,33 +409,33 @@ export default function ProfilePage() {
                     ) : (
                       <div className="space-y-3">
                         {orders.map((order) => (
-                          <div key={order.id} className="border border-[#E2E8F0] rounded-lg p-4">
+                          <div key={order.id} className="border border-slate-200 rounded-lg p-4">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[13px] font-mono font-medium text-[#111827]">
+                                  <span className="text-[13px] font-mono font-medium text-slate-900">
                                     #{order.orderNumber.slice(-8)}
                                   </span>
-                                  <Badge variant="outline" className={`text-[11px] px-2 py-0.5 font-medium ${orderStatusColor[order.status] || "bg-gray-100 text-gray-700"}`}>
+                                  <Badge variant="outline" className={`text-[11px] px-2 py-0.5 font-medium ${orderStatusColor[order.status] || "bg-slate-100 text-slate-700"}`}>
                                     {order.status}
                                   </Badge>
                                 </div>
-                                <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
+                                <div className="flex items-center gap-3 text-[12px] text-slate-500">
                                   <span>{formatDate(order.createdAt)}</span>
                                   <span>·</span>
                                   <span>{order.items.length} item{order.items.length > 1 ? "s" : ""}</span>
                                 </div>
-                                <div className="text-[12px] text-[#6B7280]">
+                                <div className="text-[12px] text-slate-500">
                                   {order.items.map((item) => item.productName).join(", ")}
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
-                                <span className="text-[15px] font-bold text-[#111827]">{formatBDT(order.total)}</span>
+                                <span className="text-[15px] font-bold text-slate-900">{formatBDT(order.total)}</span>
                                 {order.status === "DELIVERED" && (
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 text-[12px] gap-1 border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white"
+                                    className="h-8 text-[12px] gap-1 border-epf-500 text-epf-500 hover:bg-epf-500 hover:text-white"
                                     onClick={() => openReturnDialog(order.id)}
                                   >
                                     <RotateCcw className="size-3.5" />
@@ -453,10 +453,10 @@ export default function ProfilePage() {
 
                 {/* My Downloads */}
                 {(downloadsLoading || downloads.length > 0) && (
-                  <Card className="border border-[#E2E8F0]">
+                  <Card className="border border-slate-200">
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-[#111827]">
-                        <Download className="h-5 w-5 text-[#6B7280]" />
+                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
+                        <Download className="h-5 w-5 text-slate-500" />
                         My Downloads
                       </CardTitle>
                     </CardHeader>
@@ -473,10 +473,10 @@ export default function ProfilePage() {
                             const exhausted = d.remaining != null && d.remaining <= 0;
                             const canDownload = d.unlocked && d.hasFile && !exhausted;
                             return (
-                              <div key={d.orderItemId} className="border border-[#E2E8F0] rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div key={d.orderItemId} className="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="space-y-1">
-                                  <p className="text-[14px] font-medium text-[#111827]">{d.productName}</p>
-                                  <div className="flex items-center gap-3 text-[12px] text-[#6B7280]">
+                                  <p className="text-[14px] font-medium text-slate-900">{d.productName}</p>
+                                  <div className="flex items-center gap-3 text-[12px] text-slate-500">
                                     <span className="font-mono">#{d.orderNumber.slice(-8)}</span>
                                     <span>·</span>
                                     <span>{formatDate(d.purchasedAt)}</span>
@@ -492,7 +492,7 @@ export default function ProfilePage() {
                                   <Button
                                     asChild
                                     size="sm"
-                                    className="h-8 text-[12px] gap-1 bg-[#0EA5E9] hover:bg-[#0284C7] text-white"
+                                    className="h-8 text-[12px] gap-1 bg-epf-500 hover:bg-epf-600 text-white"
                                   >
                                     <a href={`/api/downloads/${d.orderItemId}`}>
                                       <Download className="size-3.5" />
@@ -500,7 +500,7 @@ export default function ProfilePage() {
                                     </a>
                                   </Button>
                                 ) : (
-                                  <Badge variant="outline" className="text-[11px] gap-1 text-[#94A3B8]">
+                                  <Badge variant="outline" className="text-[11px] gap-1 text-slate-400">
                                     <Lock className="size-3" />
                                     {!d.unlocked ? "Awaiting payment" : exhausted ? "Limit reached" : "Unavailable"}
                                   </Badge>
@@ -515,10 +515,10 @@ export default function ProfilePage() {
                 )}
 
                 {/* My Returns */}
-                <Card className="border border-[#E2E8F0]">
+                <Card className="border border-slate-200">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-[#111827]">
-                      <RotateCcw className="h-5 w-5 text-[#6B7280]" />
+                    <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
+                      <RotateCcw className="h-5 w-5 text-slate-500" />
                       My Returns
                     </CardTitle>
                   </CardHeader>
@@ -531,25 +531,25 @@ export default function ProfilePage() {
                       </div>
                     ) : returns.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <div className="h-12 w-12 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center mb-3">
-                          <RotateCcw className="h-5 w-5 text-[#CBD5E1]" />
+                        <div className="h-12 w-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
+                          <RotateCcw className="h-5 w-5 text-slate-300" />
                         </div>
-                        <p className="text-[14px] font-medium text-[#6B7280]">No return requests</p>
-                        <p className="text-[12px] text-[#94A3B8] mt-1">
+                        <p className="text-[14px] font-medium text-slate-500">No return requests</p>
+                        <p className="text-[12px] text-slate-400 mt-1">
                           If you need to return a delivered order, use the Return button above.
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {returns.map((r) => {
-                          const statusInfo = returnStatusColor[r.status] || { color: "bg-gray-100 text-gray-700", icon: Clock };
+                          const statusInfo = returnStatusColor[r.status] || { color: "bg-slate-100 text-slate-700", icon: Clock };
                           const StatusIcon = statusInfo.icon;
                           return (
-                            <div key={r.id} className="border border-[#E2E8F0] rounded-lg p-4">
+                            <div key={r.id} className="border border-slate-200 rounded-lg p-4">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-[13px] font-mono font-medium text-[#111827]">
+                                    <span className="text-[13px] font-mono font-medium text-slate-900">
                                       #{r.order.orderNumber.slice(-8)}
                                     </span>
                                     <Badge variant="outline" className={`text-[11px] px-2 py-0.5 font-medium flex items-center gap-1 ${statusInfo.color}`}>
@@ -557,20 +557,20 @@ export default function ProfilePage() {
                                       {r.status}
                                     </Badge>
                                   </div>
-                                  <p className="text-[12px] text-[#6B7280] line-clamp-2">{r.reason}</p>
-                                  <div className="flex items-center gap-3 text-[12px] text-[#94A3B8]">
+                                  <p className="text-[12px] text-slate-500 line-clamp-2">{r.reason}</p>
+                                  <div className="flex items-center gap-3 text-[12px] text-slate-400">
                                     <span>Requested: {formatDate(r.createdAt)}</span>
                                     {r.refundAmount && (
                                       <>
                                         <span>·</span>
-                                        <span className="font-medium text-[#111827]">Refund: {formatBDT(r.refundAmount)}</span>
+                                        <span className="font-medium text-slate-900">Refund: {formatBDT(r.refundAmount)}</span>
                                       </>
                                     )}
                                   </div>
                                 </div>
                                 {r.notes && (
-                                  <div className="text-[12px] text-[#6B7280] bg-[#F8FAFC] rounded-md p-3 max-w-xs">
-                                    <p className="font-medium text-[#374151] mb-1">Admin Note:</p>
+                                  <div className="text-[12px] text-slate-500 bg-slate-50 rounded-md p-3 max-w-xs">
+                                    <p className="font-medium text-slate-700 mb-1">Admin Note:</p>
                                     <p>{r.notes}</p>
                                   </div>
                                 )}
@@ -619,7 +619,7 @@ export default function ProfilePage() {
                 onChange={(e) => setReturnReason(e.target.value)}
                 rows={4}
               />
-              <p className="text-[12px] text-[#94A3B8]">Min 10 characters required</p>
+              <p className="text-[12px] text-slate-400">Min 10 characters required</p>
             </div>
           </div>
           <DialogFooter>
@@ -627,7 +627,7 @@ export default function ProfilePage() {
               Cancel
             </Button>
             <Button
-              className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white"
+              className="bg-epf-500 hover:bg-epf-600 text-white"
               disabled={createReturnMutation.isPending || returnReason.length < 10}
               onClick={() => {
                 if (returnOrderId) {

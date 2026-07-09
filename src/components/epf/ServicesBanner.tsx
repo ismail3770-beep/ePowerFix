@@ -53,10 +53,10 @@ export default function ServicesBanner() {
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-dark-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
               Our Services
             </h2>
-            <p className="text-sm text-dark-500 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               Professional electrical solutions for home & industry
             </p>
           </div>
@@ -121,7 +121,7 @@ export default function ServicesBanner() {
                   className={`rounded-full transition-all duration-300 block ${
                     i === offset
                       ? "w-6 h-2 bg-epf-500"
-                      : "w-2 h-2 bg-dark-300"
+                      : "w-2 h-2 bg-slate-300"
                   }`}
                 />
               ))}

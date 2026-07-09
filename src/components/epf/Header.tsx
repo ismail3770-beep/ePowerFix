@@ -207,21 +207,21 @@ export default function Header() {
     `}</style>
     <header className="sticky top-0 z-50 bg-white">
       {/* ROW 1 */}
-      <div className="border-b border-dark-200">
+      <div className="border-b border-slate-200">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
           <div className="flex items-center h-[70px] gap-6">
             {/* Logo - first focusable element */}
             <Link href="/" className="flex flex-col shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-epf-500 rounded" tabIndex={0}>
-              <span className="text-[26px] font-extrabold tracking-tight text-dark-900 leading-none group-hover:text-epf-500 transition-colors">
+              <span className="text-[26px] font-extrabold tracking-tight text-slate-900 leading-none group-hover:text-epf-500 transition-colors">
                 e<span className="text-epf-500">Power</span>Fix
               </span>
-              <span className="text-[12px] text-dark-500 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>
+              <span className="text-[12px] text-slate-500 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>
             </Link>
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:flex flex-1 justify-center relative" ref={searchRef}>
-              <div className="flex w-full max-w-[700px] h-[42px] rounded border border-dark-200 relative">
-                <I.Search className="h-[18px] w-[18px] text-dark-400 my-auto ml-3 shrink-0" />
+              <div className="flex w-full max-w-[700px] h-[42px] rounded border border-slate-200 relative">
+                <I.Search className="h-[18px] w-[18px] text-slate-400 my-auto ml-3 shrink-0" />
                 <input
                   type="text"
                   placeholder="Search products, services or projects..."
@@ -229,7 +229,7 @@ export default function Header() {
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => localSearch.length >= 2 && setShowDropdown(true)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); if (e.key === "Escape") setShowDropdown(false); }}
-                  className="flex-1 h-full px-3 text-[15px] bg-white focus:outline-none text-dark-900 placeholder:text-dark-400"
+                  className="flex-1 h-full px-3 text-[15px] bg-white focus:outline-none text-slate-900 placeholder:text-slate-400"
                   aria-label="Search"
                 />
                 <button
@@ -241,23 +241,23 @@ export default function Header() {
 
                 {/* Search Dropdown */}
                 {showDropdown && localSearch.length >= 2 && (
-                  <div className="absolute top-full left-0 right-0 bg-white border border-dark-200 rounded-b shadow-md z-50 max-h-[400px] overflow-y-auto search-dropdown">
+                  <div className="absolute top-full left-0 right-0 bg-white border border-slate-200 rounded-b shadow-md z-50 max-h-[400px] overflow-y-auto search-dropdown">
                     {!hasResults && (
                       <div className="p-6 text-center">
-                        <p className="text-[14px] text-dark-500">No results found</p>
-                        <p className="text-[13px] text-dark-400 mt-1">Browse <a href="/shop" className="text-epf-500 hover:underline">Shop</a> for categories</p>
+                        <p className="text-[14px] text-slate-500">No results found</p>
+                        <p className="text-[13px] text-slate-400 mt-1">Browse <a href="/shop" className="text-epf-500 hover:underline">Shop</a> for categories</p>
                       </div>
                     )}
                     {searchResults.products.length > 0 && (
                       <div>
-                        <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-dark-400 bg-dark-50">Products</p>
+                        <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Products</p>
                         {searchResults.products.map((p) => (
-                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/shop?search=${encodeURIComponent(localSearch)}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-dark-50 border-b border-dark-200 last:border-0 text-left">
-                            <div className="h-9 w-9 bg-dark-100 rounded flex items-center justify-center shrink-0">
-                              {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-contain" /> : <I.Package className="h-4 w-4 text-dark-400" />}
+                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/shop?search=${encodeURIComponent(localSearch)}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                            <div className="h-9 w-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
+                              {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-contain" /> : <I.Package className="h-4 w-4 text-slate-400" />}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[13px] text-dark-900 truncate">{p.name}</p>
+                              <p className="text-[13px] text-slate-900 truncate">{p.name}</p>
                             </div>
                             <span className="text-[13px] font-semibold text-epf-500 shrink-0">৳{p.price?.toLocaleString()}</span>
                           </button>
@@ -266,37 +266,37 @@ export default function Header() {
                     )}
                     {searchResults.services.length > 0 && (
                       <div>
-                        <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-dark-400 bg-dark-50">Services</p>
+                        <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Services</p>
                         {searchResults.services.map((s) => (
-                          <button key={s.id} onClick={() => { setShowDropdown(false); window.location.href = "/services"; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-dark-50 border-b border-dark-200 last:border-0 text-left">
+                          <button key={s.id} onClick={() => { setShowDropdown(false); window.location.href = "/services"; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
                             <div className="h-9 w-9 bg-epf-50 rounded-full flex items-center justify-center shrink-0">
                               <I.Wrench className="h-4 w-4 text-epf-500" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[13px] text-dark-900 truncate">{s.name}</p>
+                              <p className="text-[13px] text-slate-900 truncate">{s.name}</p>
                             </div>
-                            {s.price !== undefined && <span className="text-[12px] text-dark-500 shrink-0">From ৳{s.price}</span>}
+                            {s.price !== undefined && <span className="text-[12px] text-slate-500 shrink-0">From ৳{s.price}</span>}
                           </button>
                         ))}
                       </div>
                     )}
                     {searchResults.projects.length > 0 && (
                       <div>
-                        <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-dark-400 bg-dark-50">Projects</p>
+                        <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Projects</p>
                         {searchResults.projects.map((p) => (
-                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = "/projects"; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-dark-50 border-b border-dark-200 last:border-0 text-left">
-                            <div className="h-9 w-9 bg-dark-100 rounded flex items-center justify-center shrink-0">
-                              {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-cover rounded" /> : <I.Cpu className="h-4 w-4 text-dark-400" />}
+                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = "/projects"; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                            <div className="h-9 w-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
+                              {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-cover rounded" /> : <I.Cpu className="h-4 w-4 text-slate-400" />}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[13px] text-dark-900 truncate">{p.name}</p>
+                              <p className="text-[13px] text-slate-900 truncate">{p.name}</p>
                             </div>
                           </button>
                         ))}
                       </div>
                     )}
                     {hasResults && (
-                      <a href={`/shop?search=${encodeURIComponent(localSearch)}`} className="block px-4 py-3 text-center text-[13px] font-semibold text-epf-500 hover:bg-epf-50 border-t border-dark-200 transition-colors">
+                      <a href={`/shop?search=${encodeURIComponent(localSearch)}`} className="block px-4 py-3 text-center text-[13px] font-semibold text-epf-500 hover:bg-epf-50 border-t border-slate-200 transition-colors">
                         View All Results →
                       </a>
                     )}
@@ -312,31 +312,31 @@ export default function Header() {
                 {user ? (
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="hidden lg:flex items-center gap-2 px-2 py-1 rounded hover:bg-dark-50 transition-colors"
+                    className="hidden lg:flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50 transition-colors"
                   >
-                    <EPFAccountIcon className="h-[26px] w-[26px] text-dark-700 shrink-0" />
+                    <EPFAccountIcon className="h-[26px] w-[26px] text-slate-700 shrink-0" />
                     <div className="flex flex-col leading-tight text-left">
-                      <span className="text-[13px] font-medium text-dark-900 truncate max-w-[140px]">
+                      <span className="text-[13px] font-medium text-slate-900 truncate max-w-[140px]">
                         {user.name}
                       </span>
-                      <span className="text-[12px] text-dark-500 truncate max-w-[140px]">
+                      <span className="text-[12px] text-slate-500 truncate max-w-[140px]">
                         {user.phone || user.email}
                       </span>
                     </div>
                   </button>
                 ) : (
-                  <div className="hidden lg:flex items-center gap-2 px-2 py-1 rounded hover:bg-dark-50 transition-colors">
-                    <EPFAccountIcon className="h-[26px] w-[26px] text-dark-700 shrink-0" />
+                  <div className="hidden lg:flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-50 transition-colors">
+                    <EPFAccountIcon className="h-[26px] w-[26px] text-slate-700 shrink-0" />
                     <div className="flex flex-col leading-tight">
                       <a
                         href="/login"
-                        className="text-[14px] font-medium text-dark-900 hover:text-epf-500 transition-colors leading-tight"
+                        className="text-[14px] font-medium text-slate-900 hover:text-epf-500 transition-colors leading-tight"
                       >
                         Login
                       </a>
                       <a
                         href="/register"
-                        className="text-[12px] text-dark-500 hover:text-epf-500 transition-colors leading-tight"
+                        className="text-[12px] text-slate-500 hover:text-epf-500 transition-colors leading-tight"
                       >
                         Register
                       </a>
@@ -346,28 +346,28 @@ export default function Header() {
 
                 {/* User Dropdown Menu (when logged in) */}
                 {user && userMenuOpen && (
-                  <div className="absolute right-0 top-full mt-1 w-[220px] bg-white border border-dark-200 rounded-lg shadow-md py-1 z-50">
-                    <div className="px-4 py-3 border-b border-dark-200">
-                      <p className="text-[14px] font-semibold text-dark-900">{user.name}</p>
-                      <p className="text-[12px] text-dark-500">{user.email}</p>
+                  <div className="absolute right-0 top-full mt-1 w-[220px] bg-white border border-slate-200 rounded-lg shadow-md py-1 z-50">
+                    <div className="px-4 py-3 border-b border-slate-200">
+                      <p className="text-[14px] font-semibold text-slate-900">{user.name}</p>
+                      <p className="text-[12px] text-slate-500">{user.email}</p>
                       {user.phone && (
-                        <p className="text-[12px] text-dark-500 mt-0.5">{user.phone}</p>
+                        <p className="text-[12px] text-slate-500 mt-0.5">{user.phone}</p>
                       )}
                     </div>
-                    <a href="/order-track" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">
+                    <a href="/order-track" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
                       <I.Truck className="h-4 w-4" /> Track Order
                     </a>
-                    <a href="/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">
+                    <a href="/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
                       <I.User className="h-4 w-4" /> My Profile
                     </a>
-                    <a href="/cost-estimator" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">
+                    <a href="/cost-estimator" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
                       <I.Calculator className="h-4 w-4" /> Cost Estimator
                     </a>
-                    <a href="/wishlist" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-dark-700 hover:bg-dark-50 hover:text-epf-500 transition-colors">
+                    <a href="/wishlist" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
                       <I.Heart className="h-4 w-4" /> Wishlist
                     </a>
-                    <div className="border-t border-dark-200 my-1" />
-                    <button onClick={handleLogout} className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-danger hover:bg-dark-50 transition-colors w-full text-left">
+                    <div className="border-t border-slate-200 my-1" />
+                    <button onClick={handleLogout} className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-danger hover:bg-slate-50 transition-colors w-full text-left">
                       Logout
                     </button>
                   </div>
@@ -375,18 +375,18 @@ export default function Header() {
               </div>
 
               {/* Wishlist */}
-              <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-dark-50 transition-colors">
-                <EPFHeartFilled className="h-[22px] w-[22px] text-dark-700" />
-                <span className="text-[13px] text-dark-700 mt-0.5">Wishlist</span>
+              <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-slate-50 transition-colors">
+                <EPFHeartFilled className="h-[22px] w-[22px] text-slate-700" />
+                <span className="text-[13px] text-slate-700 mt-0.5">Wishlist</span>
               </a>
 
               {/* Cart */}
               <button
                 onClick={() => setCartOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded border border-dark-200 hover:border-dark-300 hover:bg-dark-50 transition-colors relative"
+                className="flex items-center gap-2 px-3 py-2 rounded border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors relative"
               >
                 <div className="relative">
-                  <EPFCartFilled className="h-[22px] w-[22px] text-dark-700" />
+                  <EPFCartFilled className="h-[22px] w-[22px] text-slate-700" />
                   {mounted && count > 0 && (
                     <span className="absolute -top-2 -right-2 h-[15px] min-w-[15px] rounded-full bg-epf-500 text-white text-[12px] font-bold flex items-center justify-center px-0.5">
                       {formatCount(count)}
@@ -394,14 +394,14 @@ export default function Header() {
                   )}
                 </div>
                 <div className="hidden sm:flex flex-col leading-tight text-left">
-                  <span className="text-[13px] text-dark-500">Cart</span>
-                  <span className="text-[14px] font-semibold text-dark-900">{mounted ? `৳${total.toLocaleString()}` : ""}</span>
+                  <span className="text-[13px] text-slate-500">Cart</span>
+                  <span className="text-[14px] font-semibold text-slate-900">{mounted ? `৳${total.toLocaleString()}` : ""}</span>
                 </div>
               </button>
 
               {/* Mobile menu trigger */}
               <button
-                className="md:hidden flex items-center justify-center text-dark-900 ml-1"
+                className="md:hidden flex items-center justify-center text-slate-900 ml-1"
                 onClick={() => setMobileOpen(true)}
               >
                 <I.Menu className="h-[22px] w-[22px]" />
@@ -412,7 +412,7 @@ export default function Header() {
       </div>
 
       {/* ROW 2 */}
-      <div id="header-row-2" className={`bg-dark-900 transition-shadow duration-200 ${headerShadow ? "shadow-md" : ""}`}>
+      <div id="header-row-2" className={`bg-slate-900 transition-shadow duration-200 ${headerShadow ? "shadow-md" : ""}`}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
           <div className="flex items-center h-[44px]">
             {/* Shop By Category + Mega Menu */}
@@ -421,7 +421,7 @@ export default function Header() {
               onMouseEnter={() => { clearTimeout(megaTimeout.current!); setMegaOpen(true); }}
               onMouseLeave={() => { megaTimeout.current = setTimeout(() => setMegaOpen(false), 200); }}
             >
-              <button className="flex items-center gap-2 h-[44px] px-5 bg-dark-900 text-white hover:bg-dark-950 transition-colors">
+              <button className="flex items-center gap-2 h-[44px] px-5 bg-slate-900 text-white hover:bg-slate-950 transition-colors">
                 <I.Menu className="h-[18px] w-[18px]" />
                 <span className="text-[15px] font-bold">Categories</span>
                 <ChevronDown className="h-3.5 w-3.5 text-epf-500" />
@@ -429,11 +429,11 @@ export default function Header() {
 
               {megaOpen && (
                 <div
-                  className="absolute top-[44px] left-0 w-[750px] bg-white border border-dark-200 z-[60] flex rounded-b"
+                  className="absolute top-[44px] left-0 w-[750px] bg-white border border-slate-200 z-[60] flex rounded-b"
                   onMouseEnter={() => { clearTimeout(megaTimeout.current!); setMegaOpen(true); }}
                   onMouseLeave={() => { megaTimeout.current = setTimeout(() => setMegaOpen(false), 200); }}
                 >
-                  <div className="w-[260px] border-r border-dark-200 py-1 bg-dark-50">
+                  <div className="w-[260px] border-r border-slate-200 py-1 bg-slate-50">
                     {megaCategories.map((cat, i) => {
                       const Icon = iconMap[cat.slug] || EPFTag;
                       return (
@@ -444,39 +444,39 @@ export default function Header() {
                           className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] transition-all border-l-[3px] ${
                             i === 0
                               ? "bg-white text-epf-500 font-semibold border-epf-500"
-                              : "text-dark-700 hover:bg-white hover:text-dark-900 border-transparent"
+                              : "text-slate-700 hover:bg-white hover:text-slate-900 border-transparent"
                           }`}
                         >
-                          <span className={i === 0 ? "text-epf-500" : "text-dark-500"}>
+                          <span className={i === 0 ? "text-epf-500" : "text-slate-500"}>
                             <Icon className="h-4 w-4" />
                           </span>
                           <span className="flex-1 truncate">{cat.name}</span>
-                          <span className="text-[13px] text-dark-500 bg-dark-200 px-1.5 py-0.5 rounded">{getCategoryCount(cat)}</span>
+                          <span className="text-[13px] text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">{getCategoryCount(cat)}</span>
                         </a>
                       );
                     })}
                   </div>
                   <div className="flex-1 p-5">
-                    <p className="text-[13px] font-bold uppercase tracking-wider text-dark-500 mb-3">Sub-Categories</p>
+                    <p className="text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-3">Sub-Categories</p>
                     <div className="grid grid-cols-2 gap-x-6 mb-5">
                       {subcategories.map((sub) => (
                         <a
                           key={sub}
                           href="/shop"
                           onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = "/shop"; }}
-                          className="flex items-center gap-2 py-1.5 text-[14px] text-dark-700 hover:text-epf-500 transition-colors group"
+                          className="flex items-center gap-2 py-1.5 text-[14px] text-slate-700 hover:text-epf-500 transition-colors group"
                         >
-                          <span className="h-1 w-1 rounded-full bg-dark-400 group-hover:bg-epf-500 transition-colors shrink-0" />
+                          <span className="h-1 w-1 rounded-full bg-slate-400 group-hover:bg-epf-500 transition-colors shrink-0" />
                           <span>{sub}</span>
                         </a>
                       ))}
                     </div>
-                    <div className="border-t border-dark-200 pt-4">
+                    <div className="border-t border-slate-200 pt-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[13px] font-bold uppercase tracking-wider text-dark-500 mb-1">Featured Product</p>
-                          <p className="text-[15px] font-semibold text-dark-900">3-core 4mm² PVC Cable</p>
-                          <p className="text-[16px] font-semibold text-dark-900 mt-0.5">৳1,850</p>
+                          <p className="text-[13px] font-bold uppercase tracking-wider text-slate-500 mb-1">Featured Product</p>
+                          <p className="text-[15px] font-semibold text-slate-900">3-core 4mm² PVC Cable</p>
+                          <p className="text-[16px] font-semibold text-slate-900 mt-0.5">৳1,850</p>
                         </div>
                         <a
                           href="/shop"
@@ -509,7 +509,7 @@ export default function Header() {
                     }
                   }}
                   className={`px-3 py-2 text-[15px] font-semibold transition-colors relative group flex items-center gap-1 ${
-                    isActive ? "font-bold text-epf-500" : "text-dark-50 hover:text-epf-500"
+                    isActive ? "font-bold text-epf-500" : "text-slate-50 hover:text-epf-500"
                   }`}
                 >
                   <span>{link.label}</span>
@@ -548,7 +548,7 @@ export default function Header() {
 
         {/* Mobile search bar */}
         {searchOpen && (
-          <div className="lg:hidden border-t border-dark-200 bg-white px-4 py-3">
+          <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3">
             <div className="flex h-[42px]">
               <input
                 type="text"
@@ -556,7 +556,7 @@ export default function Header() {
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="flex-1 px-4 text-[14px] bg-dark-50 border border-dark-200 focus:outline-none rounded-l-[4px]"
+                className="flex-1 px-4 text-[14px] bg-slate-50 border border-slate-200 focus:outline-none rounded-l-[4px]"
               />
               <button
                 onClick={handleSearch}
@@ -573,7 +573,7 @@ export default function Header() {
       {mobileOpen && (
         <>
           <div className="fixed inset-y-0 right-0 w-80 bg-white z-[70] shadow-xl overflow-y-auto pb-20" style={{ animation: 'slideInRight 0.25s ease-out' }}>
-            <div className="bg-dark-900 p-5">
+            <div className="bg-slate-900 p-5">
               <div className="flex items-center justify-between">
                 <Link href="/" onClick={() => setMobileOpen(false)}>
                   <span className="text-[18px] font-bold text-white leading-none">
@@ -585,7 +585,7 @@ export default function Header() {
                 </button>
               </div>
             </div>
-            <nav className="border-b border-dark-200">
+            <nav className="border-b border-slate-200">
               {navLinks.map((link) => {
                 const isActive = link.href === "/"
                   ? pathname === "/"
@@ -603,20 +603,20 @@ export default function Header() {
                       setMobileOpen(false);
                     }
                   }}
-                  className={`flex items-center justify-between w-full px-5 py-3.5 text-[15px] font-medium border-b border-dark-200 ${
-                    isActive ? "bg-epf-50 text-dark-900 font-semibold" : "text-dark-700 hover:bg-dark-50"
+                  className={`flex items-center justify-between w-full px-5 py-3.5 text-[15px] font-medium border-b border-slate-200 ${
+                    isActive ? "bg-epf-50 text-slate-900 font-semibold" : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   <span className={`flex items-center gap-2 ${isActive ? "text-epf-500" : ""}`}>
                     {link.label}
                   </span>
-                  <I.ChevronRight className="h-4 w-4 text-dark-400" />
+                  <I.ChevronRight className="h-4 w-4 text-slate-400" />
                 </a>
                 );
               })}
             </nav>
             <div>
-              <p className="px-5 py-3 text-[13px] font-bold uppercase tracking-wider text-dark-500 bg-dark-50">Categories</p>
+              <p className="px-5 py-3 text-[13px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50">Categories</p>
               {megaCategories.map((cat) => (
                 <a
                   key={cat.slug}
@@ -626,15 +626,15 @@ export default function Header() {
                     setMobileOpen(false);
                     window.location.href = "/shop";
                   }}
-                  className="flex items-center gap-3 w-full px-5 py-3 text-[14px] text-dark-700 hover:bg-dark-50 border-b border-dark-200"
+                  className="flex items-center gap-3 w-full px-5 py-3 text-[14px] text-slate-700 hover:bg-slate-50 border-b border-slate-200"
                 >
                   <span className="text-epf-500"><EPFTag className="h-4 w-4" /></span>
                   <span className="flex-1 text-left">{cat.name}</span>
-                  <I.ChevronRight className="h-3.5 w-3.5 text-dark-400" />
+                  <I.ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                 </a>
               ))}
             </div>
-            <div className="p-4 border-t border-dark-200 flex gap-2">
+            <div className="p-4 border-t border-slate-200 flex gap-2">
               <button onClick={() => window.location.href = '/login'} className="flex-1 h-10 bg-epf-500 text-white text-[14px] font-bold rounded-[4px] hover:bg-epf-600">Login / Register</button>
             </div>
           </div>

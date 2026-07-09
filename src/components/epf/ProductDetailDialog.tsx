@@ -138,22 +138,22 @@ export default function ProductDetailDialog() {
       <Dialog key={selectedProductId || "closed"} open={productDetailOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
         <DialogContent className="dialog-content-anim sm:max-w-[900px] max-w-[100vw] sm:max-h-[92vh] overflow-y-auto p-0 rounded-none sm:rounded-lg">
           {/* Breadcrumb */}
-          <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 text-[12px] text-dark-400 flex items-center gap-1 border-b border-dark-200/60">
-            <a href="/" className="hover:text-dark-700 transition-colors">Home</a>
+          <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 text-[12px] text-slate-400 flex items-center gap-1 border-b border-slate-200/60">
+            <a href="/" className="hover:text-slate-700 transition-colors">Home</a>
             <ChevronRight className="w-3 h-3 shrink-0" />
-            <a href="/shop" className="hover:text-dark-700 transition-colors">Shop</a>
+            <a href="/shop" className="hover:text-slate-700 transition-colors">Shop</a>
             <ChevronRight className="w-3 h-3 shrink-0" />
-            <span className="text-dark-700 truncate max-w-[160px] sm:max-w-[200px]">{product?.name || "Product"}</span>
+            <span className="text-slate-700 truncate max-w-[160px] sm:max-w-[200px]">{product?.name || "Product"}</span>
           </div>
 
           {isLoading && (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="size-8 animate-spin text-dark-400" />
+              <Loader2 className="size-8 animate-spin text-slate-400" />
             </div>
           )}
 
           {!isLoading && !product && (
-            <div className="flex items-center justify-center py-20 text-dark-500">
+            <div className="flex items-center justify-center py-20 text-slate-500">
               Product not found
             </div>
           )}
@@ -168,7 +168,7 @@ export default function ProductDetailDialog() {
                   {/* Main Image with Zoom */}
                   <div
                     ref={imageRef}
-                    className="aspect-square bg-dark-50 rounded-md border border-dark-200/60 flex items-center justify-center relative overflow-hidden cursor-zoom-in"
+                    className="aspect-square bg-slate-50 rounded-md border border-slate-200/60 flex items-center justify-center relative overflow-hidden cursor-zoom-in"
                     onMouseEnter={() => setIsZoomed(true)}
                     onMouseLeave={() => setIsZoomed(false)}
                     onMouseMove={handleImageMouseMove}
@@ -184,7 +184,7 @@ export default function ProductDetailDialog() {
                         }}
                       />
                     ) : (
-                      <div className="text-dark-300 text-[13px]">No Image</div>
+                      <div className="text-slate-300 text-[13px]">No Image</div>
                     )}
                     {hasDiscount && (
                       <span className="absolute top-2.5 left-2.5 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-sm z-10">
@@ -206,8 +206,8 @@ export default function ProductDetailDialog() {
                         <button
                           key={i}
                           onClick={() => setActiveImage(i)}
-                          className={`w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] shrink-0 rounded border-2 overflow-hidden bg-dark-50 transition-all duration-150 ${
-                            i === activeImage ? 'border-epf-500 scale-105' : 'border-dark-200/60 hover:border-dark-400 opacity-60 hover:opacity-90'
+                          className={`w-[52px] h-[52px] sm:w-[56px] sm:h-[56px] shrink-0 rounded border-2 overflow-hidden bg-slate-50 transition-all duration-150 ${
+                            i === activeImage ? 'border-epf-500 scale-105' : 'border-slate-200/60 hover:border-slate-400 opacity-60 hover:opacity-90'
                           }`}
                         >
                           <img src={img} alt="" className="w-full h-full object-contain p-1" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -220,7 +220,7 @@ export default function ProductDetailDialog() {
                 {/* RIGHT: Product Info */}
                 <div className="flex flex-col">
                   {/* Title */}
-                  <h1 className="text-[17px] sm:text-[20px] font-bold text-dark-900 leading-snug">
+                  <h1 className="text-[17px] sm:text-[20px] font-bold text-slate-900 leading-snug">
                     {product.nameBn || product.name}
                   </h1>
 
@@ -231,23 +231,23 @@ export default function ProductDetailDialog() {
                         <EPFStar
                           key={star}
                           size={14}
-                          className={star <= Math.round(product.rating) ? "text-amber-400" : "text-dark-200"}
+                          className={star <= Math.round(product.rating) ? "text-amber-400" : "text-slate-200"}
                         />
                       ))}
                     </div>
-                    <span className="text-[13px] text-dark-400">({product.reviewCount})</span>
+                    <span className="text-[13px] text-slate-400">({product.reviewCount})</span>
                     {product.sold > 0 && (
-                      <span className="text-[12px] text-dark-400 ml-1">{product.sold} sold</span>
+                      <span className="text-[12px] text-slate-400 ml-1">{product.sold} sold</span>
                     )}
                   </div>
 
                   {/* Price */}
-                  <div className="flex items-baseline gap-2.5 mt-3 pb-3 border-b border-dark-200/60">
+                  <div className="flex items-baseline gap-2.5 mt-3 pb-3 border-b border-slate-200/60">
                     <span className="text-[22px] sm:text-[24px] font-bold text-epf-500">
                       ৳{product.price.toLocaleString()}
                     </span>
                     {hasDiscount && (
-                      <span className="text-[14px] sm:text-[15px] text-dark-400 line-through">
+                      <span className="text-[14px] sm:text-[15px] text-slate-400 line-through">
                         ৳{product.comparePrice!.toLocaleString()}
                       </span>
                     )}
@@ -255,11 +255,11 @@ export default function ProductDetailDialog() {
 
                   {/* Quantity */}
                   <div className="flex items-center gap-3 mt-4">
-                    <span className="text-[13px] text-dark-700 font-medium">পরিমাণ</span>
+                    <span className="text-[13px] text-slate-700 font-medium">পরিমাণ</span>
                     <div className="flex items-center gap-0">
                       <button
                         onClick={() => setQty(Math.max(1, qty - 1))}
-                        className="w-8 h-8 rounded-l-md border border-dark-300 flex items-center justify-center hover:bg-dark-100 active:bg-dark-200 transition-colors"
+                        className="w-8 h-8 rounded-l-md border border-slate-300 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 transition-colors"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
@@ -267,16 +267,16 @@ export default function ProductDetailDialog() {
                         type="text"
                         readOnly
                         value={qty}
-                        className="w-10 h-8 text-center text-[14px] font-medium border-t border-b border-dark-300 outline-none bg-white"
+                        className="w-10 h-8 text-center text-[14px] font-medium border-t border-b border-slate-300 outline-none bg-white"
                       />
                       <button
                         onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                        className="w-8 h-8 rounded-r-md border border-dark-300 flex items-center justify-center hover:bg-dark-100 active:bg-dark-200 transition-colors"
+                        className="w-8 h-8 rounded-r-md border border-slate-300 flex items-center justify-center hover:bg-slate-100 active:bg-slate-200 transition-colors"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                    <span className="text-[12px] text-dark-400">
+                    <span className="text-[12px] text-slate-400">
                       ({product.stock} in stock)
                     </span>
                   </div>
@@ -300,17 +300,17 @@ export default function ProductDetailDialog() {
 
                   {/* Quick Info */}
                   <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-                    <div className="flex flex-col items-center text-center p-2.5 sm:p-3 bg-dark-50 rounded-md">
+                    <div className="flex flex-col items-center text-center p-2.5 sm:p-3 bg-slate-50 rounded-md">
                       <Truck className="w-4 h-4 text-epf-500 mb-1" />
-                      <span className="text-[10px] sm:text-[11px] text-dark-500">ফ্রি ডেলিভারি</span>
+                      <span className="text-[10px] sm:text-[11px] text-slate-500">ফ্রি ডেলিভারি</span>
                     </div>
-                    <div className="flex flex-col items-center text-center p-2.5 sm:p-3 bg-dark-50 rounded-md">
+                    <div className="flex flex-col items-center text-center p-2.5 sm:p-3 bg-slate-50 rounded-md">
                       <Banknote className="w-4 h-4 text-epf-500 mb-1" />
-                      <span className="text-[10px] sm:text-[11px] text-dark-500">ক্যাশ অন ডেলিভারি</span>
+                      <span className="text-[10px] sm:text-[11px] text-slate-500">ক্যাশ অন ডেলিভারি</span>
                     </div>
-                    <div className="flex flex-col items-center text-center p-2.5 sm:p-3 bg-dark-50 rounded-md">
+                    <div className="flex flex-col items-center text-center p-2.5 sm:p-3 bg-slate-50 rounded-md">
                       <RotateCcw className="w-4 h-4 text-epf-500 mb-1" />
-                      <span className="text-[10px] sm:text-[11px] text-dark-500">৭ দিন রিটার্ন</span>
+                      <span className="text-[10px] sm:text-[11px] text-slate-500">৭ দিন রিটার্ন</span>
                     </div>
                   </div>
                 </div>
@@ -320,14 +320,14 @@ export default function ProductDetailDialog() {
               {(product.description || Object.keys(specs).length > 0) && (
                 <div className="mt-6 sm:mt-8">
                   {/* Tab Headers */}
-                  <div className="flex gap-0 border-b border-dark-200">
+                  <div className="flex gap-0 border-b border-slate-200">
                     {product.description && (
                       <button
                         onClick={() => setActiveTab("description")}
                         className={`px-4 sm:px-5 py-2.5 sm:py-3 text-[13px] sm:text-[14px] font-medium transition-colors relative ${
                           activeTab === "description"
-                            ? "text-dark-900"
-                            : "text-dark-400 hover:text-dark-600"
+                            ? "text-slate-900"
+                            : "text-slate-400 hover:text-slate-600"
                         }`}
                       >
                         বিবরণ
@@ -341,8 +341,8 @@ export default function ProductDetailDialog() {
                         onClick={() => setActiveTab("specs")}
                         className={`px-4 sm:px-5 py-2.5 sm:py-3 text-[13px] sm:text-[14px] font-medium transition-colors relative ${
                           activeTab === "specs"
-                            ? "text-dark-900"
-                            : "text-dark-400 hover:text-dark-600"
+                            ? "text-slate-900"
+                            : "text-slate-400 hover:text-slate-600"
                         }`}
                       >
                         স্পেসিফিকেশন
@@ -354,18 +354,18 @@ export default function ProductDetailDialog() {
                   </div>
 
                   {/* Tab Content */}
-                  <div className="py-4 sm:py-5 text-[13px] sm:text-[14px] text-dark-700 leading-relaxed tab-content-anim" key={activeTab}>
+                  <div className="py-4 sm:py-5 text-[13px] sm:text-[14px] text-slate-700 leading-relaxed tab-content-anim" key={activeTab}>
                     {activeTab === "description" && (
                       <div className="whitespace-pre-line">{product.descriptionBn || product.description}</div>
                     )}
                     {activeTab === "specs" && (
-                      <div className="rounded-md border border-dark-200/60 overflow-hidden">
+                      <div className="rounded-md border border-slate-200/60 overflow-hidden">
                         <table className="w-full text-[12px] sm:text-[13px]">
                           <tbody>
                             {Object.entries(specs).map(([key, val], i) => (
-                              <tr key={key} className={i % 2 === 0 ? "bg-white" : "bg-dark-50/50"}>
-                                <td className="px-3 sm:px-4 py-2 sm:py-2.5 font-medium text-dark-600 w-2/5 border-b border-dark-200/40">{key}</td>
-                                <td className="px-3 sm:px-4 py-2 sm:py-2.5 text-dark-700 border-b border-dark-200/40">{val}</td>
+                              <tr key={key} className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                                <td className="px-3 sm:px-4 py-2 sm:py-2.5 font-medium text-slate-600 w-2/5 border-b border-slate-200/40">{key}</td>
+                                <td className="px-3 sm:px-4 py-2 sm:py-2.5 text-slate-700 border-b border-slate-200/40">{val}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -380,11 +380,11 @@ export default function ProductDetailDialog() {
 
           {/* ── Mobile Sticky Bottom Bar ── */}
           {!isLoading && product && (
-            <div className="md:hidden sticky bottom-0 bg-white border-t border-dark-200 p-3 flex gap-2.5 z-10">
+            <div className="md:hidden sticky bottom-0 bg-white border-t border-slate-200 p-3 flex gap-2.5 z-10">
               <div className="flex flex-col justify-center min-w-0">
                 <span className="text-[18px] font-bold text-epf-500">৳{product.price.toLocaleString()}</span>
                 {hasDiscount && (
-                  <span className="text-[12px] text-dark-400 line-through">৳{product.comparePrice!.toLocaleString()}</span>
+                  <span className="text-[12px] text-slate-400 line-through">৳{product.comparePrice!.toLocaleString()}</span>
                 )}
               </div>
               <button

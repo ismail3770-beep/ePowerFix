@@ -110,18 +110,18 @@ const RATING_OPTIONS = [5, 4, 3, 2, 1];
 /* ------------------------------------------------------------------ */
 function ProductCardSkeleton() {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-sm animate-pulse overflow-hidden">
-      <div className="aspect-square bg-[#F1F5F9]" />
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm animate-pulse overflow-hidden">
+      <div className="aspect-square bg-slate-100" />
       <div className="p-3.5 space-y-2.5">
-        <div className="h-3 bg-[#F1F5F9] rounded w-16" />
-        <div className="h-4 bg-[#F1F5F9] rounded w-full" />
-        <div className="h-4 bg-[#F1F5F9] rounded w-3/4" />
+        <div className="h-3 bg-slate-100 rounded w-16" />
+        <div className="h-4 bg-slate-100 rounded w-full" />
+        <div className="h-4 bg-slate-100 rounded w-3/4" />
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-3.5 w-3.5 bg-[#F1F5F9] rounded-sm" />
+            <div key={i} className="h-3.5 w-3.5 bg-slate-100 rounded-sm" />
           ))}
         </div>
-        <div className="h-5 bg-[#F1F5F9] rounded w-20" />
+        <div className="h-5 bg-slate-100 rounded w-20" />
       </div>
     </div>
   );
@@ -129,19 +129,19 @@ function ProductCardSkeleton() {
 
 function ProductListCardSkeleton() {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-sm animate-pulse overflow-hidden flex gap-4 p-4">
-      <div className="w-36 h-36 sm:w-44 sm:h-44 shrink-0 bg-[#F1F5F9] rounded-lg" />
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm animate-pulse overflow-hidden flex gap-4 p-4">
+      <div className="w-36 h-36 sm:w-44 sm:h-44 shrink-0 bg-slate-100 rounded-lg" />
       <div className="flex-1 space-y-3 py-1">
-        <div className="h-3 bg-[#F1F5F9] rounded w-16" />
-        <div className="h-5 bg-[#F1F5F9] rounded w-full max-w-sm" />
-        <div className="h-5 bg-[#F1F5F9] rounded w-2/3" />
+        <div className="h-3 bg-slate-100 rounded w-16" />
+        <div className="h-5 bg-slate-100 rounded w-full max-w-sm" />
+        <div className="h-5 bg-slate-100 rounded w-2/3" />
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-3.5 w-3.5 bg-[#F1F5F9] rounded-sm" />
+            <div key={i} className="h-3.5 w-3.5 bg-slate-100 rounded-sm" />
           ))}
         </div>
-        <div className="h-6 bg-[#F1F5F9] rounded w-24" />
-        <div className="h-9 bg-[#F1F5F9] rounded-lg w-32" />
+        <div className="h-6 bg-slate-100 rounded w-24" />
+        <div className="h-9 bg-slate-100 rounded-lg w-32" />
       </div>
     </div>
   );
@@ -149,34 +149,34 @@ function ProductListCardSkeleton() {
 
 function SidebarSkeleton() {
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg p-5 space-y-6 animate-pulse">
+    <div className="bg-white border border-slate-200 rounded-lg p-5 space-y-6 animate-pulse">
       {/* Categories */}
       <div>
-        <div className="h-5 bg-[#F1F5F9] rounded w-28 mb-4" />
+        <div className="h-5 bg-slate-100 rounded w-28 mb-4" />
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3">
-              <div className="h-4 w-4 bg-[#F1F5F9] rounded" />
-              <div className="h-3.5 bg-[#F1F5F9] rounded w-28 flex-1" />
+              <div className="h-4 w-4 bg-slate-100 rounded" />
+              <div className="h-3.5 bg-slate-100 rounded w-28 flex-1" />
             </div>
           ))}
         </div>
       </div>
       {/* Price Range */}
       <div>
-        <div className="h-5 bg-[#F1F5F9] rounded w-24 mb-4" />
+        <div className="h-5 bg-slate-100 rounded w-24 mb-4" />
         <div className="grid grid-cols-2 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-9 bg-[#F1F5F9] rounded-lg" />
+            <div key={i} className="h-9 bg-slate-100 rounded-lg" />
           ))}
         </div>
       </div>
       {/* Rating */}
       <div>
-        <div className="h-5 bg-[#F1F5F9] rounded w-16 mb-4" />
+        <div className="h-5 bg-slate-100 rounded w-16 mb-4" />
         <div className="space-y-2.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-7 bg-[#F1F5F9] rounded w-full" />
+            <div key={i} className="h-7 bg-slate-100 rounded w-full" />
           ))}
         </div>
       </div>
@@ -195,7 +195,7 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          className={`${cls} ${i < fullStars ? "fill-amber-400 text-amber-400" : "text-[#D1D5DB]"}`}
+          className={`${cls} ${i < fullStars ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
         />
       ))}
     </div>
@@ -218,9 +218,9 @@ function ProductCardGrid({ product }: { product: Product }) {
   const reviewCount = product.review_count ?? product.reviews ?? 0;
 
   return (
-    <div className="group bg-white border border-[#E2E8F0] rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+    <div className="group bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
       {/* Image */}
-      <div className="relative overflow-hidden aspect-square bg-[#F8FAFC]">
+      <div className="relative overflow-hidden aspect-square bg-slate-50">
         <a href={`/product/${product.id}`} className="block w-full h-full">
           {product.image ? (
             <img
@@ -230,11 +230,11 @@ function ProductCardGrid({ product }: { product: Product }) {
             />
           ) : isDigital ? (
             <div className="w-full h-full flex items-center justify-center">
-              <FileText className="h-12 w-12 text-[#CBD5E1]" />
+              <FileText className="h-12 w-12 text-slate-300" />
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-12 w-12 text-[#CBD5E1]" />
+              <Package className="h-12 w-12 text-slate-300" />
             </div>
           )}
         </a>
@@ -251,7 +251,7 @@ function ProductCardGrid({ product }: { product: Product }) {
           onClick={(e) => {
             e.stopPropagation();
           }}
-          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-[#9CA3AF] hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm"
+          className="absolute top-2.5 right-2.5 h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm"
           title="Wishlist"
         >
           <Heart className="h-4 w-4" />
@@ -271,7 +271,7 @@ function ProductCardGrid({ product }: { product: Product }) {
                   quantity: 1,
                 });
               }}
-              className="flex items-center gap-1.5 h-8 px-3.5 bg-white text-[#111827] text-[12px] font-semibold rounded-lg hover:bg-[#F8FAFC] transition-colors shadow-sm"
+              className="flex items-center gap-1.5 h-8 px-3.5 bg-white text-slate-900 text-[12px] font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
               title="Add to Cart"
             >
               <EPFCart size={14} strokeWidth={2} />
@@ -296,25 +296,25 @@ function ProductCardGrid({ product }: { product: Product }) {
       {/* Info */}
       <div className="p-3.5">
         {product.category && (
-          <p className="text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] mb-1">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 mb-1">
             {product.category.name}
           </p>
         )}
         <a href={`/product/${product.id}`} className="block">
-          <h3 className="text-[14px] font-medium text-[#111827] line-clamp-2 leading-snug mb-1.5 group-hover:text-epf-500 transition-colors">
+          <h3 className="text-[14px] font-medium text-slate-900 line-clamp-2 leading-snug mb-1.5 group-hover:text-epf-500 transition-colors">
             {product.name}
           </h3>
         </a>
         <div className="flex items-center gap-1.5 mb-2">
           <StarRating rating={product.rating} />
-          <span className="text-[12px] text-[#9CA3AF]">({reviewCount})</span>
+          <span className="text-[12px] text-slate-400">({reviewCount})</span>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-[16px] font-bold text-[#111827]">
+          <span className="text-[16px] font-bold text-slate-900">
             ৳{(product.price ?? 0).toLocaleString()}
           </span>
           {product.comparePrice && (
-            <span className="text-[13px] text-[#9CA3AF] line-through">
+            <span className="text-[13px] text-slate-400 line-through">
               ৳{(product.comparePrice ?? 0).toLocaleString()}
             </span>
           )}
@@ -345,10 +345,10 @@ function ProductCardList({ product }: { product: Product }) {
   const reviewCount = product.review_count ?? product.reviews ?? 0;
 
   return (
-    <div className="group bg-white border border-[#E2E8F0] rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    <div className="group bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
       <div className="flex flex-col sm:flex-row">
         {/* Image */}
-        <div className="relative overflow-hidden sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0 aspect-square sm:aspect-auto bg-[#F8FAFC]">
+        <div className="relative overflow-hidden sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0 aspect-square sm:aspect-auto bg-slate-50">
           <a href={`/product/${product.id}`} className="block w-full h-full">
             {product.image ? (
               <img
@@ -358,11 +358,11 @@ function ProductCardList({ product }: { product: Product }) {
               />
             ) : isDigital ? (
               <div className="w-full h-full flex items-center justify-center">
-                <FileText className="h-12 w-12 text-[#CBD5E1]" />
+                <FileText className="h-12 w-12 text-slate-300" />
               </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-12 w-12 text-[#CBD5E1]" />
+                <Package className="h-12 w-12 text-slate-300" />
               </div>
             )}
           </a>
@@ -377,18 +377,18 @@ function ProductCardList({ product }: { product: Product }) {
         <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
             {product.category && (
-              <p className="text-[11px] font-medium uppercase tracking-wider text-[#9CA3AF] mb-1">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 mb-1">
                 {product.category.name}
               </p>
             )}
             <a href={`/product/${product.id}`} className="block">
-              <h3 className="text-[16px] font-medium text-[#111827] line-clamp-2 leading-snug mb-2 group-hover:text-epf-500 transition-colors">
+              <h3 className="text-[16px] font-medium text-slate-900 line-clamp-2 leading-snug mb-2 group-hover:text-epf-500 transition-colors">
                 {product.name}
               </h3>
             </a>
             <div className="flex items-center gap-1.5 mb-2.5">
               <StarRating rating={product.rating} size="md" />
-              <span className="text-[13px] text-[#9CA3AF]">
+              <span className="text-[13px] text-slate-400">
                 ({reviewCount} reviews)
               </span>
             </div>
@@ -400,11 +400,11 @@ function ProductCardList({ product }: { product: Product }) {
           </div>
           <div className="flex items-center justify-between gap-4 mt-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-[18px] font-bold text-[#111827]">
+              <span className="text-[18px] font-bold text-slate-900">
                 ৳{(product.price ?? 0).toLocaleString()}
               </span>
               {product.comparePrice && (
-                <span className="text-[14px] text-[#9CA3AF] line-through">
+                <span className="text-[14px] text-slate-400 line-through">
                   ৳{(product.comparePrice ?? 0).toLocaleString()}
                 </span>
               )}
@@ -432,14 +432,14 @@ function ProductCardList({ product }: { product: Product }) {
                   setSelectedProductId(product.id);
                   setProductDetailOpen(true);
                 }}
-                className="flex items-center justify-center h-9 w-9 border border-[#E2E8F0] rounded-lg text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827] transition-colors"
+                className="flex items-center justify-center h-9 w-9 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
                 title="Quick View"
               >
                 <Eye className="h-4 w-4" />
               </button>
               <button
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center h-9 w-9 border border-[#E2E8F0] rounded-lg text-[#6B7280] hover:bg-[#F8FAFC] hover:text-red-500 transition-colors"
+                className="flex items-center justify-center h-9 w-9 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-red-500 transition-colors"
                 title="Wishlist"
               >
                 <Heart className="h-4 w-4" />
@@ -481,10 +481,10 @@ function FilterSidebar({
   const [ratingOpen, setRatingOpen] = useState(true);
 
   return (
-    <div className="bg-white border border-[#E2E8F0] rounded-lg overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
       {/* Clear All */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#E2E8F0] bg-[#F8FAFC]">
-        <h2 className="text-[15px] font-semibold text-[#111827]">Filters</h2>
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 bg-slate-50">
+        <h2 className="text-[15px] font-semibold text-slate-900">Filters</h2>
         {(selectedCategoryId || selectedPriceRange !== null || selectedRating !== null) && (
           <button
             onClick={onClearAll}
@@ -502,9 +502,9 @@ function FilterSidebar({
             onClick={() => setCatOpen(!catOpen)}
             className="flex items-center justify-between w-full mb-3"
           >
-            <h3 className="text-[14px] font-semibold text-[#111827]">Categories</h3>
+            <h3 className="text-[14px] font-semibold text-slate-900">Categories</h3>
             <ChevronDown
-              className={`h-4 w-4 text-[#6B7280] transition-transform duration-200 ${catOpen ? "rotate-180" : ""}`}
+              className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${catOpen ? "rotate-180" : ""}`}
             />
           </button>
           {catOpen && (
@@ -514,8 +514,8 @@ function FilterSidebar({
                 <div
                   className={`h-4 w-4 rounded-[3px] border-2 flex items-center justify-center shrink-0 transition-colors ${
                     selectedCategoryId === null
-                      ? "bg-[#111827] border-[#111827]"
-                      : "border-[#D1D5DB] group-hover:border-[#9CA3AF]"
+                      ? "bg-slate-900 border-slate-900"
+                      : "border-slate-300 group-hover:border-slate-400"
                   }`}
                   onClick={() => onSelectCategory(null)}
                 >
@@ -523,7 +523,7 @@ function FilterSidebar({
                 </div>
                 <span
                   className={`text-[13px] transition-colors ${
-                    selectedCategoryId === null ? "text-[#111827] font-medium" : "text-[#374151]"
+                    selectedCategoryId === null ? "text-slate-900 font-medium" : "text-slate-700"
                   }`}
                   onClick={() => onSelectCategory(null)}
                 >
@@ -533,8 +533,8 @@ function FilterSidebar({
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-2.5 py-1.5 animate-pulse">
-                      <div className="h-4 w-4 bg-[#F1F5F9] rounded-[3px]" />
-                      <div className="h-3.5 bg-[#F1F5F9] rounded w-24 flex-1" />
+                      <div className="h-4 w-4 bg-slate-100 rounded-[3px]" />
+                      <div className="h-3.5 bg-slate-100 rounded w-24 flex-1" />
                     </div>
                   ))
                 : categories.map((cat) => (
@@ -543,7 +543,7 @@ function FilterSidebar({
                         className={`h-4 w-4 rounded-[3px] border-2 flex items-center justify-center shrink-0 transition-colors ${
                           selectedCategoryId === cat.id
                             ? "bg-epf-500 border-epf-500"
-                            : "border-[#D1D5DB] group-hover:border-[#9CA3AF]"
+                            : "border-slate-300 group-hover:border-slate-400"
                         }`}
                         onClick={() => onSelectCategory(cat.id)}
                       >
@@ -553,7 +553,7 @@ function FilterSidebar({
                       </div>
                       <span
                         className={`text-[13px] flex-1 truncate transition-colors ${
-                          selectedCategoryId === cat.id ? "text-[#111827] font-medium" : "text-[#374151]"
+                          selectedCategoryId === cat.id ? "text-slate-900 font-medium" : "text-slate-700"
                         }`}
                         onClick={() => onSelectCategory(cat.id)}
                       >
@@ -571,9 +571,9 @@ function FilterSidebar({
             onClick={() => setPriceOpen(!priceOpen)}
             className="flex items-center justify-between w-full mb-3"
           >
-            <h3 className="text-[14px] font-semibold text-[#111827]">Price Range</h3>
+            <h3 className="text-[14px] font-semibold text-slate-900">Price Range</h3>
             <ChevronDown
-              className={`h-4 w-4 text-[#6B7280] transition-transform duration-200 ${priceOpen ? "rotate-180" : ""}`}
+              className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${priceOpen ? "rotate-180" : ""}`}
             />
           </button>
           {priceOpen && (
@@ -584,8 +584,8 @@ function FilterSidebar({
                   onClick={() => onSelectPriceRange(selectedPriceRange === idx ? null : idx)}
                   className={`text-[12px] font-medium h-9 px-3 rounded-lg border transition-all duration-200 text-center leading-tight ${
                     selectedPriceRange === idx
-                      ? "bg-[#111827] text-white border-[#111827]"
-                      : "border-[#E2E8F0] text-[#374151] hover:border-[#9CA3AF] hover:text-[#111827]"
+                      ? "bg-slate-900 text-white border-slate-900"
+                      : "border-slate-200 text-slate-700 hover:border-slate-400 hover:text-slate-900"
                   }`}
                 >
                   {range.label}
@@ -601,9 +601,9 @@ function FilterSidebar({
             onClick={() => setRatingOpen(!ratingOpen)}
             className="flex items-center justify-between w-full mb-3"
           >
-            <h3 className="text-[14px] font-semibold text-[#111827]">Rating</h3>
+            <h3 className="text-[14px] font-semibold text-slate-900">Rating</h3>
             <ChevronDown
-              className={`h-4 w-4 text-[#6B7280] transition-transform duration-200 ${ratingOpen ? "rotate-180" : ""}`}
+              className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${ratingOpen ? "rotate-180" : ""}`}
             />
           </button>
           {ratingOpen && (
@@ -614,8 +614,8 @@ function FilterSidebar({
                   onClick={() => onSelectRating(selectedRating === r ? null : r)}
                   className={`flex items-center gap-2 w-full px-2.5 py-1.5 rounded-lg text-left transition-colors ${
                     selectedRating === r
-                      ? "bg-[#111827]/5"
-                      : "hover:bg-[#F8FAFC]"
+                      ? "bg-slate-900/5"
+                      : "hover:bg-slate-50"
                   }`}
                 >
                   <div className="flex items-center gap-0.5">
@@ -623,12 +623,12 @@ function FilterSidebar({
                       <Star
                         key={i}
                         className={`h-3.5 w-3.5 ${
-                          i < r ? "fill-amber-400 text-amber-400" : "text-[#D1D5DB]"
+                          i < r ? "fill-amber-400 text-amber-400" : "text-slate-300"
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-[12px] text-[#6B7280]">& up</span>
+                  <span className="text-[12px] text-slate-500">& up</span>
                 </button>
               ))}
             </div>
@@ -679,13 +679,13 @@ function MobileFilterDrawer({
         onClick={onClose}
       />
       {/* Drawer */}
-      <div className="fixed top-0 left-0 bottom-0 w-[300px] max-w-[85vw] bg-[#F8FAFC] z-50 overflow-y-auto shadow-2xl lg:hidden transition-transform">
+      <div className="fixed top-0 left-0 bottom-0 w-[300px] max-w-[85vw] bg-slate-50 z-50 overflow-y-auto shadow-2xl lg:hidden transition-transform">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-5 h-14 bg-white border-b border-[#E2E8F0]">
-          <h2 className="text-[16px] font-semibold text-[#111827]">Filters</h2>
+        <div className="sticky top-0 z-10 flex items-center justify-between px-5 h-14 bg-white border-b border-slate-200">
+          <h2 className="text-[16px] font-semibold text-slate-900">Filters</h2>
           <button
             onClick={onClose}
-            className="h-8 w-8 flex items-center justify-center rounded-lg text-[#6B7280] hover:bg-[#F1F5F9] hover:text-[#111827] transition-colors"
+            className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -707,7 +707,7 @@ function MobileFilterDrawer({
         </div>
 
         {/* Apply button */}
-        <div className="fixed bottom-0 left-0 w-[300px] max-w-[85vw] p-4 bg-white border-t border-[#E2E8F0] z-10 lg:hidden">
+        <div className="fixed bottom-0 left-0 w-[300px] max-w-[85vw] p-4 bg-white border-t border-slate-200 z-10 lg:hidden">
           <button
             onClick={onApply}
             className="w-full h-11 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-semibold rounded-lg transition-colors"
@@ -756,7 +756,7 @@ function Pagination({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        className="h-9 w-9 flex items-center justify-center border border-[#E2E8F0] rounded-lg text-[#374151] hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="h-9 w-9 flex items-center justify-center border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         aria-label="Previous page"
       >
         <ChevronLeft className="h-4 w-4" />
@@ -765,7 +765,7 @@ function Pagination({
         p === "..." ? (
           <span
             key={`ellipsis-${i}`}
-            className="h-9 w-9 flex items-center justify-center text-[#6B7280] text-[14px]"
+            className="h-9 w-9 flex items-center justify-center text-slate-500 text-[14px]"
           >
             ...
           </span>
@@ -775,8 +775,8 @@ function Pagination({
             onClick={() => onPageChange(p)}
             className={`h-9 w-9 flex items-center justify-center rounded-lg text-[14px] font-medium transition-colors ${
               p === currentPage
-                ? "bg-[#111827] text-white"
-                : "border border-[#E2E8F0] text-[#374151] hover:bg-[#F8FAFC]"
+                ? "bg-slate-900 text-white"
+                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
             }`}
           >
             {p}
@@ -786,7 +786,7 @@ function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className="h-9 w-9 flex items-center justify-center border border-[#E2E8F0] rounded-lg text-[#374151] hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="h-9 w-9 flex items-center justify-center border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         aria-label="Next page"
       >
         <ChevronRight className="h-4 w-4" />
@@ -801,13 +801,13 @@ function Pagination({
 function EmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4">
-      <div className="h-20 w-20 rounded-full bg-[#F1F5F9] flex items-center justify-center mb-5">
-        <PackageSearch className="h-10 w-10 text-[#CBD5E1]" />
+      <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-5">
+        <PackageSearch className="h-10 w-10 text-slate-300" />
       </div>
-      <h3 className="text-[18px] font-semibold text-[#111827] mb-2">
+      <h3 className="text-[18px] font-semibold text-slate-900 mb-2">
         No products found
       </h3>
-      <p className="text-[14px] text-[#6B7280] mb-6 text-center max-w-md">
+      <p className="text-[14px] text-slate-500 mb-6 text-center max-w-md">
         We couldn&apos;t find any products matching your filters. Try adjusting
         your selection or search terms.
       </p>
@@ -959,48 +959,48 @@ export default function ShopPage() {
   const showingTo = Math.min(page * PRODUCTS_PER_PAGE, totalProducts);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
 
       <main className="flex-1">
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <nav className="flex items-center gap-1.5 h-11 text-[13px]">
               <a
                 href="/"
-                className="flex items-center gap-1 text-[#6B7280] hover:text-[#111827] transition-colors"
+                className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors"
               >
                 <Home className="h-3.5 w-3.5" />
                 <span>Home</span>
               </a>
-              <ChevronRight className="h-3 w-3 text-[#CBD5E1]" />
-              <span className="text-[#111827] font-medium">Shop</span>
+              <ChevronRight className="h-3 w-3 text-slate-300" />
+              <span className="text-slate-900 font-medium">Shop</span>
             </nav>
           </div>
         </div>
 
         {/* Top Toolbar */}
-        <div className="bg-white border-b border-[#E2E8F0]">
+        <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
             <div className="flex items-center justify-between h-12 gap-4">
               {/* Left: Results count */}
-              <div className="text-[13px] text-[#6B7280]">
+              <div className="text-[13px] text-slate-500">
                 {isLoading ? (
-                  <span className="inline-block w-40 h-4 bg-[#F1F5F9] rounded animate-pulse" />
+                  <span className="inline-block w-40 h-4 bg-slate-100 rounded animate-pulse" />
                 ) : processedProducts.length > 0 ? (
                   <>
                     Showing{" "}
-                    <span className="text-[#111827] font-medium">{showingFrom}</span>
+                    <span className="text-slate-900 font-medium">{showingFrom}</span>
                     {" – "}
-                    <span className="text-[#111827] font-medium">{showingTo}</span>
+                    <span className="text-slate-900 font-medium">{showingTo}</span>
                     {" of "}
-                    <span className="text-[#111827] font-medium">{totalProducts}</span>
+                    <span className="text-slate-900 font-medium">{totalProducts}</span>
                     {" products"}
                   </>
                 ) : (
                   <>
-                    Showing <span className="text-[#111827] font-medium">0</span> products
+                    Showing <span className="text-slate-900 font-medium">0</span> products
                   </>
                 )}
               </div>
@@ -1010,7 +1010,7 @@ export default function ShopPage() {
                 {/* Mobile filter button */}
                 <button
                   onClick={() => setMobileFilterOpen(true)}
-                  className="lg:hidden flex items-center gap-1.5 h-8.5 px-3 border border-[#E2E8F0] rounded-lg text-[13px] text-[#374151] hover:bg-[#F8FAFC] transition-colors"
+                  className="lg:hidden flex items-center gap-1.5 h-8.5 px-3 border border-slate-200 rounded-lg text-[13px] text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5" />
                   <span>Filter</span>
@@ -1021,7 +1021,7 @@ export default function ShopPage() {
                   <select
                     value={sort}
                     onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                    className="appearance-none h-8.5 pl-3 pr-8 border border-[#E2E8F0] rounded-lg bg-white text-[13px] text-[#374151] cursor-pointer hover:border-[#9CA3AF] focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                    className="appearance-none h-8.5 pl-3 pr-8 border border-slate-200 rounded-lg bg-white text-[13px] text-slate-700 cursor-pointer hover:border-slate-400 focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
                   >
                     {SORT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -1029,17 +1029,17 @@ export default function ShopPage() {
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280] pointer-events-none" />
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
                 </div>
 
                 {/* View toggle */}
-                <div className="hidden sm:flex items-center border border-[#E2E8F0] rounded-lg overflow-hidden">
+                <div className="hidden sm:flex items-center border border-slate-200 rounded-lg overflow-hidden">
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`h-8.5 w-9 flex items-center justify-center transition-colors ${
                       viewMode === "grid"
-                        ? "bg-[#111827] text-white"
-                        : "text-[#6B7280] hover:bg-[#F8FAFC]"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-500 hover:bg-slate-50"
                     }`}
                     title="Grid view"
                     aria-label="Grid view"
@@ -1050,8 +1050,8 @@ export default function ShopPage() {
                     onClick={() => setViewMode("list")}
                     className={`h-8.5 w-9 flex items-center justify-center transition-colors ${
                       viewMode === "list"
-                        ? "bg-[#111827] text-white"
-                        : "text-[#6B7280] hover:bg-[#F8FAFC]"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-500 hover:bg-slate-50"
                     }`}
                     title="List view"
                     aria-label="List view"
@@ -1066,49 +1066,49 @@ export default function ShopPage() {
 
         {/* Active Filter Tags */}
         {(selectedCategoryId || appliedSearch || selectedPriceRange !== null || selectedRating !== null) && (
-          <div className="bg-white border-b border-[#E2E8F0]">
+          <div className="bg-white border-b border-slate-200">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-2.5">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[12px] text-[#6B7280] font-medium">Active:</span>
+                <span className="text-[12px] text-slate-500 font-medium">Active:</span>
                 {activeCategoryName && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     {activeCategoryName}
                     <button
                       onClick={() => setSelectedCategoryId(null)}
-                      className="text-[#9CA3AF] hover:text-[#111827] transition-colors"
+                      className="text-slate-400 hover:text-slate-900 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {activePriceLabel && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     {activePriceLabel}
                     <button
                       onClick={() => setSelectedPriceRange(null)}
-                      className="text-[#9CA3AF] hover:text-[#111827] transition-colors"
+                      className="text-slate-400 hover:text-slate-900 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {selectedRating !== null && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     {selectedRating}★ & up
                     <button
                       onClick={() => setSelectedRating(null)}
-                      className="text-[#9CA3AF] hover:text-[#111827] transition-colors"
+                      className="text-slate-400 hover:text-slate-900 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
                 {appliedSearch && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-[#F1F5F9] border border-[#E2E8F0] rounded-full text-[12px] text-[#374151] font-medium">
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     &quot;{appliedSearch}&quot;
                     <button
                       onClick={() => setAppliedSearch("")}
-                      className="text-[#9CA3AF] hover:text-[#111827] transition-colors"
+                      className="text-slate-400 hover:text-slate-900 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -1156,7 +1156,7 @@ export default function ShopPage() {
                   <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                     <X className="h-8 w-8 text-red-400" />
                   </div>
-                  <p className="text-[14px] text-[#6B7280]">
+                  <p className="text-[14px] text-slate-500">
                     Failed to load products. Please try again later.
                   </p>
                 </div>
@@ -1175,7 +1175,7 @@ export default function ShopPage() {
                   </div>
                 )
               ) : processedProducts.length === 0 ? (
-                <div className="bg-white border border-[#E2E8F0] rounded-lg">
+                <div className="bg-white border border-slate-200 rounded-lg">
                   <EmptyState onClear={handleClearFilters} />
                 </div>
               ) : (

@@ -55,7 +55,7 @@ export default function WishlistButton({ productId, initialFav = false, classNam
     >
       <Bookmark
         className={`w-4 h-4 transition-colors ${
-          isFav ? "text-[#ff6b6b] fill-[#ff6b6b]" : "text-[#ccc]"
+          isFav ? "text-red-500 fill-red-500" : "text-slate-300"
         }`}
       />
     </button>
