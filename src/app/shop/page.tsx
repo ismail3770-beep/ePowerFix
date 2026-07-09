@@ -72,10 +72,13 @@ interface Product {
 }
 
 interface ProductsResponse {
-  success: boolean;
+  success?: boolean;
   data: {
     data: Product[];
-    pagination: { total: number; page: number; limit: number };
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
   };
   message?: string;
 }
@@ -870,8 +873,8 @@ export default function ShopPage() {
     staleTime: 5 * 60 * 1000,
   });
   const categories: Category[] = categoriesData?.data ?? [];
-  const totalProducts = data?.data?.pagination?.total ?? 0;
-  const totalPages = Math.ceil(totalProducts / PRODUCTS_PER_PAGE);
+  const totalProducts = data?.data?.total ?? 0;
+  const totalPages = data?.data?.totalPages ?? Math.ceil(totalProducts / PRODUCTS_PER_PAGE);
 
   /* ---- Derived data with client-side sort + filter ---- */
   const processedProducts = useMemo(() => {

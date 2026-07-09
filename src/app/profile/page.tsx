@@ -180,19 +180,19 @@ export default function ProfilePage() {
     if (user) setUser(user as Parameters<typeof setUser>[0]);
   }, [user, setUser]);
 
-  const { data: ordersEnvelope, isLoading: ordersLoading } = useQuery<{ success: boolean; data: { data: Order[]; pagination: any }; message?: string }>({
+  const { data: ordersEnvelope, isLoading: ordersLoading } = useQuery<{ data: Order[] }>({
     queryKey: ["my-orders"],
     queryFn: () => apiFetch("/api/orders?limit=5"),
     enabled: !!user,
   });
-  const orders = ordersEnvelope?.data?.data ?? [];
+  const orders = ordersEnvelope?.data ?? [];
 
-  const { data: returnsEnvelope, isLoading: returnsLoading } = useQuery<{ success: boolean; data: { data: ReturnRequest[]; pagination: any }; message?: string }>({
+  const { data: returnsEnvelope, isLoading: returnsLoading } = useQuery<{ data: ReturnRequest[] }>({
     queryKey: ["my-returns"],
     queryFn: () => apiFetch("/api/returns?limit=10"),
     enabled: !!user,
   });
-  const returns = returnsEnvelope?.data?.data ?? [];
+  const returns = returnsEnvelope?.data ?? [];
 
   const { data: downloadsEnvelope, isLoading: downloadsLoading } = useQuery<{ success: boolean; data: DownloadItem[] }>({
     queryKey: ["my-downloads"],

@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     const search = url.searchParams.get('search') || ''
     const category = url.searchParams.get('category') || undefined
 
-    const kits = await cache.getOrSet(cacheKeys.projectKits(), 300, async () => {
+    // Skip cache when any filter is present to avoid cache poisoning
+    const hasExtraFilters = !!(search || category)
+
+    const fetchKits = async () => {
       const where: any = { isActive: true }
       if (category) where.category = category
       if (search) {
@@ -36,7 +39,11 @@ export async function GET(request: NextRequest) {
           _count: { select: { items: true } },
         },
       })
-    })
+    }
+
+    const kits = hasExtraFilters
+      ? await fetchKits()
+      : await cache.getOrSet(cacheKeys.projectKits(), 300, fetchKits)
 
     const parsed = kits.map((k: any) => ({
       ...k,

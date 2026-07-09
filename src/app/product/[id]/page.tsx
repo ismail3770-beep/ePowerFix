@@ -93,7 +93,7 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [qty, setQty] = useState(1);
-  const [activeTab, setActiveTab] = useState<"description" | "reviews" | "queries">("description");
+  const [activeTab, setActiveTab] = useState<"description" | "reviews">("description");
   const [specs, setSpecs] = useState<Record<string, string>>({});
   const [viewers] = useState(() => Math.floor(Math.random() * 20) + 3);
 
@@ -463,7 +463,6 @@ export default function ProductDetailPage() {
             {[
               { key: "description" as const, label: "Description" },
               { key: "reviews" as const, label: `Reviews & Ratings (${product.reviewCount})` },
-              { key: "queries" as const, label: "Product Queries (0)" },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -600,19 +599,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Queries Tab */}
-            {activeTab === "queries" && (
-              <div className="bg-white rounded-lg border border-slate-200 p-6">
-                <p className="text-[14px] text-slate-500 mb-6">
-                  <span className="text-slate-900 underline cursor-pointer">Login or Register</span> to submit your questions to seller
-                </p>
-                <h4 className="text-[16px] font-bold text-slate-800 mb-4">Other Questions</h4>
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <Package className="size-10 text-slate-300 mb-3" />
-                  <p className="text-[15px] text-slate-500">No queries have been asked to the seller yet</p>
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       </div>

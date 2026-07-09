@@ -39,10 +39,15 @@ export async function GET(request: NextRequest) {
     const maxPrice = url.searchParams.get('maxPrice')
     const minRating = url.searchParams.get('minRating')
 
-    const { products, total } = await cache.getOrSet(
-      cacheKeys.products(page, limit, search),
-      120,
-      async () => {
+    // Skip cache when non-basic filters are present to avoid cache poisoning
+    const hasExtraFilters = !!(
+      categoryParam || brandId ||
+      featured || bestDeals ||
+      (sort && sort !== 'featured') ||
+      minPrice || maxPrice || minRating
+    )
+
+    const fetchProducts = async () => {
         // Server-side filters resolved inside the cache closure so a cache
         // miss still applies them correctly.
         const where: any = { isActive: true }
@@ -105,8 +110,11 @@ export async function GET(request: NextRequest) {
         } finally {
           span.finish()
         }
-      },
-    )
+    }
+
+    const { products, total } = hasExtraFilters
+      ? await fetchProducts()
+      : await cache.getOrSet(cacheKeys.products(page, limit, search), 120, fetchProducts)
 
     const parsed = products.map((p: any) => ({
       ...p,

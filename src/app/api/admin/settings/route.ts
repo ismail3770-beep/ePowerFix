@@ -173,7 +173,7 @@ export const GET = adminGetRoute(async () => {
   if (!settings) {
     settings = await db.siteSettings.create({ data: { id: SETTINGS_ID } })
   }
-  return jsonResponse({ data: mapSettings(settings) })
+  return jsonResponse({ data: settings })
 })
 
 // ─── PUT: Update settings ────────────────────────────────────────────────────
@@ -331,5 +331,5 @@ export const PUT = adminRoute(updateSettingsSchema, async (request, body, user) 
   const { cache } = await import('@/lib/cache')
   await cache.del('settings:default')
 
-  return jsonResponse({ data: mapSettings(settings) })
+  return jsonResponse({ data: settings })
 })

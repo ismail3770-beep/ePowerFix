@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
     const search = url.searchParams.get('search') || ''
     const featured = url.searchParams.get('featured') === 'true'
 
-    const services = await cache.getOrSet(cacheKeys.services(), 300, async () => {
+    // Skip cache when any filter is present to avoid cache poisoning
+    const hasExtraFilters = !!(categoryParam || search || featured)
+
+    const fetchServices = async () => {
       const where: any = { isActive: true }
       if (featured) where.isFeatured = true
       if (categoryParam) {
@@ -41,7 +44,11 @@ export async function GET(request: NextRequest) {
         orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
         include: { category: true },
       })
-    })
+    }
+
+    const services = hasExtraFilters
+      ? await fetchServices()
+      : await cache.getOrSet(cacheKeys.services(), 300, fetchServices)
 
     const parsed = services.map((s: any) => ({
       ...s,

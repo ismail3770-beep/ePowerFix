@@ -17,32 +17,35 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url)
     const tag = url.searchParams.get('tag') || undefined
 
-    const { posts, total } = await cache.getOrSet(
-      cacheKeys.blogPosts(limit),
-      300,
-      async () => {
-        const where: any = { isPublished: true }
-        if (search) {
-          where.OR = [
-            { title: { contains: search } },
-            { titleBn: { contains: search } },
-            { excerpt: { contains: search } },
-            { content: { contains: search } },
-          ]
-        }
+    // Skip cache when search, tag, or non-first page is present to avoid cache poisoning
+    const hasExtraFilters = !!(search || tag || page > 1)
 
-        const [posts, total] = await Promise.all([
-          db.blogPost.findMany({
-            where,
-            skip,
-            take: limit,
-            orderBy: { createdAt: 'desc' },
-          }),
-          db.blogPost.count({ where }),
-        ])
-        return { posts, total }
-      },
-    )
+    const fetchPosts = async () => {
+      const where: any = { isPublished: true }
+      if (search) {
+        where.OR = [
+          { title: { contains: search } },
+          { titleBn: { contains: search } },
+          { excerpt: { contains: search } },
+          { content: { contains: search } },
+        ]
+      }
+
+      const [posts, total] = await Promise.all([
+        db.blogPost.findMany({
+          where,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        db.blogPost.count({ where }),
+      ])
+      return { posts, total }
+    }
+
+    const { posts, total } = hasExtraFilters
+      ? await fetchPosts()
+      : await cache.getOrSet(cacheKeys.blogPosts(limit), 300, fetchPosts)
 
     const parsed = posts.map((p: any) => ({
       ...p,
