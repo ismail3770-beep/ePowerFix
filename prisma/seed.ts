@@ -43,9 +43,15 @@ async function seed() {
 
   // ------------------------------------------------------------------
   // 1. Admin user
+  //    Credentials are read from environment variables so that no real
+  //    password is ever committed to the repository. Set ADMIN_EMAIL and
+  //    ADMIN_PASSWORD in your .env file before running the seed.
   // ------------------------------------------------------------------
-  const adminEmail = "admin@epowerfix.com";
-  const adminPassword = "***REDACTED***";
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@epowerfix.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "change-me-on-first-login";
+  const adminName = process.env.ADMIN_NAME || "ePowerFix Admin";
+  const adminNameBn = process.env.ADMIN_NAME_BN || "ই-পাওয়ার ফিক্স অ্যাডমিন";
+  const adminPhone = process.env.ADMIN_PHONE || "+880000000000";
 
   const admin = await db.user.upsert({
     where: { email: adminEmail },
@@ -58,10 +64,10 @@ async function seed() {
       emailVerified: true,
     },
     create: {
-      name: "ePowerFix Admin",
-      nameBn: "ই-পাওয়ার ফিক্স অ্যাডমিন",
+      name: adminName,
+      nameBn: adminNameBn,
       email: adminEmail,
-      phone: "+880000000000",
+      phone: adminPhone,
       password: hashPassword(adminPassword),
       role: "ADMIN",
       isActive: true,

@@ -33,27 +33,29 @@ async function main() {
   console.log(`  ${"TOTAL MODELS".padEnd(20)} ${Object.keys(counts).length}`);
 
   // Admin login check.
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@epowerfix.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "change-me-on-first-login";
   const admin = await db.user.findUnique({
-    where: { email: "admin@epowerfix.com" },
+    where: { email: adminEmail },
   });
   if (!admin) {
     console.error("FAIL: admin user not found");
     process.exitCode = 1;
     return;
   }
-  const passwordOk = bcrypt.compareSync("admin123", admin.password);
+  const passwordOk = bcrypt.compareSync(adminPassword, admin.password);
   console.log("\n=== Admin login check ===");
   console.log(`  email:    ${admin.email}`);
   console.log(`  role:     ${admin.role}`);
   console.log(`  active:   ${admin.isActive}`);
-  console.log(`  password: admin123 -> ${passwordOk ? "VALID ✓" : "INVALID ✗"}`);
+  console.log(`  password: [from env] -> ${passwordOk ? "VALID ✓" : "INVALID ✗"}`);
 
-  // Customer check.
+  // Customer check (sample — only if a customer with this email exists).
   const cust = await db.user.findUnique({ where: { email: "rahim@example.com" } });
   if (cust) {
     const ok = bcrypt.compareSync("customer123", cust.password);
     console.log(`\n=== Sample customer check ===`);
-    console.log(`  ${cust.email} / customer123 -> ${ok ? "VALID ✓" : "INVALID ✗"}`);
+    console.log(`  ${cust.email} / [sample] -> ${ok ? "VALID ✓" : "INVALID ✗"}`);
   }
 
   // Order + items spot check.

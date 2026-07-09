@@ -2,10 +2,13 @@ import { db } from '../src/lib/db'
 import bcrypt from 'bcryptjs'
 
 async function main() {
-  const email = 'admin@epowerfix.com'
-  const password = 'admin123'
-  const name = 'ePowerFix Admin'
-  const phone = '01700000000'
+  // Credentials are read from environment variables so that no real
+  // password is ever committed to the repository. Set ADMIN_EMAIL and
+  // ADMIN_PASSWORD in your .env file before running this script.
+  const email = process.env.ADMIN_EMAIL || 'admin@epowerfix.com'
+  const password = process.env.ADMIN_PASSWORD || 'change-me-on-first-login'
+  const name = process.env.ADMIN_NAME || 'ePowerFix Admin'
+  const phone = process.env.ADMIN_PHONE || '01700000000'
 
   // Check if exists
   const existing = await db.user.findUnique({ where: { email } })
