@@ -61,7 +61,7 @@ function CardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="animate-pulse">
-        <div className="aspect-[4/4.6] bg-slate-100" />
+        <div className="aspect-[4/5.2] bg-slate-100" />
         <div className="p-2.5 space-y-2">
           <div className="h-3 bg-slate-100 rounded w-3/4" />
           <div className="h-4 bg-slate-100 rounded w-1/3 mt-1" />

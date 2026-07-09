@@ -109,8 +109,8 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         className
       )}
     >
-      {/* ─── Image Area (slightly taller than square, fills button space) ─── */}
-      <div className="relative aspect-[4/4.6] bg-slate-50 overflow-hidden flex items-center justify-center">
+      {/* ─── Image Area (taller proportion for better visual presence) ─── */}
+      <div className="relative aspect-[4/5.2] bg-slate-50 overflow-hidden flex items-center justify-center">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
@@ -209,7 +209,7 @@ export const PremiumCard = memo(PremiumCardBase);
 export function PremiumCardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="aspect-[4/4.6] bg-slate-100 animate-pulse" />
+      <div className="aspect-[4/5.2] bg-slate-100 animate-pulse" />
       <div className="p-2.5 space-y-2">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />

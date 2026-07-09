@@ -81,8 +81,8 @@ export default function ProjectsSection() {
                   href={`/projects/${proj.slug}`}
                   className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
-                  {/* Image — slightly taller to match product cards */}
-                  <div className="relative aspect-[4/4.6] bg-slate-50 overflow-hidden">
+                  {/* Image — taller proportion to match product cards */}
+                  <div className="relative aspect-[4/5.2] bg-slate-50 overflow-hidden">
                     {cover ? (
                       <img
                         src={cover}
