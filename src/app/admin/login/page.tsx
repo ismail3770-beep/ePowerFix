@@ -68,24 +68,21 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel — Branding */}
-      <div
-        className="hidden lg:flex flex-col justify-between w-[45%] p-10 relative overflow-hidden"
-        style={{ background: "#1a0d33" }}
-      >
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-10" style={{ background: "radial-gradient(circle, #7C3AED, transparent)" }} />
-        <div className="absolute bottom-[-100px] left-[-100px] w-[300px] h-[300px] rounded-full opacity-5" style={{ background: "radial-gradient(circle, #a78bfa, transparent)" }} />
+      {/* Left Panel — Branding (slate-900 with epf-500 accents, matches admin sidebar) */}
+      <div className="hidden lg:flex flex-col justify-between w-[45%] p-10 relative overflow-hidden bg-slate-900">
+        {/* Decorative glows */}
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full opacity-20 bg-[radial-gradient(circle,#0EA5E9,transparent)]" />
+        <div className="absolute bottom-[-100px] left-[-100px] w-[300px] h-[300px] rounded-full opacity-10 bg-[radial-gradient(circle,#38BDF8,transparent)]" />
 
         {/* Top: Logo */}
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#7C3AED" }}>
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-epf-500">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="text-white font-bold text-xl leading-tight">ePowerFix</h1>
-              <p className="text-[#a78bfa] text-[11px] font-medium tracking-wider uppercase">Admin Panel</p>
+              <p className="text-epf-400 text-[11px] font-medium tracking-wider uppercase">Admin Panel</p>
             </div>
           </div>
         </div>
@@ -94,73 +91,73 @@ export default function AdminLoginPage() {
         <div className="relative z-10 space-y-6">
           <h2 className="text-white text-3xl font-bold leading-tight">
             Manage Your Store<br />
-            <span style={{ color: "#a78bfa" }}>Like a Pro</span>
+            <span className="text-epf-400">Like a Pro</span>
           </h2>
-          <p className="text-[#c4b5fd]/80 text-[15px] leading-relaxed max-w-[360px]">
+          <p className="text-slate-300 text-[15px] leading-relaxed max-w-[360px]">
             Complete e-commerce & service booking management platform for electrical products in Bangladesh.
           </p>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 pt-4">
             <div className="text-center">
-              <div className="flex items-center justify-center h-10 w-10 rounded-lg mx-auto mb-2" style={{ background: "#2d1b5a" }}>
-                <Package className="h-5 w-5 text-[#a78bfa]" />
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg mx-auto mb-2 bg-white/5">
+                <Package className="h-5 w-5 text-epf-400" />
               </div>
               <p className="text-white text-lg font-bold">500+</p>
-              <p className="text-[#a78bfa]/60 text-[11px]">Products</p>
+              <p className="text-slate-400 text-[11px]">Products</p>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center h-10 w-10 rounded-lg mx-auto mb-2" style={{ background: "#2d1b5a" }}>
-                <ShoppingBag className="h-5 w-5 text-[#a78bfa]" />
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg mx-auto mb-2 bg-white/5">
+                <ShoppingBag className="h-5 w-5 text-epf-400" />
               </div>
               <p className="text-white text-lg font-bold">1K+</p>
-              <p className="text-[#a78bfa]/60 text-[11px]">Orders</p>
+              <p className="text-slate-400 text-[11px]">Orders</p>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center h-10 w-10 rounded-lg mx-auto mb-2" style={{ background: "#2d1b5a" }}>
-                <Users className="h-5 w-5 text-[#a78bfa]" />
+              <div className="flex items-center justify-center h-10 w-10 rounded-lg mx-auto mb-2 bg-white/5">
+                <Users className="h-5 w-5 text-epf-400" />
               </div>
               <p className="text-white text-lg font-bold">200+</p>
-              <p className="text-[#a78bfa]/60 text-[11px]">Customers</p>
+              <p className="text-slate-400 text-[11px]">Customers</p>
             </div>
           </div>
         </div>
 
         {/* Bottom: Copyright */}
         <div className="relative z-10">
-          <p className="text-[#a78bfa]/40 text-xs">
+          <p className="text-slate-500 text-xs">
             &copy; {new Date().getFullYear()} ePowerFix. All rights reserved.
           </p>
         </div>
       </div>
 
       {/* Right Panel — Login Form */}
-      <div className="flex-1 flex items-center justify-center bg-[#f8f9fa] p-6">
+      <div className="flex-1 flex items-center justify-center bg-slate-50 p-6">
         <div className="w-full max-w-[400px]">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2.5 mb-8">
-            <div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ background: "#7C3AED" }}>
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-epf-500">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-xl leading-tight text-[#1f2937]">ePowerFix</h1>
-              <p className="text-[#9ca3af] text-[11px] font-medium tracking-wider uppercase">Admin Panel</p>
+              <h1 className="font-bold text-xl leading-tight text-slate-900">ePowerFix</h1>
+              <p className="text-slate-400 text-[11px] font-medium tracking-wider uppercase">Admin Panel</p>
             </div>
           </div>
 
           {/* Login Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#e5e7eb] p-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
             <div className="text-center mb-8">
-              <h2 className="text-[#1f2937] text-lg font-bold uppercase tracking-wide">
+              <h2 className="text-slate-900 text-lg font-bold uppercase tracking-wide">
                 Welcome to ePowerFix
               </h2>
-              <p className="text-[#6b7280] text-sm mt-1">Login to your account.</p>
+              <p className="text-slate-500 text-sm mt-1">Login to your admin account.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="admin-email" className="text-[13px] font-medium text-[#374151]">
+                <Label htmlFor="admin-email" className="text-[13px] font-medium text-slate-700">
                   Email
                 </Label>
                 <Input
@@ -170,13 +167,13 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-[44px] text-sm border-[#e5e7eb] bg-[#f8f9fa] rounded-lg focus:border-[#7C3AED] focus:ring-[#7C3AED]/20 focus:bg-white transition-colors"
+                  className="h-[44px] text-sm border-slate-200 bg-slate-50 rounded-lg focus:border-epf-500 focus:ring-epf-500/20 focus:bg-white transition-colors"
                 />
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <Label htmlFor="admin-password" className="text-[13px] font-medium text-[#374151]">
+                <Label htmlFor="admin-password" className="text-[13px] font-medium text-slate-700">
                   Password
                 </Label>
                 <div className="relative">
@@ -187,12 +184,12 @@ export default function AdminLoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="h-[44px] text-sm border-[#e5e7eb] bg-[#f8f9fa] rounded-lg focus:border-[#7C3AED] focus:ring-[#7C3AED]/20 focus:bg-white pr-10 transition-colors"
+                    className="h-[44px] text-sm border-slate-200 bg-slate-50 rounded-lg focus:border-epf-500 focus:ring-epf-500/20 focus:bg-white pr-10 transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#6b7280] transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -205,11 +202,11 @@ export default function AdminLoginPage() {
                   <Checkbox
                     checked={remember}
                     onCheckedChange={(checked) => setRemember(checked === true)}
-                    className="h-4 w-4 rounded border-[#d1d5db] data-[state=checked]:bg-[#7C3AED] data-[state=checked]:border-[#7C3AED]"
+                    className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-epf-500 data-[state=checked]:border-epf-500"
                   />
-                  <span className="text-[13px] text-[#6b7280]">Remember Me</span>
+                  <span className="text-[13px] text-slate-600">Remember Me</span>
                 </label>
-                <a href="#" className="text-[13px] text-[#7C3AED] hover:underline">
+                <a href="#" className="text-[13px] text-epf-500 hover:text-epf-600 hover:underline">
                   Forgot password?
                 </a>
               </div>
@@ -218,8 +215,7 @@ export default function AdminLoginPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-[44px] text-white text-sm font-semibold rounded-lg transition-colors"
-                style={{ background: "#7C3AED" }}
+                className="w-full h-[44px] bg-epf-500 hover:bg-epf-600 text-white text-sm font-semibold rounded-lg transition-colors"
               >
                 {loading ? (
                   <>
@@ -237,7 +233,7 @@ export default function AdminLoginPage() {
           <div className="text-center mt-6">
             <a
               href="/"
-              className="inline-flex items-center gap-1.5 text-[13px] text-[#6b7280] hover:text-[#7C3AED] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-epf-500 transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Back to Previous Page
