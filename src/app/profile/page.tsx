@@ -194,7 +194,7 @@ function InfoRow({
 /* ------------------------------------------------------------------ */
 /*  Sidebar config                                                     */
 /* ------------------------------------------------------------------ */
-type SectionKey = "dashboard" | "orders" | "downloads" | "addresses" | "reviews";
+type SectionKey = "dashboard" | "orders" | "downloads" | "addresses" | "reviews" | "profile";
 
 type SidebarItem =
   | { type: "section"; key: SectionKey; label: string; icon: React.ElementType }
@@ -209,7 +209,7 @@ const sidebarItems: SidebarItem[] = [
   { type: "link", href: "/wishlist", label: "My Wishlist", icon: Heart },
   { type: "section", key: "reviews", label: "My Reviews", icon: Star },
   { type: "section", key: "addresses", label: "My Addresses", icon: MapPin },
-  { type: "dialog", label: "My Profile", icon: User },
+  { type: "section", key: "profile", label: "My Profile", icon: User },
   { type: "logout", label: "Logout", icon: LogOut },
 ];
 
@@ -303,6 +303,22 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) setUser(user as Parameters<typeof setUser>[0]);
   }, [user, setUser]);
+
+  // When entering the "profile" section, pre-fill the inline edit form with
+  // the current user data so the form shows real values (not blanks).
+  useEffect(() => {
+    if (activeSection === "profile" && user) {
+      setEditForm({
+        name: user.name || "",
+        nameBn: user.nameBn || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        area: user.area || "",
+        city: user.city || "",
+        postalCode: user.postalCode || "",
+      });
+    }
+  }, [activeSection, user]);
 
   const { data: ordersEnvelope, isLoading: ordersLoading } = useQuery<{ data: Order[] }>({
     queryKey: ["my-orders"],
@@ -776,7 +792,7 @@ export default function ProfilePage() {
                       </CardTitle>
                       <button
                         type="button"
-                        onClick={openEditDialog}
+                        onClick={() => setActiveSection("profile")}
                         className="inline-flex items-center gap-1 text-[13px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
                       >
                         <Pencil className="h-3.5 w-3.5" />
@@ -1201,6 +1217,132 @@ export default function ProfilePage() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* ---- My Profile (inline edit form — no popup) ---- */}
+                {activeSection === "profile" && (
+                  <Card className="rounded-xl border border-slate-200 shadow-sm">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-[18px] font-bold text-slate-900">My Profile</CardTitle>
+                      <p className="text-[13px] text-slate-500 mt-1">
+                        Update your personal information and address details.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="space-y-5">
+                        {/* Personal Info row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">
+                              Full Name <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              value={editForm.name}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              placeholder="e.g. Ismail Hossen"
+                              className="h-10"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">নাম (বাংলা)</Label>
+                            <Input
+                              value={editForm.nameBn}
+                              onChange={(e) => setEditForm({ ...editForm, nameBn: e.target.value })}
+                              placeholder="আপনার নাম"
+                              className="h-10"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Contact row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">
+                              Email <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              value={user?.email || ""}
+                              disabled
+                              className="h-10 bg-slate-50 text-slate-500"
+                            />
+                            <p className="text-[11px] text-slate-400">Email change requires password verification — contact support.</p>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">
+                              Phone <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              value={editForm.phone}
+                              onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                              placeholder="01XXXXXXXXX"
+                              className="h-10"
+                            />
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Address row */}
+                        <div className="space-y-1.5">
+                          <Label className="text-[13px] font-medium text-slate-700">Street Address</Label>
+                          <Input
+                            value={editForm.address}
+                            onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                            placeholder="House, road, street"
+                            className="h-10"
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">Area</Label>
+                            <Input
+                              value={editForm.area}
+                              onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}
+                              placeholder="e.g. Gulshan"
+                              className="h-10"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">City</Label>
+                            <Input
+                              value={editForm.city}
+                              onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                              placeholder="e.g. Dhaka"
+                              className="h-10"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[13px] font-medium text-slate-700">Postal Code</Label>
+                            <Input
+                              value={editForm.postalCode}
+                              onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
+                              placeholder="e.g. 1212"
+                              className="h-10"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Save button */}
+                        <div className="pt-2">
+                          <Button
+                            type="button"
+                            onClick={handleSaveProfile}
+                            disabled={savingProfile || !editForm.name.trim()}
+                            className="bg-slate-900 hover:bg-slate-800 text-white text-[14px] font-semibold rounded-lg h-10 px-6"
+                          >
+                            {savingProfile ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              "Save Changes"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           )}
@@ -1219,108 +1361,6 @@ export default function ProfilePage() {
       <ProjectDetailDialog />
       <ChatWidget />
       <BackToTopButton />
-
-      {/* Edit Profile Dialog — functionality preserved */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-            <DialogDescription>
-              Update your personal information and delivery address.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Name (English)</Label>
-                <Input
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  placeholder="Your name"
-                  className="h-10"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">নাম (বাংলা)</Label>
-                <Input
-                  value={editForm.nameBn}
-                  onChange={(e) => setEditForm({ ...editForm, nameBn: e.target.value })}
-                  placeholder="আপনার নাম"
-                  className="h-10"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[13px] text-slate-700">Phone</Label>
-              <Input
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                placeholder="01XXXXXXXXX"
-                className="h-10"
-              />
-              <p className="text-[12px] text-slate-400">Email change requires password verification — contact support.</p>
-            </div>
-            <Separator />
-            <div className="space-y-1.5">
-              <Label className="text-[13px] text-slate-700">Address</Label>
-              <Input
-                value={editForm.address}
-                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                placeholder="House, road, street"
-                className="h-10"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Area</Label>
-                <Input
-                  value={editForm.area}
-                  onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}
-                  placeholder="Area"
-                  className="h-10"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">City</Label>
-                <Input
-                  value={editForm.city}
-                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                  placeholder="City"
-                  className="h-10"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Postal Code</Label>
-                <Input
-                  value={editForm.postalCode}
-                  onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
-                  placeholder="XXXX"
-                  className="h-10"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)} disabled={savingProfile}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveProfile}
-              disabled={savingProfile || !editForm.name}
-              className="bg-epf-500 hover:bg-epf-600 text-white"
-            >
-              {savingProfile ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save Changes"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Address Add/Edit Dialog — matching reference design */}
       <Dialog open={addressDialogOpen} onOpenChange={(open) => { if (!open) { setAddressDialogOpen(false); setEditingAddress(null); } }}>
