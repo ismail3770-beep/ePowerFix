@@ -66,13 +66,17 @@ export default function CheckoutDialog() {
   }, []);
 
   const subtotal = getTotal();
-  const isInsideDhaka = /dhaka|ঢাকা/i.test(form.area || "");
+  const formArea = (form.area || "").trim().toLowerCase();
+  // Match only exact area names to avoid false positives like "New Dhaka City".
+  const dhakaAreas = ["dhaka", "mirpur", "dhanmondi", "gulshan", "banani", "uttara", "mohammadpur", "rampura", "badda", "bashundhara", "wari", "motijheel", "tejgaon", "mohakhali", "cantonment", "banani dohs", "baridhara dohs", "ঢাকা"];
+  const isInsideDhaka = dhakaAreas.includes(formArea);
   let delivery = subtotal > 0 ? (isInsideDhaka ? shippingRates.insideDhaka : shippingRates.outsideDhaka) : 0;
   // Free shipping if subtotal is above the threshold (and threshold > 0).
   if (shippingRates.freeShippingThreshold > 0 && subtotal >= shippingRates.freeShippingThreshold) {
     delivery = 0;
   }
-  const total = subtotal + delivery - discount;
+  // Clamp total so discount can't push it below zero.
+  const total = Math.max(0, subtotal + delivery - discount);
 
   const mutation = useMutation({
     mutationFn: async (body: Record<string, any>) => {
@@ -139,7 +143,7 @@ export default function CheckoutDialog() {
     if (!couponCode.trim()) return;
     setCouponLoading(true);
     try {
-      const result = await apiFetch<{ data: any }>(`/api/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&orderTotal=${subtotal + delivery}`);
+      const result = await apiFetch<{ data: any }>(`/api/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&orderTotal=${subtotal}`);
       const coupon = result.data;
       setAppliedCoupon(coupon.code);
       setDiscount(Math.round(coupon.discount));

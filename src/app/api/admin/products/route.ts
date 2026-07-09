@@ -37,8 +37,8 @@ const createProductSchema = z.object({
   sku: z.string().max(100).optional(),
   stock: z.number().int().min(0).optional().default(0),
   minStock: z.number().int().min(0).optional().default(5),
-  categoryId: z.string().min(1),
-  brandId: z.string().min(1),
+  categoryId: z.string().min(1).nullable().optional(),
+  brandId: z.string().min(1).nullable().optional(),
   images: z.array(z.string()).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
   specs: z.string().optional(),
@@ -123,6 +123,16 @@ export const POST = adminRoute(createProductSchema, async (request, body, user) 
   if (sku) {
     const skuExists = await db.product.findUnique({ where: { sku } })
     if (skuExists) return errorResponse('SKU already exists', 400)
+  }
+
+  // C4: categoryId/brandId are required by the DB schema, but the Zod schema
+  // now accepts null/empty so the admin form can submit without Zod errors.
+  // Validate explicitly here so users get a clear error instead of a Zod error.
+  if (!categoryId || typeof categoryId !== 'string') {
+    return errorResponse('categoryId is required', 400)
+  }
+  if (!brandId || typeof brandId !== 'string') {
+    return errorResponse('brandId is required', 400)
   }
 
   const product = await db.product.create({

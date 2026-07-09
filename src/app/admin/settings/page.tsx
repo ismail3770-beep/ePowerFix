@@ -154,6 +154,15 @@ export default function AdminSettingsPage() {
   };
 
   const handleSave = async () => {
+    // L9: Validate that all color fields are exactly 6 hex chars before saving.
+    const colorKeys = ["primaryColor", "secondaryColor", "accentColor", "headerBg", "footerBg", "bodyBg"];
+    const invalidColor = colorKeys.find(
+      (k) => (settings as any)[k] && !/^[0-9A-Fa-f]{6}$/.test((settings as any)[k])
+    );
+    if (invalidColor) {
+      toast.error(`Invalid color: ${invalidColor} must be exactly 6 hex characters (e.g. 0EA5E9).`);
+      return;
+    }
     setSaving(true);
     try {
       await apiFetch("/api/admin/settings", {

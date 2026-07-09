@@ -183,12 +183,13 @@ export default function LoginPage() {
 
                 {/* Forgot Password */}
                 <div className="text-right">
-                  <a
-                    href="#"
+                  <button
+                    type="button"
+                    onClick={() => toast.info("Password reset", { description: "Please contact support at info@epowerfix.com to reset your password." })}
                     className="text-[13px] text-slate-500 hover:text-epf-500 transition-colors"
                   >
                     পাসওয়ার্ড ভুলে গেছেন?
-                  </a>
+                  </button>
                 </div>
 
                 {/* Submit */}

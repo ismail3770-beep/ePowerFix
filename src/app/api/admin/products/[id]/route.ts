@@ -34,8 +34,8 @@ const updateProductSchema = z.object({
   sku: z.string().max(100).optional(),
   stock: z.number().int().min(0).optional(),
   minStock: z.number().int().min(0).optional(),
-  categoryId: z.string().optional(),
-  brandId: z.string().optional(),
+  categoryId: z.string().nullable().optional(),
+  brandId: z.string().nullable().optional(),
   images: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   specs: z.string().optional(),
@@ -113,6 +113,15 @@ export const PUT = withErrorHandling(async (
         return errorResponse('SKU already in use', 400)
       }
     }
+  }
+
+  // C4 (PUT): categoryId/brandId are required by the DB schema. Reject empty
+  // values explicitly so users get a clear error.
+  if (categoryId !== undefined && !categoryId) {
+    return errorResponse('categoryId cannot be empty', 400)
+  }
+  if (brandId !== undefined && !brandId) {
+    return errorResponse('brandId cannot be empty', 400)
   }
 
   const data: any = {}

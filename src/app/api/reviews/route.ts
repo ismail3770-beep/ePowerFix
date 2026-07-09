@@ -18,18 +18,22 @@ export const GET = publicGetRoute(async (request) => {
   if (productId) where.productId = productId
   if (serviceId) where.serviceId = serviceId
 
+  // M18: When no filter is provided, don't dump the entire reviews table —
+  // cap to a small "recent reviews" slice.
+  const effectiveLimit = (productId || serviceId) ? limit : Math.min(limit, 20)
+
   const [reviews, total] = await Promise.all([
     db.review.findMany({
       where,
       skip,
-      take: limit,
+      take: effectiveLimit,
       orderBy: { createdAt: 'desc' },
       include: { user: { select: { name: true, avatar: true } } },
     }),
     db.review.count({ where }),
   ])
 
-  return listResponse(reviews, total, page, limit)
+  return listResponse(reviews, total, page, effectiveLimit)
 })
 
 /**

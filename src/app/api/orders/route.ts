@@ -9,13 +9,16 @@ import { parseJsonField } from '@/lib/admin-api'
 import { publicRoute, publicGetRoute, authGetRoute, z } from '@/lib/api-handler'
 import { startSpan } from '@/lib/monitoring'
 
-function orderNumber(seq: number): string {
+function orderNumber(seq: number, rand: number = 0): string {
   const d = new Date()
   const ymd =
     `${d.getFullYear()}` +
     `${String(d.getMonth() + 1).padStart(2, '0')}` +
     `${String(d.getDate()).padStart(2, '0')}`
-  return `EPF-${ymd}-${String(seq).padStart(4, '0')}`
+  // Include a random suffix to avoid collisions under concurrent inserts.
+  return rand > 0
+    ? `EPF-${ymd}-${String(seq).padStart(4, '0')}-${rand}`
+    : `EPF-${ymd}-${String(seq).padStart(4, '0')}`
 }
 
 // ─── Zod Schemas ──────────────────────────────────────────────────────────────
@@ -150,7 +153,8 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
     deliveryCharge = 0
   }
 
-  // Coupon discount
+  // Coupon discount — applied on subtotal only (matches client-side calculation
+  // in checkout/page.tsx and CheckoutDialog.tsx).
   let discount = 0
   let couponId: string | null = null
   if (couponCode) {
@@ -166,22 +170,28 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
         } else {
           discount = coupon.value
         }
+        // Discount cannot exceed the subtotal (delivery is never discounted).
         discount = Math.min(discount, subtotal)
         couponId = coupon.id
       }
     }
   }
 
-  const total = subtotal + deliveryCharge - discount
+  // Total cannot go negative even if discount somehow exceeds subtotal + delivery.
+  const total = Math.max(0, subtotal + deliveryCharge - discount)
 
   // Attach to the logged-in user if present (guests may order too).
   const auth = await requireAuth()
 
   // Generate a unique order number.
-  const countToday = await db.order.count({
+  // M23: pure count-based numbers can collide under concurrent inserts.
+  // Use a date+random suffix to make collisions effectively impossible
+  // without needing a unique constraint migration.
+  const seqHint = await db.order.count({
     where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
   })
-  const newOrderNumber = orderNumber(countToday + 1)
+  const rand = Math.floor(1000 + Math.random() * 9000)
+  const newOrderNumber = orderNumber(seqHint + 1, rand)
 
   const span = startSpan('orders.create')
   const order = await db.order.create({

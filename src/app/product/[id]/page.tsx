@@ -304,10 +304,32 @@ export default function ProductDetailPage() {
 
                 {/* Action icons */}
                 <div className="absolute top-3 right-3 flex flex-col gap-2">
-                  <button className="w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
+                  <button
+                    onClick={async () => {
+                      if (!isAuthenticated) {
+                        toast.error("Please login to save favorites");
+                        return;
+                      }
+                      try {
+                        await apiFetch("/api/wishlist", { method: "POST", body: JSON.stringify({ productId: product.id }) });
+                        toast.success("Added to wishlist");
+                      } catch (err: any) {
+                        toast.error(err?.message || "Failed to add to wishlist");
+                      }
+                    }}
+                    className="w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+                    aria-label="Add to wishlist"
+                  >
                     <Heart className="size-4 text-slate-600" />
                   </button>
-                  <button className="w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Link copied!");
+                    }}
+                    className="w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-sm"
+                    aria-label="Share product"
+                  >
                     <Share2 className="size-4 text-slate-600" />
                   </button>
                 </div>
@@ -344,7 +366,13 @@ export default function ProductDetailPage() {
             {product.category?.name && (
               <div className="mt-1.5 flex items-center gap-2">
                 <span className="text-[14px] text-slate-500">Brand: {product.category.name}</span>
-                <span className="text-[14px] text-slate-900 underline cursor-pointer hover:text-slate-700">Ask about this product</span>
+                <button
+                  type="button"
+                  onClick={() => setChatOpen(true)}
+                  className="text-[14px] text-slate-900 underline cursor-pointer hover:text-slate-700"
+                >
+                  Ask about this product
+                </button>
               </div>
             )}
 
@@ -422,9 +450,11 @@ export default function ProductDetailPage() {
 
             {/* In-house badge + Message Seller */}
             <div className="flex items-center gap-3 mt-4">
-              <span className="bg-slate-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded">
-                Inhouse Product
-              </span>
+              {product.sku && (
+                <span className="bg-slate-900 text-white text-[11px] font-semibold px-2.5 py-1 rounded">
+                  SKU: {product.sku}
+                </span>
+              )}
               <button
                 onClick={() => setChatOpen(true)}
                 className="text-[13px] text-slate-900 underline cursor-pointer hover:text-slate-700 transition-colors"

@@ -65,7 +65,8 @@ export default function MobileBottomNav() {
     },
     {
       label: "Search",
-      onClick: () => window.scrollTo({ top: 0, behavior: "smooth" }),
+      href: "/shop?focus=search",
+      activePaths: [],
       icon: <EPFSearch size={20} />,
     },
     {

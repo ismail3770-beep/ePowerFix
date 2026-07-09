@@ -13,6 +13,11 @@ export async function GET(request: NextRequest) {
     const code = (url.searchParams.get('code') || '').trim().toUpperCase()
     const orderTotal = parseFloat(url.searchParams.get('orderTotal') || '0')
 
+    // M22: Reject NaN orderTotal (e.g. when the client sends ?orderTotal=abc).
+    if (isNaN(orderTotal) || orderTotal < 0) {
+      return errorResponse('Invalid orderTotal', 400)
+    }
+
     if (!code) return errorResponse('Coupon code is required', 400)
 
     const coupon = await db.coupon.findFirst({
@@ -59,7 +64,8 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (err: any) {
+    // M20: don't leak internal error details to the client.
     console.error('public/coupons/validate GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+    return errorResponse('Internal server error', 500)
   }
 }

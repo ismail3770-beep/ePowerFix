@@ -29,6 +29,11 @@ export const POST = withErrorHandling(async (
   if (!order) return errorResponse('Order not found', 404)
   if (order.userId !== auth.user!.id) return errorResponse('Forbidden', 403)
 
+  // Only allow returns for orders that have been delivered or confirmed.
+  if (!['DELIVERED', 'CONFIRMED'].includes(order.status)) {
+    return errorResponse('This order cannot be returned in its current status', 400)
+  }
+
   const existing = await db.returnRequest.findFirst({
     where: { orderId: id, userId: auth.user!.id },
   })

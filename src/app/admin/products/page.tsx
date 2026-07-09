@@ -26,6 +26,7 @@ import {
   Search, Plus, Eye, Pencil, Trash2,
 } from "lucide-react";
 import { ImageUploader } from "@/components/ImageUploader";
+import Pagination from "@/components/admin/Pagination";
 
 interface ProductCategory {
   id: string;
@@ -79,6 +80,10 @@ export default function AdminProductsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const PAGE_LIMIT = 20;
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -88,15 +93,19 @@ export default function AdminProductsPage() {
       if (filters.categoryId && filters.categoryId !== "__all__") params.set("categoryId", filters.categoryId);
       if (filters.brandId && filters.brandId !== "__all__") params.set("brandId", filters.brandId);
       if (filters.isActive && filters.isActive !== "__all__") params.set("isActive", filters.isActive);
+      params.set("page", String(page));
+      params.set("limit", String(PAGE_LIMIT));
       const qs = params.toString();
       const res: any = await apiFetch(`/api/admin/products${qs ? `?${qs}` : ""}`);
       setProducts(res.data?.data ?? []);
+      setTotal(res.data?.total ?? 0);
+      setTotalPages(res.data?.totalPages ?? 1);
     } catch (err: any) {
       toast.error(err.message || "Failed to load products");
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, page]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -335,6 +344,9 @@ export default function AdminProductsPage() {
               </Table>
             </div>
           )}
+          <div className="px-4 pb-4">
+            <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
 

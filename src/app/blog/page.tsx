@@ -18,6 +18,7 @@ import ProductDetailDialog from "@/components/epf/ProductDetailDialog";
 import ServiceBookingDialog from "@/components/epf/ServiceBookingDialog";
 import ProjectDetailDialog from "@/components/epf/ProjectDetailDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
+import BackToTopButton from "@/components/epf/BackToTopButton";
 import Link from "next/link";
 
 interface BlogPost {
@@ -199,6 +200,7 @@ export default function BlogPage() {
       <ServiceBookingDialog />
       <ProjectDetailDialog />
       <ChatWidget />
+      <BackToTopButton />
     </>
   );
 }

@@ -66,14 +66,25 @@ export default function FlashSalesPage() {
   useEffect(() => { setAddNew('New Flash Sale', openCreate); return () => setAddNew('', null); }, [setAddNew]);
 
   const handleSave = async () => {
+    // L11: Validate discount is a valid positive number before saving.
+    const discountNum = parseFloat(form.discount)
+    if (isNaN(discountNum) || discountNum <= 0) {
+      toast.error('Discount must be a valid positive number')
+      return
+    }
+    if (!form.title.trim()) {
+      toast.error('Title is required')
+      return
+    }
     setSaving(true)
     try {
-      const body = { ...form, discount: parseFloat(form.discount) }
+      const body = { ...form, discount: discountNum }
       if (editing) {
         await apiFetch(`/api/admin/flash-sales/${editing.id}`, { method: 'PUT', body: JSON.stringify(body) })
       } else {
         await apiFetch('/api/admin/flash-sales', { method: 'POST', body: JSON.stringify(body) })
       }
+      toast.success(editing ? 'Flash sale updated' : 'Flash sale created')
       setDialogOpen(false)
       load()
     } catch (err: any) { console.error(err); toast.error(err.message || 'Failed') }

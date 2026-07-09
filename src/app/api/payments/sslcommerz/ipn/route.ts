@@ -2,11 +2,19 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { validateSSLCommerzPayment } from '@/lib/payments'
 import { consumeTestPaymentToken } from '@/lib/test-payment'
+import { verifyCallbackIp } from '@/lib/payment-callback-security'
 
 /**
  * POST — SSLCommerz IPN callback.
  */
 export async function POST(request: Request) {
+  // H10: Reject IPN calls from IPs not on the gateway whitelist (if configured).
+  const ipCheck = await verifyCallbackIp()
+  if (!ipCheck.ok) {
+    console.warn('[SSLCommerz IPN] Rejected IP:', ipCheck.ip)
+    return new NextResponse('INVALID', { status: 200 })
+  }
+
   try {
     const body = await request.json()
     const tranId: string = body.tran_id || ''

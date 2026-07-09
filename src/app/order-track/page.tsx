@@ -2,15 +2,25 @@
 import { useState } from "react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
-import { Search, Package, CheckCircle, Truck, Clock, MapPin } from "lucide-react";
+import CartDrawer from "@/components/epf/CartDrawer";
+import ChatWidget from "@/components/epf/ChatWidget";
+import BackToTopButton from "@/components/epf/BackToTopButton";
+import { Search, Package, CheckCircle, Truck, Clock, MapPin, XCircle, RefreshCcw } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 const statusSteps = [
   { key: "PENDING", label: "Placed", icon: Package },
   { key: "CONFIRMED", label: "Confirmed", icon: CheckCircle },
+  { key: "PROCESSING", label: "Processing", icon: Clock },
   { key: "SHIPPED", label: "Shipped", icon: Truck },
   { key: "DELIVERED", label: "Delivered", icon: MapPin },
 ];
+
+// Statuses that don't fit the normal linear timeline.
+const SPECIAL_STATUSES: Record<string, { label: string; icon: any; color: string }> = {
+  CANCELLED: { label: "Cancelled", icon: XCircle, color: "text-red-500" },
+  RETURNED: { label: "Returned", icon: RefreshCcw, color: "text-amber-500" },
+};
 
 interface OrderResult {
   orderNumber: string;
@@ -54,10 +64,12 @@ export default function OrderTrackPage() {
   const currentStepIndex = result
     ? statusSteps.findIndex((s) => s.key === result.status)
     : -1;
+  const isSpecialStatus = result ? !!SPECIAL_STATUSES[result.status] : false;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
+      <CartDrawer />
       <main className="flex-1">
         <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-8 text-center">
@@ -109,24 +121,42 @@ export default function OrderTrackPage() {
 
               {/* Status Timeline */}
               <div className="p-5">
-                <div className="flex items-center justify-between mb-8">
-                  {statusSteps.map((step, i) => {
-                    const Icon = step.icon;
-                    const isCompleted = i <= currentStepIndex;
-                    const isCurrent = i === currentStepIndex;
-                    return (
-                      <div key={step.key} className="flex flex-col items-center flex-1">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-2 transition-colors ${isCompleted ? "bg-epf-500 text-white" : "bg-slate-100 text-slate-400"} ${isCurrent ? "ring-2 ring-epf-500/30" : ""}`}>
-                          <Icon className="h-5 w-5" />
+                {isSpecialStatus ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    {(() => {
+                      const Sp = SPECIAL_STATUSES[result.status];
+                      const Icon = Sp.icon;
+                      return (
+                        <>
+                          <div className={`h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-2 ${Sp.color}`}>
+                            <Icon className="h-6 w-6" />
+                          </div>
+                          <p className={`text-[16px] font-semibold ${Sp.color}`}>{Sp.label}</p>
+                          <p className="text-[13px] text-slate-500 mt-1">This order has been {Sp.label.toLowerCase()}.</p>
+                        </>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className="relative flex items-center justify-between mb-8">
+                    {statusSteps.map((step, i) => {
+                      const Icon = step.icon;
+                      const isCompleted = i <= currentStepIndex && currentStepIndex >= 0;
+                      const isCurrent = i === currentStepIndex;
+                      return (
+                        <div key={step.key} className="relative flex flex-col items-center flex-1">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center mb-2 transition-colors ${isCompleted ? "bg-epf-500 text-white" : "bg-slate-100 text-slate-400"} ${isCurrent ? "ring-2 ring-epf-500/30" : ""}`}>
+                            <Icon className="h-5 w-5" />
+                          </div>
+                          <span className={`text-[12px] font-medium ${isCompleted ? "text-epf-500" : "text-slate-400"}`}>{step.label}</span>
+                          {i < statusSteps.length - 1 && (
+                            <div className={`absolute top-5 left-1/2 h-0.5 w-full ${isCompleted && i < currentStepIndex ? "bg-epf-500" : "bg-slate-200"}`} style={{ zIndex: -1 }} />
+                          )}
                         </div>
-                        <span className={`text-[12px] font-medium ${isCompleted ? "text-epf-500" : "text-slate-400"}`}>{step.label}</span>
-                        {i < statusSteps.length - 1 && (
-                          <div className={`absolute h-0.5 w-16 ${isCompleted ? "bg-epf-500" : "bg-slate-200"}`} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Order Items */}
                 <div className="border-t border-slate-200 pt-4">
@@ -147,7 +177,9 @@ export default function OrderTrackPage() {
           )}
         </div>
       </main>
-      <Footer />
+      <div className="mt-auto"><Footer /></div>
+      <ChatWidget />
+      <BackToTopButton />
     </div>
   );
 }

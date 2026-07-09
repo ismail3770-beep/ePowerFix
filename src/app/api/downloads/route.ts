@@ -21,19 +21,36 @@ export async function GET(_request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
-    const downloads = items.map((it) => ({
-      orderItemId: it.id,
-      orderNumber: it.order.orderNumber,
-      productName: it.productName,
-      productImage: it.productImage,
-      downloadLimit: it.product.downloadLimit,
-      downloadCount: it.downloadCount,
-      purchasedAt: it.order.createdAt,
-    }))
+    const downloads = items
+      .filter((it) => it.product) // safety filter for TS
+      .map((it) => {
+      const product = it.product!
+      const downloadLimit = product.downloadLimit ?? 0
+      const downloadCount = it.downloadCount ?? 0
+      // Compute fields the profile page expects.
+      const unlocked = it.order.paymentStatus === 'PAID' || it.order.paymentStatus === 'CONFIRMED'
+      const hasFile = !!(product.digitalFile && product.digitalFile.trim() !== '')
+      const remaining = Math.max(0, downloadLimit - downloadCount)
+      return {
+        orderItemId: it.id,
+        orderNumber: it.order.orderNumber,
+        productName: it.productName,
+        productImage: it.productImage,
+        downloadLimit,
+        downloadCount,
+        purchasedAt: it.order.createdAt,
+        // Computed fields (M17):
+        unlocked,
+        hasFile,
+        remaining,
+        digitalFile: product.digitalFile || null,
+      }
+    })
 
     return jsonResponse({ data: downloads })
   } catch (err: any) {
+    // M20: don't leak internal error details to the client.
     console.error('public/downloads GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+    return errorResponse('Internal server error', 500)
   }
 }

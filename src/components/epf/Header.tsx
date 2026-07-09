@@ -268,7 +268,7 @@ export default function Header() {
                       <div>
                         <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Services</p>
                         {searchResults.services.map((s) => (
-                          <button key={s.id} onClick={() => { setShowDropdown(false); window.location.href = "/services"; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                          <button key={s.id} onClick={() => { setShowDropdown(false); window.location.href = `/services/${(s as any).slug || s.id}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
                             <div className="h-9 w-9 bg-epf-50 rounded-full flex items-center justify-center shrink-0">
                               <I.Wrench className="h-4 w-4 text-epf-500" />
                             </div>
@@ -284,7 +284,7 @@ export default function Header() {
                       <div>
                         <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Projects</p>
                         {searchResults.projects.map((p) => (
-                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = "/projects"; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/projects/${(p as any).slug || p.id}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
                             <div className="h-9 w-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
                               {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-cover rounded" /> : <I.Cpu className="h-4 w-4 text-slate-400" />}
                             </div>
@@ -439,8 +439,8 @@ export default function Header() {
                       return (
                         <a
                           key={cat.slug}
-                          href="/shop"
-                          onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = "/shop"; }}
+                          href={`/shop?category=${cat.dbSlug || cat.slug}`}
+                          onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = `/shop?category=${cat.dbSlug || cat.slug}`; }}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] transition-all border-l-[3px] ${
                             i === 0
                               ? "bg-white text-epf-500 font-semibold border-epf-500"
@@ -462,8 +462,8 @@ export default function Header() {
                       {subcategories.map((sub) => (
                         <a
                           key={sub}
-                          href="/shop"
-                          onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = "/shop"; }}
+                          href={`/shop?search=${encodeURIComponent(sub)}`}
+                          onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = `/shop?search=${encodeURIComponent(sub)}`; }}
                           className="flex items-center gap-2 py-1.5 text-[14px] text-slate-700 hover:text-epf-500 transition-colors group"
                         >
                           <span className="h-1 w-1 rounded-full bg-slate-400 group-hover:bg-epf-500 transition-colors shrink-0" />
@@ -479,8 +479,8 @@ export default function Header() {
                           <p className="text-[16px] font-semibold text-slate-900 mt-0.5">৳1,850</p>
                         </div>
                         <a
-                          href="/shop"
-                          onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = "/shop"; }}
+                          href="/shop?category=wires-cables"
+                          onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = "/shop?category=wires-cables"; }}
                           className="h-9 px-4 bg-epf-500 text-white text-[14px] font-bold hover:bg-epf-600 transition-colors flex items-center gap-1.5 rounded-[4px]"
                         >
                           View <I.ArrowRight className="h-3 w-3" />
@@ -620,11 +620,11 @@ export default function Header() {
               {megaCategories.map((cat) => (
                 <a
                   key={cat.slug}
-                  href="/shop"
+                  href={`/shop?category=${cat.dbSlug || cat.slug}`}
                   onClick={(e) => {
                     e.preventDefault();
                     setMobileOpen(false);
-                    window.location.href = "/shop";
+                    window.location.href = `/shop?category=${cat.dbSlug || cat.slug}`;
                   }}
                   className="flex items-center gap-3 w-full px-5 py-3 text-[14px] text-slate-700 hover:bg-slate-50 border-b border-slate-200"
                 >

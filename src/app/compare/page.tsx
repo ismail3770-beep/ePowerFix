@@ -53,12 +53,25 @@ export default function ComparePage() {
     router.push(`/compare?ids=${newIds.join(',')}`)
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>
+  if (loading) return (
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header />
+      <CartDrawer />
+      <CheckoutDialog />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </main>
+      <Footer />
+      <ChatWidget />
+      <BackToTopButton />
+    </div>
+  )
 
   if (error) return (
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <CartDrawer />
+      <CheckoutDialog />
       <main className="flex-1 flex items-center justify-center text-center py-16">
         <div>
           <p className="text-red-500 text-lg mb-4">{error}</p>
@@ -66,6 +79,8 @@ export default function ComparePage() {
         </div>
       </main>
       <Footer />
+      <ChatWidget />
+      <BackToTopButton />
     </div>
   )
 
@@ -73,17 +88,20 @@ export default function ComparePage() {
     <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <CartDrawer />
+      <CheckoutDialog />
       <main className="flex-1 mx-auto max-w-[1400px] w-full px-4 sm:px-12 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Product Comparison</h1>
         <p className="text-slate-500">Select at least 2 products to compare. Use the "Add to Compare" button on product pages.</p>
         <Link href="/"><Button className="mt-4">Browse Products</Button></Link>
       </main>
-      <Footer />
+      <div className="mt-auto"><Footer /></div>
+      <ChatWidget />
+      <BackToTopButton />
     </div>
   )
 
   const rows = [
-    { label: 'Image', render: (p: Product) => <img src={p.images?.[0] || '/placeholder.png'} alt={p.name} className="h-32 w-32 object-contain mx-auto" /> },
+    { label: 'Image', render: (p: Product) => <img src={p.images?.[0] || ''} alt={p.name} className="h-32 w-32 object-contain mx-auto" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> },
     { label: 'Name', render: (p: Product) => <Link href={`/product/${p.id}`} className="font-medium hover:text-primary">{p.name}</Link> },
     { label: 'Price', render: (p: Product) => <div><span className="text-xl font-bold">৳{p.salePrice || p.price}</span>{p.salePrice && p.salePrice < p.price && <span className="ml-2 text-slate-400 line-through">৳{p.price}</span>}</div> },
     { label: 'Rating', render: (p: Product) => <div className="flex items-center gap-1 justify-center"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /><span>{p.averageRating || 0}</span><span className="text-slate-400">({p._count?.reviews || 0})</span></div> },
@@ -95,9 +113,7 @@ export default function ComparePage() {
         <Button size="sm" onClick={() => removeProduct(p.id)} variant="outline"><X className="w-4 h-4" /> Remove</Button>
         <Button size="sm" onClick={() => {
               const { addItem } = useCartStore.getState()
-              products.forEach((p) =>
-                addItem({ productId: p.id, productName: p.name, price: p.salePrice || p.price, productImage: p.images?.[0] || '/placeholder.png', quantity: 1 })
-              )
+              addItem({ productId: p.id, productName: p.name, price: p.salePrice || p.price, productImage: p.images?.[0] || '', quantity: 1 })
               toast.success('Added to cart')
             }}><ShoppingCart className="w-4 h-4 mr-1" /> Cart</Button>
       </div>

@@ -17,7 +17,6 @@ import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from '@/lib/api';
-import WishlistButton from '@/components/WishlistButton';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -106,7 +105,6 @@ function ServiceCard({ service, isSidebar, onNavigate }: {
         ) : (
           <div className="w-full h-full flex items-center justify-center"><CatIcon className="w-10 h-10 text-slate-300" /></div>
         )}
-        <WishlistButton productId={service.id} initialFav={false} />
         {service.isFeatured && (
           <span className="absolute top-2 left-2 bg-epf-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
             <Sparkles className="w-3 h-3" />POPULAR
@@ -207,7 +205,6 @@ function FeaturedCard({ service, onNavigate }: { service: ServiceItem; onNavigat
         {!imgError && service.images?.[0] ? <Image src={service.images?.[0]} alt={service.name} fill className="object-cover group-hover:scale-105 transition-transform" onError={() => setImgError(true)} unoptimized /> : <div className="w-full h-full flex items-center justify-center"><CatIcon className="w-12 h-12 text-slate-300" /></div>}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <span className="absolute top-3 left-3 bg-epf-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm"><Sparkles className="w-3 h-3" />Popular</span>
-        <WishlistButton productId={service.id} initialFav={false} />
         <div className="absolute bottom-3 left-3 right-3 z-10"><h3 className="text-[18px] font-semibold text-white leading-snug drop-shadow-sm">{service.name}</h3></div>
       </div>
       <div className="p-4">

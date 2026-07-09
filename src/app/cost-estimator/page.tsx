@@ -1,9 +1,11 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
+import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
 import {
   Zap,
   Sun,
@@ -69,7 +71,7 @@ interface FormData {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const SERVICES: ServiceType[] = [
+const FALLBACK_SERVICES: ServiceType[] = [
   {
     id: "electrical-wiring",
     name: "Electrical Wiring",
@@ -113,6 +115,19 @@ const SERVICES: ServiceType[] = [
     icon: <Wrench className="h-6 w-6" />,
   },
 ];
+
+// Icon mapping by service slug (used when services are loaded from API).
+const SERVICE_ICONS: Record<string, React.ReactNode> = {
+  "electrical-wiring": <Zap className="h-6 w-6" />,
+  "solar-installation": <Sun className="h-6 w-6" />,
+  "solar-equipment": <Sun className="h-6 w-6" />,
+  "safety-equipment": <Shield className="h-6 w-6" />,
+  "generator-ups": <Plug className="h-6 w-6" />,
+  "smart-home": <Lightbulb className="h-6 w-6" />,
+  "appliance-repair": <Wrench className="h-6 w-6" />,
+  "home-wiring": <Zap className="h-6 w-6" />,
+  default: <Zap className="h-6 w-6" />,
+};
 
 const QUALITY_OPTIONS: {
   id: QualityGrade;
@@ -169,6 +184,30 @@ function formatBDT(n: number) {
 export default function CostEstimatorPage() {
   const [step, setStep] = useState(1);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [services, setServices] = useState<ServiceType[]>(FALLBACK_SERVICES);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Fetch live service list + prices from the API so admins can update prices
+  // without changing code. Falls back to the hardcoded list on error.
+  useEffect(() => {
+    apiFetch<{ data: { services: any[] } | any[]; services?: any[] }>("/api/services")
+      .then((res) => {
+        const list = (res as any)?.data?.services || (res as any)?.services || [];
+        if (!Array.isArray(list) || list.length === 0) return;
+        const mapped: ServiceType[] = list.map((s: any) => ({
+          id: s.slug || s.id,
+          name: s.name,
+          description: s.shortDesc || s.description || "",
+          basePrice: Number(s.basePrice ?? 0),
+          icon: SERVICE_ICONS[s.slug || s.id] || SERVICE_ICONS.default,
+        }));
+        if (mapped.length > 0) setServices(mapped);
+      })
+      .catch(() => {
+        // Silent fallback to FALLBACK_SERVICES.
+      });
+  }, []);
 
   const [form, setForm] = useState<FormData>({
     serviceId: "",
@@ -194,7 +233,7 @@ export default function CostEstimatorPage() {
   /* ---------- cost calculation ---------- */
 
   const cost = useMemo(() => {
-    const svc = SERVICES.find((s) => s.id === form.serviceId);
+    const svc = services.find((s) => s.id === form.serviceId);
     if (!svc)
       return {
         base: 0,
@@ -300,10 +339,55 @@ export default function CostEstimatorPage() {
     });
   };
 
+  /* ---------- submit quote request to API ---------- */
+
+  const handleSubmitQuote = async () => {
+    const svc = services.find((s) => s.id === form.serviceId);
+    if (!svc) {
+      toast.error("Please select a service first");
+      return;
+    }
+    if (!form.fullName.trim() || !form.phone.trim() || !form.address.trim()) {
+      toast.error("Please fill in your name, phone, and address");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const description = [
+        `Service: ${svc.name}`,
+        `Estimated total: ${formatBDT(cost.total)} (range ${formatBDT(cost.low)}–${formatBDT(cost.high)})`,
+        `Property: ${form.propertyType}, ${form.areaSize} sq ft`,
+        `Quality: ${form.qualityGrade}, Urgency: ${form.urgency}`,
+        form.additionalRequirements ? `Notes: ${form.additionalRequirements}` : "",
+        form.preferredDate ? `Preferred date: ${form.preferredDate}` : "",
+        form.notes ? `Extra notes: ${form.notes}` : "",
+      ].filter(Boolean).join("\n");
+
+      await apiFetch("/api/quote-requests", {
+        method: "POST",
+        body: JSON.stringify({
+          name: form.fullName.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim() || "",
+          serviceType: svc.name,
+          description,
+          address: form.address,
+          budget: String(Math.round(cost.total)),
+        }),
+      });
+      setSubmitted(true);
+      toast.success("Quote request submitted!", { description: "We'll contact you within 24 hours." });
+    } catch (err: any) {
+      toast.error("Could not submit quote", { description: err?.message || "Please try again." });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   /* ---------- PDF download ---------- */
 
   const handleDownloadPDF = () => {
-    const svc = SERVICES.find((s) => s.id === form.serviceId);
+    const svc = services.find((s) => s.id === form.serviceId);
     const quality = QUALITY_OPTIONS.find((q) => q.id === form.qualityGrade);
     const urgency = URGENCY_OPTIONS.find((u) => u.id === form.urgency);
     const refNumber = `EPF-CE-${Date.now().toString(36).toUpperCase()}`;
@@ -460,7 +544,7 @@ export default function CostEstimatorPage() {
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                      {SERVICES.map((svc) => {
+                      {services.map((svc) => {
                         const selected = form.serviceId === svc.id;
                         return (
                           <button
@@ -977,14 +1061,31 @@ export default function CostEstimatorPage() {
 
                   {/* CTA Buttons */}
                   <div className="mt-5 space-y-2.5">
+                    {submitted ? (
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center">
+                        <Check className="h-6 w-6 text-emerald-600 mx-auto mb-2" />
+                        <p className="text-sm font-semibold text-emerald-800">Quote request submitted!</p>
+                        <p className="text-xs text-emerald-700 mt-1">Our team will contact you within 24 hours.</p>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSubmitQuote}
+                        disabled={submitting || cost.total === 0}
+                        className="w-full h-11 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {submitting ? "Submitting..." : "Submit Quote Request"}
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => {
                         window.location.href = "/services";
                       }}
-                      className="w-full h-11 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      className="w-full h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors"
                     >
-                      Get Exact Quote
+                      Browse Services
                       <ArrowRight className="h-4 w-4" />
                     </button>
                     <button

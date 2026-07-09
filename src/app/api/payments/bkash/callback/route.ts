@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { validateBkashPayment } from '@/lib/payments'
+import { verifyCallbackIp } from '@/lib/payment-callback-security'
 
 export async function POST(request: Request) {
+  // H10: Reject callbacks from IPs not on the gateway whitelist (if configured).
+  const ipCheck = await verifyCallbackIp()
+  if (!ipCheck.ok) {
+    console.warn('[bKash Callback] Rejected IP:', ipCheck.ip)
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   try {
     const body = await request.json()
 

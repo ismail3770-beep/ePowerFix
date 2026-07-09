@@ -42,6 +42,21 @@ export async function POST(request: Request) {
       )
     }
 
+    // Ownership check: the order must belong to the authenticated user.
+    // Guest orders (userId null) cannot be paid for online.
+    if (!order.userId) {
+      return NextResponse.json(
+        { error: 'Please log in to pay for this order online' },
+        { status: 403 }
+      )
+    }
+    if (order.userId !== auth.user!.id) {
+      return NextResponse.json(
+        { error: 'Forbidden: you do not own this order' },
+        { status: 403 }
+      )
+    }
+
     if (order.status !== 'PENDING') {
       return NextResponse.json(
         { error: `Order is already ${order.status}, cannot initiate payment` },

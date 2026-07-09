@@ -16,9 +16,22 @@ export default function AnnouncementBar() {
 
   return (
     <div className="bg-slate-900 text-slate-400 text-[14px] relative overflow-hidden">
+      <style jsx>{`
+        @keyframes epf-marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .epf-marquee-track {
+          animation: epf-marquee 40s linear infinite;
+          will-change: transform;
+        }
+        .epf-marquee-track:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-12 flex items-center h-[36px]">
         <div className="flex-1 overflow-hidden">
-          <div className="announce-bar flex whitespace-nowrap gap-12">
+          <div className="epf-marquee-track flex whitespace-nowrap gap-12 w-max">
             {messages.map((m, i) => (
               <span key={i} className="flex items-center gap-2">
                 <m.icon className="h-3 w-3 text-slate-600" />

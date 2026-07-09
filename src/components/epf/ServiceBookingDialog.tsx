@@ -64,7 +64,8 @@ export default function ServiceBookingDialog() {
     fetch(`/api/services?category=all`)
       .then((r) => r.json())
       .then((data) => {
-        const found = (data.services || []).find((s: Service) => s.id === bookingServiceId);
+        const services = data?.data?.services || data?.services || [];
+        const found = (services || []).find((s: Service) => s.id === bookingServiceId);
         if (found) {
           setService(found);
           setServiceImages(parseImages(found.images));
@@ -111,13 +112,15 @@ export default function ServiceBookingDialog() {
       return;
     }
     const phone = form.customerPhone.startsWith("+880") ? form.customerPhone : `+880${form.customerPhone.replace(/^0/, "")}`;
+    const combinedNotes = form.customerName.trim() ? `Customer: ${form.customerName.trim()}\n${form.description ?? ''}`.trim() : (form.description ?? '');
     mutation.mutate({
       serviceId: bookingServiceId || "",
+      customerName: form.customerName.trim(),
       phone,
       bookingDate: form.preferredDate,
       bookingTime: form.preferredTime,
       address: `${form.address}, ${form.area}`,
-      notes: form.description ?? '',
+      notes: combinedNotes,
     });
   };
 

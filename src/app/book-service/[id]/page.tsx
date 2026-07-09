@@ -13,6 +13,7 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 interface Service {
   id: string;
   name: string;
+  slug?: string;
   description: string;
   basePrice: number;
   priceUnit: string;
@@ -58,7 +59,7 @@ export default function BookServicePage() {
       try {
         const res: any = await apiFetch("/api/services");
         const services = res?.services || res?.data?.services || [];
-        const found = services.find((s: Service) => s.id === serviceId);
+        const found = services.find((s: Service) => s.id === serviceId || s.slug === serviceId);
         if (found) setService(found);
         else setNotFound(true);
       } catch {
@@ -88,11 +89,12 @@ export default function BookServicePage() {
         credentials: "include",
         body: JSON.stringify({
           serviceId: serviceId,
+          customerName: form.customerName.trim(),
           phone,
           bookingDate: form.preferredDate,
           bookingTime: form.preferredTime,
           address: `${form.address}, ${form.area}`,
-          notes: form.description,
+          notes: form.customerName.trim() ? `Customer: ${form.customerName.trim()}\n${form.description}`.trim() : form.description,
         }),
       });
       if (!res.ok) {

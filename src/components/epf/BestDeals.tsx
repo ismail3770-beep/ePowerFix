@@ -46,7 +46,7 @@ export default function BestDeals() {
           </div>
 
           <a
-            href="/best-deals"
+            href="/deals"
             className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-epf-500 hover:text-epf-600 transition-colors border border-epf-500 hover:border-epf-600 rounded-md px-4 py-2"
           >
             View All
@@ -84,7 +84,7 @@ export default function BestDeals() {
         {/* ── Mobile "View All" ── */}
         <div className="sm:hidden mt-6 text-center">
           <a
-            href="/best-deals"
+            href="/deals"
             className="inline-flex items-center justify-center gap-1.5 w-full text-sm font-medium text-white bg-epf-500 hover:bg-epf-600 rounded-md px-4 py-3 transition-colors"
           >
             View All Products

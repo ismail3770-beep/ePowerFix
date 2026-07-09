@@ -258,7 +258,11 @@ export const schemas = {
   // Service booking
   serviceBooking: z.object({
     serviceId: z.string().min(1),
-    bookingDate: z.string().min(1),
+    customerName: z.string().max(200).optional(),
+    bookingDate: z.string().min(1).refine(
+      (d) => !isNaN(Date.parse(d)) && new Date(d) >= new Date(new Date().toDateString()),
+      { message: 'Booking date must be a valid present/future date' }
+    ),
     bookingTime: z.string().min(1),
     address: z.string().min(1),
     phone: z.string().min(6),

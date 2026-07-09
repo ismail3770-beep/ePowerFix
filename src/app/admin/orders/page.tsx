@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Eye } from "lucide-react";
+import Pagination from "@/components/admin/Pagination";
 
 type OrderStatus = "PENDING" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
@@ -52,6 +53,51 @@ interface Order {
   subtotal: number;
   shipping: number;
   tax: number;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  notes?: string | null;
+  deliveryCharge?: number | null;
+  discount?: number | null;
+}
+
+/**
+ * The shipping address is stored as JSON inside `order.notes` (admin-created
+ * orders) OR is composed from customerName/customerPhone + notes (frontend
+ * orders). Try parsing notes first, fall back to scattered fields.
+ */
+function extractShippingAddress(order: Order): OrderAddress | null {
+  if (order.shippingAddress) return order.shippingAddress;
+  if (order.notes) {
+    try {
+      const parsed = JSON.parse(order.notes);
+      if (parsed && typeof parsed === 'object' && (parsed.address || parsed.name)) {
+        return {
+          name: parsed.name || order.customerName || '',
+          phone: parsed.phone || order.customerPhone || '',
+          address: parsed.address || '',
+          city: parsed.city || '',
+          state: parsed.state || '',
+          zip: parsed.zip || '',
+          country: parsed.country || 'Bangladesh',
+        };
+      }
+    } catch {
+      // notes is a plain string (not JSON) — fall through to scattered fields.
+    }
+  }
+  if (order.customerName || order.customerPhone) {
+    return {
+      name: order.customerName || '',
+      phone: order.customerPhone || '',
+      address: order.notes || '',
+      city: '',
+      state: '',
+      zip: '',
+      country: 'Bangladesh',
+    };
+  }
+  return null;
 }
 
 const statusColors: Record<OrderStatus, "default" | "secondary" | "destructive" | "outline"> & Record<string, any> = {
@@ -83,18 +129,24 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Order | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const PAGE_LIMIT = 20;
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const res: any = await apiFetch("/api/admin/orders");
+      const res: any = await apiFetch(`/api/admin/orders?page=${page}&limit=${PAGE_LIMIT}`);
       setOrders(res.data?.data ?? []);
+      setTotal(res.data?.total ?? 0);
+      setTotalPages(res.data?.totalPages ?? 1);
     } catch (err: any) {
       toast.error(err.message || "Failed to load orders");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
@@ -171,6 +223,9 @@ export default function AdminOrdersPage() {
               </Table>
             </div>
           )}
+          <div className="px-4 pb-4">
+            <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
 
@@ -224,17 +279,21 @@ export default function AdminOrdersPage() {
                   </Select>
                 </div>
 
-                {detail.shippingAddress && (
-                  <div>
-                    <p className="text-sm font-medium mb-1">Shipping Address</p>
-                    <p className="text-sm text-muted-foreground">
-                      {detail.shippingAddress.name}, {detail.shippingAddress.phone}<br />
-                      {detail.shippingAddress.address}<br />
-                      {detail.shippingAddress.city}, {detail.shippingAddress.state} {detail.shippingAddress.zip}<br />
-                      {detail.shippingAddress.country}
-                    </p>
-                  </div>
-                )}
+                {(() => {
+                  const addr = detail ? extractShippingAddress(detail) : null;
+                  if (!addr) return null;
+                  return (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Shipping Address</p>
+                      <p className="text-sm text-muted-foreground">
+                        {addr.name}, {addr.phone}<br />
+                        {addr.address}<br />
+                        {addr.city}{addr.city && (addr.state || addr.zip) ? ', ' : ''}{addr.state} {addr.zip}<br />
+                        {addr.country}
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <p className="text-sm font-medium mb-2">Items</p>

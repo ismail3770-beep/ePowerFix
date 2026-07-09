@@ -173,7 +173,7 @@ export default function ShopSection() {
                       itemType: "PROJECT",
                       category: kit.category,
                     }}
-                    onCardClick={(id) => { setSelectedProjectId(id); setProjectDetailOpen(true); }}
+                    onCardClick={(id) => { window.location.href = `/project-kits/${(kit as any).slug || id}`; }}
                     onAddToCart={(d) => addKit({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, kit)}
                   />
                   </FadeInItem>

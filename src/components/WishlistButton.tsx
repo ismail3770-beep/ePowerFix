@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { apiFetch } from "@/lib/api";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface WishlistButtonProps {
   productId: string;
@@ -13,6 +15,7 @@ interface WishlistButtonProps {
 
 export default function WishlistButton({ productId, initialFav = false, className = "" }: WishlistButtonProps) {
   const { user } = useAuthStore();
+  const router = useRouter();
   const [isFav, setIsFav] = useState(initialFav);
   const [pending, setPending] = useState(false);
 
@@ -21,8 +24,8 @@ export default function WishlistButton({ productId, initialFav = false, classNam
     e.preventDefault();
 
     if (!user) {
-      alert("Please login first to save favorites");
-      window.location.href = "/login";
+      toast.error("Please login to save favorites");
+      router.push("/login");
       return;
     }
 
@@ -35,13 +38,15 @@ export default function WishlistButton({ productId, initialFav = false, classNam
         if (item) {
           await apiFetch(`/api/wishlist/${item.id}`, { method: "DELETE" });
           setIsFav(false);
+          toast.success("Removed from wishlist");
         }
       } else {
         await apiFetch("/api/wishlist", { method: "POST", body: JSON.stringify({ productId }) });
         setIsFav(true);
+        toast.success("Added to wishlist");
       }
-    } catch {
-      // Silently fail
+    } catch (err: any) {
+      toast.error(err?.message || "Could not update wishlist");
     } finally {
       setPending(false);
     }
@@ -51,6 +56,7 @@ export default function WishlistButton({ productId, initialFav = false, classNam
     <button
       onClick={handleClick}
       disabled={pending}
+      aria-label={isFav ? "Remove from wishlist" : "Add to wishlist"}
       className={`w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center hover:scale-110 transition-transform z-10 ${className}`}
     >
       <Bookmark

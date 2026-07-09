@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Shield, ShieldOff, Trash2 } from "lucide-react";
+import Pagination from "@/components/admin/Pagination";
 
 interface User {
   id: string;
@@ -36,19 +37,29 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const PAGE_LIMIT = 20;
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = search ? `?search=${encodeURIComponent(search)}` : "";
+      const qs = new URLSearchParams();
+      if (search) qs.set("search", search);
+      qs.set("page", String(page));
+      qs.set("limit", String(PAGE_LIMIT));
+      const params = qs.toString() ? `?${qs.toString()}` : "";
       const res: any = await apiFetch(`/api/admin/users${params}`);
       setUsers(res.data?.data ?? []);
+      setTotal(res.data?.total ?? 0);
+      setTotalPages(res.data?.totalPages ?? 1);
     } catch (err: any) {
       toast.error(err.message || "Failed to load users");
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, page]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
@@ -189,6 +200,9 @@ export default function AdminUsersPage() {
               </Table>
             </div>
           )}
+          <div className="px-4 pb-4">
+            <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
     </div>

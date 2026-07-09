@@ -57,11 +57,16 @@ export async function POST(request: NextRequest) {
 
     return jsonResponse({ data: { response } })
   } catch (err: any) {
+    // L7: Surface a clearly-marked fallback instead of silently swallowing the
+    // error, so the UI can decide whether to retry or show a "try again later"
+    // message. We still return 200 because the chat widget expects a message
+    // shape, but include `fallback: true` so the client can differentiate.
     console.error('public/ai/agent POST error:', err)
     return jsonResponse({
       data: {
         response:
-          "I'm here to help! You can browse our products on the Shop page, book a service, or contact us at info@epowerfix.com.",
+          "I'm having trouble connecting to my brain right now. You can still browse our products on the Shop page, book a service, or contact us at info@epowerfix.com.",
+        fallback: true,
       },
     })
   }

@@ -1,6 +1,15 @@
 /**
  * Test-mode payment token utilities.
  * Only used in development when payment gateway keys are not configured.
+ *
+ * L5 NOTE: These tokens live in an in-process Map, which is NOT shared across
+ * serverless function invocations. In production (Vercel, Netlify, etc.) this
+ * means a test token issued by one invocation may not be found by the next.
+ * This is acceptable because test mode is dev-only — production deployments
+ * must use real gateway credentials and the real gateway callback flow.
+ *
+ * If you need test tokens to persist in CI/staging, swap this Map for a
+ * DB-backed store keyed by the token string.
  */
 
 const testTokens = new Map<string, { orderId: string; tranId: string; expiresAt: number }>()

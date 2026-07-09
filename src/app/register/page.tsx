@@ -124,7 +124,9 @@ export default function RegisterPage() {
         if (signInRes.data?.user) {
           setUser(signInRes.data.user);
           toast.success("অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!");
-          router.push(signInRes.data.user.role === "ADMIN" ? "/admin" : "/");
+          // Always send customer registrations to the home page.
+          // Admin access should only happen via /admin/login separately.
+          router.push("/");
           return;
         }
       } catch {

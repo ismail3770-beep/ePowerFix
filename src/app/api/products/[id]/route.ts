@@ -32,16 +32,22 @@ export async function GET(
 
     if (!product) return errorResponse('Product not found', 404)
 
-    const related = await db.product.findMany({
-      where: {
-        categoryId: product.categoryId,
-        isActive: true,
-        id: { not: product.id },
-      },
-      take: 4,
-      orderBy: { createdAt: 'desc' },
-      include: { category: true, brand: true },
-    })
+    // M19: If the product has no category, related-by-category would return
+    // ALL products with null category (a near-full-table scan). Short-circuit
+    // to an empty related list instead.
+    let related: any[] = []
+    if (product.categoryId) {
+      related = await db.product.findMany({
+        where: {
+          categoryId: product.categoryId,
+          isActive: true,
+          id: { not: product.id },
+        },
+        take: 4,
+        orderBy: { createdAt: 'desc' },
+        include: { category: true, brand: true },
+      })
+    }
 
     const parsed = {
       ...product,
@@ -60,7 +66,8 @@ export async function GET(
 
     return jsonResponse({ data: { product: parsed, related: parsedRelated } })
   } catch (err: any) {
+    // M20: Don't leak internal error details to the client.
     console.error('public/products/[id] GET error:', err)
-    return errorResponse(err?.message || 'Internal server error', 500)
+    return errorResponse('Internal server error', 500)
   }
 }

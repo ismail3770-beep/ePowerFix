@@ -91,7 +91,15 @@ export default function CouponsPage() {
   if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;
 
   const today = new Date();
-  const isValidDate = (d: string) => d && new Date(d) > today;
+  // L10: A coupon is "Active" only if today falls between validFrom AND validTo.
+  const isCurrentlyValid = (c: Coupon) => {
+    if (!c.validTo) return false;
+    const from = c.validFrom ? new Date(c.validFrom) : null;
+    const to = new Date(c.validTo);
+    if (to <= today) return false;
+    if (from && from > today) return false; // scheduled for the future
+    return true;
+  };
 
   return (
     <div className="space-y-6">
@@ -109,7 +117,7 @@ export default function CouponsPage() {
             <TableCell>{c.discountType==="PERCENTAGE"?`${c.discount}%`:`৳${c.discount}`}</TableCell>
             <TableCell>{c.minOrder?`৳${c.minOrder}`:"-"}</TableCell>
             <TableCell>{c.usedCount??0}/{c.maxUses||"∞"}</TableCell>
-            <TableCell><Badge variant={isValidDate(c.validTo)?"default":"secondary"}>{isValidDate(c.validTo)?"Active":"Expired"}</Badge></TableCell>
+            <TableCell><Badge variant={isCurrentlyValid(c)?"default":"secondary"}>{isCurrentlyValid(c)?"Active":"Expired"}</Badge></TableCell>
             <TableCell><Switch checked={c.isActive} onCheckedChange={()=>toggleActive(c)} /></TableCell>
             <TableCell>
               <div className="flex gap-2">

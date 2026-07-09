@@ -80,7 +80,7 @@ function ProductCard({ product }: { product: Product }) {
     <div
       className="hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden bg-slate-100 rounded-lg"
       onClick={() => {
-        window.location.href = "/best-deals";
+        window.location.href = `/shop/${product.id}`;
       }}
     >
       {/* Image — square, centered */}
@@ -155,14 +155,12 @@ export default function FlashDeals() {
           <div className="lg:col-span-5 bg-white flex gap-4">
             {/* Vertical Promotional Banner — leftmost, full height */}
             <div
-              className="hidden sm:flex items-center justify-center overflow-hidden shrink-0 self-stretch w-[160px] rounded-lg bg-slate-800"
+              className="hidden sm:flex flex-col items-center justify-center shrink-0 self-stretch w-[160px] rounded-lg px-3 text-center"
+              style={{ background: "linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%)" }}
             >
-              <img
-                src="https://sfile.chatglm.cn/images-ppt/f8fbf23c3db0.jpg"
-                alt="Flash Deals"
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
+              <EPFCircuitBreaker size={36} className="text-amber-300 mb-2" />
+              <p className="text-white text-sm font-bold leading-tight">Flash Deals</p>
+              <p className="text-amber-300/80 text-[11px] mt-1">Up to 50% off</p>
             </div>
 
             {/* Right of banner: heading → counter → 4 cards */}
@@ -176,13 +174,13 @@ export default function FlashDeals() {
                   </h3>
                   <div className="flex items-center gap-2">
                     <a
-                      href="/best-deals"
+                      href="/deals"
                       className="text-xs font-medium text-slate-900 px-3 py-1.5 transition-colors bg-white rounded"
                     >
                       View All Products
                     </a>
                     <a
-                      href="/best-deals"
+                      href="/deals"
                       className="inline-flex items-center gap-1 text-white text-xs font-semibold px-4 py-1.5 transition-colors rounded-full bg-slate-900"
                     >
                       All Deals
@@ -219,7 +217,7 @@ export default function FlashDeals() {
                 </p>
               </div>
               <a
-                href="/best-deals"
+                href="/deals"
                 className="inline-flex items-center gap-1 text-white text-xs font-semibold px-3.5 py-1.5 transition-colors self-start rounded bg-slate-700"
               >
                 View All

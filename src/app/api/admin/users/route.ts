@@ -30,7 +30,7 @@ const createUserSchema = z.object({
   name: z.string().min(1),
   nameBn: z.string().optional(),
   email: z.string().min(1),
-  phone: z.string().min(1),
+  phone: z.string().min(1).optional().nullable().default(''),
   password: z.string().min(1),
   role: z.string().optional(),
   avatar: z.string().optional(),
@@ -75,16 +75,20 @@ export const POST = adminRoute(createUserSchema, async (request, body, user) => 
 
   if (!name) return errorResponse('name is required', 400)
   if (!email) return errorResponse('email is required', 400)
-  if (!phone) return errorResponse('phone is required', 400)
   if (!password) return errorResponse('password is required', 400)
+
+  const phoneValue = phone || ''
 
   const emailExists = await db.user.findUnique({
     where: { email: email.toLowerCase().trim() },
   })
   if (emailExists) return errorResponse('Email already in use', 400)
 
-  const phoneExists = await db.user.findUnique({ where: { phone } })
-  if (phoneExists) return errorResponse('Phone already in use', 400)
+  // Only enforce phone uniqueness when a phone is actually provided.
+  if (phoneValue) {
+    const phoneExists = await db.user.findUnique({ where: { phone: phoneValue } })
+    if (phoneExists) return errorResponse('Phone already in use', 400)
+  }
 
   const hashed = bcrypt.hashSync(password, 10)
   const created = await db.user.create({
@@ -92,7 +96,7 @@ export const POST = adminRoute(createUserSchema, async (request, body, user) => 
       name,
       nameBn: nameBn || null,
       email: email.toLowerCase().trim(),
-      phone,
+      phone: phoneValue,
       password: hashed,
       role: role || 'CUSTOMER',
       avatar: avatar || null,
