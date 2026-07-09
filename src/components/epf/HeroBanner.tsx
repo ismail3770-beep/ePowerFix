@@ -164,7 +164,7 @@ export default function HeroBanner() {
 
   /* ── Render ─────────────────────────────────────────────── */
   return (
-    <section className="bg-[#f8f9fa]">
+    <section className="bg-slate-50">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-6 sm:py-10">
         <div
           className="relative overflow-hidden rounded-lg group min-h-[280px] sm:min-h-[350px] lg:min-h-[420px]"

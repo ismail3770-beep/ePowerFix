@@ -79,10 +79,10 @@ export default function Footer() {
   }, []);
 
   const socials = [
-    { icon: Facebook, label: "Facebook", url: settings.facebookUrl },
-    { icon: Twitter, label: "Twitter", url: settings.twitterUrl },
-    { icon: Instagram, label: "Instagram", url: settings.instagramUrl },
-    { icon: Youtube, label: "YouTube", url: settings.youtubeUrl },
+    { icon: Facebook, label: "Facebook", url: settings.facebookUrl ?? undefined },
+    { icon: Twitter, label: "Twitter", url: settings.twitterUrl ?? undefined },
+    { icon: Instagram, label: "Instagram", url: settings.instagramUrl ?? undefined },
+    { icon: Youtube, label: "YouTube", url: settings.youtubeUrl ?? undefined },
   ].filter((s) => s.url);
 
   return (

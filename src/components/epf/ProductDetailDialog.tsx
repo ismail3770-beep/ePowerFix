@@ -26,7 +26,8 @@ interface Product {
 
 export default function ProductDetailDialog() {
   const { productDetailOpen, setProductDetailOpen, selectedProductId, setSelectedProductId } = useUIStore();
-  const { addItem, setCartOpen } = useCartStore();
+  const { addItem } = useCartStore();
+  const { setCartOpen } = useUIStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState(1);
   const [specs, setSpecs] = useState<Record<string, string>>({});

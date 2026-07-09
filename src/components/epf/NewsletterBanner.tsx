@@ -33,7 +33,7 @@ export default function NewsletterBanner() {
   };
 
   return (
-    <section className="bg-dark-900">
+    <section className="bg-slate-900">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-12 sm:py-16">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           {/* Left Content */}
@@ -50,7 +50,7 @@ export default function NewsletterBanner() {
                 <h3 className="text-white text-xl sm:text-2xl font-bold">
                   Save Up to 50% with Our Coupons
                 </h3>
-                <p className="text-dark-400 text-sm sm:text-[15px] mt-2 max-w-md">
+                <p className="text-slate-400 text-sm sm:text-[15px] mt-2 max-w-md">
                   {error ? (
                     <span className="text-red-400">{error}</span>
                   ) : (

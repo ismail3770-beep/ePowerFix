@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store";
 import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
+import { addRecentlyViewed } from "@/components/epf/RecentlyViewed";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Premium Product Card — clean e-commerce card with hover-reveal cart button
@@ -63,6 +64,14 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       : data.badge || (data.isBestDeal ? "Best Deal" : data.isFeatured ? "Featured" : null);
 
   const handleClick = () => {
+    addRecentlyViewed(data.id, {
+      id: data.id,
+      name: data.name,
+      price: data.price,
+      salePrice: data.salePrice,
+      comparePrice: data.comparePrice,
+      images: data.images || [],
+    });
     if (onCardClick) onCardClick(data.id);
   };
 

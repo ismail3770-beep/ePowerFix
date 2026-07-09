@@ -86,7 +86,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 h-16 w-full border-t border-dark-200 bg-white/95 backdrop-blur-sm pb-1 lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 h-16 w-full border-t border-slate-200 bg-white/95 backdrop-blur-sm pb-1 lg:hidden"
       role="navigation"
       aria-label="Mobile bottom navigation"
     >
@@ -106,7 +106,7 @@ export default function MobileBottomNav() {
                 key={item.label}
                 type="button"
                 onClick={item.onClick}
-                className={`${shared} ${isActive ? "text-epf-500 font-medium" : "text-dark-500"}`}
+                className={`${shared} ${isActive ? "text-epf-500 font-medium" : "text-slate-500"}`}
                 aria-label={item.label}
               >
                 {item.icon}
@@ -125,7 +125,7 @@ export default function MobileBottomNav() {
             <Link
               key={item.label}
               href={item.href}
-              className={`${shared} ${isActive ? "text-epf-500 font-medium" : "text-dark-500"}`}
+              className={`${shared} ${isActive ? "text-epf-500 font-medium" : "text-slate-500"}`}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
             >

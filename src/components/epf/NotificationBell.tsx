@@ -67,8 +67,8 @@ export default function NotificationBell() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="relative flex items-center justify-center h-10 w-10 rounded-lg border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] transition-colors">
-          <Bell className="h-5 w-5 text-[#374151]" />
+        <button className="relative flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+          <Bell className="h-5 w-5 text-slate-700" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex items-center justify-center min-h-[18px] min-w-[18px] h-[18px] w-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold px-1">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -77,15 +77,15 @@ export default function NotificationBell() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between px-3 py-2.5 border-b border-[#E2E8F0]">
-          <p className="text-sm font-semibold text-[#111827]">
-            Notifications {unreadCount > 0 && <span className="text-[#6B7280] font-normal">({unreadCount} new)</span>}
+        <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-200">
+          <p className="text-sm font-semibold text-slate-900">
+            Notifications {unreadCount > 0 && <span className="text-slate-500 font-normal">({unreadCount} new)</span>}
           </p>
           {unreadCount > 0 && (
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 text-[11px] px-2 text-[#0EA5E9]"
+              className="h-7 text-[11px] px-2 text-epf-500"
               onClick={() => markAllReadMutation.mutate()}
             >
               <CheckCheck className="size-3.5 mr-1" />
@@ -96,25 +96,25 @@ export default function NotificationBell() {
 
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10">
-            <Bell className="h-8 w-8 text-[#CBD5E1] mb-2" />
-            <p className="text-[13px] text-[#6B7280]">No notifications yet</p>
+            <Bell className="h-8 w-8 text-slate-300 mb-2" />
+            <p className="text-[13px] text-slate-500">No notifications yet</p>
           </div>
         ) : (
           <div className="max-h-[360px] overflow-y-auto">
             {notifications.map((n) => (
               <DropdownMenuItem
                 key={n.id}
-                className="flex-col items-start gap-1 p-3 cursor-pointer hover:bg-[#F8FAFC] focus:bg-[#F8FAFC] border-b border-[#F1F5F9] last:border-0"
+                className="flex-col items-start gap-1 p-3 cursor-pointer hover:bg-slate-50 focus:bg-slate-50 border-b border-slate-100 last:border-0"
                 onClick={() => !n.isRead && markReadMutation.mutate(n.id)}
               >
                 <div className="flex items-center justify-between w-full">
-                  <p className={`text-[13px] ${n.isRead ? "font-medium text-[#374151]" : "font-semibold text-[#111827]"}`}>
+                  <p className={`text-[13px] ${n.isRead ? "font-medium text-slate-700" : "font-semibold text-slate-900"}`}>
                     {n.title}
                   </p>
-                  {!n.isRead && <span className="h-2 w-2 rounded-full bg-[#0EA5E9] shrink-0" />}
+                  {!n.isRead && <span className="h-2 w-2 rounded-full bg-epf-500 shrink-0" />}
                 </div>
-                <p className="text-[12px] text-[#6B7280] leading-snug w-full">{n.message}</p>
-                <p className="text-[11px] text-[#94A3B8]">{timeAgo(n.createdAt)}</p>
+                <p className="text-[12px] text-slate-500 leading-snug w-full">{n.message}</p>
+                <p className="text-[11px] text-slate-400">{timeAgo(n.createdAt)}</p>
               </DropdownMenuItem>
             ))}
           </div>

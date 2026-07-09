@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import AnnouncementBar from "@/components/epf/AnnouncementBar";
 import Header from "@/components/epf/Header";
 import HeroBanner from "@/components/epf/HeroBanner";
+import BrandStrip from "@/components/epf/BrandStrip";
 import BestDeals from "@/components/epf/BestDeals";
 import ServicesSection from "@/components/epf/ServicesSection";
 import ShopSection from "@/components/epf/ShopSection";
 import ProjectsSection from "@/components/epf/ProjectsSection";
 import TrustBar from "@/components/epf/TrustBar";
+import RecentlyViewed from "@/components/epf/RecentlyViewed";
 import NewsletterBanner from "@/components/epf/NewsletterBanner";
 import Footer from "@/components/epf/Footer";
 import HomeClient from "@/components/epf/HomeClient";
@@ -40,11 +42,13 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <HeroBanner />
+        <BrandStrip />
         <FadeIn delay={0.1}><BestDeals /></FadeIn>
         <FadeIn delay={0.15}><ServicesSection /></FadeIn>
         <FadeIn delay={0.2}><ShopSection /></FadeIn>
         <FadeIn delay={0.25}><ProjectsSection /></FadeIn>
-        <FadeIn delay={0.3}><TrustBar /></FadeIn>
+        <TrustBar />
+        <RecentlyViewed />
         <FadeIn delay={0.35}><NewsletterBanner /></FadeIn>
       </main>
       <Footer />
