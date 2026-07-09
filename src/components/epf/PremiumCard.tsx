@@ -3,6 +3,7 @@
 import { useState, memo } from "react";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import { useCartStore } from "@/store";
 import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
@@ -110,7 +111,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       )}
     >
       {/* ─── Image Area (taller proportion for better visual presence) ─── */}
-      <div className="relative aspect-[4/5.2] bg-slate-50 overflow-hidden flex items-center justify-center">
+      <div className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 overflow-hidden flex items-center justify-center`}>
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
@@ -209,7 +210,7 @@ export const PremiumCard = memo(PremiumCardBase);
 export function PremiumCardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className="aspect-[4/5.2] bg-slate-100 animate-pulse" />
+      <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 animate-pulse`} />
       <div className="p-2.5 space-y-2">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />

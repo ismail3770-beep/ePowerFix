@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { EPFCpu } from "@/components/epf/icons/EPFIcons";
 import { apiFetch } from "@/lib/api";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 
 interface Project {
   id: string;
@@ -57,7 +58,7 @@ export default function ProjectsSection() {
                 key={i}
                 className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden animate-pulse"
               >
-                <div className="aspect-square bg-slate-100" />
+                <div className={`${CARD_IMAGE_ASPECT} bg-slate-100`} />
                 <div className="h-9 bg-slate-200" />
                 <div className="p-2.5 space-y-2">
                   <div className="h-3 bg-slate-100 rounded w-3/4" />
@@ -82,7 +83,7 @@ export default function ProjectsSection() {
                   className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   {/* Image — taller proportion to match product cards */}
-                  <div className="relative aspect-[4/5.2] bg-slate-50 overflow-hidden">
+                  <div className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 overflow-hidden`}>
                     {cover ? (
                       <img
                         src={cover}

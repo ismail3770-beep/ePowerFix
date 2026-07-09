@@ -25,6 +25,7 @@ import {
 import { toast } from "sonner";
 import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
@@ -114,7 +115,7 @@ const RATING_OPTIONS = [5, 4, 3, 2, 1];
 function ProductCardSkeleton() {
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-sm animate-pulse overflow-hidden">
-      <div className="aspect-square bg-slate-100" />
+      <div className={`${CARD_IMAGE_ASPECT} bg-slate-100`} />
       <div className="p-3.5 space-y-2.5">
         <div className="h-3 bg-slate-100 rounded w-16" />
         <div className="h-4 bg-slate-100 rounded w-full" />
@@ -223,13 +224,13 @@ function ProductCardGrid({ product }: { product: Product }) {
   return (
     <div className="group bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
       {/* Image */}
-      <div className="relative overflow-hidden aspect-square bg-slate-50">
+      <div className={`relative overflow-hidden ${CARD_IMAGE_ASPECT} bg-slate-50`}>
         <a href={`/product/${product.id}`} className="block w-full h-full">
           {product.image ? (
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
             />
           ) : isDigital ? (
             <div className="w-full h-full flex items-center justify-center">

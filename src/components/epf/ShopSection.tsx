@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import { toast } from "sonner";
 import { PremiumCard, PremiumCardSkeleton, type PremiumCardData } from "@/components/epf/PremiumCard";
 import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
@@ -61,7 +62,7 @@ function CardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
       <div className="animate-pulse">
-        <div className="aspect-[4/5.2] bg-slate-100" />
+        <div className={`${CARD_IMAGE_ASPECT} bg-slate-100`} />
         <div className="p-2.5 space-y-2">
           <div className="h-3 bg-slate-100 rounded w-3/4" />
           <div className="h-4 bg-slate-100 rounded w-1/3 mt-1" />

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
@@ -115,7 +116,7 @@ function CountdownTimer() {
 function DealCardSkeleton() {
   return (
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] animate-pulse">
-      <div className="aspect-square bg-slate-100 rounded-t-lg" />
+      <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 rounded-t-lg`} />
       <div className="p-3.5 space-y-2.5">
         <div className="h-3.5 bg-slate-100 rounded w-full" />
         <div className="h-3.5 bg-slate-100 rounded w-3/4" />
@@ -199,7 +200,7 @@ function DealCard({ product }: { product: Product }) {
     <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 group flex flex-col">
       {/* Image Area */}
       <div
-        className="relative aspect-square bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer"
+        className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer`}
         onClick={handleViewDetails}
       >
         {isDigital ? (

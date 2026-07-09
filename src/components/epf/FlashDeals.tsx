@@ -8,6 +8,7 @@ import {
 } from "@/components/epf/icons/EPFIcons";
 import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 
 interface Product {
   id: string;
@@ -83,8 +84,8 @@ function ProductCard({ product }: { product: Product }) {
         window.location.href = `/shop/${product.id}`;
       }}
     >
-      {/* Image — landscape 4:3, centered */}
-      <div className="aspect-[4/3] flex items-center justify-center p-2 bg-white">
+      {/* Image — shared card aspect ratio */}
+      <div className={`${CARD_IMAGE_ASPECT} flex items-center justify-center p-2 bg-white`}>
         {product.images?.[0] ? (
           <img
             src={product.images[0]}

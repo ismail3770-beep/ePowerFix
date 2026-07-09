@@ -15,6 +15,7 @@ import CartDrawer from '@/components/epf/CartDrawer'
 import CheckoutDialog from '@/components/epf/CheckoutDialog'
 import ChatWidget from '@/components/epf/ChatWidget'
 import BackToTopButton from '@/components/epf/BackToTopButton'
+import { CARD_IMAGE_ASPECT } from '@/lib/card-image'
 
 interface WishlistItem {
   id: string
@@ -140,7 +141,7 @@ export default function WishlistPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {items.map((item) => (
                 <Card key={item.id} className="overflow-hidden">
-                  <div className="aspect-square bg-slate-100 relative">
+                  <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 relative`}>
                     {renderImage(item)}
                     <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => handleRemove(item.id)}>
                       <Trash2 className="w-4 h-4" />

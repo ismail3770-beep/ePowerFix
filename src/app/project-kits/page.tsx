@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
+import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
@@ -106,7 +107,7 @@ function parseImages(val: unknown): string[] {
 function KitCardSkeleton() {
   return (
     <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-      <div className="aspect-square bg-slate-100 animate-pulse" />
+      <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 animate-pulse`} />
       <div className="p-3 space-y-2">
         <div className="h-2 w-16 bg-slate-100 rounded animate-pulse" />
         <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
@@ -180,7 +181,7 @@ function KitCardGrid({ kit }: { kit: Kit }) {
       className="group flex flex-col text-left bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 cursor-pointer"
     >
       {/* ─── Image Area (square, object-contain) ─── */}
-      <div className="relative aspect-square bg-slate-50 overflow-hidden flex items-center justify-center">
+      <div className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 overflow-hidden flex items-center justify-center`}>
         {cover ? (
           <img
             src={cover}
