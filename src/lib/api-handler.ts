@@ -225,6 +225,7 @@ export const schemas = {
   }),
   register: z.object({
     name: z.string().min(2),
+    nameBn: z.string().optional(),
     email: z.string().email(),
     phone: z.string().min(6),
     password: z.string().min(6),

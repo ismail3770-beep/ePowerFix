@@ -1,11 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Trash2, ShoppingCart, Heart, Package } from 'lucide-react'
+import { Trash2, Heart, ShoppingCart, ChevronRight, Home, X, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useCartStore } from '@/store'
@@ -15,7 +13,11 @@ import CartDrawer from '@/components/epf/CartDrawer'
 import CheckoutDialog from '@/components/epf/CheckoutDialog'
 import ChatWidget from '@/components/epf/ChatWidget'
 import BackToTopButton from '@/components/epf/BackToTopButton'
-import { CARD_IMAGE_ASPECT } from '@/lib/card-image'
+import {
+  PremiumCard,
+  PremiumCardSkeleton,
+  type PremiumCardData,
+} from '@/components/epf/PremiumCard'
 
 interface WishlistItem {
   id: string
@@ -24,10 +26,10 @@ interface WishlistItem {
     id: string
     name: string
     price: number
-    salePrice?: number
+    salePrice?: number | null
     stock: number
     images: string[]
-    category?: { name: string }
+    category?: { name: string } | null
   }
 }
 
@@ -35,8 +37,9 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [clearing, setClearing] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setError(null)
     try {
       const res = await apiFetch<{ data: WishlistItem[] }>('/api/wishlist')
@@ -44,130 +47,243 @@ export default function WishlistPage() {
     } catch (err) {
       console.error(err)
       setError('Failed to load wishlist.')
+    } finally {
+      setLoading(false)
     }
-    finally { setLoading(false) }
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+  }, [load])
 
-  const handleRemove = async (id: string) => {
+  const handleRemove = useCallback(async (id: string) => {
     try {
       await apiFetch(`/api/wishlist/${id}`, { method: 'DELETE' })
       setItems((prev) => prev.filter((item) => item.id !== id))
+      toast.success('Removed from wishlist')
     } catch (err) {
       console.error(err)
       toast.error('Failed to remove item from wishlist')
     }
-  }
+  }, [])
 
-  const handleMoveToCart = async (item: WishlistItem) => {
+  const handleClearAll = useCallback(async () => {
+    if (items.length === 0) return
+    setClearing(true)
     try {
-      const { addItem } = useCartStore.getState()
-      await addItem({
-        productId: item.product.id,
-        productName: item.product.name,
-        price: item.product.salePrice || item.product.price,
-        productImage: item.product.images?.[0] || '',
-        quantity: 1,
-      })
-
-      // Now remove from wishlist
-      await apiFetch(`/api/wishlist/${item.id}`, { method: 'DELETE' })
-      setItems((prev) => prev.filter((i) => i.id !== item.id))
-
-      toast.success('Moved to cart')
+      // Remove all wishlist items in parallel
+      await Promise.all(
+        items.map((item) =>
+          apiFetch(`/api/wishlist/${item.id}`, { method: 'DELETE' })
+        )
+      )
+      setItems([])
+      toast.success('Wishlist cleared')
     } catch (err) {
       console.error(err)
-      toast.error('Failed to move item to cart')
+      toast.error('Failed to clear wishlist')
+    } finally {
+      setClearing(false)
     }
-  }
+  }, [items])
 
-  const renderImage = (item: WishlistItem, className?: string) => {
-    const src = item.product.images?.[0]
-    if (src) {
-      return <img src={src} alt={item.product.name} className={className || 'w-full h-full object-contain p-4'} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-    }
-    return <Package className="w-12 h-12 text-slate-300 mx-auto" />
-  }
+  const handleMoveToCart = useCallback(
+    async (item: WishlistItem) => {
+      try {
+        const { addItem } = useCartStore.getState()
+        await addItem({
+          productId: item.product.id,
+          productName: item.product.name,
+          price: item.product.salePrice || item.product.price,
+          productImage: item.product.images?.[0] || '',
+          quantity: 1,
+        })
 
-  if (loading) return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      <CartDrawer />
-      <CheckoutDialog />
-      <main className="flex-1 flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-      </main>
-      <Footer />
-    </div>
+        // Now remove from wishlist
+        await apiFetch(`/api/wishlist/${item.id}`, { method: 'DELETE' })
+        setItems((prev) => prev.filter((i) => i.id !== item.id))
+
+        toast.success('Moved to cart', { description: item.product.name })
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to move item to cart')
+      }
+    },
+    []
   )
 
-  if (error) return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <Header />
-      <CartDrawer />
-      <CheckoutDialog />
-      <main className="flex-1 flex items-center justify-center text-center py-16">
-        <div>
-          <p className="text-red-500 text-lg mb-4">{error}</p>
-          <button onClick={load} className="text-blue-500 hover:underline">Try Again</button>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  )
+  /* ---- Loading skeleton ---- */
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Header />
+        <CartDrawer />
+        <CheckoutDialog />
+        <main className="flex-1">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-8">
+            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-8" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PremiumCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </main>
+        <div className="mt-auto"><Footer /></div>
+        <ChatWidget />
+        <BackToTopButton />
+      </div>
+    )
+  }
+
+  /* ---- Error state ---- */
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Header />
+        <CartDrawer />
+        <CheckoutDialog />
+        <main className="flex-1 flex items-center justify-center px-4 py-16">
+          <div className="text-center max-w-md">
+            <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-8 w-8 text-red-400" />
+            </div>
+            <h2 className="text-[18px] font-bold text-slate-900 mb-2">
+              Something went wrong
+            </h2>
+            <p className="text-[14px] text-slate-500 mb-6">{error}</p>
+            <Button
+              onClick={load}
+              className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white rounded-lg font-semibold"
+            >
+              Try Again
+            </Button>
+          </div>
+        </main>
+        <div className="mt-auto"><Footer /></div>
+        <ChatWidget />
+        <BackToTopButton />
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
       <CartDrawer />
       <CheckoutDialog />
+
       <main className="flex-1">
-        <div className="mx-auto max-w-[1400px] py-8 px-4">
-          <div className="flex items-center gap-3 mb-6">
-            <Heart className="w-8 h-8 text-red-500" />
-            <h1 className="text-3xl font-bold">My Wishlist</h1>
-            <Badge variant="secondary">{items.length} items</Badge>
+        {/* Breadcrumb */}
+        <div className="bg-white border-b border-slate-200">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12">
+            <nav className="flex items-center gap-1.5 h-11 text-[13px]">
+              <a
+                href="/"
+                className="flex items-center gap-1 text-slate-500 hover:text-epf-600 transition-colors"
+              >
+                <Home className="h-3.5 w-3.5" />
+                <span>Home</span>
+              </a>
+              <ChevronRight className="h-3 w-3 text-slate-300" />
+              <span className="text-slate-900 font-medium">Wishlist</span>
+            </nav>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center">
+                <Heart className="h-6 w-6 text-red-500 fill-red-500" />
+              </div>
+              <div>
+                <h1 className="text-[24px] font-bold text-slate-900 tracking-tight">
+                  My Wishlist
+                </h1>
+                <p className="text-[13px] text-slate-500 mt-0.5">
+                  {items.length} {items.length === 1 ? 'item' : 'items'} saved for later
+                </p>
+              </div>
+            </div>
+            {items.length > 0 && (
+              <Button
+                onClick={handleClearAll}
+                disabled={clearing}
+                variant="outline"
+                className="h-10 px-4 border-slate-200 text-slate-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 rounded-lg font-semibold"
+              >
+                <Trash2 className="h-4 w-4 mr-1.5" />
+                {clearing ? 'Clearing…' : 'Clear All'}
+              </Button>
+            )}
           </div>
 
           {items.length === 0 ? (
-            <div className="text-center py-16">
-              <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h2 className="text-xl font-medium mb-2">Your wishlist is empty</h2>
-              <p className="text-slate-500 mb-4">Save items you love for later</p>
-              <Link href="/"><Button>Browse Products</Button></Link>
+            /* Empty State */
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+              <div className="flex flex-col items-center justify-center py-20 px-4">
+                <div className="h-20 w-20 rounded-full bg-red-50 flex items-center justify-center mb-5">
+                  <Heart className="h-10 w-10 text-red-300" />
+                </div>
+                <h3 className="text-[18px] font-bold text-slate-900 mb-2">
+                  Your wishlist is empty
+                </h3>
+                <p className="text-[14px] text-slate-500 mb-6 text-center max-w-md">
+                  Save items you love by clicking the heart icon on any product.
+                  They&apos;ll appear here so you can easily find them later.
+                </p>
+                <Link href="/shop">
+                  <Button className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-semibold rounded-lg shadow-sm">
+                    <ShoppingCart className="h-4 w-4 mr-1.5" />
+                    Browse Products
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {items.map((item) => (
-                <Card key={item.id} className="overflow-hidden">
-                  <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 relative`}>
-                    {renderImage(item)}
-                    <Button size="sm" variant="destructive" className="absolute top-2 right-2" onClick={() => handleRemove(item.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+            /* Wishlist Grid */
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {items.map((item) => {
+                const cardData: PremiumCardData = {
+                  id: item.product.id,
+                  name: item.product.name,
+                  price: item.product.price,
+                  salePrice: item.product.salePrice ?? null,
+                  images: item.product.images || [],
+                  image: item.product.images?.[0] || undefined,
+                  stock: item.product.stock,
+                  category: item.product.category?.name || null,
+                }
+
+                return (
+                  <div key={item.id} className="relative group/wish">
+                    <PremiumCard
+                      data={cardData}
+                      onAddToCart={() => handleMoveToCart(item)}
+                      onCardClick={() => {
+                        // Open product page (let anchor handle default)
+                      }}
+                    />
+                    {/* Remove button overlay (covers WishlistButton at top-right) */}
+                    <button
+                      onClick={() => handleRemove(item.id)}
+                      className="absolute top-2 right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm transition-colors"
+                      title="Remove from wishlist"
+                      aria-label="Remove from wishlist"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                  <CardContent className="p-4">
-                    <Link href={`/product/${item.product.id}`} className="font-medium hover:text-primary line-clamp-2">{item.product.name}</Link>
-                    <p className="text-sm text-slate-500">{item.product.category?.name}</p>
-                    <div className="flex items-center justify-between mt-3">
-                      <div>
-                        <span className="text-lg font-bold">৳{item.product.salePrice || item.product.price}</span>
-                        {item.product.salePrice && item.product.salePrice < item.product.price && (
-                          <span className="ml-2 text-sm text-slate-400 line-through">৳{item.product.price}</span>
-                        )}
-                      </div>
-                      <Button size="sm" onClick={() => handleMoveToCart(item)}>
-                        <ShoppingCart className="w-4 h-4 mr-1" />Move to Cart
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
       </main>
+
       <div className="mt-auto"><Footer /></div>
       <ChatWidget />
       <BackToTopButton />

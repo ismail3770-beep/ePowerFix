@@ -3,7 +3,6 @@
 import { useState, memo } from "react";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import { useCartStore } from "@/store";
 import { toast } from "sonner";
 import WishlistButton from "@/components/WishlistButton";
@@ -103,55 +102,56 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
     <div
       onClick={handleClick}
       className={cn(
-        "group relative flex flex-col bg-white",
-        "shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5",
+        "group relative flex flex-col bg-white rounded-xl overflow-hidden",
+        "border border-slate-200",
+        "shadow-sm hover:shadow-lg hover:-translate-y-0.5",
         "transition-all duration-200 ease-out",
         "cursor-pointer",
         className
       )}
     >
-      {/* ─── Image Area (taller proportion for better visual presence) ─── */}
-      <div className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 overflow-hidden flex items-center justify-center`}>
+      {/* ─── Image Area (square proportion, modern look) ─── */}
+      <div className="relative aspect-square bg-slate-50 overflow-hidden">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-contain p-1.5 sm:p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center">
-              <ShoppingCart className="w-5 h-5 text-slate-300" />
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+              <ShoppingCart className="w-6 h-6 text-slate-300" />
             </div>
           </div>
         )}
 
-        {/* Discount/Feature Badge — top left */}
+        {/* Discount/Feature Badge — top left (rounded pill) */}
         {badgeText && (
-          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 text-[11px] font-bold text-white bg-epf-500 leading-tight tracking-wide">
+          <span className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-full text-[11px] font-bold text-white bg-epf-500 leading-tight tracking-wide shadow-sm">
             {badgeText}
           </span>
         )}
 
         {/* Wishlist — top right */}
         <div
-          className="absolute top-1.5 right-1.5 z-10"
+          className="absolute top-2 right-2 z-10"
           onClick={(e) => e.stopPropagation()}
         >
           <WishlistButton productId={data.id} initialFav={false} />
         </div>
 
-        {/* ─── Add to Cart — hidden, reveals on hover/touch ─── */}
+        {/* ─── Add to Cart — reveals on hover (rounded pill, bottom overlay) ─── */}
         <button
           onClick={handleAddToCart}
           disabled={added}
           className={cn(
-            "absolute bottom-0 left-0 right-0 z-10",
-            "h-10 flex items-center justify-center gap-1.5 text-[13px] font-bold",
+            "absolute bottom-2 left-2 right-2 z-10",
+            "h-9 flex items-center justify-center gap-1.5 text-[13px] font-bold rounded-lg",
             "bg-slate-900/95 text-white backdrop-blur-sm",
-            "translate-y-full opacity-0",
+            "translate-y-[calc(100%+0.5rem)] opacity-0",
             "group-hover:translate-y-0 group-hover:opacity-100",
             "group-focus-within:translate-y-0 group-focus-within:opacity-100",
             "active:translate-y-0 active:opacity-100",
@@ -176,10 +176,10 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       </div>
 
       {/* ─── Content Area ─── */}
-      <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
+      <div className="flex flex-col flex-1 p-3 gap-1.5">
         {/* Title */}
         <h3
-          className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors"
+          className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors"
           title={data.name}
         >
           {data.name}
@@ -188,11 +188,11 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         {/* Price */}
         <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
           {showOriginal && (
-            <del className="text-[13px] font-normal text-slate-400">
+            <del className="text-[12px] font-normal text-slate-400">
               ৳{Number(originalPrice).toLocaleString()}
             </del>
           )}
-          <span className="text-[14px] font-bold text-epf-600">
+          <span className="text-[15px] font-bold text-epf-600">
             ৳{Number(displayPrice).toLocaleString()}
           </span>
         </div>
@@ -209,9 +209,9 @@ export const PremiumCard = memo(PremiumCardBase);
 
 export function PremiumCardSkeleton() {
   return (
-    <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
-      <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 animate-pulse`} />
-      <div className="p-2.5 space-y-2">
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="aspect-square bg-slate-100 animate-pulse" />
+      <div className="p-3 space-y-2">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
         <div className="h-4 bg-slate-100 rounded animate-pulse w-1/3 mt-1" />

@@ -7,6 +7,19 @@ import { useAdminHeaderStore } from "@/store/admin-header-store";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminAIChat from "@/components/admin/AdminAIChat";
 import NotificationBell from "@/components/epf/NotificationBell";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ChevronDown, LogOut, ExternalLink, Plus, Menu, UserCircle } from "lucide-react";
 
 interface AdminTabContextType {
@@ -147,8 +160,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const { user, isRestoring } = useAuthStore();
-  const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   // Subscribe to the global "Add New" handler registered by each page.
   const addNewLabel = useAdminHeaderStore((s) => s.label);
   const addNewOnClick = useAdminHeaderStore((s) => s.onClick);
@@ -169,25 +182,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (user.role !== "ADMIN") { router.replace("/"); return; }
   }, [user, isRestoring, router, isLoginPage]);
 
-  useEffect(() => {
-    const handleClick = () => setProfileOpen(false);
-    if (profileOpen) document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, [profileOpen]);
-
   const handleTabChange = (tab: string) => {
     const route = tabRouteMap[tab] || '/admin';
     router.push(route);
+  };
+
+  const handleHamburger = () => {
+    // Mobile → open the drawer; Desktop → collapse/expand the rail.
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setMobileOpen(true);
+    } else {
+      setSidebarCollapsed((v) => !v);
+    }
+  };
+
+  const handleLogout = async () => {
+    const { logout } = useAuthStore.getState();
+    await logout();
+    router.push("/admin/login");
   };
 
   if (isLoginPage) return <>{children}</>;
 
   if (isRestoring || !user || user.role !== "ADMIN") {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#111827]">
+      <div className="flex h-screen items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin h-8 w-8 border-3 border-[#0EA5E9] border-t-transparent rounded-full" />
-          <p className="text-sm text-white/60">Verifying access...</p>
+          <div className="animate-spin h-8 w-8 border-[3px] border-epf-500 border-t-transparent rounded-full" />
+          <p className="text-sm text-slate-400">Verifying access...</p>
         </div>
       </div>
     );
@@ -195,80 +217,119 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AdminTabContext.Provider value={{ activeTab, onTabChange: handleTabChange }}>
-      <div className="flex h-screen overflow-hidden bg-[#F3F4F6]">
-        <AdminSidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-        />
+      <div className="flex h-screen overflow-hidden bg-slate-50">
+        {/* Desktop sidebar — fixed rail (hidden on mobile) */}
+        <div
+          className={`hidden lg:block fixed left-0 top-0 h-screen z-40 transition-[left] duration-300 ${
+            sidebarCollapsed ? "lg:left-0" : "lg:left-0"
+          }`}
+        >
+          <AdminSidebar
+            collapsed={sidebarCollapsed}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
+        </div>
+
+        {/* Mobile sidebar — Sheet drawer */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent
+            side="left"
+            className="p-0 w-[260px] max-w-[85vw] border-0 bg-slate-900 overflow-hidden"
+          >
+            <SheetTitle className="sr-only">Admin navigation</SheetTitle>
+            <AdminSidebar
+              collapsed={false}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              onNavigate={() => setMobileOpen(false)}
+              variant="mobile"
+            />
+          </SheetContent>
+        </Sheet>
 
         {/* Content area */}
-        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarCollapsed ? "ml-[60px]" : "ml-[220px]"}`}>
+        <div
+          className={`flex-1 flex flex-col min-w-0 transition-[margin] duration-300 ${
+            sidebarCollapsed ? "lg:ml-[68px]" : "lg:ml-[240px]"
+          }`}
+        >
           {/* Top Header */}
-          <header className="h-[60px] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] flex items-center justify-between px-6 shrink-0 z-10">
-            <div className="flex items-center gap-3">
+          <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30">
+            <div className="flex items-center gap-3 min-w-0">
               <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-[#F3F4F6] transition-colors"
+                onClick={handleHamburger}
+                className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+                aria-label="Toggle sidebar"
               >
-                <Menu className="h-5 w-5 text-gray-500" />
+                <Menu className="h-5 w-5" />
               </button>
-              <h1 className="text-[15px] font-semibold text-[#111827]">{pageTitleMap[activeTab] || 'Dashboard'}</h1>
+              <h1 className="text-[16px] font-semibold text-slate-900 truncate">
+                {pageTitleMap[activeTab] || 'Dashboard'}
+              </h1>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Add New — rendered only when a page has registered a handler */}
               {addNewLabel && (
                 <button
                   onClick={() => { if (addNewOnClick) addNewOnClick(); }}
-                  className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-[13px] font-medium rounded-lg px-4 py-2 transition-colors flex items-center gap-1.5"
+                  className="bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg px-4 h-9 transition-colors flex items-center gap-1.5 shadow-sm"
                 >
-                  <Plus className="w-4 h-4" /> {addNewLabel}
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">{addNewLabel}</span>
                 </button>
               )}
 
               {/* Notifications — real dropdown with latest order/return/status alerts */}
               <NotificationBell />
 
-              {/* Profile */}
-              <div className="relative">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setProfileOpen(!profileOpen); }}
-                  className="flex items-center gap-2 h-9 px-2 rounded-lg hover:bg-[#F3F4F6] transition-colors"
-                >
-                  <div className="h-8 w-8 rounded-full bg-sky-100 text-[#0EA5E9] text-[13px] font-bold flex items-center justify-center">
-                    {user.name?.charAt(0)?.toUpperCase() || "A"}
-                  </div>
-                  <span className="hidden sm:block text-[14px] font-medium text-[#111827]">Admin</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-gray-400 hidden sm:block" />
-                </button>
-
-                {profileOpen && (
-                  <div className="absolute right-0 top-full mt-1.5 w-[180px] bg-white rounded-lg border border-[#E5E7EB] shadow-lg py-1 z-50">
-                    <div className="px-3 py-2 border-b border-[#E5E7EB]">
-                      <p className="text-[13px] font-medium text-[#111827]">{user.name}</p>
-                      <p className="text-[11px] text-[#6B7280]">{user.email}</p>
+              {/* Profile dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 h-9 px-2 rounded-lg hover:bg-slate-100 transition-colors">
+                    <div className="h-8 w-8 rounded-full bg-epf-500/15 text-epf-500 text-[13px] font-bold flex items-center justify-center">
+                      {user.name?.charAt(0)?.toUpperCase() || "A"}
                     </div>
-                    <a href="/admin/profile" className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#374151] hover:bg-[#F9FAFB]">
-                      <UserCircle className="h-3.5 w-3.5" /> My Profile
+                    <span className="hidden sm:block text-[13px] font-medium text-slate-700 max-w-[120px] truncate">
+                      {user.name?.split(' ')[0] || 'Admin'}
+                    </span>
+                    <ChevronDown className="h-3.5 w-3.5 text-slate-400 hidden sm:block" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[220px]">
+                  <DropdownMenuLabel className="font-normal px-3 py-2">
+                    <div className="flex flex-col space-y-0.5">
+                      <p className="text-[13px] font-medium text-slate-900 truncate">{user.name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a href="/admin/profile" className="flex items-center gap-2 cursor-pointer">
+                      <UserCircle className="h-4 w-4" /> My Profile
                     </a>
-                    <a href="/" className="flex items-center gap-2 px-3 py-2 text-[13px] text-[#374151] hover:bg-[#F9FAFB]">
-                      <ExternalLink className="h-3.5 w-3.5" /> View Website
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/" className="flex items-center gap-2 cursor-pointer">
+                      <ExternalLink className="h-4 w-4" /> View Website
                     </a>
-                    <div className="border-t border-[#E5E7EB] my-1" />
-                    <button onClick={async () => { const { logout } = useAuthStore.getState(); await logout(); router.push("/admin/login"); }}
-                      className="flex items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 w-full">
-                      <LogOut className="h-3.5 w-3.5" /> Logout
-                    </button>
-                  </div>
-                )}
-              </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    variant="destructive"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" /> Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
           {/* Content */}
-          <main className="flex-1 overflow-auto p-5">
+          <main className="flex-1 overflow-auto p-4 sm:p-6 bg-slate-50">
             {children}
           </main>
         </div>

@@ -11,7 +11,7 @@ import { publicRoute, schemas } from '@/lib/api-handler'
  * POST /api/auth/register
  * Rate-limited, Zod-validated registration.
  */
-export const POST = publicRoute(schemas.register, async (request, { name, email, phone, password }) => {
+export const POST = publicRoute(schemas.register, async (request, { name, nameBn, email, phone, password }) => {
   // Rate limit: 5 registrations per hour per IP.
   const ip = (await headers()).get('x-forwarded-for') || 'unknown'
   const rl = checkRateLimit(`register:${ip}`, 5, 60 * 60 * 1000)
@@ -34,6 +34,7 @@ export const POST = publicRoute(schemas.register, async (request, { name, email,
     data: {
       id: uuidv4(),
       name,
+      nameBn: nameBn?.trim() ? nameBn.trim() : null,
       email: normalizedEmail,
       phone,
       password: bcrypt.hashSync(password, 10),

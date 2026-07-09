@@ -25,6 +25,8 @@ import {
   Smartphone,
   Building2,
   Package,
+  ShoppingBag,
+  Lock,
 } from "lucide-react";
 import { EPFHome, EPFChevronRight } from "@/components/epf/icons/EPFIcons";
 import { toast } from "sonner";
@@ -34,6 +36,13 @@ import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -50,6 +59,89 @@ const PAYMENT_METHODS = [
   { value: "NAGAD", label: "Nagad", desc: "Mobile payment", icon: Smartphone },
   { value: "SSLCOMMERZ", label: "SSLCommerz", desc: "Card / Mobile Banking", icon: CreditCard },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Step Indicator                                                     */
+/* ------------------------------------------------------------------ */
+function StepIndicator() {
+  const steps = [
+    { num: 1, label: "Cart", icon: ShoppingCart },
+    { num: 2, label: "Checkout", icon: Package },
+    { num: 3, label: "Complete", icon: CheckCircle2 },
+  ];
+
+  return (
+    <div className="flex items-center justify-center gap-1 sm:gap-2 mb-8">
+      {steps.map((step, idx) => {
+        const Icon = step.icon;
+        const isActive = step.num === 2;
+        const isDone = step.num < 2;
+        return (
+          <div key={step.num} className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-semibold transition-colors ${
+                  isActive
+                    ? "bg-epf-500 text-white"
+                    : isDone
+                    ? "bg-emerald-500 text-white"
+                    : "bg-slate-200 text-slate-500"
+                }`}
+              >
+                {isDone ? <CheckCircle2 className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+              </div>
+              <span
+                className={`text-[13px] font-medium hidden sm:inline ${
+                  isActive ? "text-epf-600" : isDone ? "text-emerald-600" : "text-slate-500"
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+            {idx < steps.length - 1 && (
+              <div
+                className={`w-8 sm:w-16 h-px ${isDone ? "bg-emerald-400" : "bg-slate-200"}`}
+                aria-hidden
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section Card Wrapper                                               */
+/* ------------------------------------------------------------------ */
+function SectionCard({
+  icon: Icon,
+  title,
+  desc,
+  children,
+}: {
+  icon: React.ElementType;
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="rounded-xl border-slate-200 shadow-sm overflow-hidden">
+      <CardHeader className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-row items-center gap-3 space-y-0">
+        <div className="w-9 h-9 rounded-lg bg-epf-50 text-epf-500 flex items-center justify-center shrink-0">
+          <Icon className="w-4.5 h-4.5" />
+        </div>
+        <div className="min-w-0">
+          <CardTitle className="text-[16px] font-semibold text-slate-900 leading-tight">
+            {title}
+          </CardTitle>
+          {desc && <p className="text-[12px] text-slate-500 mt-0.5">{desc}</p>}
+        </div>
+      </CardHeader>
+      <CardContent className="p-5 sm:p-6 pt-5">{children}</CardContent>
+    </Card>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Main Page                                                          */
@@ -108,13 +200,7 @@ export default function CheckoutPage() {
   }
   // Clamp total so discount can't push it below zero.
   const total = Math.max(0, subtotal + delivery - discount);
-
-  /* Redirect if cart empty (after mount) */
-  useEffect(() => {
-    if (mounted && items.length === 0 && !orderPlaced) {
-      router.push("/shop");
-    }
-  }, [mounted, items.length, orderPlaced, router]);
+  const itemCount = getItemCount();
 
   /* Coupon */
   const handleApplyCoupon = async () => {
@@ -218,8 +304,8 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex flex-col bg-slate-50">
         <Header />
         <main className="flex-1 flex items-center justify-center px-4 py-16">
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm max-w-md w-full p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-5">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm max-w-md w-full p-8 text-center">
+            <div className="w-20 h-20 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
             <h1 className="text-[22px] font-bold text-slate-900 mb-2">Order Placed Successfully!</h1>
@@ -270,6 +356,40 @@ export default function CheckoutPage() {
   }
 
   /* ---------------------------------------------------------------- */
+  /*  Empty Cart View                                                  */
+  /* ---------------------------------------------------------------- */
+  if (mounted && items.length === 0 && !orderPlaced) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Header />
+        <main className="flex-1 flex items-center justify-center px-4 py-16">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm max-w-md w-full p-8 sm:p-10 text-center">
+            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-5">
+              <ShoppingCart className="w-10 h-10 text-slate-400" />
+            </div>
+            <h1 className="text-[22px] font-bold text-slate-900 mb-2">Your cart is empty</h1>
+            <p className="text-[14px] text-slate-500 mb-6">
+              You need to add some products to your cart before checking out.
+            </p>
+            <Button
+              asChild
+              className="h-11 px-5 bg-epf-500 hover:bg-epf-600 text-white rounded-lg font-semibold"
+            >
+              <a href="/shop">
+                <ShoppingBag className="w-4 h-4" />
+                Continue Shopping
+              </a>
+            </Button>
+          </div>
+        </main>
+        <Footer />
+        <ChatWidget />
+        <BackToTopButton />
+      </div>
+    );
+  }
+
+  /* ---------------------------------------------------------------- */
   /*  Checkout Form View                                               */
   /* ---------------------------------------------------------------- */
   return (
@@ -289,18 +409,22 @@ export default function CheckoutPage() {
             <span className="text-slate-900 font-medium">Checkout</span>
           </nav>
 
+          {/* Step Indicator */}
+          <StepIndicator />
+
           {/* Page Title */}
           <div className="flex items-center gap-3 mb-8">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-white transition-colors"
+              className="w-9 h-9 flex items-center justify-center border border-slate-200 bg-white rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              aria-label="Go back"
             >
               <ArrowLeft className="w-4 h-4 text-slate-700" />
             </button>
             <div>
               <h1 className="text-[22px] sm:text-[24px] font-bold text-slate-900">Checkout</h1>
               <p className="text-[14px] text-slate-500 mt-0.5">
-                {mounted ? `${getItemCount()} item${getItemCount() !== 1 ? "s" : ""} in your cart` : "..."}
+                {mounted ? `${itemCount} item${itemCount !== 1 ? "s" : ""} in your cart` : "..."}
               </p>
             </div>
           </div>
@@ -308,47 +432,43 @@ export default function CheckoutPage() {
           {mounted && items.length > 0 && (
             <form onSubmit={handleSubmit}>
               <div className="flex flex-col lg:flex-row gap-6">
-                {/* ========== LEFT: Billing & Shipping ========== */}
+                {/* ========== LEFT: Form Sections ========== */}
                 <div className="flex-1 space-y-6">
-                  {/* Billing Details */}
-                  <div className="bg-white border border-slate-200 rounded-lg">
-                    <div className="px-5 sm:px-6 py-4 border-b border-slate-200">
-                      <h2 className="text-[16px] font-semibold text-slate-900 flex items-center gap-2">
-                        <User className="w-4.5 h-4.5 text-epf-500" />
-                        Billing Details
-                      </h2>
-                    </div>
-                    <div className="p-5 sm:p-6 space-y-4">
+                  {/* Contact Information */}
+                  <SectionCard icon={User} title="Contact Information" desc="We'll use this to confirm your order">
+                    <div className="space-y-4">
                       {/* Name & Phone row */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="customer-name" className="text-[13px] font-medium text-slate-700">
                             Full Name <span className="text-red-500">*</span>
-                          </label>
+                          </Label>
                           <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            <Input
+                              id="customer-name"
                               type="text"
                               placeholder="Enter your full name"
                               value={form.customerName}
                               onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                              className="w-full h-11 pl-10 pr-3 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                              className="h-11 pl-10 pr-3 text-[14px] rounded-lg border-slate-200 focus-visible:border-epf-500 focus-visible:ring-epf-500/20"
                               required
                             />
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="customer-phone" className="text-[13px] font-medium text-slate-700">
                             Phone Number <span className="text-red-500">*</span>
-                          </label>
+                          </Label>
                           <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <input
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            <Input
+                              id="customer-phone"
                               type="tel"
                               placeholder="01XXXXXXXXX"
                               value={form.customerPhone}
                               onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-                              className="w-full h-11 pl-10 pr-3 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                              className="h-11 pl-10 pr-3 text-[14px] rounded-lg border-slate-200 focus-visible:border-epf-500 focus-visible:ring-epf-500/20"
                               required
                             />
                           </div>
@@ -356,47 +476,55 @@ export default function CheckoutPage() {
                       </div>
 
                       {/* Email */}
-                      <div>
-                        <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
-                          Email Address <span className="text-slate-400 text-[11px]">(optional)</span>
-                        </label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="customer-email" className="text-[13px] font-medium text-slate-700">
+                          Email Address <span className="text-slate-400 text-[11px] font-normal">(optional)</span>
+                        </Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <Input
+                            id="customer-email"
                             type="email"
                             placeholder="email@example.com"
                             value={form.customerEmail}
                             onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
-                            className="w-full h-11 pl-10 pr-3 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                            className="h-11 pl-10 pr-3 text-[14px] rounded-lg border-slate-200 focus-visible:border-epf-500 focus-visible:ring-epf-500/20"
                           />
                         </div>
                       </div>
+                    </div>
+                  </SectionCard>
 
+                  {/* Shipping Address */}
+                  <SectionCard icon={Truck} title="Shipping Address" desc="Where should we deliver your order?">
+                    <div className="space-y-4">
                       {/* Address */}
-                      <div>
-                        <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="customer-address" className="text-[13px] font-medium text-slate-700">
                           Street Address
-                        </label>
+                        </Label>
                         <div className="relative">
-                          <MapPin className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                          <input
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                          <Input
+                            id="customer-address"
                             type="text"
                             placeholder="House #, Road #, Block, Area details"
                             value={form.address}
                             onChange={(e) => setForm({ ...form, address: e.target.value })}
-                            className="w-full h-11 pl-10 pr-3 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                            className="h-11 pl-10 pr-3 text-[14px] rounded-lg border-slate-200 focus-visible:border-epf-500 focus-visible:ring-epf-500/20"
                           />
                         </div>
                       </div>
 
                       {/* Area Dropdown */}
-                      <div>
-                        <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="customer-area" className="text-[13px] font-medium text-slate-700">
                           Delivery Area <span className="text-red-500">*</span>
-                        </label>
+                        </Label>
                         <div className="relative">
                           <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                           <select
+                            id="customer-area"
                             value={form.area}
                             onChange={(e) => setForm({ ...form, area: e.target.value })}
                             className="w-full h-11 pl-10 pr-8 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors appearance-none bg-white cursor-pointer"
@@ -407,258 +535,349 @@ export default function CheckoutPage() {
                               <option key={a} value={a}>{a}</option>
                             ))}
                           </select>
-                          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <svg
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                           </svg>
                         </div>
+                        {form.area && (
+                          <p className="text-[12px] text-slate-500 mt-1 flex items-center gap-1">
+                            <Truck className="w-3.5 h-3.5 text-epf-500" />
+                            {isInsideDhaka
+                              ? `Delivery charge: ৳${shippingRates.insideDhaka} (Inside Dhaka)`
+                              : `Delivery charge: ৳${shippingRates.outsideDhaka} (Outside Dhaka)`}
+                          </p>
+                        )}
                       </div>
 
                       {/* Notes */}
-                      <div>
-                        <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
-                          Order Notes <span className="text-slate-400 text-[11px]">(optional)</span>
-                        </label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="customer-notes" className="text-[13px] font-medium text-slate-700">
+                          Order Notes <span className="text-slate-400 text-[11px] font-normal">(optional)</span>
+                        </Label>
                         <textarea
+                          id="customer-notes"
                           placeholder="Any special instructions for delivery..."
                           rows={3}
                           value={form.notes}
                           onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                          className="w-full px-3 py-2.5 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors resize-none"
+                          className="w-full px-3 py-2.5 text-[14px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors resize-none bg-transparent"
                         />
                       </div>
                     </div>
-                  </div>
+                  </SectionCard>
 
                   {/* Payment Method */}
-                  <div className="bg-white border border-slate-200 rounded-lg">
-                    <div className="px-5 sm:px-6 py-4 border-b border-slate-200">
-                      <h2 className="text-[16px] font-semibold text-slate-900 flex items-center gap-2">
-                        <CreditCard className="w-4.5 h-4.5 text-epf-500" />
-                        Payment Method
-                      </h2>
-                    </div>
-                    <div className="p-5 sm:p-6">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <SectionCard icon={CreditCard} title="Payment Method" desc="Choose how you want to pay">
+                    <div>
+                      <RadioGroup
+                        value={form.paymentMethod}
+                        onValueChange={(v) => setForm({ ...form, paymentMethod: v })}
+                        className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                      >
                         {PAYMENT_METHODS.map((pm) => {
                           const PmIcon = pm.icon;
                           const isActive = form.paymentMethod === pm.value;
                           return (
-                            <button
+                            <label
                               key={pm.value}
-                              type="button"
-                              onClick={() => setForm({ ...form, paymentMethod: pm.value })}
-                              className={`flex items-center gap-3 p-3.5 border-2 rounded-lg text-left transition-all duration-200 ${
+                              htmlFor={`pm-${pm.value}`}
+                              className={`flex items-center gap-3 p-3.5 border-2 rounded-lg cursor-pointer text-left transition-all duration-200 ${
                                 isActive
                                   ? "border-epf-500 bg-epf-50 shadow-sm"
-                                  : "border-slate-200 bg-white hover:border-slate-400 hover:shadow-sm"
+                                  : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
                               }`}
                             >
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                isActive ? "bg-epf-500 text-white" : "bg-slate-100 text-slate-500"
-                              }`}>
+                              <RadioGroupItem
+                                id={`pm-${pm.value}`}
+                                value={pm.value}
+                                className="sr-only"
+                              />
+                              <div
+                                className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                  isActive ? "bg-epf-500 text-white" : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
                                 <PmIcon className="w-5 h-5" />
                               </div>
-                              <div className="min-w-0">
-                                <p className={`text-[14px] font-semibold transition-colors ${isActive ? "text-epf-600" : "text-slate-900"}`}>
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  className={`text-[14px] font-semibold transition-colors ${
+                                    isActive ? "text-epf-600" : "text-slate-900"
+                                  }`}
+                                >
                                   {pm.label}
                                 </p>
                                 <p className="text-[12px] text-slate-400">{pm.desc}</p>
                               </div>
                               {isActive && (
-                                <div className="ml-auto">
+                                <div className="ml-auto shrink-0">
                                   <CheckCircle2 className="w-5 h-5 text-epf-500" />
                                 </div>
                               )}
-                            </button>
+                            </label>
                           );
                         })}
-                      </div>
+                      </RadioGroup>
+
                       {form.paymentMethod !== "COD" && (
-                        <div className="mt-3 flex items-center gap-2 text-[13px] text-epf-600 bg-epf-50 border border-epf-100 rounded-lg px-3 py-2.5">
-                          <ShieldCheck className="w-4 h-4 shrink-0" />
-                          <span>You&apos;ll be redirected to the secure {form.paymentMethod} gateway to complete payment after placing your order.</span>
+                        <div className="mt-3 flex items-start gap-2 text-[13px] text-epf-600 bg-epf-50 border border-epf-100 rounded-lg px-3 py-2.5">
+                          <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                          <span>
+                            You&apos;ll be redirected to the secure {form.paymentMethod} gateway to complete
+                            payment after placing your order.
+                          </span>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </SectionCard>
                 </div>
 
-                {/* ========== RIGHT: Order Summary ========== */}
+                {/* ========== RIGHT: Order Summary (sticky) ========== */}
                 <div className="w-full lg:w-[400px] shrink-0">
-                  <div className="bg-white border border-slate-200 rounded-lg lg:sticky lg:top-[130px]">
-                    {/* Header */}
-                    <div className="px-5 sm:px-6 py-4 border-b border-slate-200">
-                      <h2 className="text-[16px] font-semibold text-slate-900 flex items-center gap-2">
-                        <ShoppingCart className="w-4.5 h-4.5 text-epf-500" />
-                        Order Summary
-                      </h2>
-                    </div>
+                  <div className="lg:sticky lg:top-[130px] space-y-4">
+                    <Card className="rounded-xl border-slate-200 shadow-sm overflow-hidden">
+                      {/* Header */}
+                      <CardHeader className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
+                        <CardTitle className="text-[16px] font-semibold text-slate-900 flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-lg bg-epf-50 text-epf-500 flex items-center justify-center">
+                            <ShoppingCart className="w-4 h-4" />
+                          </span>
+                          Order Summary
+                        </CardTitle>
+                        <Badge className="bg-epf-50 text-epf-600 border border-epf-100 rounded-full px-2.5 py-0.5 text-[11px] font-bold">
+                          {itemCount} {itemCount === 1 ? "item" : "items"}
+                        </Badge>
+                      </CardHeader>
 
-                    <div className="p-5 sm:p-6">
-                      {/* Cart Items */}
-                      <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1 mb-4">
-                        {items.map((item) => (
-                          <div key={item.id} className="flex gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                            {/* Image */}
-                            <div className="w-16 h-16 bg-gradient-to-br from-slate-200 to-slate-100 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
-                              {item.productImage ? (
-                                <img src={item.productImage} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                              ) : (
-                                <Zap className="w-5 h-5 text-slate-300" />
-                              )}
-                            </div>
+                      <CardContent className="p-5 sm:p-6">
+                        {/* Cart Items List */}
+                        <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1 mb-4 -mr-1">
+                          {items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors"
+                            >
+                              {/* Image */}
+                              <div className="w-14 h-14 bg-gradient-to-br from-slate-200 to-slate-100 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+                                {item.productImage ? (
+                                  <img
+                                    src={item.productImage}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = "none";
+                                    }}
+                                  />
+                                ) : (
+                                  <Zap className="w-5 h-5 text-slate-300" />
+                                )}
+                              </div>
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-medium text-slate-900 line-clamp-2 leading-snug">
-                                {item.productName}
-                              </p>
-                              <p className="text-[14px] font-semibold text-slate-900 mt-1">
-                                ৳{(item.price * item.quantity).toLocaleString()}
-                              </p>
-                            </div>
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[13px] font-medium text-slate-900 line-clamp-2 leading-snug">
+                                  {item.productName}
+                                </p>
+                                <div className="flex items-center justify-between mt-1.5">
+                                  <span className="text-[12px] text-slate-500">৳{item.price.toLocaleString()}</span>
+                                  <span className="text-[14px] font-semibold text-slate-900">
+                                    ৳{(item.price * item.quantity).toLocaleString()}
+                                  </span>
+                                </div>
+                              </div>
 
-                            {/* Qty controls */}
-                            <div className="flex flex-col items-end gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => removeItem(item.productId)}
-                                className="text-slate-400 hover:text-red-500 transition-colors"
-                                title="Remove"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                              <div className="flex items-center border border-slate-200 rounded-md bg-white">
+                              {/* Qty controls */}
+                              <div className="flex flex-col items-end gap-1.5">
                                 <button
                                   type="button"
-                                  onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                                  className="w-7 h-7 flex items-center justify-center hover:bg-slate-50 rounded-l-md transition-colors"
+                                  onClick={() => removeItem(item.productId)}
+                                  className="text-slate-400 hover:text-red-500 transition-colors"
+                                  title="Remove"
+                                  aria-label={`Remove ${item.productName}`}
                                 >
-                                  <Minus className="w-3 h-3" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
-                                <span className="w-7 text-center text-[12px] font-semibold text-slate-900">
-                                  {item.quantity}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                                  className="w-7 h-7 flex items-center justify-center hover:bg-slate-50 rounded-r-md transition-colors"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
+                                <div className="flex items-center border border-slate-200 rounded-md bg-white">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                    className="w-7 h-7 flex items-center justify-center hover:bg-slate-50 rounded-l-md transition-colors"
+                                    aria-label="Decrease quantity"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="w-7 text-center text-[12px] font-semibold text-slate-900">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                    className="w-7 h-7 flex items-center justify-center hover:bg-slate-50 rounded-r-md transition-colors"
+                                    aria-label="Increase quantity"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
+                          ))}
+                        </div>
+
+                        {/* Coupon */}
+                        {appliedCoupon ? (
+                          <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 mb-4 text-[13px]">
+                            <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                              Coupon &quot;{appliedCoupon}&quot; applied
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAppliedCoupon(null);
+                                setDiscount(0);
+                                setCouponCode("");
+                              }}
+                              className="text-slate-400 hover:text-red-500 transition-colors"
+                              aria-label="Remove coupon"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Coupon */}
-                      <div className="flex gap-2 mb-5">
-                        <div className="relative flex-1">
-                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            type="text"
-                            placeholder="Enter coupon code"
-                            value={couponCode}
-                            onChange={(e) => setCouponCode(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleApplyCoupon())}
-                            className="w-full h-10 pl-9 pr-3 text-[13px] border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 transition-colors"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={handleApplyCoupon}
-                          disabled={couponLoading || !couponCode.trim()}
-                          className="h-10 px-4 text-[13px] font-medium border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 whitespace-nowrap"
-                        >
-                          {couponLoading ? "..." : "Apply"}
-                        </button>
-                      </div>
-
-                      {appliedCoupon && (
-                        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4 text-[13px]">
-                          <span className="text-emerald-600 font-medium">
-                            <CheckCircle2 className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                            Coupon &quot;{appliedCoupon}&quot; applied
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => { setAppliedCoupon(null); setDiscount(0); }}
-                            className="text-slate-400 hover:text-slate-700 transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Divider */}
-                      <div className="border-t border-slate-200 my-4" />
-
-                      {/* Totals */}
-                      <div className="space-y-2.5 text-[14px]">
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Subtotal</span>
-                          <span className="text-slate-900 font-medium">৳{subtotal.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-500">Delivery (Inside Dhaka)</span>
-                          <span className="text-slate-900 font-medium">৳{delivery.toLocaleString()}</span>
-                        </div>
-                        {discount > 0 && (
-                          <div className="flex justify-between text-emerald-600">
-                            <span>Discount</span>
-                            <span className="font-medium">-৳{discount.toLocaleString()}</span>
-                          </div>
-                        )}
-                        <div className="border-t border-slate-200 pt-3">
-                          <div className="flex justify-between">
-                            <span className="text-[16px] font-bold text-slate-900">Total</span>
-                            <span className="text-[20px] font-bold text-epf-500">৳{total.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Place Order Button */}
-                      <button
-                        type="submit"
-                        disabled={mutation.isPending}
-                        className="w-full h-12 mt-5 bg-epf-500 hover:bg-epf-600 text-white text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-                      >
-                        {mutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Processing...
-                          </>
                         ) : (
-                          <>
-                            <Package className="w-4 h-4" />
-                            Place Order — ৳{total.toLocaleString()}
-                          </>
+                          <div className="flex gap-2 mb-4">
+                            <div className="relative flex-1">
+                              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                              <Input
+                                type="text"
+                                placeholder="Enter coupon code"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                                onKeyDown={(e) =>
+                                  e.key === "Enter" && (e.preventDefault(), handleApplyCoupon())
+                                }
+                                className="h-10 pl-9 pr-3 text-[13px] rounded-lg border-slate-200 focus-visible:border-epf-500 focus-visible:ring-epf-500/20"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              onClick={handleApplyCoupon}
+                              disabled={couponLoading || !couponCode.trim()}
+                              variant="outline"
+                              className="h-10 px-4 text-[13px] font-medium border-slate-300 text-slate-700 rounded-lg hover:border-epf-500 hover:text-epf-500 hover:bg-white whitespace-nowrap"
+                            >
+                              {couponLoading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                "Apply"
+                              )}
+                            </Button>
+                          </div>
                         )}
-                      </button>
 
-                      {/* Trust Badges */}
-                      <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-slate-200">
-                        <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          Secure
+                        <Separator className="my-4" />
+
+                        {/* Totals */}
+                        <div className="space-y-2.5 text-[14px]">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Subtotal</span>
+                            <span className="text-slate-900 font-medium">৳{subtotal.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 flex items-center gap-1">
+                              <Truck className="w-3.5 h-3.5" />
+                              Delivery {isInsideDhaka ? "(Inside Dhaka)" : form.area ? "(Outside Dhaka)" : ""}
+                            </span>
+                            <span className="text-slate-900 font-medium">
+                              {delivery === 0 && subtotal > 0 ? (
+                                <span className="text-emerald-600">Free</span>
+                              ) : (
+                                `৳${delivery.toLocaleString()}`
+                              )}
+                            </span>
+                          </div>
+                          {discount > 0 && (
+                            <div className="flex justify-between text-emerald-600">
+                              <span className="flex items-center gap-1">
+                                <Tag className="w-3.5 h-3.5" />
+                                Discount
+                              </span>
+                              <span className="font-medium">-৳{discount.toLocaleString()}</span>
+                            </div>
+                          )}
+                          <Separator className="my-3" />
+                          <div className="flex justify-between items-center">
+                            <span className="text-[16px] font-bold text-slate-900">Total</span>
+                            <span className="text-[22px] font-bold text-epf-600">
+                              ৳{total.toLocaleString()}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                          <Truck className="w-3.5 h-3.5" />
-                          Fast Delivery
+
+                        {/* Place Order Button */}
+                        <Button
+                          type="submit"
+                          disabled={mutation.isPending}
+                          className="w-full h-12 mt-5 bg-epf-500 hover:bg-epf-600 text-white text-[15px] font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                        >
+                          {mutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Package className="w-4 h-4" />
+                              Place Order — ৳{total.toLocaleString()}
+                            </>
+                          )}
+                        </Button>
+
+                        {/* Trust Badges */}
+                        <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-slate-100">
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                            Secure Payment
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                            <Truck className="w-3.5 h-3.5 text-epf-500" />
+                            Fast Delivery
+                          </div>
+                          <div className="flex items-center gap-1 text-[11px] text-slate-500">
+                            <Lock className="w-3.5 h-3.5 text-slate-400" />
+                            100% Safe
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-[11px] text-slate-400">
-                          <CreditCard className="w-3.5 h-3.5" />
-                          Safe Pay
-                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Help card */}
+                    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-epf-50 text-epf-500 flex items-center justify-center shrink-0">
+                        <Phone className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-semibold text-slate-900">Need help with your order?</p>
+                        <p className="text-[12px] text-slate-500">Call us at +880 1234 567 890</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </form>
+          )}
+
+          {/* Show a quick "back to cart" link if not mounted yet (avoids hydration flash) */}
+          {!mounted && (
+            <div className="text-center py-16">
+              <Loader2 className="w-6 h-6 animate-spin text-epf-500 mx-auto" />
+              <p className="text-[14px] text-slate-500 mt-2">Loading checkout...</p>
+            </div>
           )}
         </div>
       </main>

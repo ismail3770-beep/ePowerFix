@@ -13,8 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -23,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Search, Plus, Eye, Pencil, Trash2,
+  Search, Plus, Pencil, Trash2, Package, X,
 } from "lucide-react";
 import { ImageUploader } from "@/components/ImageUploader";
 import Pagination from "@/components/admin/Pagination";
@@ -68,6 +67,10 @@ const defaultProduct = {
 type ProductForm = typeof defaultProduct;
 
 const initialFilters = { search: "", categoryId: "__all__", brandId: "__all__", isActive: "__all__" };
+
+function formatCurrency(n: number) {
+  return "৳" + (Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -134,6 +137,9 @@ export default function AdminProductsPage() {
   // Persist the add-form draft to localStorage so a refresh / navigation
   // doesn't lose progress. Only auto-save while in "add" mode (no edit target).
   useFormDraft("admin-product-add", dialog.open && !dialog.edit ? form : defaultProduct);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setPage(1); }, [filters]);
 
   function openAdd() {
     // Restore any previously-saved draft (or fall back to a blank form).
@@ -207,133 +213,227 @@ export default function AdminProductsPage() {
     }
   }
 
+  const hasActiveFilters =
+    filters.search !== "" ||
+    filters.categoryId !== "__all__" ||
+    filters.brandId !== "__all__" ||
+    filters.isActive !== "__all__";
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Products</h1>
-        <Button onClick={openAdd}>
+      {/* ---------- HEADER + ADD BUTTON ---------- */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-[24px] font-bold text-slate-900">Products</h1>
+          <p className="text-[13px] text-slate-500 mt-0.5">
+            {total} product{total === 1 ? "" : "s"} total · {products.length} shown
+          </p>
+        </div>
+        <Button
+          onClick={openAdd}
+          className="bg-epf-500 hover:bg-epf-600 text-white rounded-lg h-10 px-5 font-semibold"
+        >
           <Plus className="mr-2 h-4 w-4" /> Add Product
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {/* ---------- SEARCH + FILTERS ---------- */}
+      <Card className="rounded-xl border-slate-200 shadow-sm py-0">
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Search products..."
-                className="pl-9"
+                placeholder="Search products by name, SKU..."
+                className="pl-9 h-10 rounded-lg border-slate-200 bg-slate-50 focus:bg-white"
                 value={filters.search}
                 onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
               />
             </div>
-            <Select
-              value={filters.categoryId}
-              onValueChange={(v) => setFilters((f) => ({ ...f, categoryId: v }))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All categories</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.brandId}
-              onValueChange={(v) => setFilters((f) => ({ ...f, brandId: v }))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All brands" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All brands</SelectItem>
-                {brands.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={filters.isActive}
-              onValueChange={(v) => setFilters((f) => ({ ...f, isActive: v }))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All status</SelectItem>
-                <SelectItem value="true">Active</SelectItem>
-                <SelectItem value="false">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={() => { setFilters(initialFilters); }}>
-              Clear
-            </Button>
+            {/* Filter dropdowns */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={filters.categoryId}
+                onValueChange={(v) => setFilters((f) => ({ ...f, categoryId: v }))}
+              >
+                <SelectTrigger className="w-[160px] h-10 rounded-lg border-slate-200">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All categories</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={filters.brandId}
+                onValueChange={(v) => setFilters((f) => ({ ...f, brandId: v }))}
+              >
+                <SelectTrigger className="w-[150px] h-10 rounded-lg border-slate-200">
+                  <SelectValue placeholder="All brands" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All brands</SelectItem>
+                  {brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={filters.isActive}
+                onValueChange={(v) => setFilters((f) => ({ ...f, isActive: v }))}
+              >
+                <SelectTrigger className="w-[140px] h-10 rounded-lg border-slate-200">
+                  <SelectValue placeholder="All status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All status</SelectItem>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  onClick={() => setFilters(initialFilters)}
+                  className="h-10 rounded-lg border-slate-200 text-slate-600 hover:text-epf-600"
+                >
+                  <X className="mr-1.5 h-3.5 w-3.5" /> Clear
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      {/* ---------- TABLE ---------- */}
+      <Card className="rounded-xl border-slate-200 shadow-sm py-0 overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">
-              No products found.
+            <div className="py-16 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-epf-50 flex items-center justify-center mx-auto mb-4">
+                <Package className="w-8 h-8 text-epf-500" />
+              </div>
+              <h3 className="text-[16px] font-semibold text-slate-900 mb-1">No products found</h3>
+              <p className="text-[13px] text-slate-500 max-w-sm mx-auto mb-5">
+                {hasActiveFilters
+                  ? "Try adjusting your search or filters to find what you're looking for."
+                  : "Get started by adding your first product to the catalog."}
+              </p>
+              <Button
+                onClick={openAdd}
+                className="bg-epf-500 hover:bg-epf-600 text-white rounded-lg h-10 px-5 font-semibold"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Product
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">Image</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-24 text-right">Actions</TableHead>
+                  <TableRow className="bg-slate-50 border-b border-slate-100 hover:bg-slate-50">
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3">Product</TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3">Category</TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3">Brand</TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3 text-right">Price</TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3">Stock</TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3">Status</TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase text-slate-500 px-5 py-3 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        {product.images?.[0] ? (
-                          <img
-                            src={product.images[0]}
-                            alt=""
-                            className="w-10 h-10 rounded object-cover"
-                          />
+                    <TableRow key={product.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <TableCell className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                            {product.images?.[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                <Package className="w-4 h-4" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[14px] font-medium text-slate-900 truncate max-w-[220px]">{product.name}</p>
+                            {product.sku && (
+                              <p className="text-[11px] text-slate-400 font-mono">{product.sku}</p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-5 py-3 text-[13px] text-slate-600">
+                        {product.category?.name ?? <span className="text-slate-400">—</span>}
+                      </TableCell>
+                      <TableCell className="px-5 py-3 text-[13px] text-slate-600">
+                        {product.brand?.name ?? <span className="text-slate-400">—</span>}
+                      </TableCell>
+                      <TableCell className="px-5 py-3 text-right">
+                        <div className="flex flex-col items-end">
+                          <span className="text-[14px] font-semibold text-slate-900">
+                            {formatCurrency(Number(product.price))}
+                          </span>
+                          {product.comparePrice && Number(product.comparePrice) > Number(product.price) && (
+                            <span className="text-[11px] text-slate-400 line-through">
+                              {formatCurrency(Number(product.comparePrice))}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-5 py-3">
+                        {product.stock > 0 ? (
+                          <span className={`text-[13px] font-medium ${product.stock < 5 ? "text-amber-600" : "text-slate-700"}`}>
+                            {product.stock}
+                            {product.stock < 5 && <span className="ml-1 text-[10px]">low</span>}
+                          </span>
                         ) : (
-                          <div className="w-10 h-10 rounded bg-muted" />
+                          <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-full bg-red-50 text-red-700 border border-red-200">
+                            Out of Stock
+                          </span>
                         )}
                       </TableCell>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>৳{Number(product.price).toFixed(2)}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>{product.category?.name ?? "—"}</TableCell>
-                      <TableCell>
-                        <Badge variant={product.isActive ? "default" : "secondary"}>
+                      <TableCell className="px-5 py-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 text-[11px] font-bold rounded-full border ${
+                            product.isActive
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-slate-100 text-slate-600 border-slate-200"
+                          }`}
+                        >
                           {product.isActive ? "Active" : "Inactive"}
-                        </Badge>
+                        </span>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" onClick={() => openEdit(product)}>
+                      <TableCell className="px-5 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => openEdit(product)}
+                            className="h-8 w-8 rounded-lg text-slate-400 hover:text-epf-600 hover:bg-epf-50"
+                            title="Edit"
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => setDeleteTarget(product)}>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setDeleteTarget(product)}
+                            className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
+                            title="Delete"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -344,12 +444,15 @@ export default function AdminProductsPage() {
               </Table>
             </div>
           )}
-          <div className="px-4 pb-4">
-            <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
-          </div>
+          {!loading && products.length > 0 && (
+            <div className="px-5 py-4 border-t border-slate-100">
+              <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+            </div>
+          )}
         </CardContent>
       </Card>
 
+      {/* ---------- ADD / EDIT DIALOG ---------- */}
       <Dialog open={dialog.open} onOpenChange={(o) => setDialog((d) => ({ ...d, open: o }))}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -433,11 +536,14 @@ export default function AdminProductsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialog({ open: false })}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save"}</Button>
+            <Button onClick={handleSave} disabled={saving} className="bg-epf-500 hover:bg-epf-600 text-white">
+              {saving ? "Saving..." : "Save"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* ---------- DELETE CONFIRMATION ---------- */}
       <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
         <DialogContent>
           <DialogHeader>
