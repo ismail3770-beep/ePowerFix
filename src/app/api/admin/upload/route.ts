@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     const result = await uploadFile(file, folder)
 
-    return jsonResponse({ url: result.url })
+    return jsonResponse({ data: { url: result.url } })
   } catch (err: any) {
     console.error('[Upload] Error:', err)
     return errorResponse(err.message || 'Upload failed', 500)
