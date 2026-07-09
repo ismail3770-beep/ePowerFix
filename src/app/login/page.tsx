@@ -42,6 +42,15 @@ export default function LoginPage() {
     setLoading(true);
     clearUser();
 
+    // Clear any pre-existing session cookie server-side before logging in.
+    // This avoids stale-role cookies (e.g. an admin cookie left in the browser
+    // being sent on customer API calls, or vice-versa).
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // ignore — no existing session is fine
+    }
+
     try {
       const res = await apiFetch<any>("/api/auth/login", {
         method: "POST",

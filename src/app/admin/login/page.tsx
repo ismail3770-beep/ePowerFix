@@ -13,7 +13,7 @@ import { useAuthStore } from "@/store";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { setUser } = useAuthStore();
+  const { setUser, clearUser } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +24,21 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
 
+    // Clear any stale local auth state before attempting a fresh admin login.
+    // This prevents a leftover customer-role cookie in the browser from being
+    // sent on subsequent admin API calls (which would return 403 "Admin
+    // access required" even though the UI shows the admin user).
+    clearUser();
+
     try {
+      // Hit /api/auth/logout first to clear any pre-existing session cookie
+      // server-side before establishing the new admin session.
+      try {
+        await apiFetch("/api/auth/logout", { method: "POST" });
+      } catch {
+        // ignore — may not have a session, that's fine
+      }
+
       const res = await apiFetch<any>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
