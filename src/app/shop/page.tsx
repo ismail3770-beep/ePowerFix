@@ -590,7 +590,7 @@ function FilterSidebar({
             <p className="p-3 text-[12px] text-slate-400">No products yet.</p>
           ) : (
             latestProducts.slice(0, 5).map((p) => {
-              const img = parseImages(p.images)[0] || null;
+              const img = p.images?.[0] || null;
               const disp = p.salePrice ?? p.price;
               const orig = p.comparePrice ?? null;
               const disc = orig && orig > disp ? Math.round(((orig - disp) / orig) * 100) : 0;
