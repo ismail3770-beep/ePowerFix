@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,12 +12,13 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ChevronLeft,
-  Check,
   Boxes,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
@@ -29,7 +30,6 @@ import ProjectDetailDialog from "@/components/epf/ProjectDetailDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import {
-  EPFStar,
   EPFCart,
 } from "@/components/epf/icons/EPFIcons";
 
@@ -70,15 +70,12 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "price-desc", label: "Price: High to Low" },
 ];
 
-const PRICE_RANGES: { label: string; min: number; max: number }[] = [
-  { label: "Under ৳1,000", min: 0, max: 1000 },
-  { label: "৳1,000 – ৳3,000", min: 1000, max: 3000 },
-  { label: "৳3,000 – ৳10,000", min: 3000, max: 10000 },
-  { label: "৳10,000 – ৳50,000", min: 10000, max: 50000 },
-  { label: "Above ৳50,000", min: 50000, max: Number.MAX_SAFE_INTEGER },
+// Difficulty levels — match the admin API zod enum exactly
+const DIFFICULTY_OPTIONS: { value: string; label: string }[] = [
+  { value: "Beginner", label: "Beginner" },
+  { value: "Intermediate", label: "Intermediate" },
+  { value: "Advanced", label: "Advanced" },
 ];
-
-const RATING_OPTIONS = [4, 3, 2, 1];
 
 const GRID =
   "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4";
@@ -127,6 +124,32 @@ function KitListCardSkeleton() {
         <div className="h-4 w-3/4 bg-slate-100 rounded animate-pulse" />
         <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
         <div className="h-4 w-24 bg-slate-100 rounded animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+function SidebarSkeleton() {
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-6 animate-pulse shadow-sm">
+      <div>
+        <div className="h-5 bg-slate-100 rounded w-28 mb-4" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="h-4 w-4 bg-slate-100 rounded" />
+              <div className="h-3.5 bg-slate-100 rounded w-28 flex-1" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <div className="h-5 bg-slate-100 rounded w-24 mb-4" />
+        <div className="grid grid-cols-1 gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-9 bg-slate-100 rounded-lg" />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -374,68 +397,269 @@ function KitCardList({ kit }: { kit: Kit }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Filter Sidebar                                                     */
+/*  Filter Sidebar  —  Difficulty + Price + Availability + Latest Kits */
 /* ------------------------------------------------------------------ */
+interface FilterSidebarProps {
+  selectedDifficulty: string | null;
+  onSelectDifficulty: (v: string | null) => void;
+  minPriceInput: string;
+  maxPriceInput: string;
+  onMinPriceInputChange: (val: string) => void;
+  onMaxPriceInputChange: (val: string) => void;
+  onApplyPrice: () => void;
+  appliedMinPrice: number | null;
+  appliedMaxPrice: number | null;
+  inStockOnly: boolean;
+  onToggleInStock: (val: boolean) => void;
+  onClearAll: () => void;
+  latestKits: Kit[];
+}
 
 function FilterSidebar({
-  selectedPriceRange,
-  onSelectPriceRange,
-  selectedRating,
-  onSelectRating,
+  selectedDifficulty,
+  onSelectDifficulty,
+  minPriceInput,
+  maxPriceInput,
+  onMinPriceInputChange,
+  onMaxPriceInputChange,
+  onApplyPrice,
+  appliedMinPrice,
+  appliedMaxPrice,
+  inStockOnly,
+  onToggleInStock,
   onClearAll,
-}: {
-  selectedPriceRange: number | null;
-  onSelectPriceRange: (v: number | null) => void;
-  selectedRating: number | null;
-  onSelectRating: (v: number | null) => void;
-  onClearAll: () => void;
-}) {
+  latestKits,
+}: FilterSidebarProps) {
+  const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
+
+  const hasActiveFilters =
+    !!selectedDifficulty ||
+    appliedMinPrice != null ||
+    appliedMaxPrice != null ||
+    inStockOnly;
+
+  const openKit = (kit: Kit) => {
+    setSelectedProjectId(kit.id);
+    setProjectDetailOpen(true);
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-5 space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-[14px] font-semibold text-slate-900 flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4" /> Filters
-        </h3>
-        <button
-          onClick={onClearAll}
-          className="text-[12px] text-epf-500 hover:underline font-medium"
-        >
-          Clear All
-        </button>
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-white">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4 text-slate-700" />
+          <h2 className="text-[14px] font-semibold text-slate-900">Filters</h2>
+        </div>
+        {hasActiveFilters && (
+          <button
+            onClick={onClearAll}
+            className="text-[12px] text-epf-600 font-semibold hover:text-epf-700 transition-colors"
+          >
+            Clear All
+          </button>
+        )}
       </div>
 
-      {/* Price */}
-      <div>
-        <h4 className="text-[13px] font-semibold text-slate-700 mb-3">
-          Price Range
-        </h4>
-        <div className="space-y-2">
-          {PRICE_RANGES.map((r, i) => (
+      <div className="px-5 py-2 divide-y divide-slate-100">
+        {/* ── 1. Difficulty ─────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-2">
+            Difficulty
+          </h3>
+          <div className="space-y-0.5">
             <button
-              key={i}
-              onClick={() =>
-                onSelectPriceRange(selectedPriceRange === i ? null : i)
-              }
-              className={`flex items-center gap-2 w-full text-left text-[13px] py-1.5 transition-colors ${
-                selectedPriceRange === i
-                  ? "text-epf-500 font-medium"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
+              onClick={() => onSelectDifficulty(null)}
+              className={cn(
+                "flex items-center justify-between w-full h-10 px-3 rounded-lg text-left transition-colors group",
+                selectedDifficulty === null
+                  ? "text-epf-600 font-medium bg-epf-50/60"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50",
+              )}
+            >
+              <span className="text-[13px]">All Kits</span>
+              <ChevronRight
+                className={cn(
+                  "h-4 w-4 transition-colors",
+                  selectedDifficulty === null
+                    ? "text-epf-500"
+                    : "text-slate-300 group-hover:text-slate-400",
+                )}
+              />
+            </button>
+            {DIFFICULTY_OPTIONS.map((d) => {
+              const active = selectedDifficulty === d.value;
+              return (
+                <button
+                  key={d.value}
+                  onClick={() => onSelectDifficulty(active ? null : d.value)}
+                  className={cn(
+                    "flex items-center justify-between w-full h-10 px-3 rounded-lg text-left transition-colors group",
+                    active
+                      ? "text-epf-600 font-medium bg-epf-50/60"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50",
+                  )}
+                >
+                  <span className="text-[13px]">{d.label}</span>
+                  <ChevronRight
+                    className={cn(
+                      "h-4 w-4 shrink-0 ml-2 transition-colors",
+                      active
+                        ? "text-epf-500"
+                        : "text-slate-300 group-hover:text-slate-400",
+                    )}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── 2. Price ──────────────────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+            Price Range
+          </h3>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              placeholder="Min"
+              value={minPriceInput}
+              onChange={(e) => onMinPriceInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onApplyPrice();
+              }}
+              className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
+            />
+            <span className="text-slate-400 text-[13px] select-none">—</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              placeholder="Max"
+              value={maxPriceInput}
+              onChange={(e) => onMaxPriceInputChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onApplyPrice();
+              }}
+              className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
+            />
+          </div>
+          <button
+            onClick={onApplyPrice}
+            className="mt-3 w-full h-9 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+          >
+            Apply
+          </button>
+        </section>
+
+        {/* ── 3. Availability ───────────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+            Availability
+          </h3>
+          <label className="flex items-center justify-between cursor-pointer group">
+            <span className="text-[13px] font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
+              In Stock Only
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={inStockOnly}
+              onClick={() => onToggleInStock(!inStockOnly)}
+              className={cn(
+                "relative h-6 w-11 rounded-full transition-colors",
+                inStockOnly ? "bg-epf-500" : "bg-slate-200",
+              )}
             >
               <span
-                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                  selectedPriceRange === i
-                    ? "bg-epf-500 border-epf-500"
-                    : "border-slate-300"
-                }`}
-              >
-                {selectedPriceRange === i && (
-                  <Check className="w-3 h-3 text-white" />
+                className={cn(
+                  "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
+                  inStockOnly && "translate-x-5",
                 )}
-              </span>
-              {r.label}
+              />
             </button>
-          ))}
+          </label>
+        </section>
+      </div>
+
+      {/* ── Latest Project Kits ──────────────────────────────────── */}
+      <div className="border-t border-slate-200">
+        <div className="px-5 py-4 border-b border-slate-100">
+          <h3 className="text-[14px] font-semibold text-slate-900">
+            Latest Project Kits
+          </h3>
+        </div>
+        <div className="p-3 space-y-1">
+          {latestKits.length === 0 ? (
+            <p className="p-3 text-[12px] text-slate-400">No kits yet.</p>
+          ) : (
+            latestKits.slice(0, 5).map((k) => {
+              const images = parseImages(k.images);
+              const img = k.coverImage || images[0] || null;
+              const buyable = k.price != null;
+              const disp = Number(k.salePrice || k.price || 0);
+              const orig =
+                k.salePrice != null && k.price != null && k.salePrice < k.price
+                  ? Number(k.price)
+                  : null;
+              const disc =
+                orig && orig > disp
+                  ? Math.round(((orig - disp) / orig) * 100)
+                  : 0;
+              return (
+                <button
+                  key={k.id}
+                  onClick={() => openKit(k)}
+                  className="flex w-full items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group text-left"
+                >
+                  <div className="relative shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={k.title}
+                        className="w-full h-full object-contain p-1"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="h-5 w-5 text-slate-300" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-[12px] font-medium text-slate-700 leading-snug line-clamp-2 group-hover:text-epf-600 transition-colors">
+                      {k.title}
+                    </h4>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {buyable ? (
+                        <>
+                          <span className="text-[13px] font-bold text-epf-600">
+                            ৳{disp.toLocaleString()}
+                          </span>
+                          {orig && orig > disp && (
+                            <del className="text-[11px] text-slate-400">
+                              ৳{orig.toLocaleString()}
+                            </del>
+                          )}
+                          {disc > 0 && (
+                            <span className="text-[10px] font-bold text-emerald-600">
+                              -{disc}%
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-[11px] font-medium text-epf-500">
+                          Tap to view
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
@@ -550,10 +774,14 @@ export default function ProjectKitsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   /* Filter state (client-side) */
-  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(
     null,
   );
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
+  const [appliedMinPrice, setAppliedMinPrice] = useState<number | null>(null);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
+  const [minPriceInput, setMinPriceInput] = useState<string>("");
+  const [maxPriceInput, setMaxPriceInput] = useState<string>("");
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   /* ---- Stores ---- */
   const { setSearchQuery } = useUIStore();
@@ -575,17 +803,37 @@ export default function ProjectKitsPage() {
 
   const baseKits: Kit[] = data?.data ?? [];
 
+  /* ---- Latest kits for sidebar (API already sorts by createdAt desc) ---- */
+  const latestKits = useMemo(() => baseKits.slice(0, 5), [baseKits]);
+
   /* ---- Derived data with client-side sort + filter ---- */
   const processedKits = useMemo(() => {
     let arr = [...baseKits];
 
-    // Price range filter
-    if (selectedPriceRange !== null) {
-      const range = PRICE_RANGES[selectedPriceRange];
-      arr = arr.filter((k) => {
-        const price = Number(k.salePrice || k.price || 0);
-        return price >= range.min && price < range.max;
-      });
+    // Difficulty filter
+    if (selectedDifficulty) {
+      arr = arr.filter(
+        (k) =>
+          k.difficulty != null &&
+          k.difficulty.toLowerCase() === selectedDifficulty.toLowerCase(),
+      );
+    }
+
+    // Price range filter (min/max)
+    if (appliedMinPrice != null) {
+      arr = arr.filter(
+        (k) => Number(k.salePrice || k.price || 0) >= appliedMinPrice,
+      );
+    }
+    if (appliedMaxPrice != null) {
+      arr = arr.filter(
+        (k) => Number(k.salePrice || k.price || 0) <= appliedMaxPrice,
+      );
+    }
+
+    // In-stock filter
+    if (inStockOnly) {
+      arr = arr.filter((k) => (k.stock ?? 0) > 0);
     }
 
     // Sort
@@ -622,7 +870,7 @@ export default function ProjectKitsPage() {
     }
 
     return arr;
-  }, [baseKits, selectedPriceRange, sort]);
+  }, [baseKits, selectedDifficulty, appliedMinPrice, appliedMaxPrice, inStockOnly, sort]);
 
   /* ---- Pagination (client-side) ---- */
   const totalKits = processedKits.length;
@@ -634,24 +882,65 @@ export default function ProjectKitsPage() {
     page * KITS_PER_PAGE,
   );
 
-  /* ---- Reset page on filter change ---- */
+  /* ---- Scroll to top on page change ---- */
   useEffect(() => {
-    setPage(1);
-  }, [selectedPriceRange, appliedSearch, sort]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
 
   /* ---- Handlers ---- */
-  const handleSortChange = (v: SortOption) => setSort(v);
-  const handleClearFilters = () => {
-    setSelectedPriceRange(null);
-    setSelectedRating(null);
-    setAppliedSearch("");
+  const handleSortChange = useCallback((v: SortOption) => {
+    setSort(v);
     setPage(1);
-  };
+  }, []);
 
-  const activePriceLabel =
-    selectedPriceRange !== null
-      ? PRICE_RANGES[selectedPriceRange]?.label ?? null
-      : null;
+  const handleApplyPrice = useCallback(() => {
+    const min = minPriceInput.trim() === "" ? null : Number(minPriceInput);
+    const max = maxPriceInput.trim() === "" ? null : Number(maxPriceInput);
+    setAppliedMinPrice(min != null && !Number.isNaN(min) ? min : null);
+    setAppliedMaxPrice(max != null && !Number.isNaN(max) ? max : null);
+    setPage(1);
+  }, [minPriceInput, maxPriceInput]);
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedDifficulty(null);
+    setAppliedMinPrice(null);
+    setAppliedMaxPrice(null);
+    setMinPriceInput("");
+    setMaxPriceInput("");
+    setInStockOnly(false);
+    setAppliedSearch("");
+    setSort("featured");
+    setPage(1);
+  }, []);
+
+  const hasActiveFilters =
+    !!selectedDifficulty ||
+    !!appliedSearch ||
+    appliedMinPrice != null ||
+    appliedMaxPrice != null ||
+    inStockOnly;
+
+  const sidebarProps: FilterSidebarProps = {
+    selectedDifficulty,
+    onSelectDifficulty: (v) => {
+      setSelectedDifficulty(v);
+      setPage(1);
+    },
+    minPriceInput,
+    maxPriceInput,
+    onMinPriceInputChange: setMinPriceInput,
+    onMaxPriceInputChange: setMaxPriceInput,
+    onApplyPrice: handleApplyPrice,
+    appliedMinPrice,
+    appliedMaxPrice,
+    inStockOnly,
+    onToggleInStock: (v) => {
+      setInStockOnly(v);
+      setPage(1);
+    },
+    onClearAll: handleClearFilters,
+    latestKits,
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -768,9 +1057,7 @@ export default function ProjectKitsPage() {
         </div>
 
         {/* Active Filter Tags */}
-        {(appliedSearch ||
-          selectedPriceRange !== null ||
-          selectedRating !== null) && (
+        {hasActiveFilters && (
           <div className="bg-white border-b border-slate-200">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-2.5">
               <div className="flex items-center gap-2 flex-wrap">
@@ -781,29 +1068,52 @@ export default function ProjectKitsPage() {
                   <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
                     Search: “{appliedSearch}”
                     <button
-                      onClick={() => setAppliedSearch("")}
+                      onClick={() => {
+                        setAppliedSearch("");
+                        setPage(1);
+                      }}
                       className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
-                {activePriceLabel && (
+                {selectedDifficulty && (
                   <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
-                    {activePriceLabel}
+                    {selectedDifficulty}
                     <button
-                      onClick={() => setSelectedPriceRange(null)}
+                      onClick={() => setSelectedDifficulty(null)}
                       className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
                     </button>
                   </span>
                 )}
-                {selectedRating !== null && (
+                {(appliedMinPrice != null || appliedMaxPrice != null) && (
                   <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
-                    {selectedRating}★ & up
+                    ৳{appliedMinPrice != null ? appliedMinPrice.toLocaleString() : "0"}
+                    {" – "}
+                    {appliedMaxPrice != null
+                      ? `৳${appliedMaxPrice.toLocaleString()}`
+                      : "Max"}
                     <button
-                      onClick={() => setSelectedRating(null)}
+                      onClick={() => {
+                        setAppliedMinPrice(null);
+                        setAppliedMaxPrice(null);
+                        setMinPriceInput("");
+                        setMaxPriceInput("");
+                      }}
+                      className="text-slate-400 hover:text-slate-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                )}
+                {inStockOnly && (
+                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
+                    In Stock Only
+                    <button
+                      onClick={() => setInStockOnly(false)}
                       className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
@@ -827,13 +1137,11 @@ export default function ProjectKitsPage() {
             {/* ---- Desktop Sidebar ---- */}
             <aside className="hidden lg:block w-[280px] shrink-0">
               <div className="sticky top-[80px]">
-                <FilterSidebar
-                  selectedPriceRange={selectedPriceRange}
-                  onSelectPriceRange={setSelectedPriceRange}
-                  selectedRating={selectedRating}
-                  onSelectRating={setSelectedRating}
-                  onClearAll={handleClearFilters}
-                />
+                {isLoading ? (
+                  <SidebarSkeleton />
+                ) : (
+                  <FilterSidebar {...sidebarProps} />
+                )}
               </div>
             </aside>
 
@@ -905,9 +1213,11 @@ export default function ProjectKitsPage() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setMobileFilterOpen(false)}
           />
-          <div className="relative ml-auto w-[300px] bg-white h-full overflow-y-auto p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[15px] font-semibold">Filters</h3>
+          <div className="relative ml-auto w-[320px] max-w-[85vw] bg-white h-full overflow-y-auto">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 sticky top-0 bg-white z-10">
+              <h3 className="text-[16px] font-semibold text-slate-900">
+                Filters
+              </h3>
               <button
                 onClick={() => setMobileFilterOpen(false)}
                 className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-50"
@@ -915,19 +1225,17 @@ export default function ProjectKitsPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <FilterSidebar
-              selectedPriceRange={selectedPriceRange}
-              onSelectPriceRange={setSelectedPriceRange}
-              selectedRating={selectedRating}
-              onSelectRating={setSelectedRating}
-              onClearAll={handleClearFilters}
-            />
-            <button
-              onClick={() => setMobileFilterOpen(false)}
-              className="w-full mt-4 h-10 bg-epf-500 text-white text-[14px] font-medium rounded-lg hover:bg-epf-600"
-            >
-              Show {totalKits} kits
-            </button>
+            <div className="p-4 pb-24">
+              <FilterSidebar {...sidebarProps} />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200">
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                className="w-full h-11 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-semibold rounded-lg transition-colors"
+              >
+                Show {totalKits} kits
+              </button>
+            </div>
           </div>
         </div>
       )}
