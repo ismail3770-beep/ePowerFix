@@ -126,14 +126,28 @@ export const POST = adminRoute(createProductSchema, async (request, body, user) 
   }
 
   // C4: categoryId/brandId are required by the DB schema, but the Zod schema
-  // now accepts null/empty so the admin form can submit without Zod errors.
-  // Validate explicitly here so users get a clear error instead of a Zod error.
-  if (!categoryId || typeof categoryId !== 'string') {
-    return errorResponse('categoryId is required', 400)
+  // accepts null/empty so the admin form can submit "__none__" without Zod
+  // errors. Normalize placeholder values ("", "None", "null", "undefined",
+  // "__none__") and validate that a real category/brand exists.
+  const INVALID_VALUES = new Set(['', 'none', 'null', 'undefined', '__none__'])
+  const normalizedCat = typeof categoryId === 'string' ? categoryId.trim() : ''
+  const normalizedBrand = typeof brandId === 'string' ? brandId.trim() : ''
+
+  if (!normalizedCat || INVALID_VALUES.has(normalizedCat.toLowerCase())) {
+    return errorResponse('Please select a category for the product.', 400)
   }
-  if (!brandId || typeof brandId !== 'string') {
-    return errorResponse('brandId is required', 400)
+  if (!normalizedBrand || INVALID_VALUES.has(normalizedBrand.toLowerCase())) {
+    return errorResponse('Please select a brand for the product.', 400)
   }
+
+  // Verify the category + brand actually exist (prevents a confusing Prisma
+  // foreign-key error if the admin submits a stale/deleted id).
+  const [catExists, brandExists] = await Promise.all([
+    db.productCategory.findUnique({ where: { id: normalizedCat }, select: { id: true } }),
+    db.brand.findUnique({ where: { id: normalizedBrand }, select: { id: true } }),
+  ])
+  if (!catExists) return errorResponse('Selected category does not exist. Please refresh and try again.', 400)
+  if (!brandExists) return errorResponse('Selected brand does not exist. Please refresh and try again.', 400)
 
   const product = await db.product.create({
     data: {
@@ -148,8 +162,8 @@ export const POST = adminRoute(createProductSchema, async (request, body, user) 
       sku: sku || null,
       stock: Number(stock),
       minStock: Number(minStock),
-      categoryId,
-      brandId,
+      categoryId: normalizedCat,
+      brandId: normalizedBrand,
       images: stringifyJsonField(images),
       tags: stringifyJsonField(tags),
       specs: specs || null,

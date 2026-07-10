@@ -115,13 +115,28 @@ export const PUT = withErrorHandling(async (
     }
   }
 
-  // C4 (PUT): categoryId/brandId are required by the DB schema. Reject empty
-  // values explicitly so users get a clear error.
-  if (categoryId !== undefined && !categoryId) {
-    return errorResponse('categoryId cannot be empty', 400)
+  // C4 (PUT): categoryId/brandId are required by the DB schema. Normalize
+  // placeholder values ("", "None", "null", "undefined", "__none__") and
+  // validate that a real category/brand exists when provided.
+  const INVALID_VALUES_PUT = new Set(['', 'none', 'null', 'undefined', '__none__'])
+  let normalizedCatPut: string | undefined = undefined
+  let normalizedBrandPut: string | undefined = undefined
+
+  if (categoryId !== undefined) {
+    normalizedCatPut = typeof categoryId === 'string' ? categoryId.trim() : ''
+    if (!normalizedCatPut || INVALID_VALUES_PUT.has(normalizedCatPut.toLowerCase())) {
+      return errorResponse('Please select a valid category for the product.', 400)
+    }
+    const catExists = await db.productCategory.findUnique({ where: { id: normalizedCatPut }, select: { id: true } })
+    if (!catExists) return errorResponse('Selected category does not exist.', 400)
   }
-  if (brandId !== undefined && !brandId) {
-    return errorResponse('brandId cannot be empty', 400)
+  if (brandId !== undefined) {
+    normalizedBrandPut = typeof brandId === 'string' ? brandId.trim() : ''
+    if (!normalizedBrandPut || INVALID_VALUES_PUT.has(normalizedBrandPut.toLowerCase())) {
+      return errorResponse('Please select a valid brand for the product.', 400)
+    }
+    const brandExists = await db.brand.findUnique({ where: { id: normalizedBrandPut }, select: { id: true } })
+    if (!brandExists) return errorResponse('Selected brand does not exist.', 400)
   }
 
   const data: any = {}
@@ -137,8 +152,8 @@ export const PUT = withErrorHandling(async (
   if (sku !== undefined) data.sku = sku || null
   if (stock !== undefined) data.stock = Number(stock)
   if (minStock !== undefined) data.minStock = Number(minStock)
-  if (categoryId !== undefined) data.categoryId = categoryId
-  if (brandId !== undefined) data.brandId = brandId
+  if (normalizedCatPut !== undefined) data.categoryId = normalizedCatPut
+  if (normalizedBrandPut !== undefined) data.brandId = normalizedBrandPut
   if (images !== undefined) data.images = stringifyJsonField(images)
   if (tags !== undefined) data.tags = stringifyJsonField(tags)
   if (specs !== undefined) data.specs = specs || null
