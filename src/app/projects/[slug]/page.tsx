@@ -56,27 +56,6 @@ interface ProjectListItem {
   createdAt: string;
 }
 
-const STATUS_META: Record<
-  string,
-  { label: string; badgeCls: string; dotCls: string }
-> = {
-  COMPLETED: {
-    label: "Completed",
-    badgeCls: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    dotCls: "bg-emerald-500",
-  },
-  IN_PROGRESS: {
-    label: "In Progress",
-    badgeCls: "bg-amber-50 text-amber-700 border border-amber-200",
-    dotCls: "bg-amber-500",
-  },
-  PLANNED: {
-    label: "Planned",
-    badgeCls: "bg-slate-100 text-slate-600 border border-slate-200",
-    dotCls: "bg-slate-400",
-  },
-};
-
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", {
     year: "numeric",
@@ -169,7 +148,6 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const statusMeta = STATUS_META[p.status] ?? STATUS_META.PLANNED;
   const images = p.images
     ? Array.isArray(p.images)
       ? p.images
@@ -239,23 +217,6 @@ export default function ProjectDetailPage() {
                       <BookOpen className="w-16 h-16 text-slate-300" />
                     </div>
                   )}
-                  {/* Status badge overlay */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 h-7 px-3 rounded-full text-[12px] font-semibold leading-none backdrop-blur-sm shadow-sm",
-                        statusMeta.badgeCls
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          statusMeta.dotCls
-                        )}
-                      />
-                      {statusMeta.label}
-                    </span>
-                  </div>
                 </div>
 
                 {/* Image thumbnails */}
@@ -324,36 +285,6 @@ export default function ProjectDetailPage() {
                     </p>
                   </div>
 
-                  {/* Project details */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                    {p.startDate && (
-                      <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                        <Calendar className="h-5 w-5 text-epf-500 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-[12px] text-slate-400 uppercase tracking-wide">
-                            Start Date
-                          </p>
-                          <p className="text-[14px] font-medium text-slate-800">
-                            {formatDate(p.startDate)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {p.endDate && (
-                      <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-lg border border-slate-100">
-                        <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-[12px] text-slate-400 uppercase tracking-wide">
-                            End Date
-                          </p>
-                          <p className="text-[14px] font-medium text-slate-800">
-                            {formatDate(p.endDate)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
                   {/* CTA */}
                   <div className="bg-epf-50 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
@@ -399,20 +330,6 @@ export default function ProjectDetailPage() {
                     </h3>
                   </div>
                   <div className="p-5 space-y-3">
-                    <div className="flex items-center justify-between text-[14px]">
-                      <span className="text-slate-500 inline-flex items-center gap-1.5">
-                        <span
-                          className={cn(
-                            "h-2 w-2 rounded-full",
-                            statusMeta.dotCls
-                          )}
-                        />
-                        Status
-                      </span>
-                      <span className="text-slate-900 font-medium">
-                        {statusMeta.label}
-                      </span>
-                    </div>
                     {p.client && (
                       <div className="flex items-center justify-between text-[14px]">
                         <span className="text-slate-500 inline-flex items-center gap-1.5">
@@ -444,22 +361,6 @@ export default function ProjectDetailPage() {
                         {formatDateShort(p.createdAt)}
                       </span>
                     </div>
-                    {p.startDate && (
-                      <div className="flex items-center justify-between text-[14px]">
-                        <span className="text-slate-500">Start Date</span>
-                        <span className="text-slate-900 font-medium">
-                          {formatDateShort(p.startDate)}
-                        </span>
-                      </div>
-                    )}
-                    {p.endDate && (
-                      <div className="flex items-center justify-between text-[14px]">
-                        <span className="text-slate-500">End Date</span>
-                        <span className="text-slate-900 font-medium">
-                          {formatDateShort(p.endDate)}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </section>
 

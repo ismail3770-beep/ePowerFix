@@ -60,10 +60,10 @@ const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-
 
 function CardSkeleton() {
   return (
-    <div className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="animate-pulse">
-        <div className={`${CARD_IMAGE_ASPECT} bg-slate-100`} />
-        <div className="p-2.5 space-y-2">
+        <div className="aspect-square bg-slate-100" />
+        <div className="p-3 space-y-2">
           <div className="h-3 bg-slate-100 rounded w-3/4" />
           <div className="h-4 bg-slate-100 rounded w-1/3 mt-1" />
         </div>

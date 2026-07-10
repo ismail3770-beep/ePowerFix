@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import {
-  ChevronRight,
   ChevronLeft,
-  ChevronRight as ArrowRight,
-  Search,
+  ChevronRight,
   FolderOpen,
+  Search,
+  X,
+  ArrowRight,
   MapPin,
   Calendar,
-  X,
-  LayoutGrid,
+  GraduationCap,
+  ShoppingCart,
+  Lightbulb,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { EPFHome, EPFChevronRight } from "@/components/epf/icons/EPFIcons";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
@@ -23,11 +26,7 @@ import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from "@/lib/api";
-import { cn } from "@/lib/utils";
 
-/* ------------------------------------------------------------------ */
-/*  Types & Constants                                                  */
-/* ------------------------------------------------------------------ */
 interface ProjectItem {
   id: string;
   title: string;
@@ -38,42 +37,10 @@ interface ProjectItem {
   images?: string[];
   client?: string | null;
   location?: string | null;
-  status: string;
   createdAt: string;
 }
 
-const STATUS_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "COMPLETED", label: "Completed" },
-  { key: "IN_PROGRESS", label: "In Progress" },
-  { key: "PLANNED", label: "Planned" },
-] as const;
-
 const PAGE_SIZE = 9;
-
-const STATUS_META: Record<
-  string,
-  { label: string; badgeCls: string; dotCls: string; pillActive: string }
-> = {
-  COMPLETED: {
-    label: "Completed",
-    badgeCls: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-    dotCls: "bg-emerald-500",
-    pillActive: "bg-emerald-500 text-white",
-  },
-  IN_PROGRESS: {
-    label: "In Progress",
-    badgeCls: "bg-amber-50 text-amber-700 border border-amber-200",
-    dotCls: "bg-amber-500",
-    pillActive: "bg-amber-500 text-white",
-  },
-  PLANNED: {
-    label: "Planned",
-    badgeCls: "bg-slate-100 text-slate-600 border border-slate-200",
-    dotCls: "bg-slate-400",
-    pillActive: "bg-slate-500 text-white",
-  },
-};
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -111,52 +78,6 @@ function getCover(project: ProjectItem): string | null {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Status Filter Pills (top bar)                                      */
-/* ------------------------------------------------------------------ */
-function StatusPills({
-  active,
-  onChange,
-  counts,
-}: {
-  active: string;
-  onChange: (key: string) => void;
-  counts: Record<string, number>;
-}) {
-  return (
-    <div className="flex gap-2 flex-wrap">
-      {STATUS_FILTERS.map((f) => {
-        const isActive = active === f.key;
-        const count = counts[f.key] ?? 0;
-        return (
-          <button
-            key={f.key}
-            onClick={() => onChange(f.key)}
-            className={cn(
-              "shrink-0 h-9 px-4 text-[13px] font-medium rounded-lg flex items-center gap-2 transition-all duration-200",
-              isActive
-                ? "bg-epf-500 text-white shadow-sm"
-                : "bg-white text-slate-600 border border-slate-200 hover:border-epf-300 hover:text-epf-600"
-            )}
-          >
-            <span className="whitespace-nowrap">{f.label}</span>
-            <span
-              className={cn(
-                "min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center",
-                isActive
-                  ? "bg-white/20 text-white"
-                  : "bg-slate-100 text-slate-500"
-              )}
-            >
-              {count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
 /*  Project Card                                                       */
 /* ------------------------------------------------------------------ */
 function ProjectCard({
@@ -169,14 +90,13 @@ function ProjectCard({
   const [imgError, setImgError] = useState(false);
   const cover = getCover(project);
   const handleClick = () => onNavigate(project.slug);
-  const statusMeta = STATUS_META[project.status] ?? STATUS_META.PLANNED;
 
   return (
     <article
       onClick={handleClick}
       className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
     >
-      {/* Cover image — aspect-[4/3] */}
+      {/* Cover image */}
       <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
         {!imgError && cover ? (
           <Image
@@ -194,18 +114,6 @@ function ProjectCard({
             </div>
           </div>
         )}
-        {/* Status badge overlay */}
-        <div className="absolute top-3 left-3 z-10">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-semibold leading-none backdrop-blur-sm shadow-sm",
-              statusMeta.badgeCls
-            )}
-          >
-            <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dotCls)} />
-            {statusMeta.label}
-          </span>
-        </div>
       </div>
 
       {/* Body */}
@@ -259,7 +167,6 @@ function RecentProjectItem({
 }) {
   const [imgError, setImgError] = useState(false);
   const cover = getCover(project);
-  const statusMeta = STATUS_META[project.status] ?? STATUS_META.PLANNED;
   return (
     <button
       onClick={() => onNavigate(project.slug)}
@@ -286,11 +193,9 @@ function RecentProjectItem({
           {project.title}
         </h4>
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
-          <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dotCls)} />
-          <span className="truncate">{statusMeta.label}</span>
           {project.location && (
             <>
-              <span className="text-slate-300">·</span>
+              <MapPin className="h-3 w-3" />
               <span className="truncate">{project.location}</span>
             </>
           )}
@@ -379,13 +284,7 @@ function Pagination({
 /* ------------------------------------------------------------------ */
 /*  Empty State                                                        */
 /* ------------------------------------------------------------------ */
-function EmptyState({
-  hasSearch,
-  onClear,
-}: {
-  hasSearch: boolean;
-  onClear: () => void;
-}) {
+function EmptyState({ onClear }: { onClear: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-xl border border-slate-200">
       <FolderOpen className="h-16 w-16 text-slate-200 mb-4" />
@@ -393,15 +292,14 @@ function EmptyState({
         No projects found
       </h3>
       <p className="text-[14px] text-slate-500 mb-6 text-center max-w-md">
-        {hasSearch
-          ? "Try a different search term or filter to find what you're looking for."
-          : "No projects match this filter yet. Check back soon!"}
+        Try a different search term, or check back soon — new projects are
+        added regularly.
       </p>
       <button
         onClick={onClear}
         className="h-10 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors shadow-sm"
       >
-        Clear All Filters
+        Clear Search
       </button>
     </div>
   );
@@ -412,7 +310,6 @@ function EmptyState({
 /* ------------------------------------------------------------------ */
 export default function ProjectsPage() {
   const router = useRouter();
-  const [activeStatus, setActiveStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -425,20 +322,8 @@ export default function ProjectsPage() {
 
   const allProjects = apiData?.data ?? [];
 
-  /* Count per status (from full list) */
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: allProjects.length };
-    for (const p of allProjects) {
-      counts[p.status] = (counts[p.status] ?? 0) + 1;
-    }
-    return counts;
-  }, [allProjects]);
-
   const filtered = useMemo(() => {
     let list = allProjects;
-    if (activeStatus !== "all") {
-      list = list.filter((p) => p.status === activeStatus);
-    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(
@@ -448,7 +333,7 @@ export default function ProjectsPage() {
       );
     }
     return list;
-  }, [allProjects, activeStatus, searchQuery]);
+  }, [allProjects, searchQuery]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = useMemo(
@@ -467,18 +352,12 @@ export default function ProjectsPage() {
       .slice(0, 5);
   }, [allProjects]);
 
-  const handleStatusChange = (key: string) => {
-    setActiveStatus(key);
-    setCurrentPage(1);
-  };
-
   const handleClearAll = () => {
-    setActiveStatus("all");
     setSearchQuery("");
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = activeStatus !== "all" || searchQuery.trim() !== "";
+  const hasActiveFilters = searchQuery.trim() !== "";
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -506,7 +385,7 @@ export default function ProjectsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 pt-1">
               <div className="flex items-center gap-3 min-w-0">
                 <h1 className="text-[24px] font-bold text-slate-900 tracking-tight">
-                  Projects
+                  Engineering Projects
                 </h1>
                 <span className="text-[13px] text-slate-500">
                   {isLoading ? (
@@ -557,15 +436,35 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Status filter pills row */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-              <StatusPills
-                active={activeStatus}
-                onChange={handleStatusChange}
-                counts={statusCounts}
-              />
+        {/* Intro banner — Learn & Build EEE Projects */}
+        <div className="bg-gradient-to-r from-epf-50 to-slate-50 border-b border-slate-200">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-epf-500/10 flex items-center justify-center shrink-0">
+                  <Lightbulb className="h-5 w-5 text-epf-500" />
+                </div>
+                <div>
+                  <p className="text-[14px] font-semibold text-slate-900">
+                    Learn &amp; Build Electrical Engineering Projects
+                  </p>
+                  <p className="text-[12px] text-slate-500 mt-0.5">
+                    Explore real-world automation, IoT, solar &amp; wiring
+                    projects — learn how they work or order a custom build.
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-4 ml-auto text-[12px]">
+                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                  <GraduationCap className="h-4 w-4 text-epf-500" />
+                  Learn
+                </span>
+                <span className="text-slate-300">|</span>
+                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                  <ShoppingCart className="h-4 w-4 text-epf-500" />
+                  Order Custom
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -593,10 +492,7 @@ export default function ProjectsPage() {
                   ))}
                 </div>
               ) : filtered.length === 0 ? (
-                <EmptyState
-                  hasSearch={!!searchQuery.trim()}
-                  onClear={handleClearAll}
-                />
+                <EmptyState onClear={handleClearAll} />
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -620,54 +516,6 @@ export default function ProjectsPage() {
             {/* Sidebar */}
             <aside className="w-full lg:w-[30%] shrink-0">
               <div className="lg:sticky lg:top-[88px] space-y-6">
-                {/* Status Summary */}
-                <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                  <div className="px-5 py-4 border-b border-slate-100">
-                    <h3 className="text-[16px] font-semibold text-slate-900 flex items-center gap-2">
-                      <LayoutGrid className="h-4 w-4 text-epf-500" />
-                      Project Status
-                    </h3>
-                  </div>
-                  <div className="p-4 grid grid-cols-1 gap-2">
-                    {STATUS_FILTERS.filter((s) => s.key !== "all").map((s) => {
-                      const meta = STATUS_META[s.key];
-                      const count = statusCounts[s.key] ?? 0;
-                      return (
-                        <button
-                          key={s.key}
-                          onClick={() => handleStatusChange(s.key)}
-                          className={cn(
-                            "flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-[14px] font-medium transition-all",
-                            activeStatus === s.key
-                              ? "bg-epf-50 text-epf-600"
-                              : "text-slate-600 hover:bg-slate-50"
-                          )}
-                        >
-                          <span className="inline-flex items-center gap-2.5">
-                            <span
-                              className={cn(
-                                "h-2 w-2 rounded-full",
-                                meta.dotCls
-                              )}
-                            />
-                            {meta.label}
-                          </span>
-                          <span
-                            className={cn(
-                              "min-w-5 h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center",
-                              activeStatus === s.key
-                                ? "bg-epf-500 text-white"
-                                : "bg-slate-100 text-slate-500"
-                            )}
-                          >
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-
                 {/* Recent Projects */}
                 <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                   <div className="px-5 py-4 border-b border-slate-100">
@@ -700,7 +548,7 @@ export default function ProjectsPage() {
                   </div>
                 </section>
 
-                {/* CTA */}
+                {/* CTA — custom order */}
                 <section className="bg-slate-900 rounded-xl p-6 text-center">
                   <h3 className="text-[16px] font-semibold text-white mb-2">
                     Have a project in mind?

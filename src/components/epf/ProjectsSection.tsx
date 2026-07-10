@@ -26,7 +26,7 @@ export default function ProjectsSection() {
   const projects = (projectsData?.data ?? []).slice(0, 4);
 
   return (
-    <section id="projects" className="bg-white py-10 sm:py-14">
+    <section id="projects" className="bg-slate-50 py-10 sm:py-14">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-12">
         {/* ── Section Header ── */}
         <div className="flex items-end justify-between mb-6 sm:mb-8">

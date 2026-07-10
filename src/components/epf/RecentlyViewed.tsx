@@ -96,7 +96,7 @@ export default function RecentlyViewed() {
   if (products.length === 0) return null;
 
   return (
-    <section className="py-10 sm:py-14 bg-white">
+    <section className="py-10 sm:py-14 bg-slate-50">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
         {/* ── Section Header ── */}
         <div className="flex items-center justify-between mb-8">

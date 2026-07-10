@@ -30,7 +30,7 @@ export default function ServicesSection() {
   const displayServices = services.slice(0, 6);
 
   return (
-    <section id="services" className="bg-white py-10 sm:py-14">
+    <section id="services" className="bg-slate-50 py-10 sm:py-14">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
         {/* Section Header */}
         <div className="flex items-end justify-between mb-6 sm:mb-8">
