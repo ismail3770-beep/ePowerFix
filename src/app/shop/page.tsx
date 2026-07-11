@@ -299,6 +299,7 @@ interface FilterSidebarProps {
   isLoading: boolean;
   onClearAll: () => void;
   latestProducts: Product[];
+  onCardClick?: (id: string) => void;
 }
 
 function FilterSidebar({
@@ -315,6 +316,7 @@ function FilterSidebar({
   isLoading,
   onClearAll,
   latestProducts,
+  onCardClick,
 }: FilterSidebarProps) {
   const hasActiveFilters =
     selectedCategoryId ||
@@ -361,6 +363,7 @@ function FilterSidebar({
                     <button
                       key={cat.id}
                       onClick={() => onSelectCategory(active ? null : cat.id)}
+                      aria-label={`Filter by ${cat.name}`}
                       className={cn(
                         "flex items-center gap-2 w-full py-1.5 text-left text-[13px] transition-colors",
                         active
@@ -434,6 +437,7 @@ function FilterSidebar({
               return (
                 <div
                   key={p.id}
+                  onClick={() => onCardClick?.(p.id)}
                   className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg p-1.5 transition-colors"
                 >
                   <div className="w-10 h-10 bg-slate-100 rounded-md overflow-hidden shrink-0">
@@ -770,6 +774,7 @@ export default function ShopPage() {
     isLoading: categoriesLoading,
     onClearAll: handleClearFilters,
     latestProducts,
+    onCardClick: handleCardClick,
   };
 
   return (
