@@ -92,7 +92,8 @@ const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
       className={cn(
         "group relative flex flex-col bg-white rounded-lg overflow-hidden",
         "border border-slate-200",
-        "hover:shadow-md transition-all duration-200",
+        "shadow-sm hover:shadow-lg hover:border-slate-300 hover:-translate-y-1",
+        "transition-all duration-200",
         "cursor-pointer",
         className
       )}
@@ -116,10 +117,10 @@ const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
         {/* Badge — square style */}
         {badgeText && (
           <span
-            className={cn(
-              "absolute top-2 left-2 z-10 px-2 py-0.5 text-[11px] font-bold text-white rounded-sm leading-tight",
-              getBadgeColor()
-            )}
+          className={cn(
+            "absolute top-2 left-2 z-10 px-2 py-0.5 text-[11px] font-bold text-white rounded-md leading-tight",
+            getBadgeColor()
+          )}
           >
             {badgeText}
           </span>

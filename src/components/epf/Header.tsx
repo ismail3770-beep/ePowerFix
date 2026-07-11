@@ -46,7 +46,7 @@ const navLinks = [
   { href: "/shop", label: "Shop" },
   { href: "/projects", label: "Projects" },
   { href: "/project-kits", label: "Project Kits" },
-  { href: "/deals", label: "Best Deals" },
+  { href: "/Blog", label: "Blog" },
 ];
 
 const subcategories = [

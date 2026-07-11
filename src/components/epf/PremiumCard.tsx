@@ -112,7 +112,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       className={cn(
         "group relative flex flex-col bg-white rounded-lg overflow-hidden",
         "border border-slate-200",
-        "shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5",
+        "shadow-sm hover:shadow-lg hover:border-slate-300 hover:-translate-y-1",
         "transition-all duration-200 ease-out",
         "cursor-pointer",
         className
@@ -138,8 +138,8 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
 
         {/* Discount badge — top-left, emerald */}
         {discountPercent > 0 && (
-          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-emerald-500 leading-tight tracking-wide">
-            -{discountPercent}%
+         <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[11px] font-bold text-white bg-emerald-500 leading-tight tracking-wide">
+             -{discountPercent}%
           </span>
         )}
 
@@ -147,7 +147,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         {!inStock && (
           <span
             className={cn(
-              "absolute top-2 z-10 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-red-500 leading-tight",
+              "absolute top-2 z-10 px-2 py-0.5 rounded-md text-[11px] font-bold text-white bg-red-500 leading-tight",
               discountPercent > 0 ? "right-2" : "left-2"
             )}
           >
@@ -156,11 +156,11 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         )}
 
         {/* Featured / New badge — top-left if no discount & in stock */}
-        {discountPercent === 0 && inStock && data.isFeatured && (
-          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-epf-500 leading-tight">
-            Featured
-          </span>
-        )}
+         {data.isFeatured && (
+           <span className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[11px] font-bold text-white bg-epf-500 leading-tight">
+             Featured
+           </span>
+         )}
 
         {/* Wishlist — top-right (subtle, no glass) */}
         <button
