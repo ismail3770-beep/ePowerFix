@@ -2,9 +2,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
-import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
 import { toast } from "sonner";
-import { PremiumCard, PremiumCardSkeleton, type PremiumCardData } from "@/components/epf/PremiumCard";
+import { ArrowRight } from "lucide-react";
+import { PremiumCard, PremiumCardSkeleton } from "@/components/epf/PremiumCard";
 import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
 
 interface Product {
@@ -34,43 +34,27 @@ interface ProjectKit {
   itemCount?: number;
 }
 
-/* Compact section header with a "View All" link */
+/* Compact section header with a "View All" link (premium text-link style) */
 function RowHeader({ title, subtitle, href }: { title: string; subtitle: string; href: string }) {
   return (
-    <div className="flex items-end justify-between mb-5">
+    <div className="flex items-end justify-between mb-6 sm:mb-8">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{title}</h2>
-        <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
+        <h2 className="text-[20px] sm:text-[24px] font-bold text-slate-900 tracking-tight">{title}</h2>
+        <p className="text-[14px] text-slate-500 mt-1">{subtitle}</p>
       </div>
       <a
         href={href}
-        className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-epf-500 hover:text-epf-600 transition-colors border border-epf-500 hover:border-epf-600 rounded-md px-4 py-2"
+        className="hidden sm:inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-600 hover:text-epf-700 transition-colors group"
       >
         View All
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
       </a>
     </div>
   );
 }
 
 /* Match BestDeals grid so all product/kit cards are the same size */
-const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4";
-
-function CardSkeleton() {
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="animate-pulse">
-        <div className="aspect-square bg-slate-100" />
-        <div className="p-3 space-y-2">
-          <div className="h-3 bg-slate-100 rounded w-3/4" />
-          <div className="h-4 bg-slate-100 rounded w-1/3 mt-1" />
-        </div>
-      </div>
-    </div>
-  );
-}
+const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5";
 
 export default function ShopSection() {
   const addItem = useCartStore((s) => s.addItem);
@@ -117,8 +101,8 @@ export default function ShopSection() {
   };
 
   return (
-    <section id="shop" className="py-10 sm:py-14 bg-white">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-12 space-y-12">
+    <section id="shop" className="py-12 sm:py-16 bg-white">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 space-y-14 sm:space-y-16">
         {/* ── Row 1: Products ── */}
         <div>
           <RowHeader
@@ -131,20 +115,20 @@ export default function ShopSection() {
               ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
               : products.map((product) => (
                   <FadeInItem key={product.id}>
-                  <PremiumCard
-                    data={{
-                      id: product.id,
-                      name: product.name,
-                      price: product.price,
-                      salePrice: product.salePrice,
-                      comparePrice: product.comparePrice,
-                      images: product.images,
-                      category: product.category?.name,
-                      isFeatured: true,
-                    }}
-                    onCardClick={(id) => { window.location.href = `/shop/${id}`; }}
-                    onAddToCart={(d) => addProduct({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, product)}
-                  />
+                    <PremiumCard
+                      data={{
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        salePrice: product.salePrice,
+                        comparePrice: product.comparePrice,
+                        images: product.images,
+                        category: product.category?.name,
+                        isFeatured: true,
+                      }}
+                      onCardClick={(id) => { window.location.href = `/shop/${id}`; }}
+                      onAddToCart={(d) => addProduct({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, product)}
+                    />
                   </FadeInItem>
                 ))}
           </FadeInStagger>
@@ -162,26 +146,26 @@ export default function ShopSection() {
               ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
               : kits.map((kit) => (
                   <FadeInItem key={kit.id}>
-                  <PremiumCard
-                    data={{
-                      id: kit.id,
-                      name: kit.title,
-                      price: kit.price ?? 0,
-                      salePrice: kit.salePrice,
-                      coverImage: kit.coverImage,
-                      images: kit.images,
-                      badge: "KIT",
-                      itemType: "PROJECT",
-                      category: kit.category,
-                    }}
-                    onCardClick={(id) => { window.location.href = `/project-kits/${(kit as any).slug || id}`; }}
-                    onAddToCart={(d) => addKit({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, kit)}
-                  />
+                    <PremiumCard
+                      data={{
+                        id: kit.id,
+                        name: kit.title,
+                        price: kit.price ?? 0,
+                        salePrice: kit.salePrice,
+                        coverImage: kit.coverImage,
+                        images: kit.images,
+                        badge: "KIT",
+                        itemType: "PROJECT",
+                        category: kit.category,
+                      }}
+                      onCardClick={(id) => { window.location.href = `/project-kits/${(kit as any).slug || id}`; }}
+                      onAddToCart={(d) => addKit({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, kit)}
+                    />
                   </FadeInItem>
                 ))}
           </FadeInStagger>
           {!projectsLoading && kits.length === 0 && (
-            <p className="text-sm text-slate-400 text-center py-8">No project kits available yet.</p>
+            <p className="text-[14px] text-slate-400 text-center py-10">No project kits available yet.</p>
           )}
         </div>
       </div>

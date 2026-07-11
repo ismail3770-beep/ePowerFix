@@ -1,7 +1,8 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import { EPFCpu } from "@/components/epf/icons/EPFIcons";
+import { ArrowRight, Cpu } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
 
 interface Project {
   id: string;
@@ -26,104 +27,110 @@ export default function ProjectsSection() {
   const projects = (projectsData?.data ?? []).slice(0, 4);
 
   return (
-    <section id="projects" className="bg-slate-50 py-10 sm:py-14">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-12">
+    <section id="projects" className="bg-slate-50 py-12 sm:py-16">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* ── Section Header ── */}
-        <div className="flex items-end justify-between mb-6 sm:mb-8">
+        <div className="flex items-end justify-between mb-8 sm:mb-10">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-[20px] sm:text-[24px] font-bold text-slate-900 tracking-tight">
               Projects
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-[14px] text-slate-500 mt-1">
               Real-world installations delivered across Bangladesh
             </p>
           </div>
           <a
             href="/projects"
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-epf-500 hover:text-epf-600 transition-colors border border-epf-500 hover:border-epf-600 rounded-md px-4 py-2"
+            className="hidden sm:inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-600 hover:text-epf-700 transition-colors group"
           >
             View All
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </a>
         </div>
 
         {/* ── Project Grid ── */}
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden animate-pulse"
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse"
               >
                 <div className="aspect-[4/3] bg-slate-100" />
-                <div className="h-9 bg-slate-200" />
-                <div className="p-2.5 space-y-2">
+                <div className="p-4 space-y-2">
                   <div className="h-3 bg-slate-100 rounded w-3/4" />
-                  <div className="h-3 bg-slate-100 rounded w-full" />
+                  <div className="h-3 bg-slate-100 rounded w-1/2" />
                 </div>
               </div>
             ))}
           </div>
         ) : projects.length === 0 ? (
-          <div className="bg-white rounded-lg border border-slate-200 p-10 text-center">
-            <EPFCpu size={40} className="text-slate-300 mx-auto mb-3" />
-            <p className="text-sm text-slate-500">No projects available</p>
+          <div className="bg-white rounded-xl border border-slate-200 py-16 px-6 text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-4">
+              <Cpu className="h-8 w-8 text-slate-300" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-[18px] font-medium text-slate-700">No projects available</h3>
+            <p className="text-[14px] text-slate-400 mt-1.5">
+              Project case studies will appear here once published.
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <FadeInStagger className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-5">
             {projects.map((proj) => {
               const cover = proj.coverImage || proj.images?.[0];
               return (
-                <a
-                  key={proj.id}
-                  href={`/projects/${proj.slug}`}
-                  className="group flex flex-col bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                >
-                  {/* Image — landscape proportion (compact, since card now only shows title) */}
-                  <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
-                    {cover ? (
-                      <img
-                        src={cover}
-                        alt={proj.title}
-                        className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500 ease-out"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <EPFCpu size={32} className="text-slate-300" />
-                      </div>
-                    )}
-                    <span className="absolute top-2 left-2 bg-epf-500 text-white text-[11px] font-bold px-1.5 py-0.5 leading-tight tracking-wide z-10">
-                      {proj.category || "Project"}
-                    </span>
-                  </div>
+                <FadeInItem key={proj.id}>
+                  <a
+                    href={`/projects/${proj.slug}`}
+                    className="group relative block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                  >
+                    {/* Image — landscape proportion */}
+                    <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
+                      {cover ? (
+                        <img
+                          src={cover}
+                          alt={proj.title}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+                          <Cpu className="h-10 w-10 text-slate-300" strokeWidth={1.5} />
+                        </div>
+                      )}
+                      {/* Gradient overlay for legibility on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      {/* Category badge */}
+                      <span className="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-800 text-[11px] font-bold px-2.5 py-1 rounded-full leading-none tracking-wide shadow-sm">
+                        {proj.category || "Project"}
+                      </span>
+                    </div>
 
-                  {/* Content — project name only (pricing/details on request) */}
-                  <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
-                    <h4 className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-[1.4] group-hover:text-epf-600 transition-colors min-h-[2.4rem]">
-                      {proj.title}
-                    </h4>
-                  </div>
-                </a>
+                    {/* Content — project name only */}
+                    <div className="px-4 py-3.5">
+                      <h4 className="text-[14px] font-semibold text-slate-800 line-clamp-2 leading-snug group-hover:text-epf-600 transition-colors">
+                        {proj.title}
+                      </h4>
+                    </div>
+                  </a>
+                </FadeInItem>
               );
             })}
-          </div>
+          </FadeInStagger>
         )}
 
         {/* ── Mobile "View All" ── */}
-        <div className="sm:hidden mt-6 text-center">
-          <a
-            href="/projects"
-            className="inline-flex items-center justify-center gap-1.5 w-full text-sm font-medium text-white bg-epf-500 hover:bg-epf-600 rounded-md px-4 py-3 transition-colors"
-          >
-            View All Projects
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
+        {projects.length > 0 && (
+          <div className="sm:hidden mt-8 text-center">
+            <a
+              href="/projects"
+              className="inline-flex items-center justify-center gap-1.5 text-[14px] font-semibold text-white bg-epf-500 hover:bg-epf-600 h-11 px-6 rounded-lg transition-colors"
+            >
+              View All Projects
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

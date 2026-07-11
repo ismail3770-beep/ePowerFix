@@ -375,7 +375,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Main Content */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 py-6 sm:py-8">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Left: Image Gallery */}
             <div className="flex flex-col gap-3">
@@ -684,7 +684,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 h-12 bg-white border-2 border-slate-900 hover:bg-slate-50 text-slate-900 text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 h-12 bg-white border border-slate-300 hover:border-epf-500 hover:text-epf-600 text-slate-700 text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="size-5" />
                   Add to Cart
@@ -1137,7 +1137,7 @@ function RelatedProducts({
           <Link
             key={p.id}
             href={`/product/${p.id}`}
-            className="group block bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            className="group block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
           >
             <div className="aspect-square bg-slate-50 overflow-hidden relative">
               {p.images?.[0] ? (

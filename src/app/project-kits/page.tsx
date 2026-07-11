@@ -744,16 +744,16 @@ export default function ProjectKitsPage() {
       <main className="flex-1">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center gap-1.5 h-11 text-[13px]">
               <a
                 href="/"
-                className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors"
+                className="flex items-center gap-1 text-slate-500 hover:text-epf-600 transition-colors"
               >
                 <Home className="h-3.5 w-3.5" />
                 <span>Home</span>
               </a>
-              <ChevronRight className="h-3 w-3 text-slate-300" />
+              <ChevronRight className="h-3 w-3 text-slate-400" />
               <span className="text-slate-900 font-medium">Project Kits</span>
             </nav>
           </div>
@@ -761,7 +761,7 @@ export default function ProjectKitsPage() {
 
         {/* Top Toolbar */}
         <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-12 gap-4">
               {/* Left: Results count */}
               <div className="text-[13px] text-slate-500">
@@ -854,7 +854,7 @@ export default function ProjectKitsPage() {
         {/* Active Filter Tags */}
         {hasActiveFilters && (
           <div className="bg-white border-b border-slate-200">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-2.5">
+            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-2.5">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[12px] text-slate-500 font-medium">
                   Active:
@@ -916,11 +916,11 @@ export default function ProjectKitsPage() {
         )}
 
         {/* Main Content: Sidebar + Grid */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6">
-          <div className="flex gap-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex gap-8">
             {/* ---- Desktop Sidebar ---- */}
             <aside className="hidden lg:block w-[280px] shrink-0">
-              <div className="sticky top-[80px]">
+              <div className="sticky top-[88px]">
                 {isLoading ? (
                   <SidebarSkeleton />
                 ) : (

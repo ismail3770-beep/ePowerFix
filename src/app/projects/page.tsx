@@ -94,7 +94,7 @@ function ProjectCard({
   return (
     <article
       onClick={handleClick}
-      className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
+      className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-slate-300 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* Cover image */}
       <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
@@ -117,7 +117,7 @@ function ProjectCard({
       </div>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 p-4">
+      <div className="flex flex-col flex-1 p-5">
         <h3
           className="text-[16px] font-semibold text-slate-900 line-clamp-1 leading-snug group-hover:text-epf-600 transition-colors"
           title={project.title}
@@ -125,7 +125,7 @@ function ProjectCard({
           {project.title}
         </h3>
 
-        <p className="mt-1.5 text-[13px] text-slate-500 line-clamp-2 leading-relaxed">
+        <p className="mt-2 text-[13px] text-slate-500 line-clamp-2 leading-relaxed">
           {project.description}
         </p>
 
@@ -133,19 +133,19 @@ function ProjectCard({
         <div className="mt-3 flex items-center gap-3 text-[12px] text-slate-400 flex-wrap">
           {project.location && (
             <span className="inline-flex items-center gap-1 min-w-0">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
               <span className="truncate">{project.location}</span>
             </span>
           )}
           <span className="inline-flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
+            <Calendar className="h-3.5 w-3.5 text-slate-400" />
             {formatDate(project.createdAt)}
           </span>
         </div>
 
         {/* Footer: View Details */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-epf-500 group-hover:gap-2 transition-all">
+        <div className="mt-5 pt-4 border-t border-slate-100">
+          <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-epf-500 group-hover:gap-2 transition-all">
             View Details
             <ArrowRight className="h-3.5 w-3.5" />
           </span>
@@ -178,7 +178,7 @@ function RecentProjectItem({
             src={cover}
             alt={project.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
             onError={() => setImgError(true)}
             unoptimized
           />
@@ -189,10 +189,10 @@ function RecentProjectItem({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <h4 className="text-[13px] font-medium text-slate-800 leading-snug line-clamp-1 group-hover:text-epf-600 transition-colors">
+        <h4 className="text-[13px] font-medium text-slate-800 leading-snug line-clamp-2 group-hover:text-epf-600 transition-colors">
           {project.title}
         </h4>
-        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
+        <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-400">
           {project.location && (
             <>
               <MapPin className="h-3 w-3" />
@@ -470,8 +470,8 @@ export default function ProjectsPage() {
         </div>
 
         {/* Main content + Sidebar */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex flex-col lg:flex-row gap-8">
             {/* Main grid */}
             <div className="flex-1 min-w-0 lg:w-[70%]">
               {isLoading ? (
@@ -482,7 +482,7 @@ export default function ProjectsPage() {
                       className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse"
                     >
                       <div className="aspect-[4/3] bg-slate-100" />
-                      <div className="p-4 space-y-3">
+                      <div className="p-5 space-y-3">
                         <div className="h-4 bg-slate-100 rounded w-3/4" />
                         <div className="h-3 bg-slate-100 rounded w-full" />
                         <div className="h-3 bg-slate-100 rounded w-2/3" />

@@ -397,7 +397,7 @@ export default function CheckoutPage() {
       <Header />
 
       <main className="flex-1">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-8">
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[13px] text-slate-500 mb-6">
             <a href="/" className="flex items-center gap-1 hover:text-slate-900 transition-colors">
@@ -422,7 +422,7 @@ export default function CheckoutPage() {
               <ArrowLeft className="w-4 h-4 text-slate-700" />
             </button>
             <div>
-              <h1 className="text-[22px] sm:text-[24px] font-bold text-slate-900">Checkout</h1>
+              <h1 className="text-[24px] font-bold text-slate-900">Checkout</h1>
               <p className="text-[14px] text-slate-500 mt-0.5">
                 {mounted ? `${itemCount} item${itemCount !== 1 ? "s" : ""} in your cart` : "..."}
               </p>

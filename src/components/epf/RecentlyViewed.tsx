@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useTransition } from "react";
+import { X } from "lucide-react";
 import { PremiumCard, type PremiumCardData } from "@/components/epf/PremiumCard";
 import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
 
@@ -96,29 +97,30 @@ export default function RecentlyViewed() {
   if (products.length === 0) {return null;}
 
   return (
-    <section className="py-10 sm:py-14 bg-slate-50">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
+    <section className="py-12 sm:py-16 bg-slate-50">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* ── Section Header ── */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-end justify-between mb-8 sm:mb-10">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-[20px] sm:text-[24px] font-bold text-slate-900 tracking-tight">
               Recently Viewed
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-[14px] text-slate-500 mt-1">
               Pick up where you left off
             </p>
           </div>
 
           <button
             onClick={handleClearAll}
-            className="text-sm font-medium text-epf-500 hover:text-epf-600 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
           >
+            <X className="h-3.5 w-3.5" />
             Clear All
           </button>
         </div>
 
         {/* ── Product Row ── */}
-        <FadeInStagger className="flex gap-3 overflow-x-auto pb-2 md:grid md:grid-cols-5 lg:grid-cols-6 md:overflow-visible scrollbar-hide [-webkit-overflow-scrolling:touch]">
+        <FadeInStagger className="flex gap-4 overflow-x-auto pb-2 md:grid md:grid-cols-5 lg:grid-cols-6 md:overflow-visible scrollbar-hide [-webkit-overflow-scrolling:touch]">
           {products.map((product) => {
             const cardData: PremiumCardData = {
               id: product.id,
@@ -130,7 +132,7 @@ export default function RecentlyViewed() {
             };
 
             return (
-              <FadeInItem key={product.id} className="min-w-[160px] md:min-w-0 flex-shrink-0">
+              <FadeInItem key={product.id} className="min-w-[170px] md:min-w-0 flex-shrink-0">
                 <PremiumCard
                   data={cardData}
                   onCardClick={(id) => {

@@ -185,21 +185,21 @@ export default function ServiceDetailPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <button
             onClick={() => router.push("/services")}
-            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-500 hover:underline mb-5"
+            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-500 hover:text-epf-500 transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Services
           </button>
 
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-8">
             {/* Main content */}
             <div className="flex-1 min-w-0 lg:w-[70%]">
               <article className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 {/* Hero image */}
-                <div className="relative w-full h-64 sm:h-80 bg-slate-100 overflow-hidden">
+                <div className="relative w-full h-72 sm:h-96 bg-slate-100 overflow-hidden">
                   {!heroError && service.images?.[0] ? (
                     <Image
                       src={service.images[0]}
@@ -223,17 +223,17 @@ export default function ServiceDetailPage() {
 
                 <div className="p-6 sm:p-8">
                   {/* Category badge */}
-                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium bg-epf-50 text-epf-600 mb-3">
+                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold bg-epf-50 text-epf-600 mb-3">
                     {service.category?.name || "General"}
                   </span>
 
                   {/* Title */}
-                  <h1 className="text-[28px] font-bold text-slate-900 leading-tight mb-3">
+                  <h1 className="text-[28px] sm:text-[32px] font-bold text-slate-900 leading-tight mb-4 tracking-tight">
                     {service.name}
                   </h1>
 
                   {/* Meta row */}
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-slate-500 mb-6 pb-6 border-b border-slate-100">
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-slate-500 mb-6 pb-6 border-b border-slate-200">
                     <span className="inline-flex items-center gap-1.5">
                       <Clock className="h-4 w-4 text-slate-400" />
                       {duration}
@@ -256,8 +256,8 @@ export default function ServiceDetailPage() {
                   </div>
 
                   {/* Description */}
-                  <div className="prose prose-slate max-w-none mb-6">
-                    <h2 className="text-[18px] font-semibold text-slate-900 mb-3">
+                  <div className="prose prose-slate max-w-none mb-8">
+                    <h2 className="text-[18px] font-bold text-slate-900 mb-4">
                       Service Overview
                     </h2>
                     <p className="text-[15px] leading-7 text-slate-700 whitespace-pre-line">
@@ -267,8 +267,8 @@ export default function ServiceDetailPage() {
 
                   {/* Features */}
                   {features.length > 0 && (
-                    <div className="mb-6">
-                      <h2 className="text-[18px] font-semibold text-slate-900 mb-4">
+                    <div className="mb-8">
+                      <h2 className="text-[18px] font-bold text-slate-900 mb-4">
                         What's Included
                       </h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
@@ -288,7 +288,7 @@ export default function ServiceDetailPage() {
                   )}
 
                   {/* Pricing CTA */}
-                  <div className="bg-epf-50 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="bg-epf-50 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                       <p className="text-[13px] text-slate-500 uppercase tracking-wide font-medium">
                         Pricing

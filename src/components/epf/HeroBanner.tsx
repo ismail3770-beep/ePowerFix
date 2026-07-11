@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { EPFArrowLeft, EPFArrowRight } from "@/components/epf/icons/EPFIcons";
 import { apiFetch } from "@/lib/api";
@@ -13,6 +15,8 @@ interface BannerSlide {
 }
 
 const fallbackSlides: BannerSlide[] = [];
+
+const EASE_OUT = [0.22, 0.61, 0.36, 1] as const;
 
 export default function HeroBanner() {
   const [slides, setSlides] = useState<BannerSlide[]>(fallbackSlides);
@@ -71,11 +75,11 @@ export default function HeroBanner() {
     ) as HTMLElement | null;
     if (!container) {return;}
 
-    container.style.transition = "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)";
+    container.style.transition = "transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1)";
 
     const handler = () => {
       container.style.transition =
-        "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)";
+        "transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1)";
     };
 
     emblaApi.on("settle", handler);
@@ -164,10 +168,13 @@ export default function HeroBanner() {
 
   /* ── Render ─────────────────────────────────────────────── */
   return (
-    <section className="bg-slate-50">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-6 sm:py-10">
-        <div
-          className="relative overflow-hidden rounded-lg group min-h-[280px] sm:min-h-[350px] lg:min-h-[420px]"
+    <section className="bg-gradient-to-b from-epf-50 via-white to-white">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE_OUT }}
+          className="relative overflow-hidden rounded-2xl group min-h-[300px] sm:min-h-[380px] lg:min-h-[440px] shadow-sm"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
@@ -175,15 +182,33 @@ export default function HeroBanner() {
         >
           {slides.length === 0 ? (
             /* ── Empty state — no banners configured yet ── */
-            <div className="absolute inset-0 bg-gradient-to-br from-epf-500/10 via-white to-epf-500/5 flex items-center justify-center">
-              <div className="text-center px-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <div className="absolute inset-0 bg-gradient-to-br from-epf-50 via-white to-epf-100/60 flex items-center justify-center">
+              <div className="text-center px-6 max-w-xl">
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1, duration: 0.5 }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-epf-500/10 text-epf-600 text-[12px] font-semibold mb-4"
+                >
+                  Premium Electrical Marketplace
+                </motion.span>
+                <motion.h2
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, duration: 0.5, ease: EASE_OUT }}
+                  className="text-[28px] sm:text-[40px] lg:text-[48px] font-bold text-slate-900 tracking-tight leading-[1.1]"
+                >
                   Welcome to ePowerFix
-                </h2>
-                <p className="text-sm text-slate-500 mt-2">
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.5, ease: EASE_OUT }}
+                  className="text-[14px] sm:text-[15px] text-slate-500 mt-3 max-w-md mx-auto leading-relaxed"
+                >
                   Your trusted electrical marketplace. Add banners from the
                   admin panel to showcase promotions here.
-                </p>
+                </motion.p>
               </div>
             </div>
           ) : (
@@ -191,13 +216,14 @@ export default function HeroBanner() {
               {/* ── Embla root ──────────────────────────────── */}
               <div ref={emblaRef} className="overflow-hidden h-full">
                 <div
+                  data-embla-container
                   className="flex h-full"
                   style={{
                     transition:
-                      "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)",
+                      "transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1)",
                   }}
                 >
-                  {slides.map((slide) => {
+                  {slides.map((slide, idx) => {
                     const hasImage = Boolean(slide.image);
                     const titleParts = slide.title.split("\n");
                     return (
@@ -213,63 +239,73 @@ export default function HeroBanner() {
                               alt={slide.title}
                               className="absolute inset-0 w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black/50" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/40 to-transparent" />
                           </>
                         ) : (
-                          <div className="absolute inset-0 bg-gradient-to-br from-epf-500/10 via-white to-epf-500/5" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-epf-50 via-white to-epf-100/60" />
                         )}
 
                         {/* Content */}
                         <div className="absolute inset-0 z-10 flex items-center px-6 sm:px-10 lg:px-14">
-                          <div className="max-w-md lg:max-w-lg">
-                            <h1
-                              className={`text-[22px] sm:text-[28px] lg:text-[36px] font-bold leading-[1.25] tracking-tight ${
+                          <div className="max-w-md lg:max-w-xl">
+                            <motion.h1
+                              key={`title-${idx}-${selectedIndex}`}
+                              initial={{ opacity: 0, y: 14 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                duration: 0.55,
+                                ease: EASE_OUT,
+                                delay: 0.05,
+                              }}
+                              className={`text-[26px] sm:text-[34px] lg:text-[44px] font-bold leading-[1.15] tracking-tight ${
                                 hasImage
                                   ? "text-white"
                                   : "text-slate-900"
                               }`}
                             >
-                              {titleParts.map((part, idx) => (
-                                <span key={idx}>
-                                  {idx > 0 && <br />}
+                              {titleParts.map((part, i) => (
+                                <span key={i}>
+                                  {i > 0 && <br />}
                                   {part}
                                 </span>
                               ))}
-                            </h1>
+                            </motion.h1>
 
                             {slide.subtitle && (
-                              <p
-                                className={`text-[14px] sm:text-[15px] mt-2 max-w-md leading-relaxed ${
+                              <motion.p
+                                key={`sub-${idx}-${selectedIndex}`}
+                                initial={{ opacity: 0, y: 14 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                  duration: 0.55,
+                                  ease: EASE_OUT,
+                                  delay: 0.15,
+                                }}
+                                className={`text-[14px] sm:text-[16px] mt-3 max-w-md leading-relaxed ${
                                   hasImage
-                                    ? "text-white/70"
+                                    ? "text-white/85"
                                     : "text-slate-500"
                                 }`}
                               >
                                 {slide.subtitle}
-                              </p>
+                              </motion.p>
                             )}
 
                             {slide.link && (
-                              <a
+                              <motion.a
                                 href={slide.link}
-                                className="inline-flex items-center gap-2 mt-4 bg-epf-500 hover:bg-epf-600 text-white font-semibold h-10 px-6 text-[14px] rounded-md transition-colors"
+                                initial={{ opacity: 0, y: 14 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                  duration: 0.55,
+                                  ease: EASE_OUT,
+                                  delay: 0.25,
+                                }}
+                                className="inline-flex items-center gap-2 mt-6 bg-epf-500 hover:bg-epf-600 text-white font-semibold h-11 px-7 text-[14px] rounded-lg transition-colors shadow-sm"
                               >
                                 Explore Now
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M5 12h14" />
-                                  <path d="m12 5 7 7-7 7" />
-                                </svg>
-                              </a>
+                                <ArrowRight className="h-4 w-4" />
+                              </motion.a>
                             )}
                           </div>
                         </div>
@@ -282,21 +318,21 @@ export default function HeroBanner() {
               {/* ── Arrow buttons ───────────────────────────── */}
               <button
                 onClick={scrollPrev}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-slate-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-slate-700 hover:text-epf-600 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                 aria-label="Previous slide"
               >
-                <EPFArrowLeft size={16} />
+                <EPFArrowLeft size={18} />
               </button>
               <button
                 onClick={scrollNext}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 h-9 w-9 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-slate-700 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-20 h-10 w-10 bg-white shadow-md hover:shadow-lg rounded-full flex items-center justify-center text-slate-700 hover:text-epf-600 transition-all opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
                 aria-label="Next slide"
               >
-                <EPFArrowRight size={16} />
+                <EPFArrowRight size={18} />
               </button>
 
               {/* ── Progress bar ────────────────────────────── */}
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-200 z-20">
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-20">
                 <div
                   className="h-full bg-epf-500 transition-[width] duration-100 ease-linear"
                   style={{ width: `${progress}%` }}
@@ -304,15 +340,15 @@ export default function HeroBanner() {
               </div>
 
               {/* ── Dot indicators ──────────────────────────── */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20">
                 {slides.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => scrollTo(i)}
-                    className={`h-2 rounded-full transition-all ${
+                    className={`h-2 rounded-full transition-all duration-300 ${
                       i === selectedIndex
-                        ? "bg-slate-900 w-7"
-                        : "bg-slate-400 w-2"
+                        ? "bg-white w-8"
+                        : "bg-white/50 hover:bg-white/70 w-2"
                     }`}
                     aria-label={`Slide ${i + 1}`}
                   />
@@ -320,7 +356,7 @@ export default function HeroBanner() {
               </div>
             </>
           )}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

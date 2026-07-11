@@ -56,8 +56,10 @@ interface SidebarPost {
   createdAt: string;
 }
 
-function parseTags(raw: any): string[] {
-  if (Array.isArray(raw)) {return raw.filter(Boolean);}
+function parseTags(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean);
+  }
   if (typeof raw === "string") {
     try {
       const p = JSON.parse(raw);
@@ -112,18 +114,24 @@ export default function BlogDetailPage() {
 
   /* ----- fetch post (setState only in async callbacks to avoid cascading renders) ----- */
   useEffect(() => {
-    if (!slug) {return;}
+    if (!slug) {
+      return;
+    }
     let cancelled = false;
-    apiFetch<{ data: any }>(`/api/blog/${slug}`)
+    apiFetch<{ data: unknown }>(`/api/blog/${slug}`)
       .then((r) => {
-        if (cancelled) {return;}
-        setPost(r.data);
+        if (cancelled) {
+          return;
+        }
+        setPost(r.data as BlogPost);
         setNotFound(false);
         setFetchedSlug(slug);
         setLoading(false);
       })
       .catch(() => {
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         setPost(null);
         setNotFound(true);
         setFetchedSlug(slug);
@@ -144,10 +152,10 @@ export default function BlogDetailPage() {
       try {
         const raw = await apiFetch<{
           success: boolean;
-          data: { data: any[] };
+          data: { data: unknown[] };
         }>(`/api/blog?limit=5`);
         const list = (raw?.data?.data ?? [])
-          .filter((p) => p.slug !== slug)
+          .filter((p) => (p as SidebarPost).slug !== slug)
           .slice(0, 5) as SidebarPost[];
         setRecentPosts(list);
       } catch {
@@ -158,13 +166,15 @@ export default function BlogDetailPage() {
 
   const tags: string[] = useMemo(
     () => (post ? parseTags(post.tags) : []),
-    [post]
+    [post],
   );
 
   const categories = useMemo(() => {
     const counts = new Map<string, number>();
     recentPosts.forEach((p) => {
-      parseTags(p.tags).forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1));
+      parseTags(p.tags).forEach((t) =>
+        counts.set(t, (counts.get(t) ?? 0) + 1),
+      );
     });
     return Array.from(counts.entries()).slice(0, 8);
   }, [recentPosts]);
@@ -195,20 +205,23 @@ export default function BlogDetailPage() {
         href: `mailto:?subject=${encodeURIComponent(post?.title ?? "")}&body=${encodeURIComponent(currentUrl)}`,
       },
     ],
-    [currentUrl, post?.title]
+    [currentUrl, post?.title],
   );
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
-      <main className="min-h-screen bg-slate-50">
+      <CartDrawer />
+      <CheckoutDialog />
+
+      <main className="flex-1">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
-            <nav className="flex items-center gap-1.5 h-[44px] text-[14px]">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <nav className="flex items-center gap-1.5 h-11 text-[13px]">
               <a
                 href="/"
-                className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors"
+                className="flex items-center gap-1 text-slate-500 hover:text-epf-600 transition-colors"
               >
                 <Home className="h-3.5 w-3.5" />
                 <span>Home</span>
@@ -216,7 +229,7 @@ export default function BlogDetailPage() {
               <ChevronRight className="h-3 w-3 text-slate-400" />
               <Link
                 href="/blog"
-                className="text-slate-500 hover:text-slate-900 transition-colors"
+                className="text-slate-500 hover:text-epf-600 transition-colors"
               >
                 Blog
               </Link>
@@ -228,7 +241,7 @@ export default function BlogDetailPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-8">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-8 w-8 text-epf-500 animate-spin" />
@@ -236,24 +249,25 @@ export default function BlogDetailPage() {
           ) : notFound || !post ? (
             <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-xl border border-slate-200">
               <div className="flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-                <BookOpen className="h-8 w-8 text-slate-400" />
+                <BookOpen className="h-8 w-8 text-slate-300" />
               </div>
               <h2 className="text-[18px] font-semibold text-slate-900 mb-2">
                 Article not found
               </h2>
-              <p className="text-slate-500 text-[14px] mb-4 max-w-sm">
-                The article you are looking for does not exist or has been removed.
+              <p className="text-slate-500 text-[14px] mb-6 max-w-sm">
+                The article you are looking for does not exist or has been
+                removed.
               </p>
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
+                className="inline-flex items-center gap-1.5 h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-semibold rounded-lg transition-colors shadow-sm"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Blog
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 lg:gap-10">
               {/* MAIN CONTENT */}
               <article className="min-w-0">
                 {/* Back Link */}
@@ -267,32 +281,34 @@ export default function BlogDetailPage() {
 
                 {/* Hero Image */}
                 {post.coverImage && (
-                  <div className="rounded-xl overflow-hidden mb-6 border border-slate-200 shadow-sm">
+                  <div className="rounded-xl overflow-hidden mb-8 border border-slate-200 shadow-sm">
                     <img
                       src={post.coverImage}
                       alt={post.title}
-                      className="w-full h-64 sm:h-80 object-cover"
+                      className="w-full h-72 sm:h-96 object-cover"
                     />
                   </div>
                 )}
 
                 {/* Category Badge */}
                 {tags[0] && (
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-epf-50 text-epf-600 mb-3">
+                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold bg-epf-50 text-epf-600 mb-4">
                     {tags[0]}
                   </span>
                 )}
 
                 {/* Title */}
-                <h1 className="text-[28px] sm:text-[32px] font-bold text-slate-900 leading-tight mb-4">
+                <h1 className="text-[28px] sm:text-[36px] font-bold text-slate-900 leading-tight mb-4 tracking-tight">
                   {post.title}
                 </h1>
 
                 {/* Metadata row */}
-                <div className="flex flex-wrap items-center gap-4 text-[13px] text-slate-400 mb-6 pb-6 border-b border-slate-200">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-slate-400 mb-8 pb-6 border-b border-slate-200">
                   <span className="flex items-center gap-1.5">
                     <User className="h-4 w-4" />
-                    <span className="text-slate-600">{post.author || "ePowerFix"}</span>
+                    <span className="text-slate-600 font-medium">
+                      {post.author || "ePowerFix"}
+                    </span>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-4 w-4" />
@@ -306,7 +322,7 @@ export default function BlogDetailPage() {
 
                 {/* Excerpt lead */}
                 {post.excerpt && (
-                  <p className="text-[16px] leading-7 text-slate-600 mb-6 font-medium">
+                  <p className="text-[16px] sm:text-[18px] leading-8 text-slate-700 mb-8 font-medium">
                     {post.excerpt}
                   </p>
                 )}
@@ -330,22 +346,26 @@ export default function BlogDetailPage() {
                     [&_img]:rounded-lg [&_img]:my-4
                     [&_hr]:border-slate-200 [&_hr]:my-6
                   "
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(post.content),
+                  }}
                 />
 
                 {/* Tags */}
                 {tags.length > 0 && (
-                  <div className="mt-8 pt-6 border-t border-slate-200">
+                  <div className="mt-10 pt-6 border-t border-slate-200">
                     <div className="flex items-center gap-2 mb-3">
                       <Tag className="h-4 w-4 text-slate-400" />
-                      <span className="text-[13px] font-semibold text-slate-700">Tags</span>
+                      <span className="text-[13px] font-semibold text-slate-700">
+                        Tags
+                      </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {tags.map((tag) => (
                         <Link
                           key={tag}
                           href={`/blog?tag=${encodeURIComponent(tag)}`}
-                          className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-[12px] font-medium text-slate-600 hover:bg-epf-50 hover:text-epf-600 hover:border-epf-100 transition-colors"
+                          className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1.5 text-[12px] font-medium text-slate-600 hover:bg-epf-50 hover:text-epf-600 hover:border-epf-100 transition-colors"
                         >
                           {tag}
                         </Link>
@@ -357,7 +377,9 @@ export default function BlogDetailPage() {
                 {/* Social Share */}
                 <div className="mt-8 pt-6 border-t border-slate-200">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-[13px] font-semibold text-slate-700">Share</span>
+                    <span className="text-[13px] font-semibold text-slate-700">
+                      Share
+                    </span>
                     <div className="flex items-center gap-2">
                       {shareLinks.map(({ label, icon: Icon, href }) => (
                         <a
@@ -366,7 +388,7 @@ export default function BlogDetailPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           aria-label={`Share on ${label}`}
-                          className="flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-epf-500 hover:border-epf-100 transition-colors"
+                          className="flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-epf-50 hover:text-epf-500 hover:border-epf-100 transition-all duration-300 hover:-translate-y-0.5"
                         >
                           <Icon className="h-4 w-4" />
                         </a>
@@ -388,90 +410,104 @@ export default function BlogDetailPage() {
               </article>
 
               {/* SIDEBAR */}
-              <aside className="lg:sticky lg:top-6 lg:self-start space-y-6">
+              <aside className="lg:sticky lg:top-[88px] lg:self-start space-y-6">
                 {/* Categories */}
-                <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                  <h3 className="text-[16px] font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-3 flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4 text-epf-500" />
-                    Categories
-                  </h3>
-                  {categories.length === 0 ? (
-                    <p className="text-[13px] text-slate-400 py-2">No categories yet.</p>
-                  ) : (
-                    <ul className="space-y-1">
-                      {categories.map(([name, count]) => (
-                        <li key={name}>
-                          <Link
-                            href={`/blog?tag=${encodeURIComponent(name)}`}
-                            className="w-full flex items-center justify-between text-[14px] py-1.5 px-2 rounded-md text-slate-600 hover:bg-slate-50 transition-colors"
-                          >
-                            <span className="truncate">{name}</span>
-                            <span className="text-[11px] rounded-full px-2 py-0.5 bg-epf-50 text-epf-600">
-                              {count}
-                            </span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100">
+                    <h3 className="text-[16px] font-semibold text-slate-900 flex items-center gap-2">
+                      <FolderOpen className="h-4 w-4 text-epf-500" />
+                      Categories
+                    </h3>
+                  </div>
+                  <div className="p-3">
+                    {categories.length === 0 ? (
+                      <p className="text-[13px] text-slate-400 py-2 px-2">
+                        No categories yet.
+                      </p>
+                    ) : (
+                      <ul className="space-y-0.5">
+                        {categories.map(([name, count]) => (
+                          <li key={name}>
+                            <Link
+                              href={`/blog?tag=${encodeURIComponent(name)}`}
+                              className="w-full flex items-center justify-between text-[14px] py-2 px-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-epf-600 transition-colors"
+                            >
+                              <span className="truncate">{name}</span>
+                              <span className="text-[11px] rounded-full px-2 py-0.5 bg-slate-100 text-slate-500 font-semibold">
+                                {count}
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </section>
 
                 {/* Recent Posts */}
-                <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-                  <h3 className="text-[16px] font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-3">
-                    Recent Posts
-                  </h3>
-                  {recentPosts.length === 0 ? (
-                    <p className="text-[13px] text-slate-400 py-2">No recent posts.</p>
-                  ) : (
-                    <ul className="space-y-3">
-                      {recentPosts.map((p) => (
-                        <li key={p.id}>
-                          <Link
-                            href={`/blog/${p.slug}`}
-                            className="flex items-start gap-3 group"
-                          >
-                            <div className="shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-100">
-                              {p.coverImage ? (
-                                <img
-                                  src={p.coverImage}
-                                  alt={p.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-epf-50 to-slate-100">
-                                  <Pen className="h-4 w-4 text-epf-300" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="text-[13px] font-medium text-slate-700 leading-snug line-clamp-1 group-hover:text-epf-600 transition-colors">
-                                {p.title}
-                              </h4>
-                              <span className="flex items-center gap-1 text-[11px] text-slate-400 mt-1">
-                                <Calendar className="h-3 w-3" />
-                                {formatDateShort(p.createdAt)}
-                              </span>
-                            </div>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100">
+                    <h3 className="text-[16px] font-semibold text-slate-900">
+                      Recent Posts
+                    </h3>
+                  </div>
+                  <div className="p-3">
+                    {recentPosts.length === 0 ? (
+                      <p className="text-[13px] text-slate-400 py-2 px-2">
+                        No recent posts.
+                      </p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {recentPosts.map((p) => (
+                          <li key={p.id}>
+                            <Link
+                              href={`/blog/${p.slug}`}
+                              className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                            >
+                              <div className="shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-slate-100">
+                                {p.coverImage ? (
+                                  <img
+                                    src={p.coverImage}
+                                    alt={p.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-epf-50 to-slate-100">
+                                    <Pen className="h-5 w-5 text-epf-300" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-[13px] font-medium text-slate-700 leading-snug line-clamp-2 group-hover:text-epf-600 transition-colors">
+                                  {p.title}
+                                </h4>
+                                <span className="flex items-center gap-1 text-[11px] text-slate-400 mt-1.5">
+                                  <Calendar className="h-3 w-3" />
+                                  {formatDateShort(p.createdAt)}
+                                </span>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </section>
               </aside>
             </div>
           )}
         </div>
       </main>
-      <Footer />
-      <CartDrawer />
-      <CheckoutDialog />
+
+      <div className="mt-auto">
+        <Footer />
+      </div>
+
       <ProductDetailDialog />
       <ServiceBookingDialog />
       <ProjectDetailDialog />
       <ChatWidget />
       <BackToTopButton />
-    </>
+    </div>
   );
 }

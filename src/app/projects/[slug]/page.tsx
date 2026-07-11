@@ -17,7 +17,6 @@ import {
   Phone,
   MessageCircle,
   Loader2,
-  CheckCircle2,
 } from "lucide-react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
@@ -84,14 +83,6 @@ function parseImages(val: unknown): string[] {
   }
   return [];
 }
-
-const STATUS_META: Record<string, { label: string; dotCls: string }> = {
-  PLANNED: { label: "Planned", dotCls: "bg-slate-400" },
-  IN_PROGRESS: { label: "In Progress", dotCls: "bg-epf-500" },
-  COMPLETED: { label: "Completed", dotCls: "bg-green-500" },
-  ON_HOLD: { label: "On Hold", dotCls: "bg-yellow-500" },
-  CANCELLED: { label: "Cancelled", dotCls: "bg-red-500" },
-};
 
 export default function ProjectDetailPage() {
   const router = useRouter();
@@ -197,21 +188,21 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <button
             onClick={() => router.push("/projects")}
-            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-500 hover:underline mb-5"
+            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-500 hover:text-epf-500 transition-colors mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Projects
           </button>
 
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-8">
             {/* Main content */}
             <div className="flex-1 min-w-0 lg:w-[70%]">
               <article className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 {/* Hero image */}
-                <div className="relative w-full h-64 sm:h-80 bg-slate-100 overflow-hidden">
+                <div className="relative w-full h-72 sm:h-96 bg-slate-100 overflow-hidden">
                   {thumb ? (
                     <Image
                       src={thumb}
@@ -257,12 +248,12 @@ export default function ProjectDetailPage() {
 
                 <div className="p-6 sm:p-8">
                   {/* Title */}
-                  <h1 className="text-[28px] font-bold text-slate-900 leading-tight mb-4">
+                  <h1 className="text-[28px] sm:text-[32px] font-bold text-slate-900 leading-tight mb-4 tracking-tight">
                     {p.title}
                   </h1>
 
                   {/* Metadata */}
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-slate-500 mb-6 pb-6 border-b border-slate-100">
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-slate-500 mb-6 pb-6 border-b border-slate-200">
                     {p.client && (
                       <span className="inline-flex items-center gap-1.5">
                         <User className="h-4 w-4 text-slate-400" />
@@ -284,8 +275,8 @@ export default function ProjectDetailPage() {
                   </div>
 
                   {/* Description */}
-                  <div className="prose prose-slate max-w-none mb-6">
-                    <h2 className="text-[18px] font-semibold text-slate-900 mb-3">
+                  <div className="prose prose-slate max-w-none mb-8">
+                    <h2 className="text-[18px] font-bold text-slate-900 mb-4">
                       Project Overview
                     </h2>
                     <p className="text-[15px] leading-7 text-slate-700 whitespace-pre-line">
@@ -294,7 +285,7 @@ export default function ProjectDetailPage() {
                   </div>
 
                   {/* CTA */}
-                  <div className="bg-epf-50 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="bg-epf-50 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                       <p className="text-[14px] font-semibold text-slate-900">
                         Need a similar project?
@@ -393,8 +384,6 @@ export default function ProjectDetailPage() {
                           : [];
                         const cover =
                           proj.coverImage || projImages[0] || "";
-                        const meta =
-                          STATUS_META[proj.status] ?? STATUS_META.PLANNED;
                         return (
                           <button
                             key={proj.id}
@@ -407,7 +396,7 @@ export default function ProjectDetailPage() {
                                   src={cover}
                                   alt={proj.title}
                                   fill
-                                  className="object-cover group-hover:scale-105 transition-transform"
+                                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                                   unoptimized
                                 />
                               ) : (
@@ -417,23 +406,19 @@ export default function ProjectDetailPage() {
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-[13px] font-medium text-slate-800 leading-snug line-clamp-1 group-hover:text-epf-600 transition-colors">
+                              <h4 className="text-[13px] font-medium text-slate-800 leading-snug line-clamp-2 group-hover:text-epf-600 transition-colors">
                                 {proj.title}
                               </h4>
-                              <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-400">
-                                <span
-                                  className={cn(
-                                    "h-1.5 w-1.5 rounded-full",
-                                    meta.dotCls
-                                  )}
-                                />
-                                <span className="truncate">{meta.label}</span>
-                                {proj.location && (
+                              <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-400">
+                                {proj.location ? (
                                   <>
-                                    <span className="text-slate-300">·</span>
-                                    <span className="truncate">
-                                      {proj.location}
-                                    </span>
+                                    <MapPin className="h-3 w-3" />
+                                    <span className="truncate">{proj.location}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Calendar className="h-3 w-3" />
+                                    <span className="truncate">{formatDateShort(proj.createdAt)}</span>
                                   </>
                                 )}
                               </div>

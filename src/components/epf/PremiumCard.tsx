@@ -104,8 +104,8 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       className={cn(
         "group relative flex flex-col bg-white rounded-xl overflow-hidden",
         "border border-slate-200",
-        "shadow-sm hover:shadow-lg hover:-translate-y-0.5",
-        "transition-all duration-200 ease-out",
+        "shadow-sm hover:shadow-xl hover:-translate-y-1",
+        "transition-all duration-300 ease-out",
         "cursor-pointer",
         className
       )}

@@ -96,10 +96,10 @@ function ServiceCard({
   return (
     <article
       onClick={handleClick}
-      className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden cursor-pointer"
+      className="group flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-slate-300 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* Cover image */}
-      <div className="relative h-48 bg-slate-100 overflow-hidden">
+      <div className="relative h-52 bg-slate-100 overflow-hidden">
         {!imgError && service.images?.[0] ? (
           <Image
             src={service.images[0]}
@@ -124,9 +124,9 @@ function ServiceCard({
       </div>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 p-4">
+      <div className="flex flex-col flex-1 p-5">
         {/* Category badge */}
-        <span className="self-start inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium bg-epf-50 text-epf-600 mb-2">
+        <span className="self-start inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold bg-epf-50 text-epf-600 mb-3">
           {service.category?.name || "General"}
         </span>
 
@@ -145,20 +145,20 @@ function ServiceCard({
         <div className="mt-3 flex items-center gap-3 text-[12px] text-slate-400">
           <span className="inline-flex items-center gap-1">
             <Star className="h-3.5 w-3.5 text-amber-400" />
-            {Number(service.rating || 0).toFixed(1)}
+            <span className="font-medium text-slate-600">{Number(service.rating || 0).toFixed(1)}</span>
             {service.reviewCount > 0 && (
               <span className="text-slate-300">({service.reviewCount})</span>
             )}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <Shield className="h-3.5 w-3.5 text-emerald-500" />
+          <span className="inline-flex items-center gap-1 text-emerald-600">
+            <Shield className="h-3.5 w-3.5" />
             Available
           </span>
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-3 border-t border-slate-100">
-          <span className="inline-flex items-center gap-1 text-[13px] font-medium text-epf-500 group-hover:gap-2 transition-all">
+        <div className="mt-5 pt-4 border-t border-slate-100">
+          <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-epf-500 group-hover:gap-2 transition-all">
             Get Quote
             <ArrowRight className="h-3.5 w-3.5" />
           </span>
@@ -597,8 +597,8 @@ export default function ServicesPage() {
         </div>
 
         {/* Main content + Sidebar */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          <div className="flex flex-col lg:flex-row gap-8">
             {/* Main grid */}
             <div className="flex-1 min-w-0 lg:w-[70%]">
               {isLoading ? (
@@ -608,8 +608,8 @@ export default function ServicesPage() {
                       key={i}
                       className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse"
                     >
-                      <div className="h-48 bg-slate-100" />
-                      <div className="p-4 space-y-3">
+                      <div className="h-52 bg-slate-100" />
+                      <div className="p-5 space-y-3">
                         <div className="h-5 bg-slate-100 rounded w-1/3" />
                         <div className="h-4 bg-slate-100 rounded w-3/4" />
                         <div className="h-3 bg-slate-100 rounded w-full" />
@@ -620,8 +620,10 @@ export default function ServicesPage() {
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-xl border border-slate-200">
-                  <FolderOpen className="h-16 w-16 text-slate-200 mb-4" />
-                  <h3 className="text-[18px] font-medium text-slate-900 mb-1.5">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                    <FolderOpen className="h-8 w-8 text-slate-300" />
+                  </div>
+                  <h3 className="text-[18px] font-semibold text-slate-900 mb-2">
                     No services found
                   </h3>
                   <p className="text-[14px] text-slate-500 mb-6 text-center max-w-md">

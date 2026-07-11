@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { ArrowRight, PackageOpen } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { PremiumCard } from "@/components/epf/PremiumCard";
 import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
@@ -32,67 +33,71 @@ export default function BestDeals() {
   }, []);
 
   return (
-    <section id="deals" className="bg-white py-10 sm:py-14">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-12">
+    <section id="deals" className="bg-white py-12 sm:py-16">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* ── Section Header ── */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-end justify-between mb-8 sm:mb-10">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-[20px] sm:text-[24px] font-bold text-slate-900 tracking-tight">
               Best Deals
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-[14px] text-slate-500 mt-1">
               Don&apos;t miss the chance — limited stock!
             </p>
           </div>
 
           <a
             href="/deals"
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-epf-500 hover:text-epf-600 transition-colors border border-epf-500 hover:border-epf-600 rounded-md px-4 py-2"
+            className="hidden sm:inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-600 hover:text-epf-700 transition-colors group"
           >
             View All
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </a>
         </div>
 
         {/* ── Product Grid ── */}
         {deals.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-lg py-16 text-center">
-            <p className="text-sm text-slate-500">No deals available yet. Please check back soon.</p>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl py-16 px-6 text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-white border border-slate-200 flex items-center justify-center mb-4">
+              <PackageOpen className="h-8 w-8 text-slate-300" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-[18px] font-medium text-slate-700">No deals available yet</h3>
+            <p className="text-[14px] text-slate-400 mt-1.5 max-w-sm mx-auto">
+              Please check back soon — we&apos;re adding fresh deals every week.
+            </p>
           </div>
         ) : (
-          <FadeInStagger className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <FadeInStagger className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
             {deals.slice(0, 10).map((product) => (
               <FadeInItem key={product.id}>
-              <PremiumCard
-                data={{
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  comparePrice: product.comparePrice,
-                  images: product.images,
-                  isBestDeal: true,
-                }}
-                onCardClick={(id) => { window.location.href = `/product/${id}`; }}
-              />
+                <PremiumCard
+                  data={{
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    comparePrice: product.comparePrice,
+                    images: product.images,
+                    isBestDeal: true,
+                  }}
+                  onCardClick={(id) => { window.location.href = `/product/${id}`; }}
+                />
               </FadeInItem>
             ))}
           </FadeInStagger>
         )}
 
         {/* ── Mobile "View All" ── */}
-        <div className="sm:hidden mt-6 text-center">
-          <a
-            href="/deals"
-            className="inline-flex items-center justify-center gap-1.5 w-full text-sm font-medium text-white bg-epf-500 hover:bg-epf-600 rounded-md px-4 py-3 transition-colors"
-          >
-            View All Products
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
+        {deals.length > 0 && (
+          <div className="sm:hidden mt-8 text-center">
+            <a
+              href="/deals"
+              className="inline-flex items-center justify-center gap-1.5 text-[14px] font-semibold text-white bg-epf-500 hover:bg-epf-600 h-11 px-6 rounded-lg transition-colors"
+            >
+              View All Products
+              <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

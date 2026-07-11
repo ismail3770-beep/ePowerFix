@@ -4,7 +4,15 @@ import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
 /* -------------------------------------------------------------------------- */
-/*  FadeIn – single-element fade + slide wrapper                              */
+/*  Premium animation tokens — smoother, ease-out, 0.5s                       */
+/* -------------------------------------------------------------------------- */
+
+const EASE_OUT = [0.22, 0.61, 0.36, 1] as const;
+const DURATION = 0.5;
+const DISTANCE = 16;
+
+/* -------------------------------------------------------------------------- */
+/*  FadeIn – single-element fade + slide wrapper                               */
 /* -------------------------------------------------------------------------- */
 
 interface FadeInProps {
@@ -12,6 +20,8 @@ interface FadeInProps {
   delay?: number;
   className?: string;
   direction?: "up" | "down" | "left" | "right";
+  /** Disable whileInView (animate immediately on mount) */
+  onMount?: boolean;
 }
 
 export default function FadeIn({
@@ -19,18 +29,22 @@ export default function FadeIn({
   delay = 0,
   className,
   direction = "up",
+  onMount = false,
 }: FadeInProps) {
+  const offsetX =
+    direction === "left" ? DISTANCE : direction === "right" ? -DISTANCE : 0;
+  const offsetY =
+    direction === "up" ? DISTANCE : direction === "down" ? -DISTANCE : 0;
+
   return (
     <motion.div
       className={className}
-      initial={{
-        opacity: 0,
-        y: direction === "up" ? 16 : direction === "down" ? -16 : 0,
-        x: direction === "left" ? 16 : direction === "right" ? -16 : 0,
-      }}
-      whileInView={{ opacity: 1, y: 0, x: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay, ease: [0.25, 0.1, 0.25, 1] }}
+      initial={{ opacity: 0, x: offsetX, y: offsetY }}
+      {...(onMount
+        ? { animate: { opacity: 1, x: 0, y: 0 } }
+        : { whileInView: { opacity: 1, x: 0, y: 0 } })}
+      {...(onMount ? {} : { viewport: { once: true, margin: "-40px" } })}
+      transition={{ duration: DURATION, delay, ease: EASE_OUT }}
     >
       {children}
     </motion.div>
@@ -38,7 +52,7 @@ export default function FadeIn({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  FadeInStagger – container that staggers its FadeInItem children          */
+/*  FadeInStagger – container that staggers its FadeInItem children           */
 /* -------------------------------------------------------------------------- */
 
 interface FadeInStaggerProps {
@@ -50,7 +64,7 @@ interface FadeInStaggerProps {
 export function FadeInStagger({
   children,
   className,
-  staggerDelay = 0.08,
+  staggerDelay = 0.06,
 }: FadeInStaggerProps) {
   return (
     <motion.div
@@ -61,7 +75,7 @@ export function FadeInStagger({
         hidden: { opacity: 1 },
         visible: {
           opacity: 1,
-          transition: { staggerChildren: staggerDelay },
+          transition: { staggerChildren: staggerDelay, delayChildren: 0.05 },
         },
       }}
       viewport={{ once: true, margin: "-40px" }}
@@ -72,7 +86,7 @@ export function FadeInStagger({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  FadeInItem – child element used inside FadeInStagger                      */
+/*  FadeInItem – child element used inside FadeInStagger                       */
 /* -------------------------------------------------------------------------- */
 
 interface FadeInItemProps {
@@ -85,11 +99,11 @@ export function FadeInItem({ children, className }: FadeInItemProps) {
     <motion.div
       className={className}
       variants={{
-        hidden: { opacity: 0, y: 12 },
+        hidden: { opacity: 0, y: DISTANCE },
         visible: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] },
+          transition: { duration: DURATION, ease: EASE_OUT },
         },
       }}
     >

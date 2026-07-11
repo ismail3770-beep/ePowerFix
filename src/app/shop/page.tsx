@@ -171,7 +171,7 @@ function ProductCardList({ product }: { product: Product }) {
   const originalPrice = product.comparePrice ?? null;
 
   return (
-    <div className="group flex flex-col sm:flex-row bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+    <div className="group flex flex-col sm:flex-row bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
       {/* Image */}
       <div className="relative overflow-hidden sm:w-48 md:w-56 shrink-0 aspect-square sm:aspect-auto bg-slate-50">
         <a href={`/product/${product.id}`} className="block w-full h-full">
@@ -285,6 +285,11 @@ function ProductCardList({ product }: { product: Product }) {
 /* ------------------------------------------------------------------ */
 /*  Filter Sidebar  —  Browse Categories + Filters (Price) + Latest   */
 /* ------------------------------------------------------------------ */
+interface AvailabilityFilter {
+  inStock: boolean;
+  outOfStock: boolean;
+}
+
 interface FilterSidebarProps {
   categories: Category[];
   selectedCategoryId: string | null;
@@ -296,6 +301,8 @@ interface FilterSidebarProps {
   onApplyPrice: () => void;
   appliedMinPrice: number | null;
   appliedMaxPrice: number | null;
+  availability: AvailabilityFilter;
+  onAvailabilityChange: (next: AvailabilityFilter) => void;
   isLoading: boolean;
   onClearAll: () => void;
   latestProducts: Product[];
@@ -313,6 +320,8 @@ function FilterSidebar({
   onApplyPrice,
   appliedMinPrice,
   appliedMaxPrice,
+  availability,
+  onAvailabilityChange,
   isLoading,
   onClearAll,
   latestProducts,
@@ -321,7 +330,9 @@ function FilterSidebar({
   const hasActiveFilters =
     selectedCategoryId ||
     appliedMinPrice != null ||
-    appliedMaxPrice != null;
+    appliedMaxPrice != null ||
+    availability.inStock ||
+    availability.outOfStock;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -417,6 +428,63 @@ function FilterSidebar({
           >
             Apply
           </button>
+        </section>
+
+        {/* ── 3. Availability ──────────────────────────────────── */}
+        <section className="py-4">
+          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+            Availability
+          </h3>
+          <div className="space-y-1.5">
+            <label
+              className={cn(
+                "flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] transition-colors rounded-md px-1.5 -mx-1.5",
+                availability.inStock
+                  ? "text-epf-600 font-semibold bg-epf-50"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={availability.inStock}
+                onChange={(e) =>
+                  onAvailabilityChange({
+                    ...availability,
+                    inStock: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500/30 cursor-pointer"
+              />
+              <span className="flex items-center gap-1.5">
+                In Stock
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              </span>
+            </label>
+            <label
+              className={cn(
+                "flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] transition-colors rounded-md px-1.5 -mx-1.5",
+                availability.outOfStock
+                  ? "text-epf-600 font-semibold bg-epf-50"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              )}
+            >
+              <input
+                type="checkbox"
+                checked={availability.outOfStock}
+                onChange={(e) =>
+                  onAvailabilityChange({
+                    ...availability,
+                    outOfStock: e.target.checked,
+                  })
+                }
+                className="h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500/30 cursor-pointer"
+              />
+              <span className="flex items-center gap-1.5">
+                Out of Stock
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-300" />
+              </span>
+            </label>
+          </div>
         </section>
       </div>
 
@@ -616,6 +684,10 @@ export default function ShopPage() {
   const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
   const [minPriceInput, setMinPriceInput] = useState<string>("");
   const [maxPriceInput, setMaxPriceInput] = useState<string>("");
+  const [availability, setAvailability] = useState<{ inStock: boolean; outOfStock: boolean }>({
+    inStock: false,
+    outOfStock: false,
+  });
 
   /* ---- Stores ---- */
   const { setSearchQuery, setSelectedProductId, setProductDetailOpen } = useUIStore();
@@ -675,6 +747,13 @@ export default function ShopPage() {
       arr = arr.filter((p) => (p.price ?? 0) <= appliedMaxPrice);
     }
 
+    // Client-side availability filter
+    if (availability.inStock && !availability.outOfStock) {
+      arr = arr.filter((p) => (p.stock ?? 0) > 0);
+    } else if (availability.outOfStock && !availability.inStock) {
+      arr = arr.filter((p) => (p.stock ?? 0) <= 0);
+    }
+
     // Sort
     switch (sort) {
       case "price-asc":
@@ -701,7 +780,7 @@ export default function ShopPage() {
         break;
     }
     return arr;
-  }, [data?.data?.data, sort, appliedMinPrice, appliedMaxPrice]);
+  }, [data?.data?.data, sort, appliedMinPrice, appliedMaxPrice, availability]);
 
   /* ---- Handlers ---- */
   useEffect(() => {
@@ -718,6 +797,7 @@ export default function ShopPage() {
     setAppliedMaxPrice(null);
     setMinPriceInput("");
     setMaxPriceInput("");
+    setAvailability({ inStock: false, outOfStock: false });
   }, []);
 
   const handleCategorySelect = useCallback((catId: string | null) => {
@@ -742,7 +822,9 @@ export default function ShopPage() {
     !!selectedCategoryId ||
     !!appliedSearch ||
     appliedMinPrice != null ||
-    appliedMaxPrice != null;
+    appliedMaxPrice != null ||
+    availability.inStock ||
+    availability.outOfStock;
 
   /* ---- Scroll to top on page change ---- */
   useEffect(() => {
@@ -771,6 +853,8 @@ export default function ShopPage() {
     onApplyPrice: handleApplyPrice,
     appliedMinPrice,
     appliedMaxPrice,
+    availability,
+    onAvailabilityChange: setAvailability,
     isLoading: categoriesLoading,
     onClearAll: handleClearFilters,
     latestProducts,
@@ -778,7 +862,7 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
 
       <main className="flex-1">
@@ -799,7 +883,7 @@ export default function ShopPage() {
             </nav>
 
             {/* Title + Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-5 pt-1">
               {/* Title */}
               <div className="flex items-center gap-3 min-w-0">
                 <h1 className="text-[24px] font-bold text-slate-900 tracking-tight">
@@ -897,7 +981,7 @@ export default function ShopPage() {
         </div>
 
         {/* ── Main Content: Sidebar + Grid ─────────────────────── */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex gap-6">
             {/* ---- Desktop Sidebar ---- */}
             <aside className="hidden lg:block w-[260px] shrink-0">
