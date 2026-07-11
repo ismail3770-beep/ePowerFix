@@ -20,6 +20,7 @@ export interface ShopCardData {
   badge?: string;
   isFeatured?: boolean;
   isBestDeal?: boolean;
+  itemType?: "PRODUCT" | "PROJECT";
 }
 
 interface ShopCardProps {
@@ -72,7 +73,7 @@ const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
     e.preventDefault();
 
     addItem({
-      itemType: "PRODUCT",
+      itemType: data.itemType || "PRODUCT",
       productId: data.id,
       productName: data.name,
       productImage: imageUrl,

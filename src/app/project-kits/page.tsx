@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { CARD_IMAGE_ASPECT } from "@/lib/card-image";
+
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
@@ -113,26 +113,13 @@ function kitToCardData(kit: Kit): ShopCardData {
     image: cover,
     images: images,
     stock: kit.stock,
+    itemType: "PROJECT",
   };
 }
 
 /* ------------------------------------------------------------------ */
 /*  Skeletons                                                          */
 /* ------------------------------------------------------------------ */
-
-function KitCardSkeleton() {
-  return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-      <div className={`${CARD_IMAGE_ASPECT} bg-slate-100 animate-pulse`} />
-      <div className="p-3 space-y-2">
-        <div className="h-2 w-16 bg-slate-100 rounded animate-pulse" />
-        <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
-        <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
-        <div className="h-4 w-20 bg-slate-100 rounded animate-pulse" />
-      </div>
-    </div>
-  );
-}
 
 function KitListCardSkeleton() {
   return (
@@ -171,139 +158,6 @@ function SidebarSkeleton() {
         </div>
       </div>
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Kit Card — Grid View                                               */
-/* ------------------------------------------------------------------ */
-
-function KitCardGrid({ kit }: { kit: Kit }) {
-  const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
-  const addItem = useCartStore((s) => s.addItem);
-  const buyable = kit.price != null;
-  const price = Number(kit.salePrice || kit.price || 0);
-  const hasDiscount =
-    kit.salePrice != null && kit.price != null && kit.salePrice < kit.price;
-  const images = parseImages(kit.images);
-  const cover = kit.coverImage || images[0] || "";
-
-  const openDetail = () => {
-    setSelectedProjectId(kit.id);
-    setProjectDetailOpen(true);
-  };
-
-  const addToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!buyable) {return;}
-    addItem({
-      itemType: "PROJECT",
-      productId: kit.id,
-      productName: kit.title,
-      productImage: cover,
-      price,
-      quantity: 1,
-    });
-    toast.success("Kit added to cart", { description: kit.title });
-  };
-
-  // Discount percent for the badge (priority over the KIT label)
-  const discountPct = hasDiscount
-    ? Math.round(((Number(kit.price) - price) / Number(kit.price)) * 100)
-    : 0;
-  const kitBadge = discountPct > 0 ? `-${discountPct}%` : "KIT";
-
-  return (
-    <div
-      onClick={openDetail}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDetail(); } }}
-      className="group flex flex-col text-left bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 cursor-pointer"
-    >
-      {/* ─── Image Area (square, object-contain) ─── */}
-      <div className={`relative ${CARD_IMAGE_ASPECT} bg-slate-50 overflow-hidden flex items-center justify-center`}>
-        {cover ? (
-          <img
-            src={cover}
-            alt={kit.title}
-            className="w-full h-full object-contain p-2 group-hover:scale-[1.03] transition-transform duration-500 ease-out"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Boxes className="w-9 h-9 text-slate-300" />
-          </div>
-        )}
-        <span className="absolute top-2 left-2 z-10 bg-epf-500 text-white text-[11px] font-bold px-1.5 py-0.5 leading-tight tracking-wide">
-          {kitBadge}
-        </span>
-      </div>
-
-      {/* ─── Add to Cart — full-width dark, directly under image ─── */}
-      {buyable ? (
-        <button
-          onClick={addToCart}
-          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-bold transition-colors duration-150"
-        >
-          <ShoppingCart /> Add to Cart
-        </button>
-      ) : (
-        <button
-          onClick={(e) => { e.stopPropagation(); openDetail(); }}
-          className="w-full h-9 flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-bold transition-colors duration-150"
-        >
-          View Details
-        </button>
-      )}
-
-      {/* ─── Content ─── */}
-      <div className="flex flex-col flex-1 px-2.5 pt-2 pb-3 gap-1">
-        <h4 className="text-[13px] font-normal text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors">
-          {kit.title}
-        </h4>
-        <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
-          {buyable ? (
-            <>
-              {hasDiscount && (
-                <del className="text-[13px] font-normal text-slate-400">
-                  ৳{Number(kit.price).toLocaleString()}
-                </del>
-              )}
-              <span className="text-[14px] font-bold text-epf-600">
-                ৳{price.toLocaleString()}
-              </span>
-            </>
-          ) : (
-            <span className="text-[12px] font-medium text-epf-500">
-              Tap to view
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Inline shopping-cart icon (kept tiny to avoid extra imports)
-function ShoppingCart({ className = "" }: { className?: string }) {
-  return (
-    <svg
-      className={`w-3.5 h-3.5 ${className}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-      />
-    </svg>
   );
 }
 
