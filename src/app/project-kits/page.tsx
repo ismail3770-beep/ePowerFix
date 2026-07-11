@@ -32,6 +32,11 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 import {
   EPFCart,
 } from "@/components/epf/icons/EPFIcons";
+import {
+  ShopCard,
+  ShopCardSkeleton,
+  type ShopCardData,
+} from "@/components/epf/ShopCard";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -78,23 +83,37 @@ const DIFFICULTY_OPTIONS: { value: string; label: string }[] = [
 ];
 
 const GRID =
-  "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4";
+  "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
 function parseImages(val: unknown): string[] {
-  if (Array.isArray(val)) return val as string[];
+  if (Array.isArray(val)) {return val as string[];}
   if (typeof val === "string") {
     try {
       const p = JSON.parse(val);
-      if (Array.isArray(p)) return p;
+      if (Array.isArray(p)) {return p;}
     } catch {
       /* ignore */
     }
   }
   return [];
+}
+
+function kitToCardData(kit: Kit): ShopCardData {
+  const images = parseImages(kit.images);
+  const cover = kit.coverImage || images[0] || "";
+  return {
+    id: kit.id,
+    name: kit.title,
+    price: kit.price,
+    salePrice: kit.salePrice,
+    image: cover,
+    images: images,
+    stock: kit.stock,
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -177,7 +196,7 @@ function KitCardGrid({ kit }: { kit: Kit }) {
   const addToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!buyable) return;
+    if (!buyable) {return;}
     addItem({
       itemType: "PROJECT",
       productId: kit.id,
@@ -310,7 +329,7 @@ function KitCardList({ kit }: { kit: Kit }) {
   const addToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!buyable) return;
+    if (!buyable) {return;}
     addItem({
       itemType: "PROJECT",
       productId: kit.id,
@@ -351,7 +370,7 @@ function KitCardList({ kit }: { kit: Kit }) {
             <Boxes className="w-8 h-8 text-slate-300" />
           </div>
         )}
-        <span className="absolute top-1.5 left-1.5 bg-epf-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded leading-none tracking-wide">
+        <span className="absolute top-1.5 left-1.5 bg-epf-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-sm leading-none tracking-wide">
           {kitBadge}
         </span>
       </div>
@@ -529,7 +548,7 @@ function FilterSidebar({
               value={minPriceInput}
               onChange={(e) => onMinPriceInputChange(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") onApplyPrice();
+                if (e.key === "Enter") {onApplyPrice();}
               }}
               className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
             />
@@ -542,7 +561,7 @@ function FilterSidebar({
               value={maxPriceInput}
               onChange={(e) => onMaxPriceInputChange(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") onApplyPrice();
+                if (e.key === "Enter") {onApplyPrice();}
               }}
               className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
             />
@@ -679,19 +698,19 @@ function Pagination({
   totalPages: number;
   onPageChange: (p: number) => void;
 }) {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) {return null;}
   const pages: (number | "…")[] = [];
   const push = (p: number | "…") => pages.push(p);
   push(1);
-  if (currentPage - 2 > 2) push("…");
+  if (currentPage - 2 > 2) {push("…");}
   for (
     let i = Math.max(2, currentPage - 1);
     i <= Math.min(totalPages - 1, currentPage + 1);
     i++
   )
-    push(i);
-  if (currentPage + 2 < totalPages - 1) push("…");
-  if (totalPages > 1) push(totalPages);
+    {push(i);}
+  if (currentPage + 2 < totalPages - 1) {push("…");}
+  if (totalPages > 1) {push(totalPages);}
 
   return (
     <div className="flex items-center justify-center gap-1.5 mt-8">
@@ -784,7 +803,7 @@ export default function ProjectKitsPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
 
   /* ---- Stores ---- */
-  const { setSearchQuery } = useUIStore();
+  const { setSearchQuery, setSelectedProjectId, setProjectDetailOpen } = useUIStore();
 
   useEffect(() => {
     setSearchQuery(appliedSearch);
@@ -796,7 +815,7 @@ export default function ProjectKitsPage() {
     queryFn: () => {
       let url = "/api/project-kits";
       if (appliedSearch)
-        url += `?search=${encodeURIComponent(appliedSearch)}`;
+        {url += `?search=${encodeURIComponent(appliedSearch)}`;}
       return apiFetch(url);
     },
   });
@@ -1158,9 +1177,9 @@ export default function ProjectKitsPage() {
                 </div>
               ) : isLoading ? (
                 viewMode === "grid" ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                  <div className={GRID}>
                     {Array.from({ length: 8 }).map((_, i) => (
-                      <KitCardSkeleton key={i} />
+                      <ShopCardSkeleton key={i} />
                     ))}
                   </div>
                 ) : (
@@ -1179,7 +1198,14 @@ export default function ProjectKitsPage() {
                   {viewMode === "grid" ? (
                     <div className={GRID}>
                       {pagedKits.map((kit) => (
-                        <KitCardGrid key={kit.id} kit={kit} />
+                        <ShopCard
+                          key={kit.id}
+                          data={kitToCardData(kit)}
+                          onCardClick={(id) => {
+                            setSelectedProjectId(id);
+                            setProjectDetailOpen(true);
+                          }}
+                        />
                       ))}
                     </div>
                   ) : (
