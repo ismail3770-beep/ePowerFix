@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { ShoppingCart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store";
@@ -28,7 +28,7 @@ interface ShopCardProps {
   className?: string;
 }
 
-export function ShopCard({ data, onCardClick, className }: ShopCardProps) {
+const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
@@ -58,8 +58,8 @@ export function ShopCard({ data, onCardClick, className }: ShopCardProps) {
 
   // Badge color
   const getBadgeColor = () => {
-    if (badgeText?.includes("Out of Stock")) return "bg-red-500";
-    if (badgeText?.includes("New")) return "bg-green-500";
+    if (data.badge === "Out of Stock" || (data.stock != null && data.stock <= 0)) return "bg-red-500";
+    if (data.badge === "New") return "bg-green-500";
     return "bg-epf-500";
   };
 
@@ -158,11 +158,11 @@ export function ShopCard({ data, onCardClick, className }: ShopCardProps) {
         <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
           {showOriginal && (
             <del className="text-[12px] font-normal text-slate-400">
-              ${Number(originalPrice).toLocaleString()}
+              ৳{Number(originalPrice).toLocaleString()}
             </del>
           )}
           <span className="text-[14px] font-bold text-slate-900">
-            ${Number(displayPrice).toLocaleString()}
+            ৳{Number(displayPrice).toLocaleString()}
           </span>
         </div>
 
@@ -184,6 +184,8 @@ export function ShopCard({ data, onCardClick, className }: ShopCardProps) {
     </div>
   );
 }
+
+export const ShopCard = memo(ShopCardBase);
 
 export function ShopCardSkeleton() {
   return (
