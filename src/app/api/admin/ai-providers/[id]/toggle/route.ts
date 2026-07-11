@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -7,7 +7,7 @@ import {
 } from '@/lib/admin-api'
 
 function mapProvider(p: any) {
-  if (!p) return p
+  if (!p) {return p}
   return {
     ...p,
     isActive: p.enabled,
@@ -24,12 +24,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { id } = await params
     const existing = await db.aiProvider.findUnique({ where: { id } })
-    if (!existing) return errorResponse('AI provider not found', 404)
+    if (!existing) {return errorResponse('AI provider not found', 404)}
 
     const provider = await db.aiProvider.update({
       where: { id },

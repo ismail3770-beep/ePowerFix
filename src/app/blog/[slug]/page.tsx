@@ -57,7 +57,7 @@ interface SidebarPost {
 }
 
 function parseTags(raw: any): string[] {
-  if (Array.isArray(raw)) return raw.filter(Boolean);
+  if (Array.isArray(raw)) {return raw.filter(Boolean);}
   if (typeof raw === "string") {
     try {
       const p = JSON.parse(raw);
@@ -112,18 +112,18 @@ export default function BlogDetailPage() {
 
   /* ----- fetch post (setState only in async callbacks to avoid cascading renders) ----- */
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {return;}
     let cancelled = false;
     apiFetch<{ data: any }>(`/api/blog/${slug}`)
       .then((r) => {
-        if (cancelled) return;
+        if (cancelled) {return;}
         setPost(r.data);
         setNotFound(false);
         setFetchedSlug(slug);
         setLoading(false);
       })
       .catch(() => {
-        if (cancelled) return;
+        if (cancelled) {return;}
         setPost(null);
         setNotFound(true);
         setFetchedSlug(slug);

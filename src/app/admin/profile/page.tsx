@@ -128,13 +128,13 @@ export default function AdminProfilePage() {
 
   const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
     try {
       const formData = new FormData();
       formData.append("file", file);
       const uploadRes = await fetch("/api/admin/upload", { method: "POST", body: formData, credentials: "include" });
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+      if (!uploadRes.ok) {throw new Error(uploadData.error || "Upload failed");}
       const uploadedUrl = uploadData?.url || uploadData?.data?.url;
       if (uploadedUrl) {
         await api.put("/api/auth/profile", { avatar: uploadedUrl });

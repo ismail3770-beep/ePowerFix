@@ -18,7 +18,7 @@ const STORAGE_KEY = "epf-admin-ai-chat";
 function loadChat() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {return JSON.parse(raw);}
   } catch {}
   return null;
 }
@@ -48,7 +48,7 @@ export default function AdminAIChat() {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   useEffect(() => {
-    if (open && !minimized) inputRef.current?.focus();
+    if (open && !minimized) {inputRef.current?.focus();}
   }, [open, minimized]);
 
   // Auto-save
@@ -57,7 +57,7 @@ export default function AdminAIChat() {
   }, [messages, sessionId]);
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || loading) return;
+    if (!text.trim() || loading) {return;}
 
     const userMsg: Message = {
       id: crypto.randomUUID?.() || `u-${Date.now()}`,
@@ -95,8 +95,8 @@ export default function AdminAIChat() {
       );
     } catch (err: any) {
       let errorMsg = "Something went wrong.";
-      if (err.response?.data?.error) errorMsg = err.response.data.error;
-      else if (err.message) errorMsg = err.message;
+      if (err.response?.data?.error) {errorMsg = err.response.data.error;}
+      else if (err.message) {errorMsg = err.message;}
 
       setMessages((prev) =>
         prev.map((m) =>

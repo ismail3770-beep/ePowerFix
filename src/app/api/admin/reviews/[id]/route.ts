@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -30,14 +30,14 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const review = await db.review.findUnique({
     where: { id },
     include: REVIEW_INCLUDE,
   })
-  if (!review) return errorResponse('Review not found', 404)
+  if (!review) {return errorResponse('Review not found', 404)}
   return jsonResponse({ data: review })
 })
 
@@ -48,13 +48,13 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateReviewSchema)
 
   const existing = await db.review.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Review not found', 404)
+  if (!existing) {return errorResponse('Review not found', 404)}
 
   const data: any = {}
   if (body.status !== undefined) {
@@ -64,8 +64,8 @@ export const PUT = withErrorHandling(async (
     }
     data.status = body.status
   }
-  if (body.title !== undefined) data.title = body.title
-  if (body.comment !== undefined) data.comment = body.comment
+  if (body.title !== undefined) {data.title = body.title}
+  if (body.comment !== undefined) {data.comment = body.comment}
   if (body.rating !== undefined) {
     const r = Number(body.rating)
     if (!Number.isInteger(r) || r < 1 || r > 5) {
@@ -91,11 +91,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.review.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Review not found', 404)
+  if (!existing) {return errorResponse('Review not found', 404)}
 
   await db.review.update({
     where: { id },

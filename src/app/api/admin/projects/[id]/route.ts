@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -41,7 +41,7 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const project = await db.project.findUnique({ where: { id } })
@@ -60,7 +60,7 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateProjectSchema)
@@ -79,19 +79,19 @@ export const PUT = withErrorHandling(async (
   }
 
   const data: any = {}
-  if (body.title !== undefined) data.title = body.title
-  if (body.titleBn !== undefined) data.titleBn = body.titleBn || null
+  if (body.title !== undefined) {data.title = body.title}
+  if (body.titleBn !== undefined) {data.titleBn = body.titleBn || null}
   if (body.slug !== undefined) {
     data.slug = body.slug || (body.title ? slugify(body.title) : existing.slug)
   }
-  if (body.description !== undefined) data.description = body.description
-  if (body.coverImage !== undefined) data.coverImage = body.coverImage || null
-  if (body.images !== undefined) data.images = stringifyJsonField(body.images)
-  if (body.client !== undefined) data.client = body.client || null
-  if (body.location !== undefined) data.location = body.location || null
-  if (body.status !== undefined) data.status = body.status
-  if (body.startDate !== undefined) data.startDate = body.startDate ? new Date(body.startDate) : null
-  if (body.endDate !== undefined) data.endDate = body.endDate ? new Date(body.endDate) : null
+  if (body.description !== undefined) {data.description = body.description}
+  if (body.coverImage !== undefined) {data.coverImage = body.coverImage || null}
+  if (body.images !== undefined) {data.images = stringifyJsonField(body.images)}
+  if (body.client !== undefined) {data.client = body.client || null}
+  if (body.location !== undefined) {data.location = body.location || null}
+  if (body.status !== undefined) {data.status = body.status}
+  if (body.startDate !== undefined) {data.startDate = body.startDate ? new Date(body.startDate) : null}
+  if (body.endDate !== undefined) {data.endDate = body.endDate ? new Date(body.endDate) : null}
 
   const project = await db.project.update({ where: { id }, data })
 
@@ -107,7 +107,7 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.project.findUnique({ where: { id } })

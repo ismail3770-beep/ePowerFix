@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import {
   requireAdmin,
   jsonResponse,
@@ -12,7 +12,7 @@ import {
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const url = new URL(request.url)

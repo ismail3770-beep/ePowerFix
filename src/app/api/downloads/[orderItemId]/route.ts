@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { errorResponse, requireAuth } from '@/lib/auth'
 
@@ -13,7 +14,7 @@ export async function GET(
 ) {
   try {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
 
     const { orderItemId } = await params
     const item = await db.orderItem.findUnique({
@@ -21,9 +22,9 @@ export async function GET(
       include: { product: true, order: true },
     })
 
-    if (!item) return errorResponse('Download not found', 404)
-    if (item.order.userId !== auth.user!.id) return errorResponse('Forbidden', 403)
-    if (!item.product?.isDigital) return errorResponse('Not a digital product', 400)
+    if (!item) {return errorResponse('Download not found', 404)}
+    if (item.order.userId !== auth.user!.id) {return errorResponse('Forbidden', 403)}
+    if (!item.product?.isDigital) {return errorResponse('Not a digital product', 400)}
     if (!['PAID', 'CONFIRMED'].includes(item.order.paymentStatus)) {
       return errorResponse('Order not yet paid', 403)
     }
@@ -43,7 +44,7 @@ export async function GET(
     // digitalFile holds a path/URL — redirect to it (in production this would be
     // a signed URL). For now we 302 to the stored value.
     const file = item.product.digitalFile
-    if (!file) return errorResponse('No file attached to this product', 404)
+    if (!file) {return errorResponse('No file attached to this product', 404)}
 
     return NextResponse.redirect(file, { status: 302 })
   } catch (err: any) {

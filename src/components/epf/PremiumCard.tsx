@@ -72,7 +72,7 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       comparePrice: data.comparePrice,
       images: data.images || [],
     });
-    if (onCardClick) onCardClick(data.id);
+    if (onCardClick) {onCardClick(data.id);}
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {

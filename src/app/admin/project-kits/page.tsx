@@ -126,7 +126,7 @@ export default function AdminProjectKitsPage() {
   };
 
   useEffect(() => { fetchKits(); fetchProducts(); }, [fetchKits]);
-  useEffect(() => { if (selectedKit) fetchItems(selectedKit.id); }, [selectedKit]);
+  useEffect(() => { if (selectedKit) {fetchItems(selectedKit.id);} }, [selectedKit]);
 
   useFormDraft("admin-kit-add", dialog.open && !dialog.edit ? form : defaultKitForm);
 
@@ -180,7 +180,7 @@ export default function AdminProjectKitsPage() {
         toast.success("Kit created");
       }
       setDialog({ open: false });
-      if (!dialog.edit) clearFormDraft("admin-kit-add");
+      if (!dialog.edit) {clearFormDraft("admin-kit-add");}
       fetchKits();
     } catch (err: any) {
       toast.error(err?.message || "Failed to save kit");
@@ -190,7 +190,7 @@ export default function AdminProjectKitsPage() {
   }
 
   async function handleDeleteKit() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {return;}
     setDeleting(true);
     try {
       await apiFetch(`/api/admin/project-kits/${deleteTarget.id}`, { method: "DELETE" });
@@ -223,7 +223,7 @@ export default function AdminProjectKitsPage() {
   }
 
   async function handleUpdateItem() {
-    if (!editItem) return;
+    if (!editItem) {return;}
     setSaving(true);
     try {
       await apiFetch(`/api/admin/project-kits/${selectedKit!.id}/items/${editItem.id}`, {
@@ -241,7 +241,7 @@ export default function AdminProjectKitsPage() {
   }
 
   async function handleRemoveItem(item: KitItem) {
-    if (!confirm(`Remove "${item.product.name}" from this kit?`)) return;
+    if (!confirm(`Remove "${item.product.name}" from this kit?`)) {return;}
     try {
       await apiFetch(`/api/admin/project-kits/${selectedKit!.id}/items/${item.id}`, { method: "DELETE" });
       toast.success("Item removed");
@@ -394,7 +394,7 @@ export default function AdminProjectKitsPage() {
       )}
 
       {/* Kit Add/Edit Dialog */}
-      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) setDialog({ open: false }); }}>
+      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) {setDialog({ open: false });} }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{dialog.edit ? "Edit Kit" : "Add Kit"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
@@ -503,7 +503,7 @@ export default function AdminProjectKitsPage() {
       </Dialog>
 
       {/* Edit Item Dialog */}
-      <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) setEditItem(null); }}>
+      <Dialog open={!!editItem} onOpenChange={(o) => { if (!o) {setEditItem(null);} }}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Edit Kit Item</DialogTitle></DialogHeader>
           {editItem && (
@@ -538,7 +538,7 @@ export default function AdminProjectKitsPage() {
       </Dialog>
 
       {/* Delete Kit Confirm */}
-      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) {setDeleteTarget(null);} }}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle>Delete Kit?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">Are you sure you want to delete "{deleteTarget?.title}"? This will also remove all items in this kit. This cannot be undone.</p>

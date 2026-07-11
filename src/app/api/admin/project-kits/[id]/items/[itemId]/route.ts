@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
@@ -16,7 +16,7 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id: kitId, itemId } = await params
   const body = await validateBody(request, updateItemSchema)
@@ -24,12 +24,12 @@ export const PUT = withErrorHandling(async (
   const existing = await db.projectKitItem.findFirst({
     where: { id: itemId, kitId },
   })
-  if (!existing) return errorResponse('Kit item not found', 404)
+  if (!existing) {return errorResponse('Kit item not found', 404)}
 
   const data: any = {}
-  if (body.quantity !== undefined) data.quantity = Math.max(1, Number(body.quantity) || 1)
-  if (body.isRequired !== undefined) data.isRequired = !!body.isRequired
-  if (body.notes !== undefined) data.notes = body.notes || null
+  if (body.quantity !== undefined) {data.quantity = Math.max(1, Number(body.quantity) || 1)}
+  if (body.isRequired !== undefined) {data.isRequired = !!body.isRequired}
+  if (body.notes !== undefined) {data.notes = body.notes || null}
 
   const updated = await db.projectKitItem.update({
     where: { id: itemId },
@@ -47,13 +47,13 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id: kitId, itemId } = await params
   const existing = await db.projectKitItem.findFirst({
     where: { id: itemId, kitId },
   })
-  if (!existing) return errorResponse('Kit item not found', 404)
+  if (!existing) {return errorResponse('Kit item not found', 404)}
 
   await db.projectKitItem.delete({ where: { id: itemId } })
   return jsonResponse({ message: 'Item removed from kit' })

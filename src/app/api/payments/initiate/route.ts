@@ -18,13 +18,13 @@ const initiatePaymentSchema = z.object({
 
 export async function POST(request: Request) {
   const ip = (await headers()).get('x-forwarded-for') || 'unknown'
-  const rl = checkRateLimit(`payment:${ip}`, 5, 10 * 60 * 1000)
+  const rl = await checkRateLimit(`payment:${ip}`, 5, 10 * 60 * 1000)
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many payment attempts. Try again later.' }, { status: 429 })
   }
 
   const auth = await requireAuth()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const body = await request.json()

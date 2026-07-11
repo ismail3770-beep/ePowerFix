@@ -69,11 +69,11 @@ export default function AdminQuoteRequestsPage() {
   }, [fetchQuotes])
 
   const deleteQuote = useCallback(async (id: string) => {
-    if (!confirm("Delete this quote request? This cannot be undone.")) return
+    if (!confirm("Delete this quote request? This cannot be undone.")) {return}
     try {
       await apiFetch(`/api/admin/quote-requests/${id}`, { method: "DELETE" })
       setQuotes((prev) => prev.filter((q) => q.id !== id))
-      if (selectedQuote?.id === id) setSelectedQuote(null)
+      if (selectedQuote?.id === id) {setSelectedQuote(null)}
       toast.success("Quote request deleted")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete")

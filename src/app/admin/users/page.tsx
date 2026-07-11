@@ -39,8 +39,8 @@ function formatDate(dateStr: string) {
 function getInitials(name: string | null, email: string): string {
   const base = (name || email || "?").trim();
   const parts = base.split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  if (parts.length === 0) {return "?";}
+  if (parts.length === 1) {return parts[0].charAt(0).toUpperCase();}
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
@@ -56,7 +56,7 @@ const avatarGradients = [
 
 function getAvatarGradient(id: string): string {
   let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < id.length; i++) {hash = id.charCodeAt(i) + ((hash << 5) - hash);}
   return avatarGradients[Math.abs(hash) % avatarGradients.length];
 }
 
@@ -88,9 +88,9 @@ export default function AdminUsersPage() {
     setLoading(true);
     try {
       const qs = new URLSearchParams();
-      if (filters.search) qs.set("search", filters.search);
-      if (filters.role && filters.role !== "__all__") qs.set("role", filters.role);
-      if (filters.isActive && filters.isActive !== "__all__") qs.set("isActive", filters.isActive);
+      if (filters.search) {qs.set("search", filters.search);}
+      if (filters.role && filters.role !== "__all__") {qs.set("role", filters.role);}
+      if (filters.isActive && filters.isActive !== "__all__") {qs.set("isActive", filters.isActive);}
       qs.set("page", String(page));
       qs.set("limit", String(PAGE_LIMIT));
       const params = qs.toString() ? `?${qs.toString()}` : "";
@@ -112,10 +112,10 @@ export default function AdminUsersPage() {
 
   // Client-side fallback filters when the API doesn't support role/isActive
   const visibleUsers = users.filter((u) => {
-    if (filters.role !== "__all__" && u.role !== filters.role) return false;
+    if (filters.role !== "__all__" && u.role !== filters.role) {return false;}
     if (filters.isActive !== "__all__") {
       const wantActive = filters.isActive === "true";
-      if (u.isActive !== wantActive) return false;
+      if (u.isActive !== wantActive) {return false;}
     }
     if (filters.search) {
       const q = filters.search.toLowerCase();
@@ -123,7 +123,7 @@ export default function AdminUsersPage() {
         (u.name || "").toLowerCase().includes(q) ||
         u.email.toLowerCase().includes(q) ||
         (u.phone || "").toLowerCase().includes(q);
-      if (!match) return false;
+      if (!match) {return false;}
     }
     return true;
   });
@@ -161,7 +161,7 @@ export default function AdminUsersPage() {
   }
 
   async function handleEditSave() {
-    if (!editTarget) return;
+    if (!editTarget) {return;}
     setSaving(true);
     try {
       await apiFetch(`/api/admin/users/${editTarget.id}`, {
@@ -179,7 +179,7 @@ export default function AdminUsersPage() {
   }
 
   async function handleDeleteUser() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {return;}
     setDeleting(true);
     try {
       await apiFetch(`/api/admin/users/${deleteTarget.id}`, { method: "DELETE" });

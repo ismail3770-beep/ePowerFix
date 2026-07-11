@@ -32,10 +32,10 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createBannerSchema, async (request, body, user) => {
   const title = (body.title || '').toString().trim()
-  if (!title) return errorResponse('title is required', 400)
+  if (!title) {return errorResponse('title is required', 400)}
 
   const image = (body.image || '').toString().trim()
-  if (!image) return errorResponse('image is required', 400)
+  if (!image) {return errorResponse('image is required', 400)}
 
   const banner = await db.banner.create({
     data: {

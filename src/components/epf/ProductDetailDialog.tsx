@@ -39,7 +39,7 @@ export default function ProductDetailDialog() {
   const imageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!selectedProductId || !productDetailOpen) return;
+    if (!selectedProductId || !productDetailOpen) {return;}
     setIsLoading(true);
     setActiveImage(0);
     setActiveTab("description");
@@ -71,7 +71,7 @@ export default function ProductDetailDialog() {
   };
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product) {return;}
     addItem({
       productId: product.id,
       productName: product.nameBn || product.name,
@@ -85,7 +85,7 @@ export default function ProductDetailDialog() {
   };
 
   const handleBuyNow = () => {
-    if (!product) return;
+    if (!product) {return;}
     addItem({
       productId: product.id,
       productName: product.nameBn || product.name,
@@ -98,7 +98,7 @@ export default function ProductDetailDialog() {
   };
 
   const handleImageMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current) return;
+    if (!imageRef.current) {return;}
     const rect = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -135,7 +135,7 @@ export default function ProductDetailDialog() {
         }
       `}</style>
 
-      <Dialog key={selectedProductId || "closed"} open={productDetailOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+      <Dialog key={selectedProductId || "closed"} open={productDetailOpen} onOpenChange={(open) => { if (!open) {handleClose();} }}>
         <DialogContent className="dialog-content-anim sm:max-w-[900px] max-w-[100vw] sm:max-h-[92vh] overflow-y-auto p-0 rounded-none sm:rounded-lg">
           {/* Breadcrumb */}
           <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 text-[12px] text-slate-400 flex items-center gap-1 border-b border-slate-200/60">

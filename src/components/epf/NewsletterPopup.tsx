@@ -33,7 +33,7 @@ export default function NewsletterPopup() {
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim()) {return;}
     setLoading(true);
     setError("");
     try {
@@ -58,7 +58,7 @@ export default function NewsletterPopup() {
     }
   };
 
-  if (!open) return null;
+  if (!open) {return null;}
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

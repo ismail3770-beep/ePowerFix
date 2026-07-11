@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 
@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
       return errorResponse('Invalid orderTotal', 400)
     }
 
-    if (!code) return errorResponse('Coupon code is required', 400)
+    if (!code) {return errorResponse('Coupon code is required', 400)}
 
     const coupon = await db.coupon.findFirst({
       where: { code, isActive: true },
     })
 
-    if (!coupon) return errorResponse('Invalid coupon code', 404)
+    if (!coupon) {return errorResponse('Invalid coupon code', 404)}
 
     const now = new Date()
     if (now < coupon.startDate || now > coupon.endDate) {

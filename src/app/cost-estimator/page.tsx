@@ -194,7 +194,7 @@ export default function CostEstimatorPage() {
     apiFetch<{ data: { services: any[] } | any[]; services?: any[] }>("/api/services")
       .then((res) => {
         const list = (res as any)?.data?.services || (res as any)?.services || [];
-        if (!Array.isArray(list) || list.length === 0) return;
+        if (!Array.isArray(list) || list.length === 0) {return;}
         const mapped: ServiceType[] = list.map((s: any) => ({
           id: s.slug || s.id,
           name: s.name,
@@ -202,7 +202,7 @@ export default function CostEstimatorPage() {
           basePrice: Number(s.basePrice ?? 0),
           icon: SERVICE_ICONS[s.slug || s.id] || SERVICE_ICONS.default,
         }));
-        if (mapped.length > 0) setServices(mapped);
+        if (mapped.length > 0) {setServices(mapped);}
       })
       .catch(() => {
         // Silent fallback to FALLBACK_SERVICES.
@@ -235,7 +235,7 @@ export default function CostEstimatorPage() {
   const cost = useMemo(() => {
     const svc = services.find((s) => s.id === form.serviceId);
     if (!svc)
-      return {
+      {return {
         base: 0,
         sizeMul: 1,
         qualityMul: 1,
@@ -247,7 +247,7 @@ export default function CostEstimatorPage() {
         low: 0,
         high: 0,
         breakdown: [] as { label: string; value: string }[],
-      };
+      };}
 
     const base = svc.basePrice;
 
@@ -261,9 +261,9 @@ export default function CostEstimatorPage() {
     const urgencySur = urgencyOpt.surcharge;
 
     let additionalCost = 0;
-    if (form.includeLabor) additionalCost += base * 0.3;
-    if (form.needMaintenance) additionalCost += base * 0.15;
-    if (form.needPermit) additionalCost += 2000;
+    if (form.includeLabor) {additionalCost += base * 0.3;}
+    if (form.needMaintenance) {additionalCost += base * 0.15;}
+    if (form.needPermit) {additionalCost += 2000;}
 
     const subtotal = base * sizeMultiplier * qualityMul * (1 + urgencySur) + additionalCost;
     const tax = subtotal * 0.05;
@@ -310,12 +310,12 @@ export default function CostEstimatorPage() {
   const canProceed = step === 1 ? step1Valid : step === 2 ? step2Valid : step3Valid;
 
   const handleNext = () => {
-    if (!canProceed) return;
-    if (step < 3) setStep(step + 1);
+    if (!canProceed) {return;}
+    if (step < 3) {setStep(step + 1);}
   };
 
   const handlePrev = () => {
-    if (step > 1) setStep(step - 1);
+    if (step > 1) {setStep(step - 1);}
   };
 
   const handleStartOver = () => {

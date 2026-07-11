@@ -48,7 +48,7 @@ interface Pagination {
 const PAGE_SIZE = 8;
 
 function parseTags(raw: any): string[] {
-  if (Array.isArray(raw)) return raw.filter(Boolean);
+  if (Array.isArray(raw)) {return raw.filter(Boolean);}
   if (typeof raw === "string") {
     try {
       const p = JSON.parse(raw);
@@ -96,8 +96,8 @@ export default function BlogPage() {
     setError(null);
     try {
       const params = new URLSearchParams({ page: String(p), limit: String(PAGE_SIZE) });
-      if (q) params.set("search", q);
-      if (tag) params.set("tag", tag);
+      if (q) {params.set("search", q);}
+      if (tag) {params.set("tag", tag);}
       const raw = await apiFetch<{
         success: boolean;
         data: { data: any[]; pagination: Pagination };

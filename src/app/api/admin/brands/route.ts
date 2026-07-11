@@ -43,7 +43,7 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createBrandSchema, async (request, body, user) => {
   const { name, nameBn, slug, logo, country, website, isActive } = body
-  if (!name) return errorResponse('name is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
 
   let finalSlug = slug || slugify(name)
   const slugExists = await db.brand.findUnique({ where: { slug: finalSlug } })

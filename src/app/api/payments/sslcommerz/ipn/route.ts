@@ -93,7 +93,7 @@ export async function GET(request: Request) {
   }
 
   const successUrl = new URL('/payment/success', request.url)
-  if (payment?.order) successUrl.searchParams.set('order', payment.order.id)
+  if (payment?.order) {successUrl.searchParams.set('order', payment.order.id)}
   successUrl.searchParams.set('method', 'sslcommerz')
   return NextResponse.redirect(successUrl)
 }

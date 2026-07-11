@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -22,13 +22,13 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateOrderStatusSchema)
 
   const existing = await db.order.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Order not found', 404)
+  if (!existing) {return errorResponse('Order not found', 404)}
 
   // Normalise status to UPPERCASE to match DB values.
   const status = body.status.toUpperCase()

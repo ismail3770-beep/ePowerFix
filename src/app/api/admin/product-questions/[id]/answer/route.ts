@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapQuestion(q: any) {
-  if (!q) return q
+  if (!q) {return q}
   return { ...q, isAnswered: !!q.answer }
 }
 
@@ -25,16 +25,16 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, answerQuestionSchema)
 
   const answer = (body.answer || '').toString().trim()
-  if (!answer) return errorResponse('answer is required', 400)
+  if (!answer) {return errorResponse('answer is required', 400)}
 
   const existing = await db.productQuestion.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Question not found', 404)
+  if (!existing) {return errorResponse('Question not found', 404)}
 
   const question = await db.productQuestion.update({
     where: { id },

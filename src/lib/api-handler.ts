@@ -31,8 +31,10 @@
  *   })
  */
 
-import { NextRequest, NextResponse } from 'next/server'
-import { ZodSchema, ZodError, z } from 'zod'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
+import type { ZodSchema} from 'zod';
+import { ZodError, z } from 'zod'
 import { requireAdmin, requireAuth, jsonResponse, errorResponse } from '@/lib/auth'
 import { captureError } from '@/lib/monitoring'
 
@@ -147,7 +149,7 @@ export function adminRoute<T>(
 ) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAdmin()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
     const parsed = await validateBody(request, schema)
     return handler(request, parsed, auth.user!)
   })
@@ -160,7 +162,7 @@ export function adminRoute<T>(
 export function adminGetRoute(handler: NoBodyAdminHandler) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAdmin()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
     return handler(request, auth.user!)
   })
 }
@@ -174,7 +176,7 @@ export function authRoute<T>(
 ) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
     const parsed = await validateBody(request, schema)
     return handler(request, parsed, auth.user!)
   })
@@ -186,7 +188,7 @@ export function authRoute<T>(
 export function authGetRoute(handler: NoBodyAuthHandler) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
     return handler(request, auth.user!)
   })
 }

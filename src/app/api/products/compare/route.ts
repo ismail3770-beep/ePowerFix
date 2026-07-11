@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const idsParam = url.searchParams.get('ids') || ''
     const ids = idsParam.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 4)
 
-    if (ids.length === 0) return jsonResponse({ data: [] })
+    if (ids.length === 0) {return jsonResponse({ data: [] })}
 
     const products = await db.product.findMany({
       where: { id: { in: ids }, isActive: true },

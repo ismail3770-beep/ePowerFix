@@ -60,8 +60,8 @@ export default function BookServicePage() {
         const res: any = await apiFetch("/api/services");
         const services = res?.services || res?.data?.services || [];
         const found = services.find((s: Service) => s.id === serviceId || s.slug === serviceId);
-        if (found) setService(found);
-        else setNotFound(true);
+        if (found) {setService(found);}
+        else {setNotFound(true);}
       } catch {
         setNotFound(true);
       } finally {

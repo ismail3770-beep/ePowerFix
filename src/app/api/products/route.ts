@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField, getPagination, listResponse } from '@/lib/admin-api'
@@ -58,18 +58,18 @@ export async function GET(request: NextRequest) {
             where: { OR: [{ id: categoryParam }, { slug: categoryParam }] },
             select: { id: true },
           })
-          if (cat) where.categoryId = cat.id
-          else where.categoryId = categoryParam
+          if (cat) {where.categoryId = cat.id}
+          else {where.categoryId = categoryParam}
         }
-        if (brandId) where.brandId = brandId
-        if (featured === 'true') where.isFeatured = true
-        if (bestDeals === 'true') where.isBestDeal = true
+        if (brandId) {where.brandId = brandId}
+        if (featured === 'true') {where.isFeatured = true}
+        if (bestDeals === 'true') {where.isBestDeal = true}
 
         // Server-side price filter
         if (minPrice || maxPrice) {
           where.price = {}
-          if (minPrice) where.price.gte = parseFloat(minPrice)
-          if (maxPrice) where.price.lte = parseFloat(maxPrice)
+          if (minPrice) {where.price.gte = parseFloat(minPrice)}
+          if (maxPrice) {where.price.lte = parseFloat(maxPrice)}
         }
 
         // Server-side rating filter
@@ -89,10 +89,10 @@ export async function GET(request: NextRequest) {
 
         // Sorting
         let orderBy: any = { createdAt: 'desc' }
-        if (sort === 'price-asc') orderBy = { price: 'asc' }
-        else if (sort === 'price-desc') orderBy = { price: 'desc' }
-        else if (sort === 'rating') orderBy = { rating: 'desc' }
-        else if (sort === 'featured') orderBy = [{ isFeatured: 'desc' }, { createdAt: 'desc' }]
+        if (sort === 'price-asc') {orderBy = { price: 'asc' }}
+        else if (sort === 'price-desc') {orderBy = { price: 'desc' }}
+        else if (sort === 'rating') {orderBy = { rating: 'desc' }}
+        else if (sort === 'featured') {orderBy = [{ isFeatured: 'desc' }, { createdAt: 'desc' }]}
 
         const span = startSpan('products.list')
         try {
@@ -115,6 +115,9 @@ export async function GET(request: NextRequest) {
     const { products, total } = hasExtraFilters
       ? await fetchProducts()
       : await cache.getOrSet(cacheKeys.products(page, limit, search), 120, fetchProducts)
+
+    // Register key for pattern invalidation (Redis only)
+    await cache.registerKey('products:list', cacheKeys.products(page, limit, search))
 
     const parsed = products.map((p: any) => ({
       ...p,

@@ -69,7 +69,7 @@ interface Order {
  * orders). Try parsing notes first, fall back to scattered fields.
  */
 function extractShippingAddress(order: Order): OrderAddress | null {
-  if (order.shippingAddress) return order.shippingAddress;
+  if (order.shippingAddress) {return order.shippingAddress;}
   if (order.notes) {
     try {
       const parsed = JSON.parse(order.notes);
@@ -158,8 +158,8 @@ export default function AdminOrdersPage() {
       const params = new URLSearchParams();
       params.set("page", String(page));
       params.set("limit", String(PAGE_LIMIT));
-      if (statusFilter !== "ALL") params.set("status", statusFilter);
-      if (search) params.set("search", search);
+      if (statusFilter !== "ALL") {params.set("status", statusFilter);}
+      if (search) {params.set("search", search);}
       const res: any = await apiFetch(`/api/admin/orders?${params.toString()}`);
       setOrders(res.data?.data ?? []);
       setTotal(res.data?.total ?? 0);
@@ -179,7 +179,7 @@ export default function AdminOrdersPage() {
   // Local client-side filter as a safety net in case the backend doesn't
   // support status / search query params — falls back gracefully.
   const visibleOrders = orders.filter((o) => {
-    if (statusFilter !== "ALL" && o.status !== statusFilter) return false;
+    if (statusFilter !== "ALL" && o.status !== statusFilter) {return false;}
     if (search) {
       const q = search.toLowerCase();
       const match =
@@ -187,7 +187,7 @@ export default function AdminOrdersPage() {
         (o.user?.name || "").toLowerCase().includes(q) ||
         (o.user?.email || "").toLowerCase().includes(q) ||
         (o.customerName || "").toLowerCase().includes(q);
-      if (!match) return false;
+      if (!match) {return false;}
     }
     return true;
   });
@@ -394,7 +394,7 @@ export default function AdminOrdersPage() {
       </Card>
 
       {/* ---------- ORDER DETAIL DIALOG ---------- */}
-      <Dialog open={!!detail} onOpenChange={(o) => { if (!o) setDetail(null); }}>
+      <Dialog open={!!detail} onOpenChange={(o) => { if (!o) {setDetail(null);} }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           {detail && (
             <>
@@ -461,7 +461,7 @@ export default function AdminOrdersPage() {
                 {/* Shipping address */}
                 {(() => {
                   const addr = detail ? extractShippingAddress(detail) : null;
-                  if (!addr) return null;
+                  if (!addr) {return null;}
                   return (
                     <div className="rounded-lg border border-slate-200 p-3">
                       <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase text-slate-400 mb-1">

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const fetchKits = async () => {
       const where: any = { isActive: true }
-      if (category) where.category = category
+      if (category) {where.category = category}
       if (search) {
         where.OR = [
           { title: { contains: search } },

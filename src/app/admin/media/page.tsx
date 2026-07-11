@@ -28,8 +28,8 @@ interface MediaFile {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024) {return `${bytes} B`;}
+  if (bytes < 1024 * 1024) {return `${(bytes / 1024).toFixed(1)} KB`;}
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
@@ -71,7 +71,7 @@ export default function AdminMediaPage() {
   }, [fetchFiles]);
 
   const handleUpload = async (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) return;
+    if (!fileList || fileList.length === 0) {return;}
     setUploading(true);
     let successCount = 0;
     let failCount = 0;
@@ -95,7 +95,7 @@ export default function AdminMediaPage() {
           body: formData,
         });
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error);
+        if (!res.ok) {throw new Error(json.error);}
         successCount++;
       } catch {
         failCount++;
@@ -103,13 +103,13 @@ export default function AdminMediaPage() {
     }
 
     setUploading(false);
-    if (successCount > 0) toast.success(`${successCount} file(s) uploaded`);
-    if (failCount > 0) toast.error(`${failCount} file(s) failed`);
+    if (successCount > 0) {toast.success(`${successCount} file(s) uploaded`);}
+    if (failCount > 0) {toast.error(`${failCount} file(s) failed`);}
     fetchFiles();
   };
 
   const handleDelete = async (filename: string) => {
-    if (!confirm("Delete this file?")) return;
+    if (!confirm("Delete this file?")) {return;}
     setDeleting(filename);
     try {
       await apiFetch(`/api/admin/upload/${filename}`, {
@@ -122,7 +122,7 @@ export default function AdminMediaPage() {
         next.delete(filename);
         return next;
       });
-      if (previewFile?.filename === filename) setPreviewFile(null);
+      if (previewFile?.filename === filename) {setPreviewFile(null);}
     } catch (err: any) {
       toast.error(err.message || "Delete failed");
     } finally {
@@ -131,8 +131,8 @@ export default function AdminMediaPage() {
   };
 
   const handleDeleteSelected = async () => {
-    if (selectedFiles.size === 0) return;
-    if (!confirm(`Delete ${selectedFiles.size} selected file(s)?`)) return;
+    if (selectedFiles.size === 0) {return;}
+    if (!confirm(`Delete ${selectedFiles.size} selected file(s)?`)) {return;}
     let count = 0;
     for (const fn of selectedFiles) {
       try {
@@ -157,8 +157,8 @@ export default function AdminMediaPage() {
     e.stopPropagation();
     setSelectedFiles((prev) => {
       const next = new Set(prev);
-      if (next.has(filename)) next.delete(filename);
-      else next.add(filename);
+      if (next.has(filename)) {next.delete(filename);}
+      else {next.add(filename);}
       return next;
     });
   };

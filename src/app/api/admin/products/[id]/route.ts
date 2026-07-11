@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -55,14 +55,14 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const product = await db.product.findUnique({
     where: { id },
     include: { category: true, brand: true },
   })
-  if (!product) return errorResponse('Product not found', 404)
+  if (!product) {return errorResponse('Product not found', 404)}
 
   return jsonResponse({
     data: {
@@ -80,13 +80,13 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateProductSchema)
 
   const existing = await db.product.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Product not found', 404)
+  if (!existing) {return errorResponse('Product not found', 404)}
 
   const {
     name, nameBn, slug, description, shortDesc, price,
@@ -128,7 +128,7 @@ export const PUT = withErrorHandling(async (
       return errorResponse('Please select a valid category for the product.', 400)
     }
     const catExists = await db.productCategory.findUnique({ where: { id: normalizedCatPut }, select: { id: true } })
-    if (!catExists) return errorResponse('Selected category does not exist.', 400)
+    if (!catExists) {return errorResponse('Selected category does not exist.', 400)}
   }
   if (brandId !== undefined) {
     normalizedBrandPut = typeof brandId === 'string' ? brandId.trim() : ''
@@ -136,34 +136,34 @@ export const PUT = withErrorHandling(async (
       return errorResponse('Please select a valid brand for the product.', 400)
     }
     const brandExists = await db.brand.findUnique({ where: { id: normalizedBrandPut }, select: { id: true } })
-    if (!brandExists) return errorResponse('Selected brand does not exist.', 400)
+    if (!brandExists) {return errorResponse('Selected brand does not exist.', 400)}
   }
 
   const data: any = {}
-  if (name !== undefined) data.name = name
-  if (nameBn !== undefined) data.nameBn = nameBn || null
-  if (slug !== undefined) data.slug = finalSlug
-  if (description !== undefined) data.description = description
-  if (shortDesc !== undefined) data.shortDesc = shortDesc || null
-  if (price !== undefined) data.price = Number(price)
-  if (salePrice !== undefined) data.salePrice = salePrice === null ? null : Number(salePrice)
-  else if (comparePrice !== undefined) data.salePrice = comparePrice === null ? null : Number(comparePrice)
-  if (costPrice !== undefined) data.costPrice = costPrice === null ? null : Number(costPrice)
-  if (sku !== undefined) data.sku = sku || null
-  if (stock !== undefined) data.stock = Number(stock)
-  if (minStock !== undefined) data.minStock = Number(minStock)
-  if (normalizedCatPut !== undefined) data.categoryId = normalizedCatPut
-  if (normalizedBrandPut !== undefined) data.brandId = normalizedBrandPut
-  if (images !== undefined) data.images = stringifyJsonField(images)
-  if (tags !== undefined) data.tags = stringifyJsonField(tags)
-  if (specs !== undefined) data.specs = specs || null
-  if (isFeatured !== undefined) data.isFeatured = !!isFeatured
-  if (isBestDeal !== undefined) data.isBestDeal = !!isBestDeal
-  if (hasVariant !== undefined) data.hasVariant = !!hasVariant
-  if (isDigital !== undefined) data.isDigital = !!isDigital
-  if (digitalFile !== undefined) data.digitalFile = digitalFile || null
-  if (downloadLimit !== undefined) data.downloadLimit = downloadLimit === null ? null : Number(downloadLimit)
-  if (isActive !== undefined) data.isActive = !!isActive
+  if (name !== undefined) {data.name = name}
+  if (nameBn !== undefined) {data.nameBn = nameBn || null}
+  if (slug !== undefined) {data.slug = finalSlug}
+  if (description !== undefined) {data.description = description}
+  if (shortDesc !== undefined) {data.shortDesc = shortDesc || null}
+  if (price !== undefined) {data.price = Number(price)}
+  if (salePrice !== undefined) {data.salePrice = salePrice === null ? null : Number(salePrice)}
+  else if (comparePrice !== undefined) {data.salePrice = comparePrice === null ? null : Number(comparePrice)}
+  if (costPrice !== undefined) {data.costPrice = costPrice === null ? null : Number(costPrice)}
+  if (sku !== undefined) {data.sku = sku || null}
+  if (stock !== undefined) {data.stock = Number(stock)}
+  if (minStock !== undefined) {data.minStock = Number(minStock)}
+  if (normalizedCatPut !== undefined) {data.categoryId = normalizedCatPut}
+  if (normalizedBrandPut !== undefined) {data.brandId = normalizedBrandPut}
+  if (images !== undefined) {data.images = stringifyJsonField(images)}
+  if (tags !== undefined) {data.tags = stringifyJsonField(tags)}
+  if (specs !== undefined) {data.specs = specs || null}
+  if (isFeatured !== undefined) {data.isFeatured = !!isFeatured}
+  if (isBestDeal !== undefined) {data.isBestDeal = !!isBestDeal}
+  if (hasVariant !== undefined) {data.hasVariant = !!hasVariant}
+  if (isDigital !== undefined) {data.isDigital = !!isDigital}
+  if (digitalFile !== undefined) {data.digitalFile = digitalFile || null}
+  if (downloadLimit !== undefined) {data.downloadLimit = downloadLimit === null ? null : Number(downloadLimit)}
+  if (isActive !== undefined) {data.isActive = !!isActive}
 
   const product = await db.product.update({
     where: { id },
@@ -190,11 +190,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.product.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Product not found', 404)
+  if (!existing) {return errorResponse('Product not found', 404)}
 
   await db.product.update({
     where: { id },

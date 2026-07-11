@@ -41,7 +41,7 @@ const categoryBn: Record<string, string> = {
 };
 
 function parseJsonField(field: unknown): string[] {
-  if (Array.isArray(field)) return field;
+  if (Array.isArray(field)) {return field;}
   if (typeof field === "string") {
     try { const p = JSON.parse(field); return Array.isArray(p) ? p : []; }
     catch { return []; }
@@ -51,9 +51,9 @@ function parseJsonField(field: unknown): string[] {
 
 function collectImages(kit: ProjectKit): string[] {
   const imgs: string[] = [];
-  if (kit.coverImage) imgs.push(kit.coverImage);
+  if (kit.coverImage) {imgs.push(kit.coverImage);}
   for (const img of (kit.images || [])) {
-    if (img && !imgs.includes(img)) imgs.push(img);
+    if (img && !imgs.includes(img)) {imgs.push(img);}
   }
   return imgs;
 }
@@ -64,7 +64,7 @@ export default function ProjectDetailDialog() {
   const [kit, setKit] = useState<ProjectKit | null>(null);
 
   useEffect(() => {
-    if (!selectedProjectId || !projectDetailOpen) return;
+    if (!selectedProjectId || !projectDetailOpen) {return;}
     apiFetch<{ data: ProjectKit[] }>("/api/project-kits")
       .then((res) => {
         const found = (res.data || []).find((k: ProjectKit) => k.id === selectedProjectId);
@@ -85,7 +85,7 @@ export default function ProjectDetailDialog() {
   };
 
   const handleBuy = () => {
-    if (!kit) return;
+    if (!kit) {return;}
     addItem({
       itemType: "PROJECT",
       productId: kit.id,
@@ -102,7 +102,7 @@ export default function ProjectDetailDialog() {
   const price = kit ? Number(kit.salePrice ?? kit.price ?? 0) : 0;
 
   return (
-    <Dialog open={projectDetailOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+    <Dialog open={projectDetailOpen} onOpenChange={(open) => { if (!open) {handleClose();} }}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{kit?.titleBn || kit?.title}</DialogTitle>

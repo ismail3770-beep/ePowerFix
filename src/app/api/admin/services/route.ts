@@ -27,7 +27,7 @@ function slugify(text: string): string {
  * We expose both sets of names.
  */
 function mapService(s: any) {
-  if (!s) return s
+  if (!s) {return s}
   const images = parseJsonField(s.images)
   return {
     ...s,
@@ -73,8 +73,8 @@ export const GET = adminGetRoute(async (request) => {
       : isActiveParam === 'true'
 
   const where: any = {}
-  if (categoryId) where.categoryId = categoryId
-  if (isActive !== undefined) where.isActive = isActive
+  if (categoryId) {where.categoryId = categoryId}
+  if (isActive !== undefined) {where.isActive = isActive}
   if (search) {
     where.OR = [
       { name: { contains: search } },
@@ -103,8 +103,8 @@ export const GET = adminGetRoute(async (request) => {
 export const POST = adminRoute(createServiceSchema, async (request, body, user) => {
   const name = body.name
   const description = body.description
-  if (!name) return errorResponse('name is required', 400)
-  if (!description) return errorResponse('description is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
+  if (!description) {return errorResponse('description is required', 400)}
 
   // price -> basePrice (required)
   const basePrice =
@@ -138,13 +138,13 @@ export const POST = adminRoute(createServiceSchema, async (request, body, user) 
   } else {
     // Validate the provided categoryId exists.
     const cat = await db.serviceCategory.findUnique({ where: { id: categoryId } })
-    if (!cat) return errorResponse('categoryId does not exist', 400)
+    if (!cat) {return errorResponse('categoryId does not exist', 400)}
   }
 
   // Auto-slug from name; ensure uniqueness.
   let slug = body.slug || slugify(name)
   const slugExists = await db.service.findUnique({ where: { slug } })
-  if (slugExists) slug = `${slug}-${Date.now().toString(36)}`
+  if (slugExists) {slug = `${slug}-${Date.now().toString(36)}`}
 
   // images: accept an array (`images`) OR a single URL string (`image`).
   let imagesArr: string[] = []

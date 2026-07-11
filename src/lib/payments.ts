@@ -240,7 +240,7 @@ export async function validateBkashPayment(
       body: JSON.stringify({ app_key: config.storeId, app_secret: config.storePassword }),
     });
     const tokenData = await tokenRes.json();
-    if (!tokenData.id_token) return { success: false, error: 'bKash token failed' };
+    if (!tokenData.id_token) {return { success: false, error: 'bKash token failed' };}
 
     const executeRes = await fetch(`${config.baseUrl}/checkedout/payment/execute`, {
       method: 'POST',

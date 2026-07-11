@@ -92,10 +92,10 @@ export default function AdminProductsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filters.search) params.set("search", filters.search);
-      if (filters.categoryId && filters.categoryId !== "__all__") params.set("categoryId", filters.categoryId);
-      if (filters.brandId && filters.brandId !== "__all__") params.set("brandId", filters.brandId);
-      if (filters.isActive && filters.isActive !== "__all__") params.set("isActive", filters.isActive);
+      if (filters.search) {params.set("search", filters.search);}
+      if (filters.categoryId && filters.categoryId !== "__all__") {params.set("categoryId", filters.categoryId);}
+      if (filters.brandId && filters.brandId !== "__all__") {params.set("brandId", filters.brandId);}
+      if (filters.isActive && filters.isActive !== "__all__") {params.set("isActive", filters.isActive);}
       params.set("page", String(page));
       params.set("limit", String(PAGE_LIMIT));
       const qs = params.toString();
@@ -189,7 +189,7 @@ export default function AdminProductsPage() {
       }
       setDialog({ open: false });
       // Clear the add-form draft now that the product was saved.
-      if (!dialog.edit) clearFormDraft("admin-product-add");
+      if (!dialog.edit) {clearFormDraft("admin-product-add");}
       fetchProducts();
     } catch (err: any) {
       toast.error(err.message || "Failed to save product");
@@ -199,7 +199,7 @@ export default function AdminProductsPage() {
   }
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {return;}
     setDeleting(true);
     try {
       await apiFetch(`/api/admin/products/${deleteTarget.id}`, { method: "DELETE" });
@@ -544,7 +544,7 @@ export default function AdminProductsPage() {
       </Dialog>
 
       {/* ---------- DELETE CONFIRMATION ---------- */}
-      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) {setDeleteTarget(null);} }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Product</DialogTitle>

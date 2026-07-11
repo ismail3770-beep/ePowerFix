@@ -15,7 +15,7 @@ import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
  * `sortOrder === 0` (the lowest sortOrder provider is the default).
  */
 function mapProvider(p: any) {
-  if (!p) return p
+  if (!p) {return p}
   return {
     ...p,
     isActive: p.enabled,
@@ -70,7 +70,7 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createProviderSchema, async (request, body, user) => {
   const name = (body.name || '').toString().trim()
-  if (!name) return errorResponse('name is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
 
   const type = (body.type || '').toString().toUpperCase()
   if (!VALID_TYPES.has(type)) {

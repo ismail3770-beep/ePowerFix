@@ -45,7 +45,7 @@ export const GET = adminGetRoute(async (request) => {
   const role = url.searchParams.get('role') || undefined
 
   const where: any = {}
-  if (role) where.role = role
+  if (role) {where.role = role}
   if (search) {
     where.OR = [
       { name: { contains: search } },
@@ -73,21 +73,21 @@ export const GET = adminGetRoute(async (request) => {
 export const POST = adminRoute(createUserSchema, async (request, body, user) => {
   const { name, email, phone, password, role, nameBn, avatar, isActive } = body
 
-  if (!name) return errorResponse('name is required', 400)
-  if (!email) return errorResponse('email is required', 400)
-  if (!password) return errorResponse('password is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
+  if (!email) {return errorResponse('email is required', 400)}
+  if (!password) {return errorResponse('password is required', 400)}
 
   const phoneValue = phone || ''
 
   const emailExists = await db.user.findUnique({
     where: { email: email.toLowerCase().trim() },
   })
-  if (emailExists) return errorResponse('Email already in use', 400)
+  if (emailExists) {return errorResponse('Email already in use', 400)}
 
   // Only enforce phone uniqueness when a phone is actually provided.
   if (phoneValue) {
     const phoneExists = await db.user.findUnique({ where: { phone: phoneValue } })
-    if (phoneExists) return errorResponse('Phone already in use', 400)
+    if (phoneExists) {return errorResponse('Phone already in use', 400)}
   }
 
   const hashed = bcrypt.hashSync(password, 10)

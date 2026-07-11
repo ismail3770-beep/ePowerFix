@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapBooking(b: any) {
-  if (!b) return b
+  if (!b) {return b}
   return {
     ...b,
     date: b.bookingDate,
@@ -35,13 +35,13 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateBookingStatusSchema)
 
   const existing = await db.serviceBooking.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Booking not found', 404)
+  if (!existing) {return errorResponse('Booking not found', 404)}
 
   const booking = await db.serviceBooking.update({
     where: { id },

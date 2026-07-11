@@ -20,7 +20,7 @@ function PaymentSuccessContent() {
     }
   }, [order, router]);
 
-  if (!order) return null;
+  if (!order) {return null;}
 
   return (
     <div className="min-h-screen flex flex-col">

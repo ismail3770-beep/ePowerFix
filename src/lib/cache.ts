@@ -1,8 +1,9 @@
 /**
- * In-memory caching layer for frequently accessed data.
+ * Redis-backed caching layer with in-memory fallback for development.
  *
- * Strategy: simple TTL-based Map cache. No external services (Redis, etc.)
- * are required, keeping the dev/prod stack simple and dependency-free.
+ * Strategy:
+ *   - Production: Uses Upstash Redis (serverless, HTTP-based)
+ *   - Development: Falls back to in-memory Map if UPSTASH_REDIS_REST_URL not set
  *
  * Cache strategy:
  *   - Settings, categories, brands -> cached 5 min (TTL)
@@ -28,6 +29,8 @@
  *   await cache.invalidatePattern('products:*')
  */
 
+import { Redis } from '@upstash/redis'
+
 // --- Types -------------------------------------------------------------------
 
 interface CacheEntry {
@@ -35,11 +38,31 @@ interface CacheEntry {
   expiresAt: number
 }
 
-// --- In-Memory Store ---------------------------------------------------------
+// --- Redis Client ------------------------------------------------------------
+
+let redis: Redis | null = null
+
+function getRedis(): Redis | null {
+  if (redis) {return redis}
+
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+
+  if (!url || !token) {
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('[cache] UPSTASH_REDIS_REST_URL/TOKEN not set - cache disabled in production!')
+    }
+    return null
+  }
+
+  redis = new Redis({ url, token })
+  return redis
+}
+
+// --- In-Memory Fallback Store (dev only) -------------------------------------
 
 const memoryStore = new Map<string, CacheEntry>()
 
-// Cleanup expired entries every 2 minutes
 if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now()
@@ -51,7 +74,50 @@ if (typeof setInterval !== 'undefined') {
   }, 2 * 60 * 1000)
 }
 
+async function memoryGetOrSet<T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> {
+  const entry = memoryStore.get(key)
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.value as T
+  }
+  const fresh = await fetcher()
+  memoryStore.set(key, { value: fresh, expiresAt: Date.now() + ttlSeconds * 1000 })
+  return fresh
+}
+
+async function memoryGet<T>(key: string): Promise<T | null> {
+  const entry = memoryStore.get(key)
+  if (entry && Date.now() < entry.expiresAt) {
+    return entry.value as T
+  }
+  return null
+}
+
+async function memorySet(key: string, value: unknown, ttlSeconds: number): Promise<void> {
+  memoryStore.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 })
+}
+
+async function memoryDel(key: string): Promise<void> {
+  memoryStore.delete(key)
+}
+
+async function memoryInvalidatePattern(pattern: string): Promise<void> {
+  const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$')
+  for (const key of memoryStore.keys()) {
+    if (regex.test(key)) {
+      memoryStore.delete(key)
+    }
+  }
+}
+
+async function memoryFlush(): Promise<void> {
+  memoryStore.clear()
+}
+
 // --- Cache API ---------------------------------------------------------------
+
+function isRedisAvailable(): boolean {
+  return getRedis() !== null
+}
 
 export const cache = {
   /**
@@ -59,72 +125,111 @@ export const cache = {
    * TTL is in seconds.
    */
   async getOrSet<T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> {
-    const memEntry = memoryStore.get(key)
-    if (memEntry && Date.now() < memEntry.expiresAt) {
-      return memEntry.value as T
+    const client = getRedis()
+    if (client) {
+      const cached = await client.get(key)
+      if (cached !== null) {
+        return cached as T
+      }
+      const fresh = await fetcher()
+      await client.set(key, fresh, { ex: ttlSeconds })
+      return fresh
     }
-
-    const fresh = await fetcher()
-    memoryStore.set(key, {
-      value: fresh,
-      expiresAt: Date.now() + ttlSeconds * 1000,
-    })
-    return fresh
+    // Fallback to in-memory (dev only)
+    return memoryGetOrSet(key, ttlSeconds, fetcher)
   },
 
   /**
    * Get a value from cache (without computing).
    */
   async get<T>(key: string): Promise<T | null> {
-    const memEntry = memoryStore.get(key)
-    if (memEntry && Date.now() < memEntry.expiresAt) {
-      return memEntry.value as T
+    const client = getRedis()
+    if (client) {
+      const val = await client.get(key)
+      return (val as T | null) ?? null
     }
-    return null
+    return memoryGet(key)
   },
 
   /**
    * Set a value in cache with TTL (seconds).
    */
   async set(key: string, value: unknown, ttlSeconds: number): Promise<void> {
-    memoryStore.set(key, {
-      value,
-      expiresAt: Date.now() + ttlSeconds * 1000,
-    })
+    const client = getRedis()
+    if (client) {
+      await client.set(key, value, { ex: ttlSeconds })
+      return
+    }
+    await memorySet(key, value, ttlSeconds)
   },
 
   /**
    * Delete a single key.
    */
   async del(key: string): Promise<void> {
-    memoryStore.delete(key)
+    const client = getRedis()
+    if (client) {
+      await client.del(key)
+      return
+    }
+    await memoryDel(key)
   },
 
   /**
    * Delete all keys matching a pattern (e.g., 'products:*').
+   * Note: Upstash Redis doesn't support SCAN, so pattern invalidation
+   * requires tracking keys or using a different strategy.
+   * For now, we use a prefix-based approach with a key registry.
    */
   async invalidatePattern(pattern: string): Promise<void> {
-    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$')
-    for (const key of memoryStore.keys()) {
-      if (regex.test(key)) {
-        memoryStore.delete(key)
+    const client = getRedis()
+    if (client) {
+      // For Upstash, we need to track keys. Use a simple prefix scan via a registry key.
+      // This is a best-effort approach - for production, consider using Redis keyspace notifications
+      // or a dedicated key registry.
+      const prefix = pattern.replace(/\*$/, '')
+      const registryKey = `cache:registry:${prefix}`
+      const keys = (await client.smembers(registryKey)) as string[] | null
+
+      if (keys?.length) {
+        await client.del(...keys)
+        await client.del(registryKey)
       }
+      return
     }
+    await memoryInvalidatePattern(pattern)
+  },
+
+  /**
+   * Register a key for pattern-based invalidation (Redis only).
+   * Call this after setting a key that should be invalidatable by pattern.
+   */
+  async registerKey(patternPrefix: string, key: string): Promise<void> {
+    const client = getRedis()
+    if (!client) {return}
+    const registryKey = `cache:registry:${patternPrefix}`
+    await client.sadd(registryKey, key)
+    // Registry expires after 24h
+    await client.expire(registryKey, 86400)
   },
 
   /**
    * Clear all cache (use with caution -- mainly for testing).
    */
   async flush(): Promise<void> {
-    memoryStore.clear()
+    const client = getRedis()
+    if (client) {
+      await client.flushall()
+      return
+    }
+    await memoryFlush()
   },
 
   /**
    * Check if the cache backend is connected.
-   * Always returns true for the in-memory store.
    */
   isRedisConnected(): boolean {
-    return true
+    return isRedisAvailable()
   },
 }
 

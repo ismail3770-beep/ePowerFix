@@ -46,14 +46,14 @@ export default function HeroBanner() {
 
   /* ── Sync Embla onSelect with state ─────────────────────── */
   const onSelect = useCallback(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {return;}
     setSelectedIndex(emblaApi.selectedScrollSnap());
     setProgress(0);
     progressStartRef.current = Date.now();
   }, [emblaApi]);
 
   useEffect(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {return;}
     onSelect();
     emblaApi.on("select", onSelect);
     emblaApi.on("reInit", onSelect);
@@ -64,12 +64,12 @@ export default function HeroBanner() {
 
   /* ── Smooth Embla transition ────────────────────────────── */
   useEffect(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {return;}
     const root = emblaApi.rootNode();
     const container = root.querySelector(
       "[data-embla-container]"
     ) as HTMLElement | null;
-    if (!container) return;
+    if (!container) {return;}
 
     container.style.transition = "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)";
 
@@ -94,13 +94,13 @@ export default function HeroBanner() {
   }, [emblaApi]);
 
   useEffect(() => {
-    if (paused || slides.length === 0 || !emblaApi) return;
+    if (paused || slides.length === 0 || !emblaApi) {return;}
     progressStartRef.current = Date.now();
     autoplayRef.current = setInterval(() => {
       scrollNext();
     }, 5000);
     return () => {
-      if (autoplayRef.current) clearInterval(autoplayRef.current);
+      if (autoplayRef.current) {clearInterval(autoplayRef.current);}
     };
   }, [paused, slides.length, emblaApi, scrollNext]);
 
@@ -122,7 +122,7 @@ export default function HeroBanner() {
 
     progressRafRef.current = requestAnimationFrame(tick);
     return () => {
-      if (progressRafRef.current) cancelAnimationFrame(progressRafRef.current);
+      if (progressRafRef.current) {cancelAnimationFrame(progressRafRef.current);}
     };
   }, [paused, slides.length, selectedIndex]);
 
@@ -138,7 +138,7 @@ export default function HeroBanner() {
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    if (touchTimerRef.current) {clearTimeout(touchTimerRef.current);}
     touchTimerRef.current = setTimeout(() => {
       setPaused(false);
       progressStartRef.current = Date.now();
@@ -156,9 +156,9 @@ export default function HeroBanner() {
   /* ── Cleanup ────────────────────────────────────────────── */
   useEffect(() => {
     return () => {
-      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
-      if (autoplayRef.current) clearInterval(autoplayRef.current);
-      if (progressRafRef.current) cancelAnimationFrame(progressRafRef.current);
+      if (touchTimerRef.current) {clearTimeout(touchTimerRef.current);}
+      if (autoplayRef.current) {clearInterval(autoplayRef.current);}
+      if (progressRafRef.current) {cancelAnimationFrame(progressRafRef.current);}
     };
   }, []);
 

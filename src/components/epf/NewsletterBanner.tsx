@@ -11,7 +11,7 @@ export default function NewsletterBanner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim()) {return;}
     setLoading(true);
     setError("");
     try {

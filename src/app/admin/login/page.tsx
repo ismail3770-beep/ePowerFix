@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import type { FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { Loader2, Eye, EyeOff, ArrowLeft, Zap, Package, ShoppingBag, Users } from "lucide-react";

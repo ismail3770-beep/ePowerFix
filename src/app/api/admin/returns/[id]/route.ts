@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
@@ -18,7 +18,7 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   const { id } = await params
 
   const ret = await db.returnRequest.findUnique({
@@ -28,7 +28,7 @@ export const GET = withErrorHandling(async (
       user: { select: { name: true, email: true } },
     },
   })
-  if (!ret) return errorResponse('Return request not found', 404)
+  if (!ret) {return errorResponse('Return request not found', 404)}
   return jsonResponse({ data: ret })
 })
 
@@ -39,7 +39,7 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   const { id } = await params
   const body = await validateBody(request, updateReturnSchema)
 
@@ -81,7 +81,7 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   const { id } = await params
 
   await db.returnRequest.delete({ where: { id } })

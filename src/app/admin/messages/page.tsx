@@ -90,7 +90,7 @@ export default function AdminMessagesPage() {
   )
 
   const deleteMessage = useCallback(async () => {
-    if (!deleteId) return
+    if (!deleteId) {return}
     try {
       await apiFetch(`/api/admin/messages/${deleteId}`, { method: "DELETE" })
       setMessages((prev) => prev.filter((m) => m.id !== deleteId))

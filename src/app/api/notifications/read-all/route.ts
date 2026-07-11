@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 
@@ -9,7 +9,7 @@ import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 export async function PUT(_request: NextRequest) {
   try {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
 
     await db.notification.updateMany({
       where: { userId: auth.user!.id, isRead: false },

@@ -73,7 +73,7 @@ export default function AdminProjectsPage() {
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
   function parseImages(p: Project): string {
-    if (Array.isArray(p.images)) return p.images.join(", ");
+    if (Array.isArray(p.images)) {return p.images.join(", ");}
     if (typeof p.images === "string" && p.images) {
       try { return JSON.parse(p.images).join(", "); } catch { return ""; }
     }
@@ -116,7 +116,7 @@ export default function AdminProjectsPage() {
         toast.success("Project created");
       }
       setDialog({ open: false });
-      if (!dialog.edit) clearFormDraft("admin-project-add");
+      if (!dialog.edit) {clearFormDraft("admin-project-add");}
       fetchProjects();
     } catch (err: any) {
       toast.error(err?.message || "Failed to save");
@@ -126,7 +126,7 @@ export default function AdminProjectsPage() {
   }
 
   async function remove(p: Project) {
-    if (!confirm(`Delete "${p.title}"?`)) return;
+    if (!confirm(`Delete "${p.title}"?`)) {return;}
     try {
       await apiFetch(`/api/admin/projects/${p.id}`, { method: "DELETE" });
       toast.success("Project deleted");
@@ -191,7 +191,7 @@ export default function AdminProjectsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) setDialog({ open: false }); }}>
+      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) {setDialog({ open: false });} }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{dialog.edit ? "Edit Project" : "Add Project"}</DialogTitle></DialogHeader>
           <div className="space-y-4">

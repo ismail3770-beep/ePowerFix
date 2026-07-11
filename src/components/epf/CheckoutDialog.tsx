@@ -140,7 +140,7 @@ export default function CheckoutDialog() {
   };
 
   const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
+    if (!couponCode.trim()) {return;}
     setCouponLoading(true);
     try {
       const result = await apiFetch<{ data: any }>(`/api/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&orderTotal=${subtotal}`);
@@ -179,7 +179,7 @@ export default function CheckoutDialog() {
   };
 
   return (
-    <Dialog open={checkoutOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+    <Dialog open={checkoutOpen} onOpenChange={(open) => { if (!open) {handleClose();} }}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] p-0 flex flex-col">
         <DialogHeader className="p-4 border-b shrink-0">
           <DialogTitle>চেকআউট / Checkout</DialogTitle>

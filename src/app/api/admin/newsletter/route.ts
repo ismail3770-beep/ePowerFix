@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -13,7 +13,7 @@ import {
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { page, limit, skip, search } = getPagination(request.url)
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
         { user: { email: { contains: search } } },
       ]
     }
-    if (status) where.status = status.toUpperCase()
+    if (status) {where.status = status.toUpperCase()}
 
     const [subscribers, total] = await Promise.all([
       db.newsletter.findMany({

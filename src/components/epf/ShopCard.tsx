@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, memo } from "react";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store";
 import { toast } from "sonner";
@@ -86,8 +86,6 @@ const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const stars = Math.round(data.rating || 0);
-
   return (
     <div
       onClick={handleClick}
@@ -135,26 +133,6 @@ const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
           {data.name}
         </h4>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1">
-          <div className="flex items-center gap-0.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={cn(
-                  "h-3 w-3",
-                  i < stars
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "fill-slate-200 text-slate-200"
-                )}
-              />
-            ))}
-          </div>
-          <span className="text-[11px] text-slate-500">
-            {data.reviewCount || 0} Review
-          </span>
-        </div>
-
         {/* Price */}
         <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
           {showOriginal && (
@@ -195,9 +173,6 @@ export function ShopCardSkeleton() {
       <div className="p-3 space-y-2">
         <div className="h-3 w-full bg-slate-100 rounded animate-pulse" />
         <div className="h-3 w-2/3 bg-slate-100 rounded animate-pulse" />
-        <div className="flex items-center gap-1">
-          <div className="h-3 w-16 bg-slate-100 rounded animate-pulse" />
-        </div>
         <div className="h-4 w-20 bg-slate-100 rounded animate-pulse" />
         <div className="h-8 w-full bg-slate-100 rounded animate-pulse" />
       </div>

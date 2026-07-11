@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 
@@ -12,12 +12,12 @@ export async function PUT(
 ) {
   try {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
 
     const { id } = await params
     const notif = await db.notification.findUnique({ where: { id } })
-    if (!notif) return errorResponse('Notification not found', 404)
-    if (notif.userId !== auth.user!.id) return errorResponse('Forbidden', 403)
+    if (!notif) {return errorResponse('Notification not found', 404)}
+    if (notif.userId !== auth.user!.id) {return errorResponse('Forbidden', 403)}
 
     await db.notification.update({
       where: { id },

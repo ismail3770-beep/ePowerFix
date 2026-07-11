@@ -316,7 +316,7 @@ export default function AdminPanel() {
   const createShipmentMutation = useMutation({
     mutationFn: (data: any) =>
       fetch("/api/admin/shipments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-        .then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+        .then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-orders"] }); toast.success("Shipment created"); setShipmentDialogOpen(false); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -324,7 +324,7 @@ export default function AdminPanel() {
   const updateShipmentMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
       fetch(`/api/admin/shipments/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-        .then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+        .then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-orders"] }); toast.success("Shipment updated"); setShipmentDialogOpen(false); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -332,7 +332,7 @@ export default function AdminPanel() {
   const updateShipmentStatusMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) =>
       fetch(`/api/admin/shipments/${id}/status`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-        .then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+        .then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-orders"] }); toast.success("Shipment status updated"); setShipmentDialogOpen(false); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -354,21 +354,21 @@ export default function AdminPanel() {
   // Product CRUD
   const createProductMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      fetch("/api/admin/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch("/api/admin/products", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-products"] }); queryClient.invalidateQueries({ queryKey: ["admin-stats"] }); setProductDialogOpen(false); resetProductForm(); toast.success("Product created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const updateProductMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      fetch(`/api/admin/products/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch(`/api/admin/products/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-products"] }); setProductDialogOpen(false); setEditingProduct(null); resetProductForm(); toast.success("Product updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteProductMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/products/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/products/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-products"] }); queryClient.invalidateQueries({ queryKey: ["admin-stats"] }); setDeleteConfirmId(null); toast.success("Product deleted"); },
     onError: () => toast.error("Failed to delete product"),
   });
@@ -376,21 +376,21 @@ export default function AdminPanel() {
   // Category CRUD
   const createCategoryMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      fetch("/api/admin/product-categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch("/api/admin/product-categories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-product-categories"] }); setCatDialogOpen(false); resetCatForm(); toast.success("Category created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const updateCategoryMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      fetch(`/api/admin/product-categories/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch(`/api/admin/product-categories/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-product-categories"] }); setCatDialogOpen(false); setEditingCat(null); resetCatForm(); toast.success("Category updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteCategoryMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/product-categories/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/product-categories/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-product-categories"] }); setDeleteConfirmId(null); toast.success("Category deactivated"); },
     onError: () => toast.error("Failed to deactivate category"),
   });
@@ -398,21 +398,21 @@ export default function AdminPanel() {
   // Service CRUD
   const createServiceMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      fetch("/api/admin/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch("/api/admin/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-services"] }); queryClient.invalidateQueries({ queryKey: ["admin-stats"] }); setServiceDialogOpen(false); resetServiceForm(); toast.success("Service created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const updateServiceMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      fetch(`/api/admin/services/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch(`/api/admin/services/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-services"] }); setServiceDialogOpen(false); setEditingService(null); resetServiceForm(); toast.success("Service updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteServiceMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/services/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/services/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-services"] }); queryClient.invalidateQueries({ queryKey: ["admin-stats"] }); setDeleteConfirmId(null); toast.success("Service deactivated"); },
     onError: () => toast.error("Failed to deactivate service"),
   });
@@ -428,21 +428,21 @@ export default function AdminPanel() {
   // Brand CRUD
   const createBrandMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      fetch("/api/admin/brands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch("/api/admin/brands", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-brands"] }); setBrandDialogOpen(false); resetBrandForm(); toast.success("Brand created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const updateBrandMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      fetch(`/api/admin/brands/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch(`/api/admin/brands/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-brands"] }); setBrandDialogOpen(false); setEditingBrand(null); resetBrandForm(); toast.success("Brand updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteBrandMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/brands/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/brands/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-brands"] }); setDeleteConfirmId(null); toast.success("Brand deleted"); },
     onError: () => toast.error("Failed to delete brand"),
   });
@@ -457,7 +457,7 @@ export default function AdminPanel() {
 
   const deleteReviewMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/reviews/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/reviews/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-reviews"] }); setDeleteConfirmId(null); toast.success("Review deleted"); },
     onError: () => toast.error("Failed to delete review"),
   });
@@ -465,21 +465,21 @@ export default function AdminPanel() {
   // Coupon CRUD
   const createCouponMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      fetch("/api/admin/coupons", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch("/api/admin/coupons", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-coupons"] }); setCouponDialogOpen(false); resetCouponForm(); toast.success("Coupon created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const updateCouponMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      fetch(`/api/admin/coupons/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch(`/api/admin/coupons/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-coupons"] }); setCouponDialogOpen(false); setEditingCoupon(null); resetCouponForm(); toast.success("Coupon updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteCouponMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/coupons/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/coupons/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-coupons"] }); setDeleteConfirmId(null); toast.success("Coupon deleted"); },
     onError: () => toast.error("Failed to delete coupon"),
   });
@@ -487,21 +487,21 @@ export default function AdminPanel() {
   // Blog CRUD
   const createBlogMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      fetch("/api/admin/blog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch("/api/admin/blog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-blog"] }); setBlogDialogOpen(false); resetBlogForm(); toast.success("Blog post created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const updateBlogMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
-      fetch(`/api/admin/blog/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+      fetch(`/api/admin/blog/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-blog"] }); setBlogDialogOpen(false); setEditingBlog(null); resetBlogForm(); toast.success("Blog post updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteBlogMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/blog/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/blog/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-blog"] }); setDeleteConfirmId(null); toast.success("Blog post deleted"); },
     onError: () => toast.error("Failed to delete blog post"),
   });
@@ -516,7 +516,7 @@ export default function AdminPanel() {
 
   const deleteQuoteMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/quote-requests/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/quote-requests/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-quote-requests"] }); setDeleteConfirmId(null); toast.success("Quote request deleted"); },
     onError: () => toast.error("Failed to delete quote request"),
   });
@@ -524,7 +524,7 @@ export default function AdminPanel() {
   // Newsletter delete
   const deleteNewsletterMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/admin/newsletter/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); }),
+      fetch(`/api/admin/newsletter/${id}`, { method: "DELETE" }).then((r) => { if (!r.ok) {throw new Error("Failed");} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-newsletter"] }); setDeleteConfirmId(null); toast.success("Subscriber deleted"); },
     onError: () => toast.error("Failed to delete subscriber"),
   });
@@ -533,7 +533,7 @@ export default function AdminPanel() {
   const updateReturnMutation = useMutation({
     mutationFn: ({ id, status, refundAmount, notes }: { id: string; status: string; refundAmount?: number; notes?: string }) =>
       fetch(`/api/admin/returns/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, refundAmount, notes }) })
-        .then((r) => { if (!r.ok) return r.json().then((d) => { throw new Error(d.error || "Failed"); }); return r.json(); }),
+        .then((r) => { if (!r.ok) {return r.json().then((d) => { throw new Error(d.error || "Failed"); });} return r.json(); }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["admin-returns"] }); queryClient.invalidateQueries({ queryKey: ["admin-orders"] }); toast.success("Return request updated"); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1019,8 +1019,8 @@ export default function AdminPanel() {
                   stock: Number(productForm.stock), description: productForm.description, descriptionBn: productForm.descriptionBn,
                   featured: productForm.featured, specifications: productForm.specifications, images: productForm.images,
                 };
-                if (editingProduct) updateProductMutation.mutate({ id: editingProduct.id, data });
-                else createProductMutation.mutate(data);
+                if (editingProduct) {updateProductMutation.mutate({ id: editingProduct.id, data });}
+                else {createProductMutation.mutate(data);}
               }}
             >
               {createProductMutation.isPending || updateProductMutation.isPending ? "Saving..." : editingProduct ? "Update" : "Create"}
@@ -1064,8 +1064,8 @@ export default function AdminPanel() {
               disabled={createCategoryMutation.isPending || updateCategoryMutation.isPending}
               onClick={() => {
                 const data = { name: catForm.name, nameBn: catForm.nameBn, slug: slugify(catForm.name), sortOrder: Number(catForm.sortOrder), active: catForm.active };
-                if (editingCat) updateCategoryMutation.mutate({ id: editingCat.id, data });
-                else createCategoryMutation.mutate(data);
+                if (editingCat) {updateCategoryMutation.mutate({ id: editingCat.id, data });}
+                else {createCategoryMutation.mutate(data);}
               }}
             >
               {createCategoryMutation.isPending || updateCategoryMutation.isPending ? "Saving..." : editingCat ? "Update" : "Create"}
@@ -1152,8 +1152,8 @@ export default function AdminPanel() {
               disabled={createServiceMutation.isPending || updateServiceMutation.isPending}
               onClick={() => {
                 const data = { name: serviceForm.name, nameBn: serviceForm.nameBn, categoryId: serviceForm.categoryId, basePrice: Number(serviceForm.basePrice), priceUnit: serviceForm.priceUnit, priceLabel: serviceForm.priceLabel, duration: serviceForm.duration, description: serviceForm.description, descriptionBn: serviceForm.descriptionBn, popular: serviceForm.popular, features: serviceForm.features, image: serviceForm.image };
-                if (editingService) updateServiceMutation.mutate({ id: editingService.id, data });
-                else createServiceMutation.mutate(data);
+                if (editingService) {updateServiceMutation.mutate({ id: editingService.id, data });}
+                else {createServiceMutation.mutate(data);}
               }}
             >
               {createServiceMutation.isPending || updateServiceMutation.isPending ? "Saving..." : editingService ? "Update" : "Create"}
@@ -1205,8 +1205,8 @@ export default function AdminPanel() {
               disabled={createBrandMutation.isPending || updateBrandMutation.isPending}
               onClick={() => {
                 const data = { name: brandForm.name, slug: brandForm.slug, logo: brandForm.logo, country: brandForm.country, description: brandForm.description, sortOrder: Number(brandForm.sortOrder), active: brandForm.active };
-                if (editingBrand) updateBrandMutation.mutate({ id: editingBrand.id, data });
-                else createBrandMutation.mutate(data);
+                if (editingBrand) {updateBrandMutation.mutate({ id: editingBrand.id, data });}
+                else {createBrandMutation.mutate(data);}
               }}
             >
               {createBrandMutation.isPending || updateBrandMutation.isPending ? "Saving..." : editingBrand ? "Update" : "Create"}
@@ -1279,8 +1279,8 @@ export default function AdminPanel() {
                   usageLimit: couponForm.usageLimit ? Number(couponForm.usageLimit) : null,
                   startDate: couponForm.startDate, endDate: couponForm.endDate, active: couponForm.active,
                 };
-                if (editingCoupon) updateCouponMutation.mutate({ id: editingCoupon.id, data });
-                else createCouponMutation.mutate(data);
+                if (editingCoupon) {updateCouponMutation.mutate({ id: editingCoupon.id, data });}
+                else {createCouponMutation.mutate(data);}
               }}
             >
               {createCouponMutation.isPending || updateCouponMutation.isPending ? "Saving..." : editingCoupon ? "Update" : "Create"}
@@ -1338,8 +1338,8 @@ export default function AdminPanel() {
               disabled={createBlogMutation.isPending || updateBlogMutation.isPending}
               onClick={() => {
                 const data = { title: blogForm.title, titleBn: blogForm.titleBn, slug: blogForm.slug, excerpt: blogForm.excerpt, content: blogForm.content, coverImage: blogForm.coverImage, tags: blogForm.tags, published: blogForm.published };
-                if (editingBlog) updateBlogMutation.mutate({ id: editingBlog.id, data });
-                else createBlogMutation.mutate(data);
+                if (editingBlog) {updateBlogMutation.mutate({ id: editingBlog.id, data });}
+                else {createBlogMutation.mutate(data);}
               }}
             >
               {createBlogMutation.isPending || updateBlogMutation.isPending ? "Saving..." : editingBlog ? "Update" : "Create"}
@@ -1378,7 +1378,7 @@ export default function AdminPanel() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setQuoteReplyOpen(false)}>Cancel</Button>
-            <Button className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white" disabled={replyQuoteMutation.isPending} onClick={() => { if (editingQuote) replyQuoteMutation.mutate({ id: editingQuote.id, data: { reply: quoteReplyForm.reply, status: quoteReplyForm.status } }); }}>
+            <Button className="bg-[#0EA5E9] hover:bg-[#0284C7] text-white" disabled={replyQuoteMutation.isPending} onClick={() => { if (editingQuote) {replyQuoteMutation.mutate({ id: editingQuote.id, data: { reply: quoteReplyForm.reply, status: quoteReplyForm.status } });} }}>
               {replyQuoteMutation.isPending ? "Sending..." : "Send Reply"}
             </Button>
           </DialogFooter>

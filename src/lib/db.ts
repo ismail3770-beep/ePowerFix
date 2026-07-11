@@ -48,29 +48,14 @@ function createExtendedClient() {
   })
 }
 
-// Lazy singleton: the extended Prisma client is only created on first property access,
-// NOT at module-evaluation time. This prevents build failures where DATABASE_URL
-// may not be set during static analysis.
-let _db: ReturnType<typeof createExtendedClient> | undefined
-
-function getDb() {
-  if (!_db) {
-    _db = globalForPrisma.extendedDb ?? createExtendedClient()
-    globalForPrisma.extendedDb = _db
+// Standard singleton pattern - no Proxy
+function getExtendedClient() {
+  if (!globalForPrisma.extendedDb) {
+    globalForPrisma.extendedDb = createExtendedClient()
   }
-  return _db
+  return globalForPrisma.extendedDb
 }
 
-// Use a Proxy so that `db.product.findMany(...)` triggers lazy initialization
-export const db = new Proxy({} as ReturnType<typeof createExtendedClient>, {
-  get(_target, prop) {
-    const client = getDb()
-    const value = (client as any)[prop]
-    if (typeof value === 'function') {
-      return value.bind(client)
-    }
-    return value
-  },
-})
+export const db = getExtendedClient()
 
 export { PrismaClient }

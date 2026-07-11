@@ -20,7 +20,7 @@ export default function ReturnRequestsSection({ returns, isLoading, error, filte
   expandedId: string | null; setExpandedId: (id: string | null) => void;
   onRetry: () => void;
 }) {
-  if (error) return <ErrorState message="Failed to load return requests" onRetry={onRetry} />;
+  if (error) {return <ErrorState message="Failed to load return requests" onRetry={onRetry} />;}
 
   return (
     <div className="space-y-4">

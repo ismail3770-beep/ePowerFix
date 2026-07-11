@@ -65,7 +65,7 @@ export default function CategoriesPage() {
       const payload = { ...form, slug: form.slug || generateSlug(form.name), parentId: form.parentId || null, icon: form.icon || null, image: form.image || null, description: form.description || null };
       if (editing) { await apiFetch(`/api/admin/product-categories/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Category updated"); }
       else { await apiFetch("/api/admin/product-categories", { method: "POST", body: JSON.stringify(payload) }); toast.success("Category created"); }
-      setDialog(false); if (!editing) clearFormDraft("admin-category-add"); load();
+      setDialog(false); if (!editing) {clearFormDraft("admin-category-add");} load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };
 
@@ -85,7 +85,7 @@ export default function CategoriesPage() {
 
   const filtered = cats.filter(c=>c.name.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;
+  if (loading) {return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;}
 
   return (
     <div className="space-y-6">
@@ -140,7 +140,7 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) {setDeleteTarget(null);} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete category?</AlertDialogTitle>

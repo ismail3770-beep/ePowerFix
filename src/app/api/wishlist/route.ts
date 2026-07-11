@@ -29,7 +29,7 @@ export const GET = authGetRoute(async (request, user) => {
 
 export const POST = authRoute(addToWishlistSchema, async (request, body, user) => {
   const { productId } = body
-  if (!productId) return errorResponse('productId is required', 400)
+  if (!productId) {return errorResponse('productId is required', 400)}
 
   // Upsert — the unique constraint [userId, productId] guards duplicates.
   const existing = await db.wishlist.findUnique({

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -25,7 +25,7 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const order = await db.order.findUnique({
@@ -44,7 +44,7 @@ export const GET = withErrorHandling(async (
     },
   })
 
-  if (!order) return errorResponse('Order not found', 404)
+  if (!order) {return errorResponse('Order not found', 404)}
   return jsonResponse({ data: order })
 })
 
@@ -55,7 +55,7 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateOrderSchema)
@@ -64,7 +64,7 @@ export const PUT = withErrorHandling(async (
     where: { id },
     include: { shipment: true },
   })
-  if (!existing) return errorResponse('Order not found', 404)
+  if (!existing) {return errorResponse('Order not found', 404)}
 
   const {
     status,
@@ -76,10 +76,10 @@ export const PUT = withErrorHandling(async (
   } = body
 
   const data: any = {}
-  if (status !== undefined) data.status = status
-  if (paymentStatus !== undefined) data.paymentStatus = paymentStatus
-  if (internalNotes !== undefined) data.notes = internalNotes
-  else if (notes !== undefined) data.notes = notes
+  if (status !== undefined) {data.status = status}
+  if (paymentStatus !== undefined) {data.paymentStatus = paymentStatus}
+  if (internalNotes !== undefined) {data.notes = internalNotes}
+  else if (notes !== undefined) {data.notes = notes}
 
   // Mark delivered timestamp if status moved to DELIVERED
   if (status === 'DELIVERED' && !existing.deliveredAt) {
@@ -145,11 +145,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.order.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Order not found', 404)
+  if (!existing) {return errorResponse('Order not found', 404)}
 
   await db.$transaction([
     db.orderItem.deleteMany({ where: { orderId: id } }),

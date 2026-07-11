@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
@@ -30,7 +31,7 @@ export async function GET(
       },
     })
 
-    if (!product) return errorResponse('Product not found', 404)
+    if (!product) {return errorResponse('Product not found', 404)}
 
     // M19: If the product has no category, related-by-category would return
     // ALL products with null category (a near-full-table scan). Short-circuit

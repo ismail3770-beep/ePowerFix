@@ -61,7 +61,7 @@ export default function AdminNewsletterPage() {
   }, [fetchSubscribers])
 
   const deleteSubscriber = useCallback(async () => {
-    if (!deleteId) return
+    if (!deleteId) {return}
     try {
       await apiFetch(`/api/admin/newsletter/${deleteId}`, { method: "DELETE" })
       setSubscribers((prev) => prev.filter((s) => s.id !== deleteId))

@@ -163,7 +163,7 @@ export default function AdminBookingsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!detail} onOpenChange={(o) => { if (!o) setDetail(null); }}>
+      <Dialog open={!!detail} onOpenChange={(o) => { if (!o) {setDetail(null);} }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           {detail && (
             <>

@@ -150,7 +150,7 @@ export default function AdminBannersPage() {
         toast.success("Banner created");
       }
       setDialog({ open: false });
-      if (!dialog.edit) clearFormDraft("admin-banner-add");
+      if (!dialog.edit) {clearFormDraft("admin-banner-add");}
       fetchBanners();
     } catch (err: any) {
       toast.error(err.message || "Failed to save banner");
@@ -160,7 +160,7 @@ export default function AdminBannersPage() {
   }
 
   async function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {return;}
     try {
       await apiFetch(`/api/admin/banners/${deleteTarget.id}`, { method: "DELETE" });
       toast.success("Banner deleted");
@@ -183,9 +183,9 @@ export default function AdminBannersPage() {
   async function handleMove(id: string, direction: "up" | "down") {
     const list = filteredBanners;
     const idx = list.findIndex((b) => b.id === id);
-    if (idx === -1) return;
+    if (idx === -1) {return;}
     const swap = direction === "up" ? idx - 1 : idx + 1;
-    if (swap < 0 || swap >= list.length) return;
+    if (swap < 0 || swap >= list.length) {return;}
     try {
       const a = list[idx];
       const b = list[swap];
@@ -417,7 +417,7 @@ export default function AdminBannersPage() {
       </Dialog>
 
       {/* Delete Dialog */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) setDeleteTarget(null); }}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) {setDeleteTarget(null);} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Banner</AlertDialogTitle>

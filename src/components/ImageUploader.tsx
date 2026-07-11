@@ -45,7 +45,7 @@ export function ImageUploader({ value, onChange, max = 5, label = "Images" }: Im
         body: formData,
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Upload failed");
+      if (!res.ok) {throw new Error(json.error || "Upload failed");}
       const url = json.data?.url;
       if (url) {
         onChange([...value, url]);
@@ -59,7 +59,7 @@ export function ImageUploader({ value, onChange, max = 5, label = "Images" }: Im
   }, [value, onChange, max]);
 
   const handleFiles = (files: FileList | null) => {
-    if (!files) return;
+    if (!files) {return;}
     Array.from(files).forEach((f) => uploadFile(f));
   };
 
@@ -187,7 +187,7 @@ export function SingleImageUploader({
         body: formData,
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Upload failed");
+      if (!res.ok) {throw new Error(json.error || "Upload failed");}
       const url = json.data?.url;
       if (url) {
         onChange(url);
@@ -267,7 +267,7 @@ export function SingleImageUploader({
             accept="image/*"
             className="hidden"
             onChange={(e) => {
-              if (e.target.files?.[0]) uploadFile(e.target.files[0]);
+              if (e.target.files?.[0]) {uploadFile(e.target.files[0]);}
             }}
           />
         </div>

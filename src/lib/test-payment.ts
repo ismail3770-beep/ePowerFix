@@ -26,7 +26,7 @@ export function generateTestPaymentToken(orderId: string, tranId: string): strin
 
 export function consumeTestPaymentToken(token: string): { orderId: string; tranId: string } | null {
   const data = testTokens.get(token)
-  if (!data) return null
+  if (!data) {return null}
   if (Date.now() > data.expiresAt) {
     testTokens.delete(token)
     return null

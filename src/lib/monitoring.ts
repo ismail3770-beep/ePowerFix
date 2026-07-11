@@ -1,33 +1,13 @@
 /**
  * Centralized monitoring + error tracking.
- *
  * Backend: structured JSON console logs (always on).
- * To enable Sentry later: `bun add @sentry/nextjs`, set SENTRY_DSN, and
- * re-add the captureException/captureMessage forwarding in the functions
- * below. The module is intentionally free of any `import('@sentry/nextjs')`
- * so it compiles cleanly without the package installed.
- *
- * Usage in API routes:
- *   import { captureError, captureMessage, startSpan } from '@/lib/monitoring'
- *
- *   export const GET = withErrorHandling(async (req) => {
- *     const span = startSpan('admin.products.list')
- *     try {
- *       // ... business logic
- *       span.finish()
- *     } catch (err) {
- *       captureError(err, { route: 'GET /api/admin/products', userId: user?.id })
- *       throw err
- *     }
- *   })
+ * Optional: Sentry integration via @sentry/nextjs (enabled when SENTRY_DSN is set).
  */
 
-// --- Configuration -----------------------------------------------------------
+import { Sentry } from '@/lib/sentry'
 
 const ENV = process.env.NODE_ENV || 'development'
 const IS_PROD = ENV === 'production'
-
-// --- Error Capture -----------------------------------------------------------
 
 export interface ErrorContext {
   route?: string
@@ -36,13 +16,8 @@ export interface ErrorContext {
   [key: string]: any
 }
 
-/**
- * Capture an error and log it (structured JSON).
- * Never throws — safe to call in catch blocks.
- */
 export async function captureError(error: unknown, context: ErrorContext = {}) {
   const err = error instanceof Error ? error : new Error(String(error))
-
   console.error(JSON.stringify({
     timestamp: new Date().toISOString(),
     level: 'error',
@@ -51,32 +26,25 @@ export async function captureError(error: unknown, context: ErrorContext = {}) {
     stack: IS_PROD ? undefined : err.stack,
     ...context,
   }))
-}
-
-/**
- * Capture a info/warning message (non-error).
- */
-export async function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context: ErrorContext = {}) {
-  if (level === 'error') {
-    console.error(JSON.stringify({ timestamp: new Date().toISOString(), level, message, ...context }))
-  } else {
-    console.log(JSON.stringify({ timestamp: new Date().toISOString(), level, message, ...context }))
+  if (Sentry) {
+    Sentry.captureException(err, { extra: context })
   }
 }
 
-// --- Performance Spans -------------------------------------------------------
+export async function captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context: ErrorContext = {}) {
+  const logObj = { timestamp: new Date().toISOString(), level, message, ...context }
+  if (level === 'error') {
+    console.error(JSON.stringify(logObj))
+  } else {
+    console.log(JSON.stringify(logObj))
+  }
+  if (Sentry && level === 'error') {
+    Sentry.captureMessage(message, { extra: context })
+  }
+}
 
-/**
- * Lightweight performance span — measures execution time and logs slow ops.
- *
- * Usage:
- *   const span = startSpan('db.products.findMany')
- *   const products = await db.product.findMany()
- *   span.finish()
- */
 export function startSpan(name: string) {
   const start = Date.now()
-
   return {
     finish() {
       const duration = Date.now() - start
@@ -88,6 +56,14 @@ export function startSpan(name: string) {
           durationMs: duration,
         }))
       }
+      if (Sentry) {
+        Sentry.addBreadcrumb({
+          category: 'performance',
+          message: name,
+          level: 'info',
+          data: { durationMs: duration },
+        })
+      }
     },
     getData() {
       return { name, durationMs: Date.now() - start }
@@ -95,14 +71,8 @@ export function startSpan(name: string) {
   }
 }
 
-// --- Health Check ------------------------------------------------------------
-
-/**
- * Returns a health check object for /api/health endpoint.
- */
 export async function getHealthStatus() {
   const checks: Record<string, { status: 'ok' | 'error'; details?: any }> = {}
-
   try {
     const { db } = await import('@/lib/db')
     await db.$queryRaw`SELECT 1`
@@ -110,7 +80,6 @@ export async function getHealthStatus() {
   } catch (err: any) {
     checks.database = { status: 'error', details: err?.message }
   }
-
   const mem = process.memoryUsage()
   checks.memory = {
     status: mem.heapUsed < mem.heapTotal * 0.9 ? 'ok' : 'error',
@@ -120,18 +89,24 @@ export async function getHealthStatus() {
       rss: `${Math.round(mem.rss / 1024 / 1024)}MB`,
     },
   }
-
-  checks.uptime = {
-    status: 'ok',
-    details: `${Math.round(process.uptime())}s`,
-  }
-
+  checks.uptime = { status: 'ok', details: `${Math.round(process.uptime())}s` }
   const allOk = Object.values(checks).every((c) => c.status === 'ok')
-
   return {
     status: allOk ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     environment: ENV,
     checks,
   }
+}
+
+export const log = {
+  info(message: string, context?: Record<string, any>) {
+    console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, ...context }))
+  },
+  warn(message: string, context?: Record<string, any>) {
+    console.warn(JSON.stringify({ timestamp: new Date().toISOString(), level: 'warning', message, ...context }))
+  },
+  error(message: string, context?: Record<string, any>) {
+    console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', message, ...context }))
+  },
 }

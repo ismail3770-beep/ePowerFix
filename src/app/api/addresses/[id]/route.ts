@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
@@ -20,7 +20,7 @@ const updateAddressSchema = z.object({
 
 async function getOwnedAddress(id: string, userId: string) {
   const address = await db.userAddress.findUnique({ where: { id } })
-  if (!address || address.userId !== userId) return null
+  if (!address || address.userId !== userId) {return null}
   return address
 }
 
@@ -31,12 +31,12 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAuth()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   const { id } = await params
   const body = await validateBody(request, updateAddressSchema)
 
   const existing = await getOwnedAddress(id, auth.user!.id)
-  if (!existing) return errorResponse('Address not found', 404)
+  if (!existing) {return errorResponse('Address not found', 404)}
 
   // If marking as default, unset any other default first.
   if (body.isDefault && !existing.isDefault) {
@@ -47,14 +47,14 @@ export const PUT = withErrorHandling(async (
   }
 
   const data: any = {}
-  if (body.fullName !== undefined) data.fullName = body.fullName.trim()
-  if (body.phone !== undefined) data.phone = body.phone.trim()
-  if (body.address !== undefined) data.address = body.address.trim()
-  if (body.area !== undefined) data.area = body.area?.trim() || null
-  if (body.city !== undefined) data.city = body.city.trim()
-  if (body.postalCode !== undefined) data.postalCode = body.postalCode?.trim() || null
-  if (body.label !== undefined) data.label = body.label?.trim() || null
-  if (body.isDefault !== undefined) data.isDefault = body.isDefault
+  if (body.fullName !== undefined) {data.fullName = body.fullName.trim()}
+  if (body.phone !== undefined) {data.phone = body.phone.trim()}
+  if (body.address !== undefined) {data.address = body.address.trim()}
+  if (body.area !== undefined) {data.area = body.area?.trim() || null}
+  if (body.city !== undefined) {data.city = body.city.trim()}
+  if (body.postalCode !== undefined) {data.postalCode = body.postalCode?.trim() || null}
+  if (body.label !== undefined) {data.label = body.label?.trim() || null}
+  if (body.isDefault !== undefined) {data.isDefault = body.isDefault}
 
   const updated = await db.userAddress.update({ where: { id }, data })
   return jsonResponse({ data: updated, message: 'Address updated successfully' })
@@ -67,11 +67,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAuth()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   const { id } = await params
 
   const existing = await getOwnedAddress(id, auth.user!.id)
-  if (!existing) return errorResponse('Address not found', 404)
+  if (!existing) {return errorResponse('Address not found', 404)}
 
   await db.userAddress.delete({ where: { id } })
 

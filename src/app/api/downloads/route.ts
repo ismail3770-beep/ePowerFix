@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 
@@ -10,7 +10,7 @@ import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 export async function GET(_request: NextRequest) {
   try {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
 
     const items = await db.orderItem.findMany({
       where: {

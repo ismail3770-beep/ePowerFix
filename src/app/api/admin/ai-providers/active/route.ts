@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/auth'
 
@@ -8,7 +8,7 @@ import { requireAdmin, jsonResponse, errorResponse } from '@/lib/auth'
  */
 export async function GET(_request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const providers = await db.aiProvider.findMany({

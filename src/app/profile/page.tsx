@@ -244,9 +244,9 @@ interface ReviewItem {
 }
 
 function parseImages(val: unknown): string[] {
-  if (Array.isArray(val)) return val as string[];
+  if (Array.isArray(val)) {return val as string[];}
   if (typeof val === "string") {
-    try { const p = JSON.parse(val); if (Array.isArray(p)) return p; } catch { /* ignore */ }
+    try { const p = JSON.parse(val); if (Array.isArray(p)) {return p;} } catch { /* ignore */ }
   }
   return [];
 }
@@ -292,7 +292,7 @@ export default function ProfilePage() {
   const { data: user, isLoading: userLoading, isError } = useQuery<AuthUser>({
     queryKey: ["auth-me"],
     queryFn: () => apiFetch<{ data: AuthUser }>("/api/auth/me").then((j) => {
-      if (!j.data) throw new Error("Not authenticated");
+      if (!j.data) {throw new Error("Not authenticated");}
       return j.data;
     }),
     retry: false,
@@ -301,7 +301,7 @@ export default function ProfilePage() {
 
   // Sync to store
   useEffect(() => {
-    if (user) setUser(user as Parameters<typeof setUser>[0]);
+    if (user) {setUser(user as Parameters<typeof setUser>[0]);}
   }, [user, setUser]);
 
   // When entering the "profile" section, pre-fill the inline edit form with
@@ -385,7 +385,7 @@ export default function ProfilePage() {
   };
 
   function openEditDialog() {
-    if (!user) return;
+    if (!user) {return;}
     setEditForm({
       name: user.name || "",
       nameBn: user.nameBn || "",
@@ -490,7 +490,7 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAddress = async (id: string) => {
-    if (!confirm("Delete this address?")) return;
+    if (!confirm("Delete this address?")) {return;}
     try {
       await apiFetch(`/api/addresses/${id}`, { method: "DELETE" });
       queryClient.invalidateQueries({ queryKey: ["my-addresses"] });

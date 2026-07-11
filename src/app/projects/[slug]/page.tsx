@@ -73,17 +73,25 @@ function formatDateShort(d: string) {
 }
 
 function parseImages(val: unknown): string[] {
-  if (Array.isArray(val)) return val as string[];
+  if (Array.isArray(val)) {return val as string[];}
   if (typeof val === "string") {
     try {
       const p = JSON.parse(val);
-      if (Array.isArray(p)) return p;
+      if (Array.isArray(p)) {return p;}
     } catch {
       /* ignore */
     }
   }
   return [];
 }
+
+const STATUS_META: Record<string, { label: string; dotCls: string }> = {
+  PLANNED: { label: "Planned", dotCls: "bg-slate-400" },
+  IN_PROGRESS: { label: "In Progress", dotCls: "bg-epf-500" },
+  COMPLETED: { label: "Completed", dotCls: "bg-green-500" },
+  ON_HOLD: { label: "On Hold", dotCls: "bg-yellow-500" },
+  CANCELLED: { label: "Cancelled", dotCls: "bg-red-500" },
+};
 
 export default function ProjectDetailPage() {
   const router = useRouter();

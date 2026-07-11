@@ -7,7 +7,11 @@ const isDev = process.env.NODE_ENV !== "production";
 // eval for Turbopack HMR) and locked down in production.
 const scriptSrc = isDev
   ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self' 'unsafe-inline'";
+  : "script-src 'self'";
+
+const styleSrc = isDev
+  ? "style-src 'self' 'unsafe-inline'"
+  : "style-src 'self'";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -18,13 +22,17 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=(self)",
   },
+  // Cross-Origin Opener Policy - helps isolate browsing context
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // Cross-Origin Resource Policy - prevents loading resources from other origins
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
       scriptSrc,
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://res.cloudinary.com https://sfile.chatglm.cn https://images.unsplash.com http:",
+      styleSrc,
+      "img-src 'self' data: blob: https://res.cloudinary.com https://sfile.chatglm.cn https://images.unsplash.com",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://api.ipify.org",
       "frame-ancestors 'none'",
@@ -41,11 +49,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // TypeScript errors will be caught by CI/lint; keep builds strict
   typescript: {
-    // TODO: Phase 2 — set to false after resolving all type errors.
-    // Last attempt (ROADMAP-COMPLETE) found 99 errors with noImplicitAny:true.
-    // Reverted to true to keep builds passing until errors are addressed.
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   reactStrictMode: true,
   images: {
@@ -62,6 +68,15 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
+  },
+  async rewrites() {
+    return [
+      // API versioning: /api/v1/* -> /api/*
+      {
+        source: "/api/v1/:path*",
+        destination: "/api/:path*",
+      },
+    ];
   },
 };
 

@@ -14,7 +14,7 @@ import { NextResponse } from 'next/server'
 export const POST = publicRoute(schemas.login, async (request, { email, password }) => {
   // Rate limit: 10 login attempts per 15 minutes per IP.
   const ip = (await headers()).get('x-forwarded-for') || 'unknown'
-  const rl = checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
+  const rl = await checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many login attempts. Please try again later.' },

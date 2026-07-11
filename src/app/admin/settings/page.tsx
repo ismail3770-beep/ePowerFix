@@ -108,7 +108,7 @@ function ColorInput({
           value={value}
           onChange={(e) => {
             const v = e.target.value.replace("#", "").toUpperCase();
-            if (/^[0-9A-F]{0,6}$/.test(v)) onChange(v);
+            if (/^[0-9A-F]{0,6}$/.test(v)) {onChange(v);}
           }}
           maxLength={6}
           className="h-10 w-32 font-mono text-[14px] uppercase"

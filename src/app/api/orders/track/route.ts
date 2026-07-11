@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    if (!order) return errorResponse('Order not found', 404)
+    if (!order) {return errorResponse('Order not found', 404)}
 
     const histories = await db.orderHistory.findMany({
       where: { orderId: order.id },

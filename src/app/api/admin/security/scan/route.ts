@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { jsonResponse, requireAdmin } from '@/lib/auth'
 
 /**
@@ -7,7 +7,7 @@ import { jsonResponse, requireAdmin } from '@/lib/auth'
  */
 export async function POST(_request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const issues = [
     {

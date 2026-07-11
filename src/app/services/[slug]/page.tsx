@@ -65,11 +65,11 @@ interface ServiceItem {
 }
 
 function parseJsonArray(val: unknown): string[] {
-  if (Array.isArray(val)) return val;
+  if (Array.isArray(val)) {return val;}
   if (typeof val === "string") {
     try {
       const p = JSON.parse(val);
-      if (Array.isArray(p)) return p;
+      if (Array.isArray(p)) {return p;}
     } catch {
       /* ignore */
     }
@@ -80,11 +80,11 @@ function parseJsonArray(val: unknown): string[] {
 /* Module-scope wrapper so we don't create components during render */
 function CatIcon({ name, className }: { name?: string; className?: string }) {
   const key = name?.toLowerCase() || "";
-  if (key.includes("solar")) return <Sun className={className} />;
-  if (key.includes("industrial")) return <Building2 className={className} />;
-  if (key.includes("repair") || key.includes("wrench")) return <Wrench className={className} />;
-  if (key.includes("inspection") || key.includes("shield")) return <Shield className={className} />;
-  if (key.includes("automation") || key.includes("bot")) return <Bot className={className} />;
+  if (key.includes("solar")) {return <Sun className={className} />;}
+  if (key.includes("industrial")) {return <Building2 className={className} />;}
+  if (key.includes("repair") || key.includes("wrench")) {return <Wrench className={className} />;}
+  if (key.includes("inspection") || key.includes("shield")) {return <Shield className={className} />;}
+  if (key.includes("automation") || key.includes("bot")) {return <Bot className={className} />;}
   return <Zap className={className} />;
 }
 

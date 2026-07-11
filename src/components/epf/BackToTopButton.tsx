@@ -11,7 +11,7 @@ export default function BackToTopButton() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  if (!show) return null;
+  if (!show) {return null;}
 
   return (
     <button

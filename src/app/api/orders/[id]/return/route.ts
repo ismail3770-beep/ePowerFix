@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
@@ -17,18 +17,18 @@ export const POST = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAuth()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, createReturnSchema)
 
   const reason = (body.reason || '').trim()
-  if (!reason) return errorResponse('reason is required', 400)
+  if (!reason) {return errorResponse('reason is required', 400)}
 
   // The order must belong to the requesting user.
   const order = await db.order.findUnique({ where: { id } })
-  if (!order) return errorResponse('Order not found', 404)
-  if (order.userId !== auth.user!.id) return errorResponse('Forbidden', 403)
+  if (!order) {return errorResponse('Order not found', 404)}
+  if (order.userId !== auth.user!.id) {return errorResponse('Forbidden', 403)}
 
   // Only allow returns for orders that have been delivered or confirmed.
   if (!['DELIVERED', 'CONFIRMED'].includes(order.status)) {
@@ -38,7 +38,7 @@ export const POST = withErrorHandling(async (
   const existing = await db.returnRequest.findFirst({
     where: { orderId: id, userId: auth.user!.id },
   })
-  if (existing) return errorResponse('Return request already exists for this order', 409)
+  if (existing) {return errorResponse('Return request already exists for this order', 409)}
 
   const returnRequest = await db.returnRequest.create({
     data: {

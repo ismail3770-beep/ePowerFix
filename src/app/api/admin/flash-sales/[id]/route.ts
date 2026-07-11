@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapFlashSale(f: any) {
-  if (!f) return f
+  if (!f) {return f}
   return {
     ...f,
     discountPercent: f.discount,
@@ -38,14 +38,14 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const flashSale = await db.flashSale.findUnique({
     where: { id },
     include: { products: { select: { id: true, name: true, slug: true } } },
   })
-  if (!flashSale) return errorResponse('Flash sale not found', 404)
+  if (!flashSale) {return errorResponse('Flash sale not found', 404)}
   return jsonResponse({ data: mapFlashSale(flashSale) })
 })
 
@@ -56,17 +56,17 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateFlashSaleSchema)
 
   const existing = await db.flashSale.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Flash sale not found', 404)
+  if (!existing) {return errorResponse('Flash sale not found', 404)}
 
   const data: any = {}
-  if (body.title !== undefined) data.title = body.title
-  if (body.description !== undefined) data.description = body.description || null
+  if (body.title !== undefined) {data.title = body.title}
+  if (body.description !== undefined) {data.description = body.description || null}
   if (body.startDate !== undefined || body.startsAt !== undefined) {
     const s = body.startDate !== undefined ? body.startDate : body.startsAt
     data.startDate = s ? new Date(s) : existing.startDate
@@ -79,7 +79,7 @@ export const PUT = withErrorHandling(async (
     const d = body.discount !== undefined ? body.discount : body.discountPercent
     data.discount = Number(d)
   }
-  if (body.isActive !== undefined) data.isActive = !!body.isActive
+  if (body.isActive !== undefined) {data.isActive = !!body.isActive}
 
   // Validate date range if both are present.
   const startDate = data.startDate || existing.startDate
@@ -99,11 +99,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.flashSale.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Flash sale not found', 404)
+  if (!existing) {return errorResponse('Flash sale not found', 404)}
 
   await db.flashSale.update({
     where: { id },

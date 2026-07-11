@@ -41,8 +41,8 @@ export const GET = adminGetRoute(async (request) => {
   const paymentStatus = rawPaymentStatus && rawPaymentStatus !== 'all' ? rawPaymentStatus.toUpperCase() : undefined
 
   const where: any = {}
-  if (status) where.status = status
-  if (paymentStatus) where.paymentStatus = paymentStatus
+  if (status) {where.status = status}
+  if (paymentStatus) {where.paymentStatus = paymentStatus}
   if (search) {
     where.OR = [
       { orderNumber: { contains: search } },

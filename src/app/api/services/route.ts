@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const fetchServices = async () => {
       const where: any = { isActive: true }
-      if (featured) where.isFeatured = true
+      if (featured) {where.isFeatured = true}
       if (categoryParam) {
         const cat = await db.serviceCategory.findFirst({
           where: { OR: [{ id: categoryParam }, { slug: categoryParam }] },

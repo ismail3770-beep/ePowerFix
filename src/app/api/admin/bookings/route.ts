@@ -14,7 +14,7 @@ import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
  * frontend. Exposes both schema field names and convenience aliases.
  */
 function mapBooking(b: any) {
-  if (!b) return b
+  if (!b) {return b}
   return {
     ...b,
     // Aliases the frontend expects
@@ -75,7 +75,7 @@ export const GET = adminGetRoute(async (request) => {
   const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
   const where: any = {}
-  if (status) where.status = status
+  if (status) {where.status = status}
   if (search) {
     where.OR = [
       { user: { name: { contains: search } } },
@@ -107,8 +107,8 @@ export const GET = adminGetRoute(async (request) => {
 export const POST = adminRoute(createBookingSchema, async (request, body, user) => {
   const userId = body.userId
   const serviceId = body.serviceId
-  if (!userId) return errorResponse('userId is required', 400)
-  if (!serviceId) return errorResponse('serviceId is required', 400)
+  if (!userId) {return errorResponse('userId is required', 400)}
+  if (!serviceId) {return errorResponse('serviceId is required', 400)}
 
   // bookingDate / bookingTime
   const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null

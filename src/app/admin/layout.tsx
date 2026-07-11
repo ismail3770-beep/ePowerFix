@@ -143,7 +143,7 @@ const pathToTabMap: Array<{ prefix: string; tab: string }> = [
 ];
 
 function deriveTabFromPath(pathname: string): string {
-  if (!pathname || !pathname.startsWith('/admin')) return 'dashboard';
+  if (!pathname || !pathname.startsWith('/admin')) {return 'dashboard';}
   // Sort by length desc so the most specific prefix wins.
   const sorted = [...pathToTabMap].sort(
     (a, b) => b.prefix.length - a.prefix.length
@@ -176,8 +176,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
-    if (isLoginPage) return;
-    if (isRestoring) return;
+    if (isLoginPage) {return;}
+    if (isRestoring) {return;}
     if (!user) { router.replace("/login"); return; }
     if (user.role !== "ADMIN") { router.replace("/"); return; }
   }, [user, isRestoring, router, isLoginPage]);
@@ -202,7 +202,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push("/admin/login");
   };
 
-  if (isLoginPage) return <>{children}</>;
+  if (isLoginPage) {return <>{children}</>;}
 
   if (isRestoring || !user || user.role !== "ADMIN") {
     return (
@@ -273,7 +273,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {/* Add New — rendered only when a page has registered a handler */}
               {addNewLabel && (
                 <button
-                  onClick={() => { if (addNewOnClick) addNewOnClick(); }}
+                  onClick={() => { if (addNewOnClick) {addNewOnClick();} }}
                   className="bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg px-4 h-9 transition-colors flex items-center gap-1.5 shadow-sm"
                 >
                   <Plus className="w-4 h-4" />

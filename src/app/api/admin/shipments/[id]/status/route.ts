@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -22,15 +22,15 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateShipmentStatusSchema)
 
-  if (!body?.status) return errorResponse('status is required', 400)
+  if (!body?.status) {return errorResponse('status is required', 400)}
 
   const existing = await db.shipment.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Shipment not found', 404)
+  if (!existing) {return errorResponse('Shipment not found', 404)}
 
   const data: any = { status: body.status }
   if (body.status === 'SHIPPED' && !existing.shippedAt) {

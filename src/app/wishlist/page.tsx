@@ -68,7 +68,7 @@ export default function WishlistPage() {
   }, [])
 
   const handleClearAll = useCallback(async () => {
-    if (items.length === 0) return
+    if (items.length === 0) {return}
     setClearing(true)
     try {
       // Remove all wishlist items in parallel

@@ -37,7 +37,7 @@ export default function ImageGallery({
 
   // Sync current index from Embla
   useEffect(() => {
-    if (!emblaApi) return;
+    if (!emblaApi) {return;}
     const onSelect = () => {
       setCurrent(emblaApi.selectedScrollSnap());
     };
@@ -49,23 +49,23 @@ export default function ImageGallery({
   }, [emblaApi]);
 
   const next = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
+    if (emblaApi) {emblaApi.scrollNext();}
   }, [emblaApi]);
 
   const prev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
+    if (emblaApi) {emblaApi.scrollPrev();}
   }, [emblaApi]);
 
   const scrollTo = useCallback(
     (index: number) => {
-      if (emblaApi) emblaApi.scrollTo(index);
+      if (emblaApi) {emblaApi.scrollTo(index);}
     },
     [emblaApi]
   );
 
   // Autoplay
   useEffect(() => {
-    if (!autoPlay || paused || total <= 1) return;
+    if (!autoPlay || paused || total <= 1) {return;}
     const id = setInterval(next, interval);
     return () => clearInterval(id);
   }, [autoPlay, paused, interval, next, total]);
@@ -74,24 +74,24 @@ export default function ImageGallery({
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     setPaused(true);
-    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    if (touchTimerRef.current) {clearTimeout(touchTimerRef.current);}
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 30) {
-      if (diff > 0) next();
-      else prev();
+      if (diff > 0) {next();}
+      else {prev();}
     }
     // Resume autoplay 3s after touch ends
-    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    if (touchTimerRef.current) {clearTimeout(touchTimerRef.current);}
     touchTimerRef.current = setTimeout(() => setPaused(false), 3000);
   };
 
   // Cleanup touch timer on unmount
   useEffect(() => {
     return () => {
-      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+      if (touchTimerRef.current) {clearTimeout(touchTimerRef.current);}
     };
   }, []);
 

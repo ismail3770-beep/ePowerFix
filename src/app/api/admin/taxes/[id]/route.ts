@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapTax(t: any) {
-  if (!t) return t
+  if (!t) {return t}
   return { ...t, value: t.rate }
 }
 
@@ -29,11 +29,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const tax = await db.tax.findUnique({ where: { id } })
-  if (!tax) return errorResponse('Tax not found', 404)
+  if (!tax) {return errorResponse('Tax not found', 404)}
   return jsonResponse({ data: mapTax(tax) })
 })
 
@@ -44,16 +44,16 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateTaxSchema)
 
   const existing = await db.tax.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Tax not found', 404)
+  if (!existing) {return errorResponse('Tax not found', 404)}
 
   const data: any = {}
-  if (body.name !== undefined) data.name = body.name
+  if (body.name !== undefined) {data.name = body.name}
   if (body.type !== undefined) {
     const type = (body.type || '').toString().toUpperCase()
     if (!['PERCENTAGE', 'FLAT'].includes(type)) {
@@ -65,7 +65,7 @@ export const PUT = withErrorHandling(async (
     const v = body.rate !== undefined ? body.rate : body.value
     data.rate = Number(v)
   }
-  if (body.isActive !== undefined) data.isActive = !!body.isActive
+  if (body.isActive !== undefined) {data.isActive = !!body.isActive}
 
   const tax = await db.tax.update({ where: { id }, data })
   return jsonResponse({ data: mapTax(tax) })
@@ -78,11 +78,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.tax.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Tax not found', 404)
+  if (!existing) {return errorResponse('Tax not found', 404)}
 
   await db.tax.update({
     where: { id },

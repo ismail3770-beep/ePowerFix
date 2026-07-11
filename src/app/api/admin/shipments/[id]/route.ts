@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -25,14 +25,14 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const shipment = await db.shipment.findUnique({
     where: { id },
     include: { order: true },
   })
-  if (!shipment) return errorResponse('Shipment not found', 404)
+  if (!shipment) {return errorResponse('Shipment not found', 404)}
   return jsonResponse({ data: shipment })
 })
 
@@ -43,25 +43,25 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateShipmentSchema)
 
   const existing = await db.shipment.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Shipment not found', 404)
+  if (!existing) {return errorResponse('Shipment not found', 404)}
 
   const data: any = {}
-  if (body.trackingNumber !== undefined) data.trackingNumber = body.trackingNumber || null
-  if (body.carrier !== undefined) data.carrier = body.carrier || null
-  if (body.status !== undefined) data.status = body.status
+  if (body.trackingNumber !== undefined) {data.trackingNumber = body.trackingNumber || null}
+  if (body.carrier !== undefined) {data.carrier = body.carrier || null}
+  if (body.status !== undefined) {data.status = body.status}
   if (body.estimatedDelivery !== undefined) {
     data.estimatedDelivery = body.estimatedDelivery ? new Date(body.estimatedDelivery) : null
   }
   if (body.shippedAt !== undefined) {
     data.shippedAt = body.shippedAt ? new Date(body.shippedAt) : null
   }
-  if (body.notes !== undefined) data.notes = body.notes || null
+  if (body.notes !== undefined) {data.notes = body.notes || null}
 
   const shipment = await db.shipment.update({
     where: { id },
@@ -79,7 +79,7 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   await db.shipment.delete({ where: { id } })

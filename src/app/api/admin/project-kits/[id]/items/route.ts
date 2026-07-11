@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 import { validateBody, z, withErrorHandling } from '@/lib/api-handler'
@@ -18,11 +18,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id: kitId } = await params
   const kit = await db.projectKit.findUnique({ where: { id: kitId } })
-  if (!kit) return errorResponse('Kit not found', 404)
+  if (!kit) {return errorResponse('Kit not found', 404)}
 
   const items = await db.projectKitItem.findMany({
     where: { kitId },
@@ -45,20 +45,20 @@ export const POST = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id: kitId } = await params
   const body = await validateBody(request, addItemSchema)
 
   const kit = await db.projectKit.findUnique({ where: { id: kitId } })
-  if (!kit) return errorResponse('Kit not found', 404)
+  if (!kit) {return errorResponse('Kit not found', 404)}
 
   const product = await db.product.findUnique({ where: { id: body.productId } })
-  if (!product) return errorResponse('Product not found', 404)
+  if (!product) {return errorResponse('Product not found', 404)}
 
   // Prevent duplicates — if already added, just update quantity.
-  const existing = await db.projectKitItem.findUnique({
-    where: { kitId_productId: { kitId, productId: body.productId } },
+  const existing = await db.projectKitItem.findFirst({
+    where: { kitId, productId: body.productId },
   })
   if (existing) {
     const updated = await db.projectKitItem.update({

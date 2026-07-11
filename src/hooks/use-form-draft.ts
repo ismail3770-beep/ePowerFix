@@ -29,10 +29,10 @@ function key(name: string) {
 
 /** Load a draft from localStorage. Returns `fallback` if no draft exists. */
 export function loadFormDraft<T>(name: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
+  if (typeof window === "undefined") {return fallback;}
   try {
     const raw = window.localStorage.getItem(key(name));
-    if (!raw) return fallback;
+    if (!raw) {return fallback;}
     const parsed = JSON.parse(raw);
     // Expired — discard.
     if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
@@ -48,7 +48,7 @@ export function loadFormDraft<T>(name: string, fallback: T): T {
 
 /** Remove a draft (call after a successful save/submit). */
 export function clearFormDraft(name: string) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
   try {
     window.localStorage.removeItem(key(name));
   } catch {
@@ -79,10 +79,10 @@ export function useFormDraft<T>(name: string, value: T) {
   }, [name]);
 
   useEffect(() => {
-    if (timer.current) clearTimeout(timer.current);
+    if (timer.current) {clearTimeout(timer.current);}
     timer.current = setTimeout(save, 300);
     return () => {
-      if (timer.current) clearTimeout(timer.current);
+      if (timer.current) {clearTimeout(timer.current);}
     };
   }, [value, save]);
 

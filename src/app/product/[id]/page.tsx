@@ -142,7 +142,7 @@ export default function ProductDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    if (!productId) return;
+    if (!productId) {return;}
     apiFetch<{ data: { data: typeof reviews } }>(
       `/api/reviews?productId=${productId}`
     )
@@ -183,7 +183,7 @@ export default function ProductDetailPage() {
   };
 
   useEffect(() => {
-    if (!productId) return;
+    if (!productId) {return;}
     setIsLoading(true);
     setActiveImage(0);
     setQty(1);
@@ -221,7 +221,7 @@ export default function ProductDetailPage() {
   const productImages = product?.images?.length ? product.images : [];
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product) {return;}
     addItem({
       productId: product.id,
       productName: product.name,
@@ -235,7 +235,7 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = () => {
-    if (!product) return;
+    if (!product) {return;}
     addItem({
       productId: product.id,
       productName: product.name,
@@ -260,7 +260,7 @@ export default function ProductDetailPage() {
   };
 
   const handleWishlist = async () => {
-    if (!product) return;
+    if (!product) {return;}
     if (!isAuthenticated) {
       toast.error("Please login to save favorites");
       return;
@@ -286,7 +286,7 @@ export default function ProductDetailPage() {
 
   // Hover-zoom on main image
   const handleImageMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageWrapRef.current) return;
+    if (!imageWrapRef.current) {return;}
     const rect = imageWrapRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -1076,7 +1076,7 @@ function RelatedProducts({
     if (!categoryId) {
       return;
     }
-    if (hasFetched.current) return;
+    if (hasFetched.current) {return;}
     hasFetched.current = true;
     apiFetch<{
       data: {

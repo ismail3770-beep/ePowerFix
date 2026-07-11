@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -15,7 +15,7 @@ import {
  * We expose `message` as an alias of `description` and coerce `email` to ''.
  */
 function mapQuote(q: any) {
-  if (!q) return q
+  if (!q) {return q}
   return {
     ...q,
     message: q.description,
@@ -29,7 +29,7 @@ function mapQuote(q: any) {
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { page, limit, skip, search } = getPagination(request.url)
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
     const where: any = {}
-    if (status) where.status = status
+    if (status) {where.status = status}
     if (search) {
       where.OR = [
         { name: { contains: search } },

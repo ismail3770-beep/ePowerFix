@@ -47,7 +47,7 @@ export default function DashboardSection({ stats, isLoading, bookings, orders, b
   const recentBookings = bookings.slice(0, 5);
 
   const getStatValue = (key: string) => {
-    if (!stats) return 0;
+    if (!stats) {return 0;}
     return (stats as any)[key] ?? 0;
   };
 
@@ -189,7 +189,7 @@ export default function DashboardSection({ stats, isLoading, bookings, orders, b
                         #{o.orderNumber.slice(-8)}
                       </TableCell>
                       <TableCell className="text-[13px] text-[#374151]">{o.customerName}</TableCell>
-                      <TableCell className="text-[13px] font-semibold text-[#1f2937]">{formatTaka(o.totalAmount)}</TableCell>
+                      <TableCell className="text-[13px] font-semibold text-[#1f2937]">{formatTaka(o.total)}</TableCell>
                       <TableCell><StatusBadge status={o.status} map={orderStatusMap} /></TableCell>
                     </TableRow>
                   ))}

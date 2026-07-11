@@ -89,15 +89,15 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
 
     if (item.itemType === 'SERVICE') {
       const service = await db.service.findUnique({ where: { id: item.serviceId! } })
-      if (!service) return errorResponse('Service not found', 400)
+      if (!service) {return errorResponse('Service not found', 400)}
       unitPrice = service.basePrice
       productName = service.name
       const imgs = parseJsonField(service.images)
       productImage = imgs[0] || null
     } else if (item.itemType === 'PROJECT') {
       const kit = await db.projectKit.findUnique({ where: { id: item.projectId! } })
-      if (!kit) return errorResponse('Project kit not found', 400)
-      if (!kit.isActive) return errorResponse('Kit is not available', 400)
+      if (!kit) {return errorResponse('Project kit not found', 400)}
+      if (!kit.isActive) {return errorResponse('Kit is not available', 400)}
       unitPrice = kit.salePrice ?? kit.price ?? 0
       productName = kit.title
       productImage = kit.coverImage || parseJsonField(kit.images)[0] || null
@@ -106,10 +106,10 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
         where: { id: item.productId! },
         include: { variants: true },
       })
-      if (!product) return errorResponse('Product not found', 400)
+      if (!product) {return errorResponse('Product not found', 400)}
       if (item.variantId) {
         const variant = product.variants.find((v) => v.id === item.variantId)
-        if (!variant) return errorResponse('Variant not found', 400)
+        if (!variant) {return errorResponse('Variant not found', 400)}
         unitPrice = variant.salePrice ?? variant.price
         variantName = variant.name
       } else {
@@ -167,7 +167,7 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
       if (now >= coupon.startDate && now <= coupon.endDate) {
         if (coupon.type === 'PERCENTAGE') {
           discount = (subtotal * coupon.value) / 100
-          if (coupon.maxDiscount !== null) discount = Math.min(discount, coupon.maxDiscount)
+          if (coupon.maxDiscount !== null) {discount = Math.min(discount, coupon.maxDiscount)}
         } else {
           discount = coupon.value
         }

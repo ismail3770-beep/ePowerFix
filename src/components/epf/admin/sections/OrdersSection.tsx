@@ -14,7 +14,7 @@ export default function OrdersSection({ orders, isLoading, error, filter, setFil
   updateMutation: OrderUpdateMutation; expandedOrderId: string | null; setExpandedOrderId: (id: string | null) => void; onRetry: () => void;
   onCreateShipment: (order: Order) => void; onEditShipment: (order: Order) => void;
 }) {
-  if (error) return <ErrorState message="Failed to load orders" onRetry={onRetry} />;
+  if (error) {return <ErrorState message="Failed to load orders" onRetry={onRetry} />;}
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

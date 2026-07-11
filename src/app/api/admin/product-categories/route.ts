@@ -48,7 +48,7 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createCategorySchema, async (request, body, user) => {
   const { name, nameBn, slug, description, image, icon, parentId, isActive, sortOrder } = body
-  if (!name) return errorResponse('name is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
 
   // Auto-generate slug from name if not provided; ensure uniqueness.
   let finalSlug = slug || slugify(name)

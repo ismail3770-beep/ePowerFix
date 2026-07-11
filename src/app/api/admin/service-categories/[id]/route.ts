@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -36,14 +36,14 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const category = await db.serviceCategory.findUnique({
     where: { id },
     include: { _count: { select: { services: true } } },
   })
-  if (!category) return errorResponse('Category not found', 404)
+  if (!category) {return errorResponse('Category not found', 404)}
   return jsonResponse({ data: category })
 })
 
@@ -54,21 +54,21 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateServiceCategorySchema)
 
   const existing = await db.serviceCategory.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Category not found', 404)
+  if (!existing) {return errorResponse('Category not found', 404)}
 
   const data: any = {}
-  if (body.name !== undefined) data.name = body.name
-  if (body.nameBn !== undefined) data.nameBn = body.nameBn || existing.name
-  if (body.icon !== undefined) data.icon = body.icon || null
-  if (body.image !== undefined) data.image = body.image || null
-  if (body.sortOrder !== undefined) data.sortOrder = Number(body.sortOrder)
-  if (body.isActive !== undefined) data.isActive = !!body.isActive
+  if (body.name !== undefined) {data.name = body.name}
+  if (body.nameBn !== undefined) {data.nameBn = body.nameBn || existing.name}
+  if (body.icon !== undefined) {data.icon = body.icon || null}
+  if (body.image !== undefined) {data.image = body.image || null}
+  if (body.sortOrder !== undefined) {data.sortOrder = Number(body.sortOrder)}
+  if (body.isActive !== undefined) {data.isActive = !!body.isActive}
 
   if (body.slug !== undefined && body.slug !== existing.slug) {
     const finalSlug = body.slug || slugify(body.name || existing.name)
@@ -97,11 +97,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.serviceCategory.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Category not found', 404)
+  if (!existing) {return errorResponse('Category not found', 404)}
 
   await db.serviceCategory.update({
     where: { id },

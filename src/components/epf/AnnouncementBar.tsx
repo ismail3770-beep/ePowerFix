@@ -12,7 +12,7 @@ const messages = [
 
 export default function AnnouncementBar() {
   const [closed, setClosed] = useState(false);
-  if (closed) return null;
+  if (closed) {return null;}
 
   return (
     <div className="bg-slate-900 text-slate-400 text-[14px] relative overflow-hidden">

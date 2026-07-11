@@ -1,10 +1,10 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin, jsonResponse, errorResponse, getPagination, listResponse } from '@/lib/admin-api'
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const url = new URL(request.url)
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
     const where: any = {}
-    if (status) where.status = status
+    if (status) {where.status = status}
     if (search) {
       where.OR = [
         { reason: { contains: search } },

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
@@ -27,7 +27,7 @@ const PUBLIC_PREFIX = '/uploads'
 export const POST = withErrorHandling(async (request: NextRequest) => {
   // 1. Auth — admin only
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   // 2. Parse multipart form
   let formData: FormData
@@ -98,6 +98,6 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
 export const GET = withErrorHandling(async () => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   return jsonResponse({ data: { ok: true, maxSize: MAX_FILE_SIZE } })
 })

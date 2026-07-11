@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -20,7 +20,7 @@ const REVIEW_INCLUDE = {
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { page, limit, skip, search } = getPagination(request.url)
@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
     const serviceId = url.searchParams.get('serviceId') || undefined
 
     const where: any = {}
-    if (status) where.status = status
-    if (productId) where.productId = productId
-    if (serviceId) where.serviceId = serviceId
+    if (status) {where.status = status}
+    if (productId) {where.productId = productId}
+    if (serviceId) {where.serviceId = serviceId}
     if (search) {
       where.OR = [
         { title: { contains: search } },

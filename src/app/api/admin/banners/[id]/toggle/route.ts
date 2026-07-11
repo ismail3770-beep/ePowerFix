@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -15,12 +15,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { id } = await params
     const existing = await db.banner.findUnique({ where: { id } })
-    if (!existing) return errorResponse('Banner not found', 404)
+    if (!existing) {return errorResponse('Banner not found', 404)}
 
     const banner = await db.banner.update({
       where: { id },

@@ -23,7 +23,7 @@ export default function ChatWidget() {
   }, [messages]);
 
   const send = async () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {return;}
     const userMsg = input.trim();
     setMessages((prev) => [...prev, { role: "user", message: userMsg }]);
     setInput("");

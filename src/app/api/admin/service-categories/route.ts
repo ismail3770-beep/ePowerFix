@@ -45,11 +45,11 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createServiceCategorySchema, async (request, body, user) => {
   const name = body.name
-  if (!name) return errorResponse('name is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
 
   let slug = body.slug || slugify(name)
   const slugExists = await db.serviceCategory.findUnique({ where: { slug } })
-  if (slugExists) slug = `${slug}-${Date.now().toString(36)}`
+  if (slugExists) {slug = `${slug}-${Date.now().toString(36)}`}
 
   const category = await db.serviceCategory.create({
     data: {

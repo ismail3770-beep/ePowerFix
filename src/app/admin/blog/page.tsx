@@ -151,7 +151,7 @@ export default function AdminBlogPage() {
       }
 
       setDialogOpen(false);
-      if (!editing) clearFormDraft("admin-blog-add");
+      if (!editing) {clearFormDraft("admin-blog-add");}
       fetchPosts();
     } catch (err: any) {
       toast.error(err.message || "Failed to save post");
@@ -255,7 +255,7 @@ export default function AdminBlogPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) setDialogOpen(false); }}>
+      <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) {setDialogOpen(false);} }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Post" : "New Post"}</DialogTitle>
@@ -347,7 +347,7 @@ export default function AdminBlogPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) {setDeleteTarget(null);} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete post?</AlertDialogTitle>

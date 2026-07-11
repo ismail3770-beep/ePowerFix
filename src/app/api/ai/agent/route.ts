@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { jsonResponse, errorResponse, parseBody } from '@/lib/auth'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { headers } from 'next/headers'
@@ -26,18 +26,18 @@ const MAX_MESSAGE_LENGTH = 500
 export async function POST(request: NextRequest) {
   // Rate limit: 20 messages per 10 minutes per IP.
   const ip = (await headers()).get('x-forwarded-for') || 'unknown'
-  const rl = checkRateLimit(`ai-agent:${ip}`, 20, 10 * 60 * 1000)
+  const rl = await checkRateLimit(`ai-agent:${ip}`, 20, 10 * 60 * 1000)
   if (!rl.allowed) {
     return errorResponse('Too many messages. Please slow down and try again later.', 429)
   }
 
   try {
     const body = await parseBody<{ message?: string }>(request)
-    if (!body?.message) return errorResponse('message is required', 400)
+    if (!body?.message) {return errorResponse('message is required', 400)}
 
     // Truncate overly long messages to prevent abuse.
     const message = body.message.slice(0, MAX_MESSAGE_LENGTH)
-    if (!message.trim()) return errorResponse('message cannot be empty', 400)
+    if (!message.trim()) {return errorResponse('message cannot be empty', 400)}
 
     const ZAI = (await import('z-ai-web-dev-sdk')).default
     const zai = await ZAI.create()

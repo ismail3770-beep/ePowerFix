@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -19,7 +19,7 @@ function slugify(text: string): string {
 }
 
 function mapPost(p: any) {
-  if (!p) return p
+  if (!p) {return p}
   return {
     ...p,
     tags: parseJsonField(p.tags),
@@ -52,11 +52,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const post = await db.blogPost.findUnique({ where: { id } })
-  if (!post) return errorResponse('Post not found', 404)
+  if (!post) {return errorResponse('Post not found', 404)}
   return jsonResponse({ data: mapPost(post) })
 })
 
@@ -67,23 +67,23 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updatePostSchema)
 
   const existing = await db.blogPost.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Post not found', 404)
+  if (!existing) {return errorResponse('Post not found', 404)}
 
   const data: any = {}
-  if (body.title !== undefined) data.title = body.title
-  if (body.titleBn !== undefined) data.titleBn = body.titleBn || null
-  if (body.content !== undefined) data.content = body.content
-  if (body.excerpt !== undefined) data.excerpt = body.excerpt || null
-  if (body.author !== undefined) data.author = body.author || null
-  if (body.imageUrl !== undefined) data.coverImage = body.imageUrl || null
-  if (body.featuredImage !== undefined) data.coverImage = body.featuredImage || null
-  if (body.isPublished !== undefined) data.isPublished = !!body.isPublished
+  if (body.title !== undefined) {data.title = body.title}
+  if (body.titleBn !== undefined) {data.titleBn = body.titleBn || null}
+  if (body.content !== undefined) {data.content = body.content}
+  if (body.excerpt !== undefined) {data.excerpt = body.excerpt || null}
+  if (body.author !== undefined) {data.author = body.author || null}
+  if (body.imageUrl !== undefined) {data.coverImage = body.imageUrl || null}
+  if (body.featuredImage !== undefined) {data.coverImage = body.featuredImage || null}
+  if (body.isPublished !== undefined) {data.isPublished = !!body.isPublished}
 
   if (body.status !== undefined) {
     data.isPublished = body.status === 'PUBLISHED'
@@ -120,11 +120,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.blogPost.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Post not found', 404)
+  if (!existing) {return errorResponse('Post not found', 404)}
 
   await db.blogPost.update({
     where: { id },

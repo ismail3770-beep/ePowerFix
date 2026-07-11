@@ -87,7 +87,7 @@ export default function AdminStaffPage() {
   }
 
   async function remove(s: StaffUser) {
-    if (!confirm(`Remove "${s.name}" from staff? They will be deactivated.`)) return;
+    if (!confirm(`Remove "${s.name}" from staff? They will be deactivated.`)) {return;}
     try {
       await apiFetch(`/api/admin/users/${s.id}`, { method: "DELETE" });
       toast.success("Staff member removed");
@@ -177,7 +177,7 @@ export default function AdminStaffPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) setDialog({ open: false }); }}>
+      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) {setDialog({ open: false });} }}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Add Staff Member</DialogTitle></DialogHeader>
           <div className="space-y-4">

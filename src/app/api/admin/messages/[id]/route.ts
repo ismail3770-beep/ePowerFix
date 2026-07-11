@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapMessage(m: any) {
-  if (!m) return m
+  if (!m) {return m}
   return {
     ...m,
     isRead: m.status !== 'NEW',
@@ -30,11 +30,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const message = await db.contact.findUnique({ where: { id } })
-  if (!message) return errorResponse('Message not found', 404)
+  if (!message) {return errorResponse('Message not found', 404)}
   return jsonResponse({ data: mapMessage(message) })
 })
 
@@ -45,13 +45,13 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateMessageSchema)
 
   const existing = await db.contact.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Message not found', 404)
+  if (!existing) {return errorResponse('Message not found', 404)}
 
   const data: any = {}
 
@@ -79,11 +79,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.contact.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Message not found', 404)
+  if (!existing) {return errorResponse('Message not found', 404)}
 
   await db.contact.delete({ where: { id } })
 

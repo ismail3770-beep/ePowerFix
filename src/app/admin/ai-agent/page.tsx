@@ -54,7 +54,7 @@ const STORAGE_KEY = "epf-ai-agent-settings";
 function loadSettings() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {return JSON.parse(raw);}
   } catch {}
   return null;
 }
@@ -171,7 +171,7 @@ export default function AIAgentPage() {
   }, [providers]);
 
   const sendMessage = async (text: string) => {
-    if (!text.trim() || loading) return;
+    if (!text.trim() || loading) {return;}
 
     const userMsg: Message = {
       id: crypto.randomUUID?.() || `u-${Date.now()}`,
@@ -196,8 +196,8 @@ export default function AIAgentPage() {
         message: text.trim(),
         sessionId,
       };
-      if (selectedProvider !== "__default__") body.providerId = selectedProvider;
-      if (selectedModel !== "__default__") body.model = selectedModel;
+      if (selectedProvider !== "__default__") {body.providerId = selectedProvider;}
+      if (selectedModel !== "__default__") {body.model = selectedModel;}
 
       const res = await api.post<{
         success: boolean;

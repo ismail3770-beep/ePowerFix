@@ -31,7 +31,7 @@ function slugify(text: string): string {
  * task-spec "include author (name, email)" relation include.
  */
 function mapPost(p: any) {
-  if (!p) return p
+  if (!p) {return p}
   return {
     ...p,
     tags: parseJsonField(p.tags),
@@ -96,13 +96,13 @@ export const GET = adminGetRoute(async (request) => {
 export const POST = adminRoute(createPostSchema, async (request, body, user) => {
   const title = body.title
   const content = body.content
-  if (!title) return errorResponse('title is required', 400)
-  if (!content) return errorResponse('content is required', 400)
+  if (!title) {return errorResponse('title is required', 400)}
+  if (!content) {return errorResponse('content is required', 400)}
 
   // Auto-slug; ensure uniqueness.
   let slug = body.slug || slugify(title)
   const slugExists = await db.blogPost.findUnique({ where: { slug } })
-  if (slugExists) slug = `${slug}-${Date.now().toString(36)}`
+  if (slugExists) {slug = `${slug}-${Date.now().toString(36)}`}
 
   // status -> isPublished
   const status = body.status || 'DRAFT'

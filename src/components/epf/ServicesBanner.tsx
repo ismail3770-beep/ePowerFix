@@ -26,7 +26,7 @@ export default function ServicesBanner() {
       try {
         const res: any = await apiFetch("/api/banners?type=services");
         const data = res.data;
-        if (Array.isArray(data) && data.length > 0) setBanners(data);
+        if (Array.isArray(data) && data.length > 0) {setBanners(data);}
       } catch {}
     })();
   }, []);
@@ -35,17 +35,17 @@ export default function ServicesBanner() {
   const slidePercent = banners.length > 0 ? 100 / banners.length : 0;
 
   const slideNext = useCallback(() => {
-    if (isPaused) return;
+    if (isPaused) {return;}
     setOffset((prev) => (prev >= maxOffset ? 0 : prev + 1));
   }, [isPaused, maxOffset]);
 
   useEffect(() => {
-    if (banners.length <= 3) return;
+    if (banners.length <= 3) {return;}
     const timer = setInterval(slideNext, 5000);
     return () => clearInterval(timer);
   }, [slideNext, banners.length]);
 
-  if (banners.length === 0) return null;
+  if (banners.length === 0) {return null;}
 
   return (
     <section className="py-10 sm:py-14 bg-white">

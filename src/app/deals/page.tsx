@@ -65,11 +65,11 @@ function CountdownTimer() {
   useEffect(() => {
     const id = setInterval(() => {
       setSeconds((s) => {
-        if (s > 0) return s - 1;
+        if (s > 0) {return s - 1;}
         setMinutes((m) => {
-          if (m > 0) return m - 1;
+          if (m > 0) {return m - 1;}
           setHours((h) => {
-            if (h > 0) return h - 1;
+            if (h > 0) {return h - 1;}
             return 5;
           });
           return 59;

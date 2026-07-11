@@ -12,9 +12,9 @@ export { requireAdmin, jsonResponse, errorResponse, parseBody }
  * SQLite stores these as TEXT containing a JSON-stringified array.
  */
 export function parseJsonField<T = string>(value: unknown, fallback: T[] = []): T[] {
-  if (Array.isArray(value)) return value as T[]
-  if (typeof value !== 'string') return fallback
-  if (!value || value === '[]' || value === 'null') return fallback
+  if (Array.isArray(value)) {return value as T[]}
+  if (typeof value !== 'string') {return fallback}
+  if (!value || value === '[]' || value === 'null') {return fallback}
   try {
     const parsed = JSON.parse(value)
     return Array.isArray(parsed) ? parsed : fallback
@@ -27,8 +27,8 @@ export function parseJsonField<T = string>(value: unknown, fallback: T[] = []): 
  * Serializes an array into a JSON string for SQLite storage.
  */
 export function stringifyJsonField(value: unknown): string {
-  if (typeof value === 'string') return value
-  if (Array.isArray(value)) return JSON.stringify(value)
+  if (typeof value === 'string') {return value}
+  if (Array.isArray(value)) {return JSON.stringify(value)}
   return '[]'
 }
 
@@ -69,7 +69,7 @@ export async function withAdmin<T>(
   handler: (userId: string) => Promise<T>
 ): Promise<T | Response> {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
   try {
     return await handler(auth.user!.id)
   } catch (err: any) {

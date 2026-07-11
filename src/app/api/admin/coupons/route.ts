@@ -17,7 +17,7 @@ import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
  * and the existing admin UI.
  */
 function mapCoupon(c: any) {
-  if (!c) return c
+  if (!c) {return c}
   return {
     ...c,
     discount: c.value,
@@ -83,7 +83,7 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createCouponSchema, async (request, body, user) => {
   const code = (body.code || '').toString().trim().toUpperCase()
-  if (!code) return errorResponse('code is required', 400)
+  if (!code) {return errorResponse('code is required', 400)}
 
   // type / discountType
   const type = body.type || body.discountType || 'PERCENTAGE'
@@ -113,7 +113,7 @@ export const POST = adminRoute(createCouponSchema, async (request, body, user) =
 
   // Uniqueness check for the code.
   const existing = await db.coupon.findUnique({ where: { code } })
-  if (existing) return errorResponse('Coupon code already exists', 400)
+  if (existing) {return errorResponse('Coupon code already exists', 400)}
 
   const coupon = await db.coupon.create({
     data: {

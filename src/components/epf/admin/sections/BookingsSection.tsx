@@ -10,7 +10,7 @@ export default function BookingsSection({ bookings, isLoading, error, filter, se
   bookings: BookingItem[]; isLoading: boolean; error: Error | null; filter: string; setFilter: (f: string) => void;
   updateMutation: BookingStatusMutation; onRetry: () => void;
 }) {
-  if (error) return <ErrorState message="Failed to load bookings" onRetry={onRetry} />;
+  if (error) {return <ErrorState message="Failed to load bookings" onRetry={onRetry} />;}
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -52,7 +52,7 @@ export default function BookingsSection({ bookings, isLoading, error, filter, se
                     <TableCell className="text-xs font-mono">{b.customerPhone}</TableCell>
                     <TableCell className="text-xs">{b.area || b.address}</TableCell>
                     <TableCell className="text-xs">{b.preferredDate ? formatDate(b.preferredDate) : "—"}</TableCell>
-                    <TableCell className="text-xs font-medium">{formatTaka(b.totalCost)}</TableCell>
+                    <TableCell className="text-xs font-medium">{formatTaka(b.totalPrice)}</TableCell>
                     <TableCell><StatusBadge status={b.status} map={bookingStatusMap} /></TableCell>
                     <TableCell>
                       <Select value={b.status} onValueChange={(v) => updateMutation.mutate({ id: b.id, status: v })}>

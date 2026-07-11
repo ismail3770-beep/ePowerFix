@@ -204,7 +204,7 @@ export default function CheckoutPage() {
 
   /* Coupon */
   const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
+    if (!couponCode.trim()) {return;}
     setCouponLoading(true);
     try {
       const result = await apiFetch<{ data: any }>(
@@ -228,7 +228,7 @@ export default function CheckoutPage() {
         method: "POST",
         body: JSON.stringify(body),
       });
-      if (!res.success) throw new Error(res.error || "Order failed");
+      if (!res.success) {throw new Error(res.error || "Order failed");}
       return res;
     },
     onSuccess: async (data) => {
@@ -282,7 +282,7 @@ export default function CheckoutPage() {
       toast.error("Please fill in required fields", { description: "Name, Phone, and Area are required." });
       return;
     }
-    if (items.length === 0) return;
+    if (items.length === 0) {return;}
     mutation.mutate({
       customerName: form.customerName,
       customerPhone: form.customerPhone,

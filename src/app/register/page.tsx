@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import type { FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
@@ -114,7 +115,7 @@ export default function RegisterPage() {
       const fieldErrors: Partial<Record<keyof RegisterFormData, string>> = {};
       for (const issue of result.error.issues) {
         const key = issue.path[0] as keyof RegisterFormData;
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+        if (!fieldErrors[key]) {fieldErrors[key] = issue.message;}
       }
       setErrors(fieldErrors);
       return;

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapQuote(q: any) {
-  if (!q) return q
+  if (!q) {return q}
   return {
     ...q,
     message: q.description,
@@ -38,11 +38,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const quote = await db.quoteRequest.findUnique({ where: { id } })
-  if (!quote) return errorResponse('Quote request not found', 404)
+  if (!quote) {return errorResponse('Quote request not found', 404)}
   return jsonResponse({ data: mapQuote(quote) })
 })
 
@@ -53,23 +53,23 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateQuoteSchema)
 
   const existing = await db.quoteRequest.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Quote request not found', 404)
+  if (!existing) {return errorResponse('Quote request not found', 404)}
 
   const data: any = {}
-  if (body.status !== undefined) data.status = body.status
-  if (body.name !== undefined) data.name = body.name
-  if (body.phone !== undefined) data.phone = body.phone
-  if (body.email !== undefined) data.email = body.email || null
-  if (body.serviceType !== undefined) data.serviceType = body.serviceType
-  if (body.description !== undefined) data.description = body.description
-  if (body.address !== undefined) data.address = body.address || null
-  if (body.budget !== undefined) data.budget = body.budget || null
+  if (body.status !== undefined) {data.status = body.status}
+  if (body.name !== undefined) {data.name = body.name}
+  if (body.phone !== undefined) {data.phone = body.phone}
+  if (body.email !== undefined) {data.email = body.email || null}
+  if (body.serviceType !== undefined) {data.serviceType = body.serviceType}
+  if (body.description !== undefined) {data.description = body.description}
+  if (body.address !== undefined) {data.address = body.address || null}
+  if (body.budget !== undefined) {data.budget = body.budget || null}
   // quotedPrice / adminNotes are not schema fields; ignored.
 
   const quote = await db.quoteRequest.update({ where: { id }, data })
@@ -83,11 +83,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.quoteRequest.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Quote request not found', 404)
+  if (!existing) {return errorResponse('Quote request not found', 404)}
 
   await db.quoteRequest.delete({ where: { id } })
 

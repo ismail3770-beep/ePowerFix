@@ -141,11 +141,11 @@ export default function AIProvidersPage() {
         defaultModel: form.defaultModel.trim(),
         enabled: form.enabled,
       };
-      if (form.apiKey.trim()) body.apiKey = form.apiKey.trim();
+      if (form.apiKey.trim()) {body.apiKey = form.apiKey.trim();}
 
       const config: Record<string, any> = {};
-      if (form.endpointPath.trim()) config.endpointPath = form.endpointPath.trim();
-      if (Object.keys(config).length > 0) body.config = config;
+      if (form.endpointPath.trim()) {config.endpointPath = form.endpointPath.trim();}
+      if (Object.keys(config).length > 0) {body.config = config;}
 
       if (editing) {
         await apiFetch(`/api/admin/ai-providers/${editing.id}`, {
@@ -173,7 +173,7 @@ export default function AIProvidersPage() {
 
   // ======================== DELETE ========================
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this provider?")) return;
+    if (!confirm("Delete this provider?")) {return;}
     try {
       await apiFetch(`/api/admin/ai-providers/${id}`, { method: "DELETE" });
       toast.success("Provider deleted");

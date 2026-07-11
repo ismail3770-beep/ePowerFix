@@ -32,7 +32,7 @@ export default function ProjectsSection() {
         <div className="flex items-end justify-between mb-6 sm:mb-8">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-              Engineering Projects
+              Projects
             </h2>
             <p className="text-sm text-slate-500 mt-1">
               Real-world installations delivered across Bangladesh

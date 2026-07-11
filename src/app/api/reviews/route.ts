@@ -15,8 +15,8 @@ export const GET = publicGetRoute(async (request) => {
   const { page, limit, skip } = getPagination(request.url)
 
   const where: any = { status: 'APPROVED' }
-  if (productId) where.productId = productId
-  if (serviceId) where.serviceId = serviceId
+  if (productId) {where.productId = productId}
+  if (serviceId) {where.serviceId = serviceId}
 
   // M18: When no filter is provided, don't dump the entire reviews table —
   // cap to a small "recent reviews" slice.

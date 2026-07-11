@@ -13,12 +13,13 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         '.next/',
-        'src/components/ui/**',  // shadcn/ui — don't test generated components
+        'src/components/ui/**',
         'examples/',
         'skills/',
       ],
     },
-    setupFiles: [],
+    setupFiles: ['src/test/setup.ts'],
+    testTimeout: 10000,
   },
   resolve: {
     alias: {

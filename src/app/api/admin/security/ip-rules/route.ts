@@ -19,7 +19,7 @@ export const GET = adminGetRoute(async (_request) => {
 // ─── POST /api/admin/security/ip-rules ────────────────────────────────────────
 
 export const POST = adminRoute(createIpRuleSchema, async (request, body, user) => {
-  if (!body.ip) return errorResponse('ip is required', 400)
+  if (!body.ip) {return errorResponse('ip is required', 400)}
 
   const rule = {
     id: `rule-${Date.now()}`,

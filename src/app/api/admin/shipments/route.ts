@@ -25,7 +25,7 @@ export const GET = adminGetRoute(async (request) => {
   const orderId = url.searchParams.get('orderId') || undefined
 
   const where: any = {}
-  if (orderId) where.orderId = orderId
+  if (orderId) {where.orderId = orderId}
 
   const shipments = await db.shipment.findMany({
     where,
@@ -39,13 +39,13 @@ export const GET = adminGetRoute(async (request) => {
 // ─── POST /api/admin/shipments ────────────────────────────────────────────────
 
 export const POST = adminRoute(createShipmentSchema, async (request, body, user) => {
-  if (!body.orderId) return errorResponse('orderId is required', 400)
+  if (!body.orderId) {return errorResponse('orderId is required', 400)}
 
   // An order can only have one shipment.
   const existing = await db.shipment.findUnique({
     where: { orderId: body.orderId },
   })
-  if (existing) return errorResponse('Shipment already exists for this order', 409)
+  if (existing) {return errorResponse('Shipment already exists for this order', 409)}
 
   const shipment = await db.shipment.create({
     data: {

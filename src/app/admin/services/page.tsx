@@ -74,7 +74,7 @@ export default function ServicesPage() {
       const payload = { ...form, categoryId: form.categoryId||null, image: form.image||null, description: form.description||null };
       if (editing) { await apiFetch(`/api/admin/services/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Service updated"); }
       else { await apiFetch("/api/admin/services", { method: "POST", body: JSON.stringify(payload) }); toast.success("Service created"); }
-      setDialog(false); if (!editing) clearFormDraft("admin-service-add"); load();
+      setDialog(false); if (!editing) {clearFormDraft("admin-service-add");} load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };
 
@@ -94,7 +94,7 @@ export default function ServicesPage() {
 
   const filtered = services.filter(s=>s.name.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;
+  if (loading) {return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;}
 
   return (
     <div className="space-y-6">
@@ -151,7 +151,7 @@ export default function ServicesPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) {setDeleteTarget(null);} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete service?</AlertDialogTitle>

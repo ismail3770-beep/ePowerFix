@@ -67,7 +67,7 @@ export default function BrandsPage() {
       if (editing) { await apiFetch(`/api/admin/brands/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Brand updated"); }
       else { await apiFetch("/api/admin/brands", { method: "POST", body: JSON.stringify(payload) }); toast.success("Brand created"); }
       setDialog(false);
-      if (!editing) clearFormDraft("admin-brand-add");
+      if (!editing) {clearFormDraft("admin-brand-add");}
       load();
     } catch { toast.error("Failed to save brand"); }
     finally { setSaving(false); }
@@ -81,7 +81,7 @@ export default function BrandsPage() {
 
   const filtered = brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;
+  if (loading) {return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;}
 
   return (
     <div className="space-y-6">

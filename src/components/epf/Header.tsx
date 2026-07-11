@@ -24,18 +24,21 @@ import {
   EPFCartFilled,
 } from "@/components/epf/icons/EPFIcons";
 
-const megaCategories = [
-  { icon: EPFCable, name: "Cables & Wires", slug: "cables-wires", dbSlug: "wires-cables" },
-  { icon: EPFSafetyShield, name: "Circuit Breakers", slug: "circuit-breakers", dbSlug: "circuit-breakers" },
-  { icon: EPFLightbulb, name: "LED & Lighting", slug: "led-lighting", dbSlug: "led-lights" },
-  { icon: EPFCpu, name: "Switches & Sockets", slug: "switches-sockets", dbSlug: "switches-sockets" },
-  { icon: EPFWrench, name: "Testing Tools", slug: "testing-tools", dbSlug: "tools-accessories" },
-  { icon: EPFHardHat, name: "Safety Equipment", slug: "safety-equipment", dbSlug: "" },
-  { icon: EPFPlug, name: "Motors & Drives", slug: "motors-drives", dbSlug: "" },
-  { icon: EPFSolar, name: "Solar Equipment", slug: "solar-equipment", dbSlug: "solar-equipment" },
-  { icon: EPFBookOpen, name: "Digital Guides", slug: "digital-guides", dbSlug: "" },
-  { icon: EPFSmartphone, name: "Smart Home", slug: "smart-home", dbSlug: "" },
-];
+interface ApiCategory {
+  id: string
+  name: string
+  nameBn: string | null
+  slug: string
+  icon: string | null
+  image: string | null
+  sortOrder: number
+  _count?: { products: number }
+}
+
+interface MegaCategory extends ApiCategory {
+  iconComponent: React.ElementType
+  dbSlug: string
+}
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -51,6 +54,7 @@ const subcategories = [
   "Flexible Cables", "Control Cables", "HT Cables", "Fire Resistant", "LSZH Cables",
 ];
 
+// Map slug to icon component
 const iconMap: Record<string, React.ElementType> = {
   "cables-wires": EPFCable,
   "circuit-breakers": EPFSafetyShield,
@@ -65,7 +69,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 function formatCount(count: number): string {
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+  if (count >= 1000) {return `${(count / 1000).toFixed(1)}k`;}
   return String(count);
 }
 
@@ -91,7 +95,7 @@ export default function Header() {
   }>({ products: [], services: [], projects: [] });
   const [showDropdown, setShowDropdown] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [megaCategories, setMegaCategories] = useState<MegaCategory[]>([]);
   const megaTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -105,25 +109,42 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  // Fetch categories from API on mount
   useEffect(() => {
     (async () => {
       try {
-        const data = await apiFetch<{ categories: { slug: string; _count?: { products: number } }[] }>("/api/products?countOnly=true");
-        const counts: Record<string, number> = {};
-        (data.categories ?? []).forEach((cat) => {
-          counts[cat.slug] = cat._count?.products ?? 0;
-        });
-        setCategoryCounts(counts);
+        const data = await apiFetch<{ categories: ApiCategory[] }>("/api/categories?counts=true");
+        const categoriesWithIcons = (data.categories ?? []).map((cat) => ({
+          ...cat,
+          iconComponent: iconMap[cat.slug] || EPFTag,
+          // Map API slugs to legacy dbSlugs for backwards compatibility
+          dbSlug: cat.slug === "wires-cables" ? "wires-cables" :
+                  cat.slug === "led-lights" ? "led-lights" :
+                  cat.slug === "switches-sockets" ? "switches-sockets" :
+                  cat.slug === "tools-accessories" ? "tools-accessories" :
+                  cat.slug === "solar-equipment" ? "solar-equipment" : "",
+        }));
+        setMegaCategories(categoriesWithIcons);
       } catch {
-        // Silently fail
+        // Fallback to minimal default if API fails
+        setMegaCategories([
+          { iconComponent: EPFCable, id: "fallback-1", name: "Cables & Wires", nameBn: null, slug: "cables-wires", icon: null, image: null, sortOrder: 0, _count: { products: 0 }, dbSlug: "wires-cables" },
+          { iconComponent: EPFSafetyShield, id: "fallback-2", name: "Circuit Breakers", nameBn: null, slug: "circuit-breakers", icon: null, image: null, sortOrder: 1, _count: { products: 0 }, dbSlug: "circuit-breakers" },
+          { iconComponent: EPFLightbulb, id: "fallback-3", name: "LED & Lighting", nameBn: null, slug: "led-lighting", icon: null, image: null, sortOrder: 2, _count: { products: 0 }, dbSlug: "led-lights" },
+          { iconComponent: EPFCpu, id: "fallback-4", name: "Switches & Sockets", nameBn: null, slug: "switches-sockets", icon: null, image: null, sortOrder: 3, _count: { products: 0 }, dbSlug: "switches-sockets" },
+          { iconComponent: EPFWrench, id: "fallback-5", name: "Testing Tools", nameBn: null, slug: "testing-tools", icon: null, image: null, sortOrder: 4, _count: { products: 0 }, dbSlug: "tools-accessories" },
+          { iconComponent: EPFHardHat, id: "fallback-6", name: "Safety Equipment", nameBn: null, slug: "safety-equipment", icon: null, image: null, sortOrder: 5, _count: { products: 0 }, dbSlug: "" },
+          { iconComponent: EPFPlug, id: "fallback-7", name: "Motors & Drives", nameBn: null, slug: "motors-drives", icon: null, image: null, sortOrder: 6, _count: { products: 0 }, dbSlug: "" },
+          { iconComponent: EPFSolar, id: "fallback-8", name: "Solar Equipment", nameBn: null, slug: "solar-equipment", icon: null, image: null, sortOrder: 7, _count: { products: 0 }, dbSlug: "solar-equipment" },
+          { iconComponent: EPFBookOpen, id: "fallback-9", name: "Digital Guides", nameBn: null, slug: "digital-guides", icon: null, image: null, sortOrder: 8, _count: { products: 0 }, dbSlug: "" },
+          { iconComponent: EPFSmartphone, id: "fallback-10", name: "Smart Home", nameBn: null, slug: "smart-home", icon: null, image: null, sortOrder: 9, _count: { products: 0 }, dbSlug: "" },
+        ]);
       }
     })();
   }, []);
 
-  const getCategoryCount = (cat: (typeof megaCategories)[number]): string => {
-    const key = cat.dbSlug || cat.slug;
-    const cnt = categoryCounts[key];
-    if (cnt === undefined) return "0";
+  const getCategoryCount = (cat: MegaCategory): string => {
+    const cnt = cat._count?.products ?? 0;
     return formatCount(cnt);
   };
 
@@ -134,7 +155,7 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    if (!mobileOpen) return;
+    if (!mobileOpen) {return;}
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
@@ -158,14 +179,14 @@ export default function Header() {
       return;
     }
     try {
-      const [prodRes, svcRes, projRes] = await Promise.allSettled([
-        apiFetch<{ data: { data: SearchResult[] } }>(`/api/products?search=${encodeURIComponent(query)}&limit=3`),
-        apiFetch<{ services: SearchResult[] }>(`/api/services?search=${encodeURIComponent(query)}&limit=2`),
-        apiFetch<{ data: SearchResult[] }>(`/api/projects?search=${encodeURIComponent(query)}&limit=2`),
-      ]);
-      const products = prodRes.status === "fulfilled" ? (prodRes.value?.data?.data ?? []) : [];
-      const services = svcRes.status === "fulfilled" ? (svcRes.value?.services ?? []) : [];
-      const projects = projRes.status === "fulfilled" ? (projRes.value?.data ?? []) : [];
+      const res = await apiFetch<{
+        products: SearchResult[];
+        services: SearchResult[];
+        projects: SearchResult[];
+      }>(`/api/search?q=${encodeURIComponent(query)}&productLimit=3&serviceLimit=2&projectLimit=2`);
+      const products = res.products ?? [];
+      const services = res.services ?? [];
+      const projects = res.projects ?? [];
       setSearchResults({ products, services, projects });
       setShowDropdown(true);
     } catch {
@@ -175,12 +196,12 @@ export default function Header() {
 
   const handleSearchChange = (val: string) => {
     setLocalSearch(val);
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (searchTimeout.current) {clearTimeout(searchTimeout.current);}
     searchTimeout.current = setTimeout(() => doSearch(val), 300);
   };
 
   const handleSearch = () => {
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (searchTimeout.current) {clearTimeout(searchTimeout.current);}
     setShowDropdown(false);
     setSearchQuery(localSearch);
     window.location.href = '/shop?search=' + encodeURIComponent(localSearch);
@@ -228,7 +249,7 @@ export default function Header() {
                   value={localSearch}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => localSearch.length >= 2 && setShowDropdown(true)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); if (e.key === "Escape") setShowDropdown(false); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") {handleSearch();} if (e.key === "Escape") {setShowDropdown(false);} }}
                   className="flex-1 h-full px-3 text-[15px] bg-white focus:outline-none text-slate-900 placeholder:text-slate-400"
                   aria-label="Search"
                 />

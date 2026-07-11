@@ -12,7 +12,7 @@ export const POST = publicRoute(schemas.serviceBooking, async (request, { servic
   const service = await db.service.findFirst({
     where: { id: serviceId, isActive: true },
   })
-  if (!service) return errorResponse('Service not found', 404)
+  if (!service) {return errorResponse('Service not found', 404)}
 
   // Attach the logged-in user if present (guests may also book).
   const auth = await requireAuth()

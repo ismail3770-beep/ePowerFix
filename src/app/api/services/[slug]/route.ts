@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { parseJsonField } from '@/lib/admin-api'
@@ -25,7 +25,7 @@ export async function GET(
       },
     })
 
-    if (!service) return errorResponse('Service not found', 404)
+    if (!service) {return errorResponse('Service not found', 404)}
 
     const parsed = {
       ...service,

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -38,7 +38,7 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const category = await db.productCategory.findUnique({
@@ -49,7 +49,7 @@ export const GET = withErrorHandling(async (
       children: { select: { id: true, name: true, slug: true } },
     },
   })
-  if (!category) return errorResponse('Category not found', 404)
+  if (!category) {return errorResponse('Category not found', 404)}
   return jsonResponse({ data: category })
 })
 
@@ -60,13 +60,13 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateCategorySchema)
 
   const existing = await db.productCategory.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Category not found', 404)
+  if (!existing) {return errorResponse('Category not found', 404)}
 
   const { name, nameBn, slug, image, icon, parentId, isActive, sortOrder } = body
 
@@ -87,16 +87,16 @@ export const PUT = withErrorHandling(async (
   }
 
   const data: any = {}
-  if (name !== undefined) data.name = name
-  if (nameBn !== undefined) data.nameBn = nameBn || existing.name
+  if (name !== undefined) {data.name = name}
+  if (nameBn !== undefined) {data.nameBn = nameBn || existing.name}
   if (slug !== undefined) {
     data.slug = slug || (name ? slugify(name) : existing.slug)
   }
-  if (image !== undefined) data.image = image || null
-  if (icon !== undefined) data.icon = icon || null
-  if (parentId !== undefined) data.parentId = parentId || null
-  if (isActive !== undefined) data.isActive = !!isActive
-  if (sortOrder !== undefined) data.sortOrder = Number(sortOrder)
+  if (image !== undefined) {data.image = image || null}
+  if (icon !== undefined) {data.icon = icon || null}
+  if (parentId !== undefined) {data.parentId = parentId || null}
+  if (isActive !== undefined) {data.isActive = !!isActive}
+  if (sortOrder !== undefined) {data.sortOrder = Number(sortOrder)}
 
   const category = await db.productCategory.update({
     where: { id },
@@ -121,11 +121,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.productCategory.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Category not found', 404)
+  if (!existing) {return errorResponse('Category not found', 404)}
 
   await db.productCategory.update({
     where: { id },

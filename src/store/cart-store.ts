@@ -23,8 +23,8 @@ export interface CartItem {
  */
 export function toOrderItemPayload(item: CartItem) {
   const itemType = item.itemType ?? 'PRODUCT'
-  if (itemType === 'SERVICE') return { itemType, serviceId: item.productId, quantity: item.quantity }
-  if (itemType === 'PROJECT') return { itemType, projectId: item.productId, quantity: item.quantity }
+  if (itemType === 'SERVICE') {return { itemType, serviceId: item.productId, quantity: item.quantity }}
+  if (itemType === 'PROJECT') {return { itemType, projectId: item.productId, quantity: item.quantity }}
   return {
     itemType,
     productId: item.productId,

@@ -929,7 +929,7 @@ export default function ShopPage() {
                 </div>
               ) : isLoading ? (
                 viewMode === "grid" ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4">
                     {Array.from({ length: 8 }).map((_, i) => (
                       <ShopCardSkeleton key={i} />
                     ))}
@@ -960,7 +960,7 @@ export default function ShopPage() {
               ) : (
                 <>
                   {viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4">
                       {processedProducts.map((product) => (
                         <ShopCard
                           key={product.id}

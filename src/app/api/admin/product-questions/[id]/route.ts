@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -14,12 +14,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { id } = await params
     const existing = await db.productQuestion.findUnique({ where: { id } })
-    if (!existing) return errorResponse('Question not found', 404)
+    if (!existing) {return errorResponse('Question not found', 404)}
 
     await db.productQuestion.delete({ where: { id } })
 

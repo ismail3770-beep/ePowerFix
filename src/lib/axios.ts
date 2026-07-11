@@ -14,17 +14,17 @@ interface AxiosRequestConfig {
   headers?: Record<string, string>
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const api = {
   async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     let finalUrl = url
     if (config?.params) {
       const searchParams = new URLSearchParams()
       Object.entries(config.params).forEach(([k, v]) => {
-        if (v !== undefined && v !== null) searchParams.set(k, String(v))
+        if (v !== undefined && v !== null) {searchParams.set(k, String(v))}
       })
       const qs = searchParams.toString()
-      if (qs) finalUrl += `?${qs}`
+      if (qs) {finalUrl += `?${qs}`}
     }
     const data = await apiFetch<T>(finalUrl, { headers: config?.headers })
     return { data, status: 200 }

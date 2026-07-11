@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -33,7 +33,7 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const kit = await db.projectKit.findUnique({
@@ -49,7 +49,7 @@ export const GET = withErrorHandling(async (
       },
     },
   })
-  if (!kit) return errorResponse('Kit not found', 404)
+  if (!kit) {return errorResponse('Kit not found', 404)}
 
   return jsonResponse({ data: { ...kit, images: parseJsonField(kit.images) } })
 })
@@ -61,31 +61,31 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateKitSchema)
 
   const existing = await db.projectKit.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Kit not found', 404)
+  if (!existing) {return errorResponse('Kit not found', 404)}
 
   const data: any = {}
-  if (body.title !== undefined) data.title = body.title
-  if (body.titleBn !== undefined) data.titleBn = body.titleBn || null
+  if (body.title !== undefined) {data.title = body.title}
+  if (body.titleBn !== undefined) {data.titleBn = body.titleBn || null}
   if (body.slug !== undefined) {
     const dupe = await db.projectKit.findFirst({ where: { slug: body.slug, NOT: { id } } })
-    if (dupe) return errorResponse('Slug already in use', 400)
+    if (dupe) {return errorResponse('Slug already in use', 400)}
     data.slug = body.slug
   }
-  if (body.description !== undefined) data.description = body.description
-  if (body.coverImage !== undefined) data.coverImage = body.coverImage || null
-  if (body.images !== undefined) data.images = stringifyJsonField(body.images)
-  if (body.category !== undefined) data.category = body.category || null
-  if (body.difficulty !== undefined) data.difficulty = body.difficulty || null
-  if (body.price !== undefined) data.price = Number(body.price)
-  if (body.salePrice !== undefined) data.salePrice = body.salePrice !== null ? Number(body.salePrice) : null
-  if (body.stock !== undefined) data.stock = Number(body.stock)
-  if (body.isActive !== undefined) data.isActive = !!body.isActive
+  if (body.description !== undefined) {data.description = body.description}
+  if (body.coverImage !== undefined) {data.coverImage = body.coverImage || null}
+  if (body.images !== undefined) {data.images = stringifyJsonField(body.images)}
+  if (body.category !== undefined) {data.category = body.category || null}
+  if (body.difficulty !== undefined) {data.difficulty = body.difficulty || null}
+  if (body.price !== undefined) {data.price = Number(body.price)}
+  if (body.salePrice !== undefined) {data.salePrice = body.salePrice !== null ? Number(body.salePrice) : null}
+  if (body.stock !== undefined) {data.stock = Number(body.stock)}
+  if (body.isActive !== undefined) {data.isActive = !!body.isActive}
 
   const kit = await db.projectKit.update({ where: { id }, data })
 
@@ -102,11 +102,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.projectKit.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Kit not found', 404)
+  if (!existing) {return errorResponse('Kit not found', 404)}
 
   await db.projectKit.delete({ where: { id } })
 

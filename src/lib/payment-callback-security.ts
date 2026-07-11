@@ -30,13 +30,13 @@ export async function verifyCallbackIp(): Promise<{ ok: true } | { ok: false; ip
     .map((s) => s.trim())
     .filter(Boolean)
 
-  if (whitelist.length === 0) return { ok: true }
-  if (whitelist.includes(ip)) return { ok: true }
+  if (whitelist.length === 0) {return { ok: true }}
+  if (whitelist.includes(ip)) {return { ok: true }}
 
   // Support simple CIDR matching (e.g. "192.168.1.0/24").
   for (const entry of whitelist) {
     if (entry.includes('/')) {
-      if (isIpInCidr(ip, entry)) return { ok: true }
+      if (isIpInCidr(ip, entry)) {return { ok: true }}
     }
   }
 
@@ -47,12 +47,12 @@ function isIpInCidr(ip: string, cidr: string): boolean {
   try {
     const [range, bitsStr] = cidr.split('/')
     const bits = parseInt(bitsStr, 10)
-    if (isNaN(bits)) return false
+    if (isNaN(bits)) {return false}
     const ipParts = ip.split('.').map((n) => parseInt(n, 10))
     const rangeParts = range.split('.').map((n) => parseInt(n, 10))
-    if (ipParts.length !== 4 || rangeParts.length !== 4) return false
-    if (ipParts.some((n) => isNaN(n) || n < 0 || n > 255)) return false
-    if (rangeParts.some((n) => isNaN(n) || n < 0 || n > 255)) return false
+    if (ipParts.length !== 4 || rangeParts.length !== 4) {return false}
+    if (ipParts.some((n) => isNaN(n) || n < 0 || n > 255)) {return false}
+    if (rangeParts.some((n) => isNaN(n) || n < 0 || n > 255)) {return false}
 
     const ipNum =
       (ipParts[0] << 24) | (ipParts[1] << 16) | (ipParts[2] << 8) | ipParts[3]

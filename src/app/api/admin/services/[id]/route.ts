@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -19,7 +19,7 @@ function slugify(text: string): string {
 }
 
 function mapService(s: any) {
-  if (!s) return s
+  if (!s) {return s}
   const images = parseJsonField(s.images)
   return {
     ...s,
@@ -59,14 +59,14 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const service = await db.service.findUnique({
     where: { id },
     include: { category: true },
   })
-  if (!service) return errorResponse('Service not found', 404)
+  if (!service) {return errorResponse('Service not found', 404)}
   return jsonResponse({ data: mapService(service) })
 })
 
@@ -77,36 +77,36 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateServiceSchema)
 
   const existing = await db.service.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Service not found', 404)
+  if (!existing) {return errorResponse('Service not found', 404)}
 
   const data: any = {}
 
-  if (body.name !== undefined) data.name = body.name
-  if (body.nameBn !== undefined) data.nameBn = body.nameBn || null
-  if (body.description !== undefined) data.description = body.description
-  if (body.shortDesc !== undefined) data.shortDesc = body.shortDesc || null
-  if (body.duration !== undefined) data.shortDesc = body.duration || null
-  if (body.priceUnit !== undefined) data.priceUnit = body.priceUnit
-  if (body.features !== undefined) data.features = body.features || null
+  if (body.name !== undefined) {data.name = body.name}
+  if (body.nameBn !== undefined) {data.nameBn = body.nameBn || null}
+  if (body.description !== undefined) {data.description = body.description}
+  if (body.shortDesc !== undefined) {data.shortDesc = body.shortDesc || null}
+  if (body.duration !== undefined) {data.shortDesc = body.duration || null}
+  if (body.priceUnit !== undefined) {data.priceUnit = body.priceUnit}
+  if (body.features !== undefined) {data.features = body.features || null}
 
-  if (body.price !== undefined) data.basePrice = Number(body.price)
-  if (body.basePrice !== undefined) data.basePrice = Number(body.basePrice)
+  if (body.price !== undefined) {data.basePrice = Number(body.price)}
+  if (body.basePrice !== undefined) {data.basePrice = Number(body.basePrice)}
 
-  if (body.isFeatured !== undefined) data.isFeatured = !!body.isFeatured
-  if (body.featured !== undefined) data.isFeatured = !!body.featured
-  if (body.isActive !== undefined) data.isActive = !!body.isActive
+  if (body.isFeatured !== undefined) {data.isFeatured = !!body.isFeatured}
+  if (body.featured !== undefined) {data.isFeatured = !!body.featured}
+  if (body.isActive !== undefined) {data.isActive = !!body.isActive}
 
   if (body.categoryId !== undefined && body.categoryId) {
     const cat = await db.serviceCategory.findUnique({
       where: { id: body.categoryId },
     })
-    if (!cat) return errorResponse('categoryId does not exist', 400)
+    if (!cat) {return errorResponse('categoryId does not exist', 400)}
     data.categoryId = body.categoryId
   }
 
@@ -153,11 +153,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.service.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Service not found', 404)
+  if (!existing) {return errorResponse('Service not found', 404)}
 
   await db.service.update({
     where: { id },

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse } from '@/lib/auth'
 import { cache, cacheKeys } from '@/lib/cache'
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     const banners = await cache.getOrSet(cacheKeys.banners(type), 300, async () => {
       const where: any = { isActive: true }
-      if (type) where.type = type
+      if (type) {where.type = type}
 
       return await db.banner.findMany({
         where,

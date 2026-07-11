@@ -53,7 +53,7 @@ export function SiteThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!settings) return;
+    if (!settings) {return;}
 
     const el = document.documentElement;
     const s = settings;
@@ -125,7 +125,7 @@ export function SiteThemeProvider({ children }: { children: React.ReactNode }) {
 
 function applySettings(data: PublicSettings) {
   // Immediate application on first load (before React hydration catches up)
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined") {return;}
   const el = document.documentElement;
   if (data.primaryColor) {
     const hsl = hexToHsl(data.primaryColor);

@@ -55,11 +55,11 @@ function formatDate(dateStr: string) {
 }
 
 function parseImages(val: unknown): string[] {
-  if (Array.isArray(val)) return val as string[];
+  if (Array.isArray(val)) {return val as string[];}
   if (typeof val === "string") {
     try {
       const p = JSON.parse(val);
-      if (Array.isArray(p)) return p;
+      if (Array.isArray(p)) {return p;}
     } catch {
       /* ignore */
     }
@@ -68,7 +68,7 @@ function parseImages(val: unknown): string[] {
 }
 
 function getCover(project: ProjectItem): string | null {
-  if (project.coverImage) return project.coverImage;
+  if (project.coverImage) {return project.coverImage;}
   const imgs = project.images
     ? Array.isArray(project.images)
       ? project.images
@@ -217,14 +217,14 @@ function Pagination({
   total: number;
   onChange: (page: number) => void;
 }) {
-  if (total <= 1) return null;
+  if (total <= 1) {return null;}
 
   const pages: (number | "...")[] = [];
   if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
+    for (let i = 1; i <= total; i++) {pages.push(i);}
   } else {
     pages.push(1);
-    if (current > 3) pages.push("...");
+    if (current > 3) {pages.push("...");}
     for (
       let i = Math.max(2, current - 1);
       i <= Math.min(total - 1, current + 1);
@@ -232,7 +232,7 @@ function Pagination({
     ) {
       pages.push(i);
     }
-    if (current < total - 2) pages.push("...");
+    if (current < total - 2) {pages.push("...");}
     pages.push(total);
   }
 

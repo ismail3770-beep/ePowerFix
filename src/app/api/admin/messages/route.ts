@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -14,7 +14,7 @@ import {
  * (String, default 'NEW'). We derive `isRead` = (status !== 'NEW').
  */
 function mapMessage(m: any) {
-  if (!m) return m
+  if (!m) {return m}
   return {
     ...m,
     isRead: m.status !== 'NEW',
@@ -27,7 +27,7 @@ function mapMessage(m: any) {
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   try {
     const { page, limit, skip, search } = getPagination(request.url)
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
     const where: any = {}
-    if (status) where.status = status
+    if (status) {where.status = status}
     if (search) {
       where.OR = [
         { name: { contains: search } },

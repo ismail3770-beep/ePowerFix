@@ -46,7 +46,7 @@ export async function notifyAdmins(
       where: { role: 'ADMIN', isActive: true, isDeleted: false },
       select: { id: true },
     })
-    if (admins.length === 0) return
+    if (admins.length === 0) {return}
 
     await db.notification.createMany({
       data: admins.map((a) => ({

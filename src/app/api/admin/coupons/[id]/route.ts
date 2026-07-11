@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -8,7 +8,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapCoupon(c: any) {
-  if (!c) return c
+  if (!c) {return c}
   return {
     ...c,
     discount: c.value,
@@ -50,11 +50,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const coupon = await db.coupon.findUnique({ where: { id } })
-  if (!coupon) return errorResponse('Coupon not found', 404)
+  if (!coupon) {return errorResponse('Coupon not found', 404)}
   return jsonResponse({ data: mapCoupon(coupon) })
 })
 
@@ -65,19 +65,19 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateCouponSchema)
 
   const existing = await db.coupon.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Coupon not found', 404)
+  if (!existing) {return errorResponse('Coupon not found', 404)}
 
   const data: any = {}
 
   if (body.code !== undefined) {
     const code = (body.code || '').toString().trim().toUpperCase()
-    if (!code) return errorResponse('code cannot be empty', 400)
+    if (!code) {return errorResponse('code cannot be empty', 400)}
     if (code !== existing.code) {
       const owner = await db.coupon.findUnique({ where: { code } })
       if (owner && owner.id !== id) {
@@ -86,9 +86,9 @@ export const PUT = withErrorHandling(async (
     }
     data.code = code
   }
-  if (body.name !== undefined) data.name = body.name
-  if (body.nameBn !== undefined) data.nameBn = body.nameBn || null
-  if (body.description !== undefined) data.description = body.description || null
+  if (body.name !== undefined) {data.name = body.name}
+  if (body.nameBn !== undefined) {data.nameBn = body.nameBn || null}
+  if (body.description !== undefined) {data.description = body.description || null}
   if (body.type !== undefined || body.discountType !== undefined) {
     data.type = body.type || body.discountType
   }
@@ -116,7 +116,7 @@ export const PUT = withErrorHandling(async (
     const e = body.expiresAt !== undefined ? body.expiresAt : body.validTo
     data.endDate = e ? new Date(e) : existing.endDate
   }
-  if (body.isActive !== undefined) data.isActive = !!body.isActive
+  if (body.isActive !== undefined) {data.isActive = !!body.isActive}
 
   // Validate date range if both are present.
   const startDate = data.startDate || existing.startDate
@@ -136,11 +136,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.coupon.findUnique({ where: { id } })
-  if (!existing) return errorResponse('Coupon not found', 404)
+  if (!existing) {return errorResponse('Coupon not found', 404)}
 
   await db.coupon.update({
     where: { id },

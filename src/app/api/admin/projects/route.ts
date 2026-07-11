@@ -45,7 +45,7 @@ export const GET = adminGetRoute(async (request) => {
   const status = rawStatus && rawStatus !== 'all' ? rawStatus.toUpperCase() : undefined
 
   const where: any = { isDeleted: false }
-  if (status) where.status = status
+  if (status) {where.status = status}
   if (search) {
     where.OR = [
       { title: { contains: search } },
@@ -76,12 +76,12 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createProjectSchema, async (request, body, user) => {
   const { title, description } = body
-  if (!title) return errorResponse('title is required', 400)
-  if (!description) return errorResponse('description is required', 400)
+  if (!title) {return errorResponse('title is required', 400)}
+  if (!description) {return errorResponse('description is required', 400)}
 
   let slug = body.slug || slugify(title)
   const slugExists = await db.project.findUnique({ where: { slug } })
-  if (slugExists) slug = `${slug}-${Date.now().toString(36)}`
+  if (slugExists) {slug = `${slug}-${Date.now().toString(36)}`}
 
   const project = await db.project.create({
     data: {

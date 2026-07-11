@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { requireAdmin, jsonResponse, errorResponse } from '@/lib/admin-api'
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -11,7 +11,7 @@ export async function DELETE(
 ) {
   try {
     const auth = await requireAdmin()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
 
     const { filename } = await params
 
@@ -38,7 +38,7 @@ export async function DELETE(
     for (const folder of folders) {
       const folderPath = path.join(UPLOAD_DIR, folder)
       const stat = await fs.stat(folderPath).catch(() => null)
-      if (!stat || !stat.isDirectory()) continue
+      if (!stat || !stat.isDirectory()) {continue}
 
       const filePath = path.join(folderPath, filename)
       try {

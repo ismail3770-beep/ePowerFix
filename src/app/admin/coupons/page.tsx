@@ -63,7 +63,7 @@ export default function CouponsPage() {
       const payload = { ...form, minOrder: form.minOrder||null, maxUses: form.maxUses||null };
       if (editing) { await apiFetch(`/api/admin/coupons/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Coupon updated"); }
       else { await apiFetch("/api/admin/coupons", { method: "POST", body: JSON.stringify(payload) }); toast.success("Coupon created"); }
-      setDialog(false); if (!editing) clearFormDraft("admin-coupon-add"); load();
+      setDialog(false); if (!editing) {clearFormDraft("admin-coupon-add");} load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };
 
@@ -88,16 +88,16 @@ export default function CouponsPage() {
 
   const filtered = coupons.filter(c=>c.code.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;
+  if (loading) {return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;}
 
   const today = new Date();
   // L10: A coupon is "Active" only if today falls between validFrom AND validTo.
   const isCurrentlyValid = (c: Coupon) => {
-    if (!c.validTo) return false;
+    if (!c.validTo) {return false;}
     const from = c.validFrom ? new Date(c.validFrom) : null;
     const to = new Date(c.validTo);
-    if (to <= today) return false;
-    if (from && from > today) return false; // scheduled for the future
+    if (to <= today) {return false;}
+    if (from && from > today) {return false;} // scheduled for the future
     return true;
   };
 
@@ -150,7 +150,7 @@ export default function CouponsPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) {setDeleteTarget(null);} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete coupon?</AlertDialogTitle>

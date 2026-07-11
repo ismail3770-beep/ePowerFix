@@ -65,9 +65,9 @@ export const GET = adminGetRoute(async (request) => {
       : isActiveParam === 'true'
 
   const where: any = {}
-  if (categoryId) where.categoryId = categoryId
-  if (brandId) where.brandId = brandId
-  if (isActive !== undefined) where.isActive = isActive
+  if (categoryId) {where.categoryId = categoryId}
+  if (brandId) {where.brandId = brandId}
+  if (isActive !== undefined) {where.isActive = isActive}
   if (search) {
     where.OR = [
       { name: { contains: search } },
@@ -122,7 +122,7 @@ export const POST = adminRoute(createProductSchema, async (request, body, user) 
   // SKU uniqueness check (if provided)
   if (sku) {
     const skuExists = await db.product.findUnique({ where: { sku } })
-    if (skuExists) return errorResponse('SKU already exists', 400)
+    if (skuExists) {return errorResponse('SKU already exists', 400)}
   }
 
   // C4: categoryId/brandId are required by the DB schema, but the Zod schema
@@ -146,8 +146,8 @@ export const POST = adminRoute(createProductSchema, async (request, body, user) 
     db.productCategory.findUnique({ where: { id: normalizedCat }, select: { id: true } }),
     db.brand.findUnique({ where: { id: normalizedBrand }, select: { id: true } }),
   ])
-  if (!catExists) return errorResponse('Selected category does not exist. Please refresh and try again.', 400)
-  if (!brandExists) return errorResponse('Selected brand does not exist. Please refresh and try again.', 400)
+  if (!catExists) {return errorResponse('Selected category does not exist. Please refresh and try again.', 400)}
+  if (!brandExists) {return errorResponse('Selected brand does not exist. Please refresh and try again.', 400)}
 
   const product = await db.product.create({
     data: {

@@ -35,7 +35,7 @@ const timeSlots = [
 ];
 
 function parseImages(field: unknown): string[] {
-  if (Array.isArray(field)) return field.filter((i: unknown) => typeof i === "string");
+  if (Array.isArray(field)) {return field.filter((i: unknown) => typeof i === "string");}
   if (typeof field === "string") {
     try { const p = JSON.parse(field); return Array.isArray(p) ? p.filter((i: unknown) => typeof i === "string") : []; }
     catch { return []; }
@@ -60,7 +60,7 @@ export default function ServiceBookingDialog() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!bookingServiceId || !serviceBookingOpen) return;
+    if (!bookingServiceId || !serviceBookingOpen) {return;}
     fetch(`/api/services?category=all`)
       .then((r) => r.json())
       .then((data) => {
@@ -125,7 +125,7 @@ export default function ServiceBookingDialog() {
   };
 
   return (
-    <Dialog open={serviceBookingOpen} onOpenChange={(open) => { if (!open) handleClose(); }}>
+    <Dialog open={serviceBookingOpen} onOpenChange={(open) => { if (!open) {handleClose();} }}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>সার্ভিস বুকিং করুন</DialogTitle>

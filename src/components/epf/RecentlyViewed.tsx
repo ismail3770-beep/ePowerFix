@@ -36,7 +36,7 @@ export function addRecentlyViewed(
     images: string[];
   }
 ) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -93,7 +93,7 @@ export default function RecentlyViewed() {
     setProducts([]);
   };
 
-  if (products.length === 0) return null;
+  if (products.length === 0) {return null;}
 
   return (
     <section className="py-10 sm:py-14 bg-slate-50">

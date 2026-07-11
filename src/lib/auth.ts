@@ -90,7 +90,7 @@ export async function getSession(): Promise<SessionUser | null> {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get(COOKIE_NAME)?.value
-    if (!token) return null
+    if (!token) {return null}
 
     const secret = getJwtSecret()
     const { payload } = await jwtVerify(token, secret, {
@@ -98,7 +98,7 @@ export async function getSession(): Promise<SessionUser | null> {
       audience: AUDIENCE,
     })
     const userId = payload.id as string | undefined
-    if (!userId) return null
+    if (!userId) {return null}
 
     const user = await db.user.findUnique({
       where: { id: userId },
@@ -108,7 +108,7 @@ export async function getSession(): Promise<SessionUser | null> {
         address: true, area: true, city: true, postalCode: true,
       },
     })
-    if (!user || !user.isActive) return null
+    if (!user || !user.isActive) {return null}
     return user
   } catch {
     return null
@@ -137,7 +137,7 @@ export async function requireAuth(): Promise<AuthResult> {
  */
 export async function requireAdmin(): Promise<AuthResult> {
   const auth = await requireAuth()
-  if (!auth.ok) return auth
+  if (!auth.ok) {return auth}
   if (auth.user!.role !== 'ADMIN') {
     return {
       ok: false,
@@ -172,7 +172,7 @@ export async function maybeRefreshSession(user: SessionUser): Promise<void> {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get(COOKIE_NAME)?.value
-    if (!token) return
+    if (!token) {return}
 
     const secret = getJwtSecret()
     const { payload } = await jwtVerify(token, secret, {

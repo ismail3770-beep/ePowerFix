@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 
@@ -9,7 +9,7 @@ import { jsonResponse, errorResponse, requireAuth } from '@/lib/auth'
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAuth()
-    if (!auth.ok) return auth.response!
+    if (!auth.ok) {return auth.response!}
 
     const url = new URL(request.url)
     const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get('limit') || '10', 10)))

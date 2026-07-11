@@ -15,7 +15,7 @@ import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
  * We expose BOTH names so the API stays compatible with the task spec and UI.
  */
 function mapFlashSale(f: any) {
-  if (!f) return f
+  if (!f) {return f}
   return {
     ...f,
     discountPercent: f.discount,
@@ -54,8 +54,8 @@ export const GET = adminGetRoute(async (request) => {
       { description: { contains: search } },
     ]
   }
-  if (status === 'active') where.isActive = true
-  if (status === 'inactive') where.isActive = false
+  if (status === 'active') {where.isActive = true}
+  if (status === 'inactive') {where.isActive = false}
 
   const [flashSales, total] = await Promise.all([
     db.flashSale.findMany({
@@ -75,12 +75,12 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createFlashSaleSchema, async (request, body, user) => {
   const title = (body.title || '').toString().trim()
-  if (!title) return errorResponse('title is required', 400)
+  if (!title) {return errorResponse('title is required', 400)}
 
   const startDateRaw = body.startDate || body.startsAt
   const endDateRaw = body.endDate || body.expiresAt
-  if (!startDateRaw) return errorResponse('startDate is required', 400)
-  if (!endDateRaw) return errorResponse('endDate is required', 400)
+  if (!startDateRaw) {return errorResponse('startDate is required', 400)}
+  if (!endDateRaw) {return errorResponse('endDate is required', 400)}
 
   const startDate = new Date(startDateRaw)
   const endDate = new Date(endDateRaw)

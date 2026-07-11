@@ -133,7 +133,7 @@ export default function AdminSidebar({
     apiFetch<{ data?: { total?: number } }>("/api/admin/messages?status=NEW&limit=1")
       .then((res) => {
         const total = res?.data?.total ?? 0;
-        if (total > 0) setBadgeCounts({ messages: total });
+        if (total > 0) {setBadgeCounts({ messages: total });}
       })
       .catch(() => {});
   }, []);

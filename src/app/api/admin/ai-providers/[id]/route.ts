@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import {
   requireAdmin,
@@ -9,7 +9,7 @@ import {
 import { withErrorHandling, validateBody, z } from '@/lib/api-handler'
 
 function mapProvider(p: any) {
-  if (!p) return p
+  if (!p) {return p}
   return {
     ...p,
     isActive: p.enabled,
@@ -47,11 +47,11 @@ export const GET = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const provider = await db.aiProvider.findUnique({ where: { id } })
-  if (!provider) return errorResponse('AI provider not found', 404)
+  if (!provider) {return errorResponse('AI provider not found', 404)}
   return jsonResponse({ data: mapProvider(provider) })
 })
 
@@ -62,22 +62,22 @@ export const PUT = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const body = await validateBody(request, updateProviderSchema)
 
   const existing = await db.aiProvider.findUnique({ where: { id } })
-  if (!existing) return errorResponse('AI provider not found', 404)
+  if (!existing) {return errorResponse('AI provider not found', 404)}
 
   const data: any = {}
-  if (body.name !== undefined) data.name = body.name
-  if (body.type !== undefined) data.type = (body.type || '').toString().toUpperCase()
-  if (body.apiKey !== undefined) data.apiKey = body.apiKey || null
-  if (body.baseUrl !== undefined) data.baseUrl = body.baseUrl
-  if (body.defaultModel !== undefined) data.defaultModel = body.defaultModel
-  if (body.model !== undefined) data.defaultModel = body.model
-  if (body.isActive !== undefined) data.enabled = !!body.isActive
+  if (body.name !== undefined) {data.name = body.name}
+  if (body.type !== undefined) {data.type = (body.type || '').toString().toUpperCase()}
+  if (body.apiKey !== undefined) {data.apiKey = body.apiKey || null}
+  if (body.baseUrl !== undefined) {data.baseUrl = body.baseUrl}
+  if (body.defaultModel !== undefined) {data.defaultModel = body.defaultModel}
+  if (body.model !== undefined) {data.defaultModel = body.model}
+  if (body.isActive !== undefined) {data.enabled = !!body.isActive}
   if (body.sortOrder !== undefined && body.sortOrder !== null) {
     data.sortOrder = Number(body.sortOrder)
   }
@@ -99,11 +99,11 @@ export const DELETE = withErrorHandling(async (
   { params }: { params: Promise<{ id: string }> }
 ) => {
   const auth = await requireAdmin()
-  if (!auth.ok) return auth.response!
+  if (!auth.ok) {return auth.response!}
 
   const { id } = await params
   const existing = await db.aiProvider.findUnique({ where: { id } })
-  if (!existing) return errorResponse('AI provider not found', 404)
+  if (!existing) {return errorResponse('AI provider not found', 404)}
 
   await db.aiProvider.delete({ where: { id } })
 

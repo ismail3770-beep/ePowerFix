@@ -15,7 +15,7 @@ import { adminGetRoute, adminRoute, z } from '@/lib/api-handler'
  * names so the API stays compatible with the task spec and the UI.
  */
 function mapTax(t: any) {
-  if (!t) return t
+  if (!t) {return t}
   return {
     ...t,
     value: t.rate,
@@ -59,7 +59,7 @@ export const GET = adminGetRoute(async (request) => {
 
 export const POST = adminRoute(createTaxSchema, async (request, body, user) => {
   const name = (body.name || '').toString().trim()
-  if (!name) return errorResponse('name is required', 400)
+  if (!name) {return errorResponse('name is required', 400)}
 
   const type = (body.type || 'PERCENTAGE').toString().toUpperCase()
   if (!['PERCENTAGE', 'FLAT'].includes(type)) {

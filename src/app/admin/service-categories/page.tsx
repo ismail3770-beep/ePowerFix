@@ -100,7 +100,7 @@ export default function AdminServiceCategoriesPage() {
         toast.success("Category created");
       }
       setDialog({ open: false });
-      if (!dialog.edit) clearFormDraft("admin-service-category-add");
+      if (!dialog.edit) {clearFormDraft("admin-service-category-add");}
       fetchCategories();
     } catch (err: any) {
       toast.error(err?.message || "Failed to save");
@@ -110,7 +110,7 @@ export default function AdminServiceCategoriesPage() {
   }
 
   async function remove(c: ServiceCategory) {
-    if (!confirm(`Delete "${c.name}"?`)) return;
+    if (!confirm(`Delete "${c.name}"?`)) {return;}
     try {
       await apiFetch(`/api/admin/service-categories/${c.id}`, { method: "DELETE" });
       toast.success("Category deleted");
@@ -179,7 +179,7 @@ export default function AdminServiceCategoriesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) setDialog({ open: false }); }}>
+      <Dialog open={dialog.open} onOpenChange={(o) => { if (!o) {setDialog({ open: false });} }}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>{dialog.edit ? "Edit Category" : "Add Service Category"}</DialogTitle></DialogHeader>
           <div className="space-y-4">

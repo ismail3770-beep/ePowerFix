@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 import { db } from '@/lib/db'
 
 // Force dynamic rendering — sitemap depends on database which may not
