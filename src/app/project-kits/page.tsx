@@ -437,17 +437,21 @@ function FilterSidebar({
                 className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg p-1.5 transition-colors"
               >
                 <div className="w-10 h-10 bg-slate-100 rounded-md overflow-hidden shrink-0">
-                  {kit.coverImage ? (
-                    <img
-                      src={kit.coverImage}
-                      alt={kit.title}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Boxes className="w-4 h-4 text-slate-300" />
-                    </div>
-                  )}
+                  {(() => {
+                    const images = parseImages(kit.images);
+                    const cover = kit.coverImage || images[0];
+                    return cover ? (
+                      <img
+                        src={cover}
+                        alt={kit.title}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Boxes className="w-4 h-4 text-slate-300" />
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] text-slate-600 truncate">{kit.title}</p>
@@ -602,12 +606,12 @@ export default function ProjectKitsPage() {
   const baseKits: Kit[] = data?.data ?? [];
 
   /* ---- Latest kits for sidebar (dedicated query) ---- */
-  const { data: latestKitsData } = useQuery({
+  const { data: latestKitsData } = useQuery<{ data: Kit[] }>({
     queryKey: ["latest-kits-sidebar"],
-    queryFn: () => apiFetch("/api/project-kits?limit=5&sort=newest"),
+    queryFn: () => apiFetch("/api/project-kits"),
     staleTime: 5 * 60 * 1000,
   });
-  const latestKits: Kit[] = latestKitsData?.data?.data ?? [];
+  const latestKits: Kit[] = latestKitsData?.data ?? [];
 
   /* ---- Derived data with client-side sort + filter ---- */
   const processedKits = useMemo(() => {
