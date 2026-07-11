@@ -110,13 +110,13 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         className
       )}
     >
-      {/* ─── Image Area (square proportion, modern look) ─── */}
-      <div className="relative aspect-square bg-slate-50 overflow-hidden">
+      {/* ─── Image Area (compact 4:3 landscape) ─── */}
+      <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -175,24 +175,24 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         </button>
       </div>
 
-      {/* ─── Content Area ─── */}
-      <div className="flex flex-col flex-1 p-3 gap-1.5">
+      {/* ─── Content Area (compact) ─── */}
+      <div className="flex flex-col flex-1 p-2.5 gap-1">
         {/* Title */}
         <h3
-          className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-[1.4] min-h-[2.4rem] group-hover:text-epf-600 transition-colors"
+          className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-[1.35] min-h-[2.2rem] group-hover:text-epf-600 transition-colors"
           title={data.name}
         >
           {data.name}
         </h3>
 
         {/* Price */}
-        <div className="mt-auto pt-1 flex items-baseline gap-1.5 flex-wrap">
+        <div className="mt-auto pt-0.5 flex items-baseline gap-1.5 flex-wrap">
           {showOriginal && (
-            <del className="text-[12px] font-normal text-slate-400">
+            <del className="text-[11px] font-normal text-slate-400">
               ৳{Number(originalPrice).toLocaleString()}
             </del>
           )}
-          <span className="text-[15px] font-bold text-epf-600">
+          <span className="text-[14px] font-bold text-epf-600">
             ৳{Number(displayPrice).toLocaleString()}
           </span>
         </div>
@@ -210,7 +210,7 @@ export const PremiumCard = memo(PremiumCardBase);
 export function PremiumCardSkeleton() {
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="aspect-square bg-slate-100 animate-pulse" />
+      <div className="aspect-[4/3] bg-slate-100 animate-pulse" />
       <div className="p-3 space-y-2">
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
