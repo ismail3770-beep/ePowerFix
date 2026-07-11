@@ -34,11 +34,7 @@ import ServiceBookingDialog from "@/components/epf/ServiceBookingDialog";
 import ProjectDetailDialog from "@/components/epf/ProjectDetailDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
-import {
-  PremiumCard,
-  PremiumCardSkeleton,
-  type PremiumCardData,
-} from "@/components/epf/PremiumCard";
+
 import {
   ShopCard,
   ShopCardSkeleton,
@@ -1145,9 +1141,9 @@ export default function ShopPage() {
               ) : isLoading ? (
                 viewMode === "grid" ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-{Array.from({ length: 8 }).map((_, i) => (
-  <ShopCardSkeleton key={i} />
-))}
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <ShopCardSkeleton key={i} />
+                    ))}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
@@ -1176,13 +1172,13 @@ export default function ShopPage() {
                 <>
                   {viewMode === "grid" ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-{processedProducts.map((product) => (
-  <ShopCard
-    key={product.id}
-    data={productToCardData(product)}
-    onCardClick={handleCardClick}
-  />
-))}
+                      {processedProducts.map((product) => (
+                        <ShopCard
+                          key={product.id}
+                          data={productToCardData(product)}
+                          onCardClick={handleCardClick}
+                        />
+                      ))}
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4">
