@@ -40,6 +40,11 @@ import {
   type PremiumCardData,
 } from "@/components/epf/PremiumCard";
 import {
+  ShopCard,
+  ShopCardSkeleton,
+  type ShopCardData,
+} from "@/components/epf/ShopCard";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -72,7 +77,7 @@ interface Product {
   salePrice?: number | null;
   comparePrice?: number | null;
   rating: number;
-  review_count?: number;
+  reviewCount?: number;
   reviews?: number;
   stock: number;
   sold?: number;
@@ -111,8 +116,8 @@ type SortOption = "featured" | "newest" | "price-asc" | "price-desc" | "popular"
 type ViewMode = "grid" | "list";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "newest", label: "Latest" },
   { value: "featured", label: "Featured" },
-  { value: "newest", label: "Newest" },
   { value: "popular", label: "Popular" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
@@ -123,7 +128,7 @@ const RATING_OPTIONS = [4, 3, 2, 1];
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-function productToCardData(p: Product): PremiumCardData {
+function productToCardData(p: Product): ShopCardData {
   return {
     id: p.id,
     name: p.name,
@@ -135,8 +140,8 @@ function productToCardData(p: Product): PremiumCardData {
     isFeatured: p.isFeatured,
     isBestDeal: p.isBestDeal,
     stock: p.stock,
-    sku: p.sku,
-    category: p.category?.name || null,
+    rating: p.rating,
+    reviewCount: p.reviewCount ?? p.reviews,
   };
 }
 
@@ -175,7 +180,7 @@ function ProductCardList({ product }: { product: Product }) {
   const isDigital =
     product.name?.toLowerCase().includes("guide") ||
     product.name?.toLowerCase().includes("pdf");
-  const reviewCount = product.review_count ?? product.reviews ?? 0;
+  const reviewCount = product.reviewCount ?? product.reviews ?? 0;
   const displayPrice = product.salePrice ?? product.price;
   const originalPrice = product.comparePrice ?? null;
 
@@ -441,7 +446,7 @@ function FilterSidebar({
               value={minPriceInput}
               onChange={(e) => onMinPriceInputChange(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") onApplyPrice();
+                if (e.key === "Enter") {onApplyPrice();}
               }}
               className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
             />
@@ -454,7 +459,7 @@ function FilterSidebar({
               value={maxPriceInput}
               onChange={(e) => onMaxPriceInputChange(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") onApplyPrice();
+                if (e.key === "Enter") {onApplyPrice();}
               }}
               className="w-full h-9 px-3 text-[13px] text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-epf-500/20 focus:border-epf-500 placeholder:text-slate-400 transition-all"
             />
@@ -661,14 +666,14 @@ function Pagination({
   totalPages: number;
   onPageChange: (page: number) => void;
 }) {
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) {return null;}
 
   const pages: (number | "...")[] = [];
   if (totalPages <= 7) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
+    for (let i = 1; i <= totalPages; i++) {pages.push(i);}
   } else {
     pages.push(1);
-    if (currentPage > 3) pages.push("...");
+    if (currentPage > 3) {pages.push("...");}
     for (
       let i = Math.max(2, currentPage - 1);
       i <= Math.min(totalPages - 1, currentPage + 1);
@@ -676,7 +681,7 @@ function Pagination({
     ) {
       pages.push(i);
     }
-    if (currentPage < totalPages - 2) pages.push("...");
+    if (currentPage < totalPages - 2) {pages.push("...");}
     pages.push(totalPages);
   }
 
@@ -787,7 +792,7 @@ export default function ShopPage() {
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [appliedSearch, setAppliedSearch] = useState(() => searchParams?.get("search") || "");
-  const [sort, setSort] = useState<SortOption>("featured");
+  const [sort, setSort] = useState<SortOption>("newest");
   const [page, setPage] = useState(1);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -820,9 +825,9 @@ export default function ShopPage() {
     queryFn: () => {
       let url = `/api/products?limit=${PRODUCTS_PER_PAGE}&page=${page}`;
       if (selectedCategoryId)
-        url += `&category=${encodeURIComponent(selectedCategoryId)}`;
-      if (selectedBrandId) url += `&brandId=${encodeURIComponent(selectedBrandId)}`;
-      if (appliedSearch) url += `&search=${encodeURIComponent(appliedSearch)}`;
+        {url += `&category=${encodeURIComponent(selectedCategoryId)}`;}
+      if (selectedBrandId) {url += `&brandId=${encodeURIComponent(selectedBrandId)}`;}
+      if (appliedSearch) {url += `&search=${encodeURIComponent(appliedSearch)}`;}
       return apiFetch(url);
     },
   });
@@ -910,7 +915,7 @@ export default function ShopPage() {
     setSelectedCategoryId(null);
     setSelectedBrandId(null);
     setAppliedSearch("");
-    setSort("featured");
+    setSort("newest");
     setPage(1);
     setAppliedMinPrice(null);
     setAppliedMaxPrice(null);
@@ -1139,10 +1144,10 @@ export default function ShopPage() {
                 </div>
               ) : isLoading ? (
                 viewMode === "grid" ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <PremiumCardSkeleton key={i} />
-                    ))}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+{Array.from({ length: 8 }).map((_, i) => (
+  <ShopCardSkeleton key={i} />
+))}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
@@ -1170,14 +1175,14 @@ export default function ShopPage() {
               ) : (
                 <>
                   {viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {processedProducts.map((product) => (
-                        <PremiumCard
-                          key={product.id}
-                          data={productToCardData(product)}
-                          onCardClick={handleCardClick}
-                        />
-                      ))}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+{processedProducts.map((product) => (
+  <ShopCard
+    key={product.id}
+    data={productToCardData(product)}
+    onCardClick={handleCardClick}
+  />
+))}
                     </div>
                   ) : (
                     <div className="flex flex-col gap-4">
