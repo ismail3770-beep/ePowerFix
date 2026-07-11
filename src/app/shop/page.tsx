@@ -14,7 +14,6 @@ import {
   List,
   PackageSearch,
   Star,
-  Check,
   Eye,
   ShoppingCart,
   Package,
@@ -59,12 +58,6 @@ interface Category {
   sortOrder?: number;
 }
 
-interface Brand {
-  id: string;
-  name: string;
-  slug: string;
-}
-
 interface Product {
   id: string;
   name: string;
@@ -106,7 +99,6 @@ interface ProductsResponse {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 const PRODUCTS_PER_PAGE = 20;
-const BRAND_PREVIEW_COUNT = 5;
 
 type SortOption = "featured" | "newest" | "price-asc" | "price-desc" | "popular";
 type ViewMode = "grid" | "list";
@@ -118,8 +110,6 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
 ];
-
-const RATING_OPTIONS = [4, 3, 2, 1];
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -293,15 +283,12 @@ function ProductCardList({ product }: { product: Product }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Filter Sidebar  —  Browse Categories + Filters (Price) */
+/*  Filter Sidebar  —  Browse Categories + Filters (Price) + Latest   */
 /* ------------------------------------------------------------------ */
 interface FilterSidebarProps {
   categories: Category[];
-  brands: Brand[];
   selectedCategoryId: string | null;
   onSelectCategory: (id: string | null) => void;
-  selectedBrandId: string | null;
-  onSelectBrand: (id: string | null) => void;
   minPriceInput: string;
   maxPriceInput: string;
   onMinPriceInputChange: (val: string) => void;
@@ -309,8 +296,6 @@ interface FilterSidebarProps {
   onApplyPrice: () => void;
   appliedMinPrice: number | null;
   appliedMaxPrice: number | null;
-  inStockOnly: boolean;
-  onToggleInStock: (val: boolean) => void;
   isLoading: boolean;
   onClearAll: () => void;
   latestProducts: Product[];
@@ -318,11 +303,8 @@ interface FilterSidebarProps {
 
 function FilterSidebar({
   categories,
-  brands,
   selectedCategoryId,
   onSelectCategory,
-  selectedBrandId,
-  onSelectBrand,
   minPriceInput,
   maxPriceInput,
   onMinPriceInputChange,
@@ -330,22 +312,14 @@ function FilterSidebar({
   onApplyPrice,
   appliedMinPrice,
   appliedMaxPrice,
-  inStockOnly,
-  onToggleInStock,
   isLoading,
   onClearAll,
   latestProducts,
 }: FilterSidebarProps) {
-  /* Show-more for brands */
-  const [showAllBrands, setShowAllBrands] = useState(false);
-  const visibleBrands = showAllBrands ? brands : brands.slice(0, BRAND_PREVIEW_COUNT);
-
   const hasActiveFilters =
     selectedCategoryId ||
-    selectedBrandId ||
     appliedMinPrice != null ||
-    appliedMaxPrice != null ||
-    inStockOnly;
+    appliedMaxPrice != null;
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -372,25 +346,6 @@ function FilterSidebar({
             Browse Categories
           </h3>
           <div className="space-y-0.5 max-h-72 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
-            <button
-              onClick={() => onSelectCategory(null)}
-              className={cn(
-                "flex items-center justify-between w-full h-10 px-3 rounded-lg text-left transition-colors group",
-                selectedCategoryId === null
-                  ? "text-epf-600 font-medium bg-epf-50/60"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              )}
-            >
-              <span className="text-[13px]">All Products</span>
-              <ChevronRight
-                className={cn(
-                  "h-4 w-4 transition-colors",
-                  selectedCategoryId === null
-                    ? "text-epf-500"
-                    : "text-slate-300 group-hover:text-slate-400"
-                )}
-              />
-            </button>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <div
@@ -407,28 +362,21 @@ function FilterSidebar({
                       key={cat.id}
                       onClick={() => onSelectCategory(active ? null : cat.id)}
                       className={cn(
-                        "flex items-center justify-between w-full h-10 px-3 rounded-lg text-left transition-colors group",
+                        "flex items-center gap-2 w-full py-1.5 text-left text-[13px] transition-colors",
                         active
-                          ? "text-epf-600 font-medium bg-epf-50/60"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                          ? "text-epf-500 font-semibold"
+                          : "text-slate-600 hover:text-slate-900"
                       )}
                     >
-                      <span className="text-[13px] truncate">{cat.name}</span>
-                      <ChevronRight
-                        className={cn(
-                          "h-4 w-4 shrink-0 ml-2 transition-colors",
-                          active
-                            ? "text-epf-500"
-                            : "text-slate-300 group-hover:text-slate-400"
-                        )}
-                      />
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{cat.name}</span>
                     </button>
                   );
                 })}
           </div>
         </section>
 
-        {/* ── 2. Price ──────────────────────────────────────────────── */}
+        {/* ── 2. Price Range ────────────────────────────────────── */}
         <section className="py-4">
           <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
             Price Range
@@ -467,116 +415,6 @@ function FilterSidebar({
             Apply
           </button>
         </section>
-
-        {/* ── 3. Brands ─────────────────────────────────────────────── */}
-        {brands.length > 0 && (
-          <section className="py-4">
-            <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
-              Brands
-            </h3>
-            <div className="space-y-0.5">
-              <button
-                onClick={() => onSelectBrand(null)}
-                className="flex items-center gap-2.5 w-full h-9 px-1.5 rounded-lg text-left transition-colors group"
-              >
-                <span
-                  className={cn(
-                    "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                    selectedBrandId === null
-                      ? "bg-epf-500 border-epf-500"
-                      : "border-slate-300 group-hover:border-slate-400"
-                  )}
-                >
-                  {selectedBrandId === null && (
-                    <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                  )}
-                </span>
-                <span
-                  className={cn(
-                    "text-[13px]",
-                    selectedBrandId === null
-                      ? "text-slate-900 font-medium"
-                      : "text-slate-600 group-hover:text-slate-900"
-                  )}
-                >
-                  All Brands
-                </span>
-              </button>
-              {visibleBrands.map((b) => {
-                const active = selectedBrandId === b.id;
-                return (
-                  <button
-                    key={b.id}
-                    onClick={() => onSelectBrand(active ? null : b.id)}
-                    className="flex items-center gap-2.5 w-full h-9 px-1.5 rounded-lg text-left transition-colors group"
-                  >
-                    <span
-                      className={cn(
-                        "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                        active
-                          ? "bg-epf-500 border-epf-500"
-                          : "border-slate-300 group-hover:border-slate-400"
-                      )}
-                    >
-                      {active && (
-                        <Check className="h-3 w-3 text-white" strokeWidth={3} />
-                      )}
-                    </span>
-                    <span
-                      className={cn(
-                        "text-[13px] truncate",
-                        active
-                          ? "text-slate-900 font-medium"
-                          : "text-slate-600 group-hover:text-slate-900"
-                      )}
-                    >
-                      {b.name}
-                    </span>
-                  </button>
-                );
-              })}
-              {brands.length > BRAND_PREVIEW_COUNT && (
-                <button
-                  onClick={() => setShowAllBrands((v) => !v)}
-                  className="mt-1 text-[12px] font-semibold text-epf-600 hover:text-epf-700 transition-colors px-1.5"
-                >
-                  {showAllBrands
-                    ? "Show less"
-                    : `Show ${brands.length - BRAND_PREVIEW_COUNT} more`}
-                </button>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* ── 4. Availability ───────────────────────────────────────── */}
-        <section className="py-4">
-          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
-            Availability
-          </h3>
-          <label className="flex items-center justify-between cursor-pointer group">
-            <span className="text-[13px] font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
-              In Stock Only
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={inStockOnly}
-              onClick={() => onToggleInStock(!inStockOnly)}
-              className={cn(
-                "relative h-6 w-11 rounded-full transition-colors",
-                inStockOnly ? "bg-epf-500" : "bg-slate-200"
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
-                  inStockOnly && "translate-x-5"
-                )}
-              />
-            </button>
-          </label>
-        </section>
       </div>
 
       {/* ── Latest Products ──────────────────────────────────── */}
@@ -591,56 +429,33 @@ function FilterSidebar({
             <p className="p-3 text-[12px] text-slate-400">No products yet.</p>
           ) : (
             latestProducts.slice(0, 5).map((p) => {
-              const img = p.images?.[0] || null;
+              const img = p.image || p.images?.[0] || null;
               const disp = p.salePrice ?? p.price;
-              const orig = p.comparePrice ?? null;
-              const disc = orig && orig > disp ? Math.round(((orig - disp) / orig) * 100) : 0;
               return (
-                <a
+                <div
                   key={p.id}
-                  href={`/shop/${p.id}`}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                  className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg p-1.5 transition-colors"
                 >
-                  <div className="relative shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+                  <div className="w-10 h-10 bg-slate-100 rounded-md overflow-hidden shrink-0">
                     {img ? (
-                      <img src={img} alt={p.name} className="w-full h-full object-contain p-1" />
+                      <img
+                        src={img}
+                        alt={p.name}
+                        className="w-full h-full object-contain"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-5 w-5 text-slate-300" />
+                        <Package className="w-4 h-4 text-slate-300" />
                       </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-[12px] font-medium text-slate-700 leading-snug line-clamp-2 group-hover:text-epf-600 transition-colors">
-                      {p.name}
-                    </h4>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={cn(
-                              "h-3 w-3",
-                              i < Math.round(p.rating || 0)
-                                ? "fill-amber-400 text-amber-400"
-                                : "text-slate-200"
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[11px] text-slate-400">({p.reviewCount || 0})</span>
-                    </div>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <span className="text-[13px] font-bold text-epf-600">৳{Number(disp).toLocaleString()}</span>
-                      {orig && orig > disp && (
-                        <del className="text-[11px] text-slate-400">৳{Number(orig).toLocaleString()}</del>
-                      )}
-                      {disc > 0 && (
-                        <span className="text-[10px] font-bold text-emerald-600">-{disc}%</span>
-                      )}
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] text-slate-600 truncate">{p.name}</p>
+                    <p className="text-[12px] font-semibold text-slate-900">
+                      ৳{Number(disp).toLocaleString()}
+                    </p>
                   </div>
-                </a>
+                </div>
               );
             })
           )}
@@ -785,7 +600,6 @@ function SidebarSkeleton() {
 export default function ShopPage() {
   /* ---- State ---- */
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [appliedSearch, setAppliedSearch] = useState(() => searchParams?.get("search") || "");
   const [sort, setSort] = useState<SortOption>("newest");
@@ -798,7 +612,6 @@ export default function ShopPage() {
   const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
   const [minPriceInput, setMinPriceInput] = useState<string>("");
   const [maxPriceInput, setMaxPriceInput] = useState<string>("");
-  const [inStockOnly, setInStockOnly] = useState(false);
 
   /* ---- Stores ---- */
   const { setSearchQuery, setSelectedProductId, setProductDetailOpen } = useUIStore();
@@ -813,7 +626,6 @@ export default function ShopPage() {
     queryKey: [
       "shop-products",
       selectedCategoryId,
-      selectedBrandId,
       appliedSearch,
       page,
       PRODUCTS_PER_PAGE,
@@ -822,7 +634,6 @@ export default function ShopPage() {
       let url = `/api/products?limit=${PRODUCTS_PER_PAGE}&page=${page}`;
       if (selectedCategoryId)
         {url += `&category=${encodeURIComponent(selectedCategoryId)}`;}
-      if (selectedBrandId) {url += `&brandId=${encodeURIComponent(selectedBrandId)}`;}
       if (appliedSearch) {url += `&search=${encodeURIComponent(appliedSearch)}`;}
       return apiFetch(url);
     },
@@ -835,14 +646,6 @@ export default function ShopPage() {
     staleTime: 5 * 60 * 1000,
   });
   const categories: Category[] = categoriesData?.data ?? [];
-
-  /* ---- Fetch brands ---- */
-  const { data: brandsData } = useQuery({
-    queryKey: ["brands"],
-    queryFn: () => apiFetch<{ data: Brand[] }>("/api/brands"),
-    staleTime: 5 * 60 * 1000,
-  });
-  const brands: Brand[] = brandsData?.data ?? [];
 
   /* ---- Fetch latest products for sidebar ---- */
   const { data: latestData } = useQuery<ProductsResponse>({
@@ -866,11 +669,6 @@ export default function ShopPage() {
     }
     if (appliedMaxPrice != null) {
       arr = arr.filter((p) => (p.price ?? 0) <= appliedMaxPrice);
-    }
-
-    // Client-side in-stock filter
-    if (inStockOnly) {
-      arr = arr.filter((p) => (p.stock ?? 0) > 0);
     }
 
     // Sort
@@ -899,7 +697,7 @@ export default function ShopPage() {
         break;
     }
     return arr;
-  }, [data?.data?.data, sort, appliedMinPrice, appliedMaxPrice, inStockOnly]);
+  }, [data?.data?.data, sort, appliedMinPrice, appliedMaxPrice]);
 
   /* ---- Handlers ---- */
   useEffect(() => {
@@ -909,7 +707,6 @@ export default function ShopPage() {
 
   const handleClearFilters = useCallback(() => {
     setSelectedCategoryId(null);
-    setSelectedBrandId(null);
     setAppliedSearch("");
     setSort("newest");
     setPage(1);
@@ -917,16 +714,10 @@ export default function ShopPage() {
     setAppliedMaxPrice(null);
     setMinPriceInput("");
     setMaxPriceInput("");
-    setInStockOnly(false);
   }, []);
 
   const handleCategorySelect = useCallback((catId: string | null) => {
     setSelectedCategoryId(catId);
-    setPage(1);
-  }, []);
-
-  const handleBrandSelect = useCallback((brandId: string | null) => {
-    setSelectedBrandId(brandId);
     setPage(1);
   }, []);
 
@@ -945,11 +736,9 @@ export default function ShopPage() {
 
   const hasActiveFilters =
     !!selectedCategoryId ||
-    !!selectedBrandId ||
     !!appliedSearch ||
     appliedMinPrice != null ||
-    appliedMaxPrice != null ||
-    inStockOnly;
+    appliedMaxPrice != null;
 
   /* ---- Scroll to top on page change ---- */
   useEffect(() => {
@@ -969,11 +758,8 @@ export default function ShopPage() {
 
   const sidebarProps = {
     categories,
-    brands,
     selectedCategoryId,
     onSelectCategory: handleCategorySelect,
-    selectedBrandId,
-    onSelectBrand: handleBrandSelect,
     minPriceInput,
     maxPriceInput,
     onMinPriceInputChange: setMinPriceInput,
@@ -981,8 +767,6 @@ export default function ShopPage() {
     onApplyPrice: handleApplyPrice,
     appliedMinPrice,
     appliedMaxPrice,
-    inStockOnly,
-    onToggleInStock: setInStockOnly,
     isLoading: categoriesLoading,
     onClearAll: handleClearFilters,
     latestProducts,
