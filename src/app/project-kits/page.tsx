@@ -13,7 +13,6 @@ import {
   ChevronDown,
   ChevronLeft,
   Boxes,
-  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useUIStore, useCartStore } from "@/store";
@@ -270,7 +269,7 @@ function KitCardList({ kit }: { kit: Kit }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Filter Sidebar  —  Difficulty + Price + Availability + Latest Kits */
+/*  Filter Sidebar  —  Difficulty + Price + Latest Kits                */
 /* ------------------------------------------------------------------ */
 interface FilterSidebarProps {
   selectedDifficulty: string | null;
@@ -282,8 +281,6 @@ interface FilterSidebarProps {
   onApplyPrice: () => void;
   appliedMinPrice: number | null;
   appliedMaxPrice: number | null;
-  inStockOnly: boolean;
-  onToggleInStock: (val: boolean) => void;
   onClearAll: () => void;
   latestKits: Kit[];
 }
@@ -298,8 +295,6 @@ function FilterSidebar({
   onApplyPrice,
   appliedMinPrice,
   appliedMaxPrice,
-  inStockOnly,
-  onToggleInStock,
   onClearAll,
   latestKits,
 }: FilterSidebarProps) {
@@ -308,8 +303,7 @@ function FilterSidebar({
   const hasActiveFilters =
     !!selectedDifficulty ||
     appliedMinPrice != null ||
-    appliedMaxPrice != null ||
-    inStockOnly;
+    appliedMaxPrice != null;
 
   const openKit = (kit: Kit) => {
     setSelectedProjectId(kit.id);
@@ -427,114 +421,45 @@ function FilterSidebar({
             Apply
           </button>
         </section>
-
-        {/* ── 3. Availability ───────────────────────────────────────── */}
-        <section className="py-4">
-          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
-            Availability
-          </h3>
-          <label className="flex items-center justify-between cursor-pointer group">
-            <span className="text-[13px] font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
-              In Stock Only
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={inStockOnly}
-              onClick={() => onToggleInStock(!inStockOnly)}
-              className={cn(
-                "relative h-6 w-11 rounded-full transition-colors",
-                inStockOnly ? "bg-epf-500" : "bg-slate-200",
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform",
-                  inStockOnly && "translate-x-5",
-                )}
-              />
-            </button>
-          </label>
-        </section>
       </div>
 
       {/* ── Latest Project Kits ──────────────────────────────────── */}
-      <div className="border-t border-slate-200">
-        <div className="px-5 py-4 border-b border-slate-100">
-          <h3 className="text-[14px] font-semibold text-slate-900">
-            Latest Project Kits
-          </h3>
-        </div>
-        <div className="p-3 space-y-1">
-          {latestKits.length === 0 ? (
-            <p className="p-3 text-[12px] text-slate-400">No kits yet.</p>
-          ) : (
-            latestKits.slice(0, 5).map((k) => {
-              const images = parseImages(k.images);
-              const img = k.coverImage || images[0] || null;
-              const buyable = k.price != null;
-              const disp = Number(k.salePrice || k.price || 0);
-              const orig =
-                k.salePrice != null && k.price != null && k.salePrice < k.price
-                  ? Number(k.price)
-                  : null;
-              const disc =
-                orig && orig > disp
-                  ? Math.round(((orig - disp) / orig) * 100)
-                  : 0;
-              return (
-                <button
-                  key={k.id}
-                  onClick={() => openKit(k)}
-                  className="flex w-full items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group text-left"
-                >
-                  <div className="relative shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-                    {img ? (
-                      <img
-                        src={img}
-                        alt={k.title}
-                        className="w-full h-full object-contain p-1"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-5 w-5 text-slate-300" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-[12px] font-medium text-slate-700 leading-snug line-clamp-2 group-hover:text-epf-600 transition-colors">
-                      {k.title}
-                    </h4>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      {buyable ? (
-                        <>
-                          <span className="text-[13px] font-bold text-epf-600">
-                            ৳{disp.toLocaleString()}
-                          </span>
-                          {orig && orig > disp && (
-                            <del className="text-[11px] text-slate-400">
-                              ৳{orig.toLocaleString()}
-                            </del>
-                          )}
-                          {disc > 0 && (
-                            <span className="text-[10px] font-bold text-emerald-600">
-                              -{disc}%
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-[11px] font-medium text-epf-500">
-                          Tap to view
-                        </span>
-                      )}
+      {latestKits.length > 0 && (
+        <div className="border-t border-slate-200 px-5 py-4">
+          <h4 className="text-[14px] font-semibold text-slate-900 mb-3">
+            Latest Kits
+          </h4>
+          <div className="space-y-3">
+            {latestKits.map((kit) => (
+              <div
+                key={kit.id}
+                onClick={() => openKit(kit)}
+                className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 rounded-lg p-1.5 transition-colors"
+              >
+                <div className="w-10 h-10 bg-slate-100 rounded-md overflow-hidden shrink-0">
+                  {kit.coverImage ? (
+                    <img
+                      src={kit.coverImage}
+                      alt={kit.title}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Boxes className="w-4 h-4 text-slate-300" />
                     </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-slate-600 truncate">{kit.title}</p>
+                  <p className="text-[12px] font-semibold text-slate-900">
+                    ৳{Number(kit.salePrice || kit.price).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -654,7 +579,7 @@ export default function ProjectKitsPage() {
   const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
   const [minPriceInput, setMinPriceInput] = useState<string>("");
   const [maxPriceInput, setMaxPriceInput] = useState<string>("");
-  const [inStockOnly, setInStockOnly] = useState(false);
+
 
   /* ---- Stores ---- */
   const { setSearchQuery, setSelectedProjectId, setProjectDetailOpen } = useUIStore();
@@ -676,8 +601,13 @@ export default function ProjectKitsPage() {
 
   const baseKits: Kit[] = data?.data ?? [];
 
-  /* ---- Latest kits for sidebar (API already sorts by createdAt desc) ---- */
-  const latestKits = useMemo(() => baseKits.slice(0, 5), [baseKits]);
+  /* ---- Latest kits for sidebar (dedicated query) ---- */
+  const { data: latestKitsData } = useQuery({
+    queryKey: ["latest-kits-sidebar"],
+    queryFn: () => apiFetch("/api/project-kits?limit=5&sort=newest"),
+    staleTime: 5 * 60 * 1000,
+  });
+  const latestKits: Kit[] = latestKitsData?.data?.data ?? [];
 
   /* ---- Derived data with client-side sort + filter ---- */
   const processedKits = useMemo(() => {
@@ -702,11 +632,6 @@ export default function ProjectKitsPage() {
       arr = arr.filter(
         (k) => Number(k.salePrice || k.price || 0) <= appliedMaxPrice,
       );
-    }
-
-    // In-stock filter
-    if (inStockOnly) {
-      arr = arr.filter((k) => (k.stock ?? 0) > 0);
     }
 
     // Sort
@@ -743,7 +668,7 @@ export default function ProjectKitsPage() {
     }
 
     return arr;
-  }, [baseKits, selectedDifficulty, appliedMinPrice, appliedMaxPrice, inStockOnly, sort]);
+  }, [baseKits, selectedDifficulty, appliedMinPrice, appliedMaxPrice, sort]);
 
   /* ---- Pagination (client-side) ---- */
   const totalKits = processedKits.length;
@@ -780,7 +705,6 @@ export default function ProjectKitsPage() {
     setAppliedMaxPrice(null);
     setMinPriceInput("");
     setMaxPriceInput("");
-    setInStockOnly(false);
     setAppliedSearch("");
     setSort("featured");
     setPage(1);
@@ -790,8 +714,7 @@ export default function ProjectKitsPage() {
     !!selectedDifficulty ||
     !!appliedSearch ||
     appliedMinPrice != null ||
-    appliedMaxPrice != null ||
-    inStockOnly;
+    appliedMaxPrice != null;
 
   const sidebarProps: FilterSidebarProps = {
     selectedDifficulty,
@@ -806,11 +729,6 @@ export default function ProjectKitsPage() {
     onApplyPrice: handleApplyPrice,
     appliedMinPrice,
     appliedMaxPrice,
-    inStockOnly,
-    onToggleInStock: (v) => {
-      setInStockOnly(v);
-      setPage(1);
-    },
     onClearAll: handleClearFilters,
     latestKits,
   };
@@ -976,17 +894,6 @@ export default function ProjectKitsPage() {
                         setMinPriceInput("");
                         setMaxPriceInput("");
                       }}
-                      className="text-slate-400 hover:text-slate-900"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                )}
-                {inStockOnly && (
-                  <span className="inline-flex items-center gap-1.5 h-7 px-2.5 bg-slate-100 border border-slate-200 rounded-full text-[12px] text-slate-700 font-medium">
-                    In Stock Only
-                    <button
-                      onClick={() => setInStockOnly(false)}
                       className="text-slate-400 hover:text-slate-900"
                     >
                       <X className="h-3 w-3" />
