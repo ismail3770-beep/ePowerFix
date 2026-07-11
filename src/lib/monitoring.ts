@@ -1,10 +1,28 @@
 /**
  * Centralized monitoring + error tracking.
  * Backend: structured JSON console logs (always on).
- * Optional: Sentry integration via @sentry/nextjs (enabled when SENTRY_DSN is set).
+ * Optional: Sentry integration via @sentry/nextjs (enabled when installed + SENTRY_DSN set).
  */
 
-import { Sentry } from '@/lib/sentry'
+// Sentry is optional — if @sentry/nextjs is not installed, this is null
+// and all Sentry calls become no-ops. Install the package + set SENTRY_DSN
+// to enable error tracking.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let Sentry: any = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const sentryModule = require('@sentry/nextjs')
+  if (sentryModule?.init && process.env.SENTRY_DSN) {
+    sentryModule.init({
+      dsn: process.env.SENTRY_DSN,
+      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+      environment: process.env.NODE_ENV || 'development',
+    })
+    Sentry = sentryModule
+  }
+} catch {
+  // @sentry/nextjs not installed — Sentry stays null
+}
 
 const ENV = process.env.NODE_ENV || 'development'
 const IS_PROD = ENV === 'production'

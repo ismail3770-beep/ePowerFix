@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, memo } from "react";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Star, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ import WishlistButton from "@/components/WishlistButton";
 import { addRecentlyViewed } from "@/components/epf/RecentlyViewed";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Premium Product Card — clean e-commerce card with hover-reveal cart button
+// Premium Product Card — best-in-class e-commerce card for ePowerFix
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface PremiumCardData {
@@ -29,6 +29,8 @@ export interface PremiumCardData {
   sku?: string;
   category?: string | null;
   badge?: string;
+  rating?: number;
+  reviewCount?: number;
   itemType?: "PRODUCT" | "PROJECT";
 }
 
@@ -57,6 +59,9 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
   const displayPrice = data.salePrice ?? data.price;
   const originalPrice = data.comparePrice ?? data.salePrice ?? null;
   const showOriginal = originalPrice != null && originalPrice > displayPrice;
+  const inStock = data.stock == null || data.stock > 0;
+  const rating = data.rating || 0;
+  const reviewCount = data.reviewCount || 0;
 
   const badgeText =
     discountPercent > 0
@@ -72,12 +77,13 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       comparePrice: data.comparePrice,
       images: data.images || [],
     });
-    if (onCardClick) {onCardClick(data.id);}
+    if (onCardClick) onCardClick(data.id);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    if (!inStock) return;
 
     if (onAddToCart) {
       onAddToCart(data);
@@ -104,19 +110,19 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
       className={cn(
         "group relative flex flex-col bg-white rounded-xl overflow-hidden",
         "border border-slate-200",
-        "shadow-sm hover:shadow-xl hover:-translate-y-1",
+        "shadow-sm hover:shadow-xl hover:border-slate-300 hover:-translate-y-1",
         "transition-all duration-300 ease-out",
         "cursor-pointer",
         className
       )}
     >
-      {/* ─── Image Area (compact 4:3 landscape) ─── */}
+      {/* ─── Image Area ─── */}
       <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-2.5 group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -128,14 +134,26 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
           </div>
         )}
 
-        {/* Discount/Feature Badge — top left (rounded pill) */}
+        {/* Subtle gradient overlay on hover (bottom of image) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+        {/* Discount/Feature Badge — top left */}
         {badgeText && (
           <span className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-full text-[11px] font-bold text-white bg-epf-500 leading-tight tracking-wide shadow-sm">
             {badgeText}
           </span>
         )}
 
-        {/* Wishlist — top right */}
+        {/* Out of stock overlay */}
+        {!inStock && (
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-20">
+            <span className="px-3 py-1 rounded-full text-[12px] font-bold text-white bg-slate-500 shadow-md">
+              Out of Stock
+            </span>
+          </div>
+        )}
+
+        {/* Wishlist — top right (circular, glass effect) */}
         <div
           className="absolute top-2 right-2 z-10"
           onClick={(e) => e.stopPropagation()}
@@ -143,40 +161,40 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
           <WishlistButton productId={data.id} initialFav={false} />
         </div>
 
-        {/* ─── Add to Cart — reveals on hover (rounded pill, bottom overlay) ─── */}
-        <button
-          onClick={handleAddToCart}
-          disabled={added}
-          className={cn(
-            "absolute bottom-2 left-2 right-2 z-10",
-            "h-9 flex items-center justify-center gap-1.5 text-[13px] font-bold rounded-lg",
-            "bg-slate-900/95 text-white backdrop-blur-sm",
-            "translate-y-[calc(100%+0.5rem)] opacity-0",
-            "group-hover:translate-y-0 group-hover:opacity-100",
-            "group-focus-within:translate-y-0 group-focus-within:opacity-100",
-            "active:translate-y-0 active:opacity-100",
-            "transition-all duration-200 ease-out",
-            added && "bg-green-600"
-          )}
-        >
-          {added ? (
-            <>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Added
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="w-3.5 h-3.5" />
-              Add to Cart
-            </>
-          )}
-        </button>
+        {/* Quick Add to Cart — bottom right (circular icon, always visible) */}
+        {inStock && (
+          <button
+            onClick={handleAddToCart}
+            disabled={added}
+            aria-label="Add to cart"
+            className={cn(
+              "absolute bottom-2.5 right-2.5 z-10",
+              "h-9 w-9 flex items-center justify-center rounded-full",
+              "bg-white text-slate-700 shadow-md border border-slate-200",
+              "opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0",
+              "hover:bg-epf-500 hover:text-white hover:border-epf-500",
+              "transition-all duration-200 ease-out",
+              added && "bg-green-500 text-white border-green-500 opacity-100 translate-y-0"
+            )}
+          >
+            {added ? (
+              <Check className="w-4 h-4" strokeWidth={3} />
+            ) : (
+              <ShoppingCart className="w-4 h-4" />
+            )}
+          </button>
+        )}
       </div>
 
-      {/* ─── Content Area (compact) ─── */}
+      {/* ─── Content Area ─── */}
       <div className="flex flex-col flex-1 p-2.5 gap-1">
+        {/* Category label (muted, small) */}
+        {data.category && (
+          <span className="text-[10px] font-medium text-epf-500 uppercase tracking-wide">
+            {data.category}
+          </span>
+        )}
+
         {/* Title */}
         <h3
           className="text-[13px] font-medium text-slate-800 line-clamp-2 leading-[1.35] min-h-[2.2rem] group-hover:text-epf-600 transition-colors"
@@ -185,16 +203,36 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
           {data.name}
         </h3>
 
+        {/* Rating (compact) */}
+        {rating > 0 && (
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star
+                  key={s}
+                  className={cn(
+                    "w-3 h-3",
+                    s <= Math.round(rating)
+                      ? "fill-amber-400 text-amber-400"
+                      : "fill-slate-200 text-slate-200"
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-slate-400">({reviewCount})</span>
+          </div>
+        )}
+
         {/* Price */}
-        <div className="mt-auto pt-0.5 flex items-baseline gap-1.5 flex-wrap">
+        <div className="mt-auto pt-1 flex items-center gap-1.5">
+          <span className="text-[15px] font-bold text-slate-900">
+            ৳{Number(displayPrice).toLocaleString()}
+          </span>
           {showOriginal && (
-            <del className="text-[11px] font-normal text-slate-400">
+            <del className="text-[11px] text-slate-400">
               ৳{Number(originalPrice).toLocaleString()}
             </del>
           )}
-          <span className="text-[14px] font-bold text-epf-600">
-            ৳{Number(displayPrice).toLocaleString()}
-          </span>
         </div>
       </div>
     </div>
@@ -211,7 +249,8 @@ export function PremiumCardSkeleton() {
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="aspect-[4/3] bg-slate-100 animate-pulse" />
-      <div className="p-3 space-y-2">
+      <div className="p-2.5 space-y-2">
+        <div className="h-2 bg-slate-100 rounded animate-pulse w-1/3" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />
         <div className="h-4 bg-slate-100 rounded animate-pulse w-1/3 mt-1" />
