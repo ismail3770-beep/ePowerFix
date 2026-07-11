@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Minus, Plus, ShoppingCart, Loader2, ChevronRight, Truck, Banknote, RotateCcw } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { EPFStar } from "@/components/epf/icons/EPFIcons";
 import { useUIStore, useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
@@ -137,6 +137,7 @@ export default function ProductDetailDialog() {
 
       <Dialog key={selectedProductId || "closed"} open={productDetailOpen} onOpenChange={(open) => { if (!open) {handleClose();} }}>
         <DialogContent className="dialog-content-anim sm:max-w-[900px] max-w-[100vw] sm:max-h-[92vh] overflow-y-auto p-0 rounded-none sm:rounded-lg">
+          <DialogTitle className="sr-only">Product Details</DialogTitle>
           {/* Breadcrumb */}
           <div className="px-4 sm:px-5 pt-3 sm:pt-4 pb-2 text-[12px] text-slate-400 flex items-center gap-1 border-b border-slate-200/60">
             <a href="/" className="hover:text-slate-700 transition-colors">Home</a>
