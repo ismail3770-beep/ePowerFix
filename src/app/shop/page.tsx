@@ -35,10 +35,10 @@ import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 
 import {
-  ShopCard,
-  ShopCardSkeleton,
-  type ShopCardData,
-} from "@/components/epf/ShopCard";
+  PremiumCard,
+  PremiumCardSkeleton,
+  type PremiumCardData,
+} from "@/components/epf/PremiumCard";
 import {
   Sheet,
   SheetContent,
@@ -114,7 +114,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-function productToCardData(p: Product): ShopCardData {
+function productToCardData(p: Product): PremiumCardData {
   return {
     id: p.id,
     name: p.name,
@@ -128,6 +128,7 @@ function productToCardData(p: Product): ShopCardData {
     stock: p.stock,
     rating: p.rating,
     reviewCount: p.reviewCount ?? p.reviews,
+    category: p.category?.name ?? null,
   };
 }
 
@@ -171,7 +172,7 @@ function ProductCardList({ product }: { product: Product }) {
   const originalPrice = product.comparePrice ?? null;
 
   return (
-    <div className="group flex flex-col sm:flex-row bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+    <div className="group flex flex-col sm:flex-row bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
       {/* Image */}
       <div className="relative overflow-hidden sm:w-48 md:w-56 shrink-0 aspect-square sm:aspect-auto bg-slate-50">
         <a href={`/product/${product.id}`} className="block w-full h-full">
@@ -192,7 +193,7 @@ function ProductCardList({ product }: { product: Product }) {
           )}
         </a>
         {discount > 0 && (
-          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[11px] font-bold text-white bg-epf-500 leading-tight shadow-sm">
+          <span className="absolute top-2.5 left-2.5 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-emerald-500 leading-tight">
             -{discount}%
           </span>
         )}
@@ -202,7 +203,7 @@ function ProductCardList({ product }: { product: Product }) {
       <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0">
         <div>
           {product.category && (
-            <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 mb-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-epf-500 mb-1">
               {product.category.name}
             </p>
           )}
@@ -222,7 +223,7 @@ function ProductCardList({ product }: { product: Product }) {
               {product.shortDesc}
             </p>
           )}
-          {product.stock < 50 && (
+          {product.stock < 50 && product.stock > 0 && (
             <p className="text-[12px] text-amber-600 font-medium mb-2">
               Only {product.stock} left in stock
             </p>
@@ -230,7 +231,7 @@ function ProductCardList({ product }: { product: Product }) {
         </div>
         <div className="flex items-center justify-between gap-4 mt-3">
           <div className="flex items-baseline gap-2">
-            <span className="text-[18px] font-bold text-epf-600">
+            <span className="text-[18px] font-bold text-slate-900">
               ৳{Number(displayPrice ?? 0).toLocaleString()}
             </span>
             {originalPrice && originalPrice > displayPrice && (
@@ -283,7 +284,7 @@ function ProductCardList({ product }: { product: Product }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Filter Sidebar  —  Browse Categories + Filters (Price) + Latest   */
+/*  Filter Sidebar  —  Browse Categories + Price + Latest              */
 /* ------------------------------------------------------------------ */
 interface AvailabilityFilter {
   inStock: boolean;
@@ -335,9 +336,9 @@ function FilterSidebar({
     availability.outOfStock;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-white">
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200 bg-white">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-slate-700" />
           <h2 className="text-[14px] font-semibold text-slate-900">Filters</h2>
@@ -352,10 +353,10 @@ function FilterSidebar({
         )}
       </div>
 
-      <div className="px-5 py-2 divide-y divide-slate-100">
+      <div className="px-4 py-1 divide-y divide-slate-100">
         {/* ── 1. Browse Categories ─────────────────────────────── */}
         <section className="py-4">
-          <h3 className="text-[14px] font-semibold text-slate-700 mb-2">
+          <h3 className="text-[14px] font-semibold text-slate-900 mb-2.5">
             Browse Categories
           </h3>
           <div className="space-y-0.5 max-h-72 overflow-y-auto pr-1 -mr-1 custom-scrollbar">
@@ -363,7 +364,7 @@ function FilterSidebar({
               ? Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2.5 h-10 px-3 animate-pulse"
+                    className="flex items-center gap-2.5 h-9 px-2 animate-pulse"
                   >
                     <div className="h-3.5 bg-slate-100 rounded w-3/4" />
                   </div>
@@ -376,13 +377,18 @@ function FilterSidebar({
                       onClick={() => onSelectCategory(active ? null : cat.id)}
                       aria-label={`Filter by ${cat.name}`}
                       className={cn(
-                        "flex items-center gap-2 w-full py-1.5 text-left text-[13px] transition-colors",
+                        "flex items-center gap-1.5 w-full py-1.5 px-2 rounded-md text-left text-[13px] transition-colors -mx-2",
                         active
-                          ? "text-epf-500 font-semibold"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "text-epf-600 font-semibold bg-epf-50"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                       )}
                     >
-                      <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                      <ChevronRight
+                        className={cn(
+                          "h-3.5 w-3.5 shrink-0 transition-transform",
+                          active && "rotate-90 text-epf-500"
+                        )}
+                      />
                       <span className="truncate">{cat.name}</span>
                     </button>
                   );
@@ -392,7 +398,7 @@ function FilterSidebar({
 
         {/* ── 2. Price Range ────────────────────────────────────── */}
         <section className="py-4">
-          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+          <h3 className="text-[14px] font-semibold text-slate-900 mb-3">
             Price Range
           </h3>
           <div className="flex items-center gap-2">
@@ -432,7 +438,7 @@ function FilterSidebar({
 
         {/* ── 3. Availability ──────────────────────────────────── */}
         <section className="py-4">
-          <h3 className="text-[14px] font-semibold text-slate-700 mb-3">
+          <h3 className="text-[14px] font-semibold text-slate-900 mb-3">
             Availability
           </h3>
           <div className="space-y-1.5">
@@ -490,7 +496,7 @@ function FilterSidebar({
 
       {/* ── Latest Products ──────────────────────────────────── */}
       <div className="border-t border-slate-200">
-        <div className="px-5 py-4 border-b border-slate-100">
+        <div className="px-4 py-3.5 border-b border-slate-100">
           <h3 className="text-[14px] font-semibold text-slate-900">
             Latest Products
           </h3>
@@ -593,7 +599,7 @@ function Pagination({
             className={cn(
               "h-9 min-w-9 px-2 flex items-center justify-center rounded-lg text-[13px] font-semibold transition-colors",
               p === currentPage
-                ? "bg-epf-500 text-white shadow-sm hover:bg-epf-600"
+                ? "bg-epf-500 text-white hover:bg-epf-600"
                 : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
             )}
           >
@@ -629,7 +635,7 @@ function EmptyState({ onClear }: { onClear: () => void }) {
       </p>
       <button
         onClick={onClear}
-        className="h-10 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors shadow-sm"
+        className="h-10 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
       >
         Clear All Filters
       </button>
@@ -642,7 +648,7 @@ function EmptyState({ onClear }: { onClear: () => void }) {
 /* ------------------------------------------------------------------ */
 function SidebarSkeleton() {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-6 animate-pulse shadow-sm">
+    <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-6 animate-pulse shadow-sm">
       <div>
         <div className="h-5 bg-slate-100 rounded w-28 mb-4" />
         <div className="space-y-3">
@@ -997,7 +1003,7 @@ export default function ShopPage() {
             {/* ---- Content Area ---- */}
             <div className="flex-1 min-w-0">
               {isError ? (
-                <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-xl border border-slate-200">
+                <div className="flex flex-col items-center justify-center py-20 px-4 bg-white rounded-lg border border-slate-200">
                   <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                     <X className="h-8 w-8 text-red-400" />
                   </div>
@@ -1013,17 +1019,17 @@ export default function ShopPage() {
                 </div>
               ) : isLoading ? (
                 viewMode === "grid" ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {Array.from({ length: 8 }).map((_, i) => (
-                      <ShopCardSkeleton key={i} />
+                      <PremiumCardSkeleton key={i} />
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-3">
                     {Array.from({ length: 4 }).map((_, i) => (
                       <div
                         key={i}
-                        className="flex gap-4 p-4 bg-white border border-slate-200 rounded-xl animate-pulse"
+                        className="flex gap-4 p-4 bg-white border border-slate-200 rounded-lg animate-pulse"
                       >
                         <div className="w-44 h-44 shrink-0 bg-slate-100 rounded-lg" />
                         <div className="flex-1 space-y-3 py-1">
@@ -1038,15 +1044,15 @@ export default function ShopPage() {
                   </div>
                 )
               ) : processedProducts.length === 0 ? (
-                <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
                   <EmptyState onClear={handleClearFilters} />
                 </div>
               ) : (
                 <>
                   {viewMode === "grid" ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                       {processedProducts.map((product) => (
-                        <ShopCard
+                        <PremiumCard
                           key={product.id}
                           data={productToCardData(product)}
                           onCardClick={handleCardClick}
@@ -1054,7 +1060,7 @@ export default function ShopPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3">
                       {processedProducts.map((product) => (
                         <ProductCardList key={product.id} product={product} />
                       ))}
@@ -1081,10 +1087,10 @@ export default function ShopPage() {
       {/* Mobile Filter Sheet */}
       <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
         <SheetContent side="left" className="w-[320px] max-w-[85vw] p-0 overflow-y-auto">
-          <SheetHeader className="px-5 py-4 border-b border-slate-200">
+          <SheetHeader className="px-4 py-3.5 border-b border-slate-200">
             <SheetTitle className="text-[16px] font-semibold">Filters</SheetTitle>
           </SheetHeader>
-          <div className="p-4 pb-24">
+          <div className="p-3 pb-24">
             <FilterSidebar {...sidebarProps} />
           </div>
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200">

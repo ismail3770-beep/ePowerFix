@@ -1,109 +1,115 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
-import { apiFetch } from "@/lib/api";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   LayoutDashboard,
-  ShoppingCart,
   Package,
+  ShoppingCart,
+  Zap,
+  Ticket,
+  FileText,
+  Users,
+  Globe,
+  Palette,
+  BarChart3,
+  Settings,
+  Box,
   FolderTree,
   Tag,
-  Users,
-  Star,
-  Wrench,
   Layers,
-  Boxes,
-  Calendar,
-  RefreshCcw,
-  FileText,
-  Folder,
-  Image as ImageIcon,
-  Ticket,
-  Zap,
-  Mail,
-  MessageCircle,
-  FileQuestion,
-  Settings,
-  CreditCard,
-  Truck,
-  Receipt,
-  Bot,
+  SlidersHorizontal,
   FolderOpen,
-  ShieldCheck,
-  UserCog,
+  Settings2,
+  Tags,
+  ShoppingBag,
+  CreditCard,
+  RefreshCcw,
+  Newspaper,
+  Image as ImageIcon,
+  Menu as MenuIcon,
+  Languages,
+  DollarSign,
+  ChevronDown,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
+
+interface MenuChild {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+}
 
 interface MenuItem {
   key: string;
   label: string;
   icon: LucideIcon;
-  badgeKey?: string;
-}
-
-interface MenuSection {
-  title: string;
-  items: MenuItem[];
+  children?: MenuChild[];
 }
 
 /**
- * Grouped admin navigation. All tab keys from the original sidebar are
- * preserved so pageTitleMap / tabRouteMap keep working — they have just been
- * reorganised into the four on-brand groups (MAIN / SERVICES / CONTENT /
- * SETTINGS) requested by the redesign.
+ * FleetCart-style admin navigation.
+ * - Single flat list (no section headers) matching FleetCart exactly.
+ * - Parent items with `children` expand/collapse on click.
+ * - All dropdowns are CLOSED by default; the parent containing the active
+ *   child auto-expands so the active item is always visible.
  */
-const menuSections: MenuSection[] = [
+const menuItems: MenuItem[] = [
+  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   {
-    title: "MAIN",
-    items: [
-      { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { key: "orders", label: "Orders", icon: ShoppingCart },
-      { key: "products", label: "Products", icon: Package },
+    key: "catalog",
+    label: "Catalog",
+    icon: Package,
+    children: [
+      { key: "products", label: "Products", icon: Box },
       { key: "categories", label: "Categories", icon: FolderTree },
       { key: "brands", label: "Brands", icon: Tag },
-      { key: "customers", label: "Customers", icon: Users },
-      { key: "reviews", label: "Reviews", icon: Star },
+      { key: "variations", label: "Variations", icon: Layers },
+      { key: "attributes", label: "Attributes", icon: SlidersHorizontal },
+      { key: "attribute-sets", label: "Attribute Sets", icon: FolderOpen },
+      { key: "options", label: "Options", icon: Settings2 },
+      { key: "tags", label: "Tags", icon: Tags },
     ],
   },
   {
-    title: "SERVICES",
-    items: [
-      { key: "services", label: "Services", icon: Wrench },
-      { key: "service-categories", label: "Service Categories", icon: Layers },
-      { key: "project-kits", label: "Project Kits", icon: Boxes },
-      { key: "bookings", label: "Bookings", icon: Calendar },
+    key: "sales",
+    label: "Sales",
+    icon: ShoppingCart,
+    children: [
+      { key: "orders", label: "Orders", icon: ShoppingBag },
+      { key: "transactions", label: "Transactions", icon: CreditCard },
       { key: "returns", label: "Returns", icon: RefreshCcw },
     ],
   },
+  { key: "flash-sales", label: "Flash Sales", icon: Zap },
+  { key: "coupons", label: "Coupons", icon: Ticket },
   {
-    title: "CONTENT",
-    items: [
-      { key: "blog", label: "Blog", icon: FileText },
-      { key: "projects", label: "Projects", icon: Folder },
-      { key: "banners", label: "Banners", icon: ImageIcon },
-      { key: "coupons", label: "Coupons", icon: Ticket },
-      { key: "flash-sales", label: "Flash Sales", icon: Zap },
-      { key: "newsletter", label: "Newsletter", icon: Mail },
-      { key: "messages", label: "Messages", icon: MessageCircle, badgeKey: "messages" },
-      { key: "quote-requests", label: "Quote Requests", icon: FileQuestion },
+    key: "content",
+    label: "Content",
+    icon: FileText,
+    children: [
+      { key: "pages", label: "Pages", icon: FileText },
+      { key: "menus", label: "Menus", icon: MenuIcon },
+      { key: "blog", label: "Blog", icon: Newspaper },
+      { key: "media-library", label: "Media", icon: ImageIcon },
     ],
   },
+  { key: "customers", label: "Customers", icon: Users },
   {
-    title: "SETTINGS",
-    items: [
-      { key: "general-settings", label: "General Settings", icon: Settings },
-      { key: "payment-gateways", label: "Payment Gateways", icon: CreditCard },
-      { key: "shipping", label: "Shipping", icon: Truck },
-      { key: "taxes", label: "Taxes", icon: Receipt },
-      { key: "ai-providers", label: "AI Providers", icon: Bot },
-      { key: "media-library", label: "Media Library", icon: FolderOpen },
-      { key: "security", label: "Security", icon: ShieldCheck },
-      { key: "staff", label: "Staff", icon: UserCog },
+    key: "localization",
+    label: "Localization",
+    icon: Globe,
+    children: [
+      { key: "languages", label: "Languages", icon: Languages },
+      { key: "currencies", label: "Currencies", icon: DollarSign },
     ],
   },
+  { key: "appearance", label: "Appearance", icon: Palette },
+  { key: "reports", label: "Reports", icon: BarChart3 },
+  { key: "settings", label: "Settings", icon: Settings },
 ];
 
 interface AdminSidebarProps {
@@ -121,32 +127,53 @@ export default function AdminSidebar({
   activeTab,
   onTabChange,
   collapsed,
+  onToggle,
   onNavigate,
   variant = "desktop",
 }: AdminSidebarProps) {
   const { user, logout } = useAuthStore();
   const router = useRouter();
-  const [badgeCounts, setBadgeCounts] = useState<Record<string, number>>({});
-
-  // Fetch NEW messages count for the Messages badge.
-  useEffect(() => {
-    apiFetch<{ data?: { total?: number } }>("/api/admin/messages?status=NEW&limit=1")
-      .then((res) => {
-        const total = res?.data?.total ?? 0;
-        if (total > 0) {setBadgeCounts({ messages: total });}
-      })
-      .catch(() => {});
-  }, []);
 
   const isMobile = variant === "mobile";
   // Mobile drawer is always expanded regardless of the `collapsed` prop.
   const showLabels = isMobile || !collapsed;
 
-  const isActive = (key: string) => activeTab === key;
+  /**
+   * Per-parent explicit override. `true` forces the dropdown open, `false`
+   * forces it closed, `undefined` falls back to auto (open if any child is
+   * the active tab). Derived in render — no effect needed, so no cascading
+   * renders. Multiple parents may be open at once (FleetCart behaviour).
+   */
+  const [userToggle, setUserToggle] = useState<Record<string, boolean>>({});
+
+  const isParentOpen = (item: MenuItem): boolean => {
+    if (!item.children?.length) return false;
+    const override = userToggle[item.key];
+    if (override !== undefined) return override;
+    // Auto: open if the active tab is one of this parent's children.
+    return item.children.some((c) => c.key === activeTab);
+  };
+
+  const isParentActive = useMemo(
+    () => (item: MenuItem) =>
+      !!item.children?.some((c) => c.key === activeTab),
+    [activeTab]
+  );
 
   const handleItemClick = (key: string) => {
     onTabChange(key);
     onNavigate?.();
+  };
+
+  const handleParentClick = (item: MenuItem) => {
+    // In collapsed desktop rail, expand the sidebar first instead of toggling
+    // an inline dropdown (which would overflow the narrow rail).
+    if (!isMobile && collapsed) {
+      onToggle?.();
+      return;
+    }
+    const currentlyOpen = isParentOpen(item);
+    setUserToggle((prev) => ({ ...prev, [item.key]: !currentlyOpen }));
   };
 
   const handleLogout = async () => {
@@ -154,11 +181,15 @@ export default function AdminSidebar({
     router.push("/admin/login");
   };
 
+  const widthClass = isMobile
+    ? "w-[260px]"
+    : collapsed
+    ? "w-[68px]"
+    : "w-[240px]";
+
   return (
     <aside
-      className={`h-full bg-slate-900 flex flex-col transition-[width] duration-300 ease-in-out ${
-        isMobile ? "w-[260px]" : collapsed ? "w-[68px]" : "w-[240px]"
-      }`}
+      className={`h-full bg-slate-900 flex flex-col transition-[width] duration-300 ease-in-out ${widthClass}`}
     >
       {/* Brand */}
       <div
@@ -167,11 +198,17 @@ export default function AdminSidebar({
         }`}
       >
         <div className="h-9 w-9 rounded-lg bg-epf-500/15 flex items-center justify-center shrink-0">
-          <Zap className="h-5 w-5 text-epf-500" fill="currentColor" strokeWidth={0} />
+          <Zap
+            className="h-5 w-5 text-epf-500"
+            fill="currentColor"
+            strokeWidth={0}
+          />
         </div>
         {showLabels && (
           <div className="min-w-0 leading-tight">
-            <div className="text-white text-[15px] font-bold tracking-tight">ePowerFix</div>
+            <div className="text-white text-[15px] font-bold tracking-tight">
+              ePowerFix
+            </div>
             <div className="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-medium">
               Admin Panel
             </div>
@@ -180,58 +217,117 @@ export default function AdminSidebar({
       </div>
 
       {/* Scrollable menu */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-2 [scrollbar-width:thin]">
-        {menuSections.map((section) => (
-          <div key={section.title} className="mb-1">
-            {showLabels && (
-              <div className="text-slate-600 text-[10px] font-bold uppercase tracking-wider px-5 pt-3 pb-1.5">
-                {section.title}
-              </div>
-            )}
-            {section.items.map((item) => {
-              const active = isActive(item.key);
-              const Icon = item.icon;
-              const badgeValue = item.badgeKey
-                ? badgeCounts[item.badgeKey] ?? 0
-                : 0;
+      <nav
+        className="flex-1 overflow-y-auto overflow-x-hidden py-3 [scrollbar-width:thin] [scrollbar-color:#334155_transparent]"
+        aria-label="Admin navigation"
+      >
+        <ul className="flex flex-col gap-0.5 px-2">
+          {menuItems.map((item) => {
+            const hasChildren = !!item.children?.length;
+            const isOpen = isParentOpen(item);
+            const parentActive = isParentActive(item);
+            const selfActive = activeTab === item.key;
+            const active = selfActive || (hasChildren && parentActive);
+            const Icon = item.icon;
 
-              return (
+            return (
+              <li key={item.key}>
                 <button
-                  key={item.key}
-                  onClick={() => handleItemClick(item.key)}
-                  className={`group relative w-full flex items-center gap-3 border-l-[3px] py-2.5 text-[13px] font-medium transition-all duration-150 ${
-                    showLabels ? "px-5" : "px-4 justify-center"
+                  type="button"
+                  onClick={() =>
+                    hasChildren ? handleParentClick(item) : handleItemClick(item.key)
+                  }
+                  aria-expanded={hasChildren ? isOpen : undefined}
+                  className={`group relative w-full flex items-center gap-3 rounded-md border-l-[3px] py-2.5 text-[13px] font-medium transition-colors duration-150 ${
+                    showLabels ? "px-3" : "px-2 justify-center"
                   } ${
                     active
-                      ? "bg-epf-500/10 text-white border-epf-500"
+                      ? "bg-white/5 text-white border-epf-500"
                       : "text-slate-400 hover:text-white hover:bg-white/5 border-transparent"
                   }`}
                   title={!showLabels ? item.label : undefined}
                 >
                   <Icon
                     className={`h-[18px] w-[18px] shrink-0 transition-colors ${
-                      active ? "text-epf-500" : "text-slate-400 group-hover:text-white"
+                      active
+                        ? selfActive
+                          ? "text-epf-500"
+                          : "text-white"
+                        : "text-slate-400 group-hover:text-white"
                     }`}
                   />
                   {showLabels && (
                     <>
-                      <span className="flex-1 text-left truncate">{item.label}</span>
-                      {badgeValue > 0 && (
-                        <span className="shrink-0 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
-                          {badgeValue > 9 ? "9+" : badgeValue}
-                        </span>
+                      <span className="flex-1 text-left truncate">
+                        {item.label}
+                      </span>
+                      {hasChildren && (
+                        <ChevronDown
+                          className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-200 ${
+                            isOpen ? "rotate-180" : ""
+                          }`}
+                        />
                       )}
                     </>
                   )}
-                  {!showLabels && badgeValue > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
-                  )}
                 </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+
+                {/* Dropdown children — animated height */}
+                {hasChildren && showLabels && item.children && (
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.ul
+                        key="dropdown"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25, ease: "easeInOut" }}
+                        className="overflow-hidden pl-4 pr-1"
+                      >
+                        {item.children.map((child) => {
+                          const childActive = activeTab === child.key;
+                          const ChildIcon = child.icon;
+                          return (
+                            <li key={child.key}>
+                              <button
+                                type="button"
+                                onClick={() => handleItemClick(child.key)}
+                                className={`group w-full flex items-center gap-2.5 rounded-md py-2 pl-3 pr-2 text-[12.5px] font-medium transition-colors duration-150 ${
+                                  childActive
+                                    ? "bg-epf-500/10 text-white"
+                                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                                }`}
+                              >
+                                <span
+                                  className={`h-1.5 w-1.5 rounded-full shrink-0 transition-colors ${
+                                    childActive
+                                      ? "bg-epf-500"
+                                      : "bg-slate-600 group-hover:bg-slate-400"
+                                  }`}
+                                />
+                                <ChildIcon
+                                  className={`h-[15px] w-[15px] shrink-0 transition-colors ${
+                                    childActive
+                                      ? "text-epf-500"
+                                      : "text-slate-500 group-hover:text-slate-300"
+                                  }`}
+                                />
+                                <span className="flex-1 text-left truncate">
+                                  {child.label}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
 
       {/* Bottom: User mini-profile */}
       <div className="shrink-0 border-t border-white/5 p-3">
@@ -244,7 +340,9 @@ export default function AdminSidebar({
               <p className="text-[13px] font-medium text-white truncate">
                 {user?.name || "Admin"}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+              <p className="text-[11px] text-slate-500 truncate">
+                {user?.email}
+              </p>
             </div>
             <button
               onClick={handleLogout}

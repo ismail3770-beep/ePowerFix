@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, memo } from "react";
-import { ShoppingCart, Star, Check } from "lucide-react";
+import { ShoppingCart, Star, Check, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store";
 import { toast } from "sonner";
-import WishlistButton from "@/components/WishlistButton";
 import { addRecentlyViewed } from "@/components/epf/RecentlyViewed";
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Premium Product Card — best-in-class e-commerce card for ePowerFix
+// Premium Product Card — FleetCart-aligned for ePowerFix
+// Clean, subtle, professional. NOT AI-generated.
 // ═══════════════════════════════════════════════════════════════════════════
 
 export interface PremiumCardData {
@@ -44,13 +44,14 @@ interface PremiumCardProps {
 function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumCardProps) {
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
+  const [wished, setWished] = useState(false);
 
   const addItem = useCartStore((s) => s.addItem);
 
   const images = data.images || [];
   const imageUrl = data.image || data.coverImage || images[0] || "";
 
-  // Pricing
+  // Pricing — displayPrice is what's shown; originalPrice is strikethrough
   const hasDiscount =
     data.comparePrice != null && data.comparePrice > data.price;
   const discountPercent = hasDiscount
@@ -62,11 +63,6 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
   const inStock = data.stock == null || data.stock > 0;
   const rating = data.rating || 0;
   const reviewCount = data.reviewCount || 0;
-
-  const badgeText =
-    discountPercent > 0
-      ? `-${discountPercent}%`
-      : data.badge || (data.isBestDeal ? "Best Deal" : data.isFeatured ? "Featured" : null);
 
   const handleClick = () => {
     addRecentlyViewed(data.id, {
@@ -104,25 +100,31 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
     setTimeout(() => setAdded(false), 1500);
   };
 
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setWished((v) => !v);
+  };
+
   return (
     <div
       onClick={handleClick}
       className={cn(
-        "group relative flex flex-col bg-white rounded-xl overflow-hidden",
+        "group relative flex flex-col bg-white rounded-lg overflow-hidden",
         "border border-slate-200",
-        "shadow-sm hover:shadow-xl hover:border-slate-300 hover:-translate-y-1",
-        "transition-all duration-300 ease-out",
+        "shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5",
+        "transition-all duration-200 ease-out",
         "cursor-pointer",
         className
       )}
     >
-      {/* ─── Image Area ─── */}
-      <div className="relative aspect-[4/3] bg-slate-50 overflow-hidden">
+      {/* ─── Image Area — square, soft bg ─── */}
+      <div className="relative aspect-square bg-slate-50 overflow-hidden">
         {imageUrl && !imgError ? (
           <img
             src={imageUrl}
             alt={data.name}
-            className="w-full h-full object-contain p-2.5 group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ease-out"
             onError={() => setImgError(true)}
             loading="lazy"
           />
@@ -134,51 +136,66 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
           </div>
         )}
 
-        {/* Subtle gradient overlay on hover (bottom of image) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-        {/* Discount/Feature Badge — top left */}
-        {badgeText && (
-          <span className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-full text-[11px] font-bold text-white bg-epf-500 leading-tight tracking-wide shadow-sm">
-            {badgeText}
+        {/* Discount badge — top-left, emerald */}
+        {discountPercent > 0 && (
+          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-emerald-500 leading-tight tracking-wide">
+            -{discountPercent}%
           </span>
         )}
 
-        {/* Out of stock overlay */}
+        {/* Out of stock badge — top-left if no discount, else top-right */}
         {!inStock && (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-20">
-            <span className="px-3 py-1 rounded-full text-[12px] font-bold text-white bg-slate-500 shadow-md">
-              Out of Stock
-            </span>
-          </div>
+          <span
+            className={cn(
+              "absolute top-2 z-10 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-red-500 leading-tight",
+              discountPercent > 0 ? "right-2" : "left-2"
+            )}
+          >
+            Out of Stock
+          </span>
         )}
 
-        {/* Wishlist — top right (circular, glass effect) */}
-        <div
-          className="absolute top-2 right-2 z-10"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <WishlistButton productId={data.id} initialFav={false} />
-        </div>
+        {/* Featured / New badge — top-left if no discount & in stock */}
+        {discountPercent === 0 && inStock && data.isFeatured && (
+          <span className="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[11px] font-bold text-white bg-epf-500 leading-tight">
+            Featured
+          </span>
+        )}
 
-        {/* Quick Add to Cart — bottom right (circular icon, always visible) */}
+        {/* Wishlist — top-right (subtle, no glass) */}
+        <button
+          onClick={handleWishlist}
+          aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
+          className={cn(
+            "absolute top-1.5 right-1.5 z-10 h-7 w-7 flex items-center justify-center rounded-md",
+            "bg-white/80 backdrop-blur-sm border border-slate-200",
+            "transition-colors duration-200",
+            wished
+              ? "text-red-500"
+              : "text-slate-500 hover:text-red-500 hover:bg-white"
+          )}
+        >
+          <Heart className={cn("w-3.5 h-3.5", wished && "fill-red-500")} />
+        </button>
+
+        {/* Add to cart — bottom-right (small icon button) */}
         {inStock && (
           <button
             onClick={handleAddToCart}
             disabled={added}
             aria-label="Add to cart"
             className={cn(
-              "absolute bottom-2.5 right-2.5 z-10",
-              "h-9 w-9 flex items-center justify-center rounded-full",
-              "bg-white text-slate-700 shadow-md border border-slate-200",
-              "opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0",
-              "hover:bg-epf-500 hover:text-white hover:border-epf-500",
+              "absolute bottom-2 right-2 z-10",
+              "h-8 w-8 flex items-center justify-center rounded-lg",
+              "bg-slate-100 text-slate-700",
               "transition-all duration-200 ease-out",
-              added && "bg-green-500 text-white border-green-500 opacity-100 translate-y-0"
+              added
+                ? "bg-emerald-500 text-white"
+                : "hover:bg-epf-500 hover:text-white"
             )}
           >
             {added ? (
-              <Check className="w-4 h-4" strokeWidth={3} />
+              <Check className="w-4 h-4" strokeWidth={2.5} />
             ) : (
               <ShoppingCart className="w-4 h-4" />
             )}
@@ -186,11 +203,11 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
         )}
       </div>
 
-      {/* ─── Content Area ─── */}
-      <div className="flex flex-col flex-1 p-2.5 gap-1">
+      {/* ─── Content Area — compact ─── */}
+      <div className="flex flex-col flex-1 p-3 gap-1">
         {/* Category label (muted, small) */}
         {data.category && (
-          <span className="text-[10px] font-medium text-epf-500 uppercase tracking-wide">
+          <span className="text-[10px] font-medium text-epf-500 uppercase tracking-wide truncate">
             {data.category}
           </span>
         )}
@@ -219,17 +236,17 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
                 />
               ))}
             </div>
-            <span className="text-[10px] text-slate-400">({reviewCount})</span>
+            <span className="text-[11px] text-slate-400">({reviewCount})</span>
           </div>
         )}
 
-        {/* Price */}
+        {/* Price — dark text, FleetCart style */}
         <div className="mt-auto pt-1 flex items-center gap-1.5">
           <span className="text-[15px] font-bold text-slate-900">
             ৳{Number(displayPrice).toLocaleString()}
           </span>
           {showOriginal && (
-            <del className="text-[11px] text-slate-400">
+            <del className="text-[12px] text-slate-400">
               ৳{Number(originalPrice).toLocaleString()}
             </del>
           )}
@@ -247,9 +264,9 @@ export const PremiumCard = memo(PremiumCardBase);
 
 export function PremiumCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="aspect-[4/3] bg-slate-100 animate-pulse" />
-      <div className="p-2.5 space-y-2">
+    <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="aspect-square bg-slate-100 animate-pulse" />
+      <div className="p-3 space-y-2">
         <div className="h-2 bg-slate-100 rounded animate-pulse w-1/3" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-3/4" />
         <div className="h-3 bg-slate-100 rounded animate-pulse w-1/2" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -17,10 +17,9 @@ import {
   Package,
   Truck,
   ShieldCheck,
-  RotateCcw,
+  Headphones,
   Loader2,
   Eye,
-  Zap,
   Tag,
   Check,
 } from "lucide-react";
@@ -35,11 +34,16 @@ import CartDrawer from "@/components/epf/CartDrawer";
 import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
+import {
+  PremiumCard,
+  PremiumCardSkeleton,
+  type PremiumCardData,
+} from "@/components/epf/PremiumCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 interface Product {
   id: string;
@@ -81,11 +85,12 @@ function StarRating({
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
-            className={`${size} ${
+            className={cn(
+              size,
               i < Math.round(safeRating)
-                ? "fill-amber-500 text-amber-500"
+                ? "fill-amber-400 text-amber-400"
                 : "fill-slate-200 text-slate-200"
-            }`}
+            )}
           />
         ))}
       </div>
@@ -95,6 +100,70 @@ function StarRating({
       {typeof count === "number" && (
         <span className="text-[13px] text-slate-500">({count} reviews)</span>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Trust Badges                                                       */
+/* ------------------------------------------------------------------ */
+function TrustBadges({ variant = "row" }: { variant?: "row" | "grid" }) {
+  const items = [
+    {
+      icon: Truck,
+      title: "Free Delivery",
+      sub: "On orders over ৳2,000",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Secure Payment",
+      sub: "100% protected payments",
+    },
+    {
+      icon: Headphones,
+      title: "24/7 Support",
+      sub: "Dedicated customer care",
+    },
+  ];
+
+  if (variant === "grid") {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        {items.map((it) => (
+          <div
+            key={it.title}
+            className="flex flex-col items-center text-center p-3 bg-white rounded-lg border border-slate-200"
+          >
+            <div className="size-8 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center mb-1.5">
+              <it.icon className="size-4" />
+            </div>
+            <span className="text-[11px] text-slate-700 font-semibold">
+              {it.title}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {items.map((it) => (
+        <div
+          key={it.title}
+          className="flex items-center gap-2.5 p-3 bg-white rounded-lg border border-slate-200"
+        >
+          <div className="size-9 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center shrink-0">
+            <it.icon className="size-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-slate-800 truncate">
+              {it.title}
+            </p>
+            <p className="text-[11px] text-slate-500 truncate">{it.sub}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -116,9 +185,6 @@ export default function ProductDetailPage() {
   const [specs, setSpecs] = useState<Record<string, string>>({});
   const [viewers] = useState(() => Math.floor(Math.random() * 20) + 3);
   const [wishlisted, setWishlisted] = useState(false);
-  const [zooming, setZooming] = useState(false);
-  const [zoomPos, setZoomPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
-  const imageWrapRef = useRef<HTMLDivElement | null>(null);
 
   // Reviews
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -284,15 +350,6 @@ export default function ProductDetailPage() {
     });
   };
 
-  // Hover-zoom on main image
-  const handleImageMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageWrapRef.current) {return;}
-    const rect = imageWrapRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPos({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50">
@@ -374,32 +431,18 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* Main Content — Gallery + Info */}
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Left: Image Gallery */}
             <div className="flex flex-col gap-3">
-              {/* Main image with hover-zoom */}
-              <div
-                ref={imageWrapRef}
-                onMouseEnter={() => setZooming(true)}
-                onMouseLeave={() => setZooming(false)}
-                onMouseMove={handleImageMove}
-                className="relative aspect-square bg-white rounded-xl border border-slate-200 overflow-hidden group cursor-zoom-in shadow-sm"
-              >
+              {/* Main image */}
+              <div className="relative aspect-square bg-white rounded-lg border border-slate-200 overflow-hidden group">
                 {productImages.length > 0 ? (
                   <img
                     src={productImages[activeImage]}
                     alt={product.name}
-                    className="w-full h-full object-contain p-6 transition-transform duration-200 ease-out"
-                    style={
-                      zooming
-                        ? {
-                            transform: `scale(1.8)`,
-                            transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
-                          }
-                        : undefined
-                    }
+                    className="w-full h-full object-contain p-6 transition-transform duration-300 ease-out"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
@@ -410,31 +453,32 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
-                {/* Discount badge */}
+                {/* Discount badge — emerald */}
                 {discount > 0 && (
-                  <span className="absolute top-4 left-4 bg-epf-500 text-white text-[12px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+                  <span className="absolute top-3 left-3 bg-emerald-500 text-white text-[12px] font-bold px-2 py-0.5 rounded">
                     -{discount}%
                   </span>
                 )}
 
                 {/* Action icons */}
-                <div className="absolute top-4 right-4 flex flex-col gap-2">
+                <div className="absolute top-3 right-3 flex flex-col gap-2">
                   <button
                     onClick={handleWishlist}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm border ${
+                    className={cn(
+                      "w-9 h-9 rounded-lg flex items-center justify-center transition-colors border",
                       wishlisted
                         ? "bg-epf-500 border-epf-500 text-white"
-                        : "bg-white/90 backdrop-blur-sm border-slate-200 text-slate-600 hover:text-epf-500 hover:border-epf-500"
-                    }`}
+                        : "bg-white border-slate-200 text-slate-600 hover:text-epf-500 hover:border-epf-500"
+                    )}
                     aria-label="Add to wishlist"
                   >
                     <Heart
-                      className={`size-4 ${wishlisted ? "fill-white" : ""}`}
+                      className={cn("size-4", wishlisted && "fill-white")}
                     />
                   </button>
                   <button
                     onClick={handleShare}
-                    className="w-10 h-10 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-epf-500 hover:border-epf-500 transition-all shadow-sm"
+                    className="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-600 hover:text-epf-500 hover:border-epf-500 transition-colors"
                     aria-label="Share product"
                   >
                     <Share2 className="size-4" />
@@ -446,14 +490,14 @@ export default function ProductDetailPage() {
                   <>
                     <button
                       onClick={handlePrevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-full flex items-center justify-center text-slate-700 hover:bg-epf-500 hover:text-white hover:border-epf-500 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-700 hover:bg-epf-500 hover:text-white hover:border-epf-500 transition-colors opacity-0 group-hover:opacity-100 duration-200"
                       aria-label="Previous image"
                     >
                       <ChevronLeft className="size-5" />
                     </button>
                     <button
                       onClick={handleNextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-full flex items-center justify-center text-slate-700 hover:bg-epf-500 hover:text-white hover:border-epf-500 transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-700 hover:bg-epf-500 hover:text-white hover:border-epf-500 transition-colors opacity-0 group-hover:opacity-100 duration-200"
                       aria-label="Next image"
                     >
                       <ChevronRight className="size-5" />
@@ -463,7 +507,7 @@ export default function ProductDetailPage() {
 
                 {/* Image counter */}
                 {productImages.length > 1 && (
-                  <span className="absolute bottom-4 right-4 bg-slate-900/70 backdrop-blur-sm text-white text-[12px] font-medium px-2.5 py-1 rounded-full">
+                  <span className="absolute bottom-3 right-3 bg-slate-900/70 text-white text-[12px] font-medium px-2.5 py-1 rounded">
                     {activeImage + 1} / {productImages.length}
                   </span>
                 )}
@@ -476,17 +520,18 @@ export default function ProductDetailPage() {
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`size-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={cn(
+                        "size-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all bg-white",
                         i === activeImage
-                          ? "border-epf-500 shadow-sm"
+                          ? "border-epf-500"
                           : "border-slate-200 hover:border-slate-400"
-                      }`}
+                      )}
                       aria-label={`View image ${i + 1}`}
                     >
                       <img
                         src={img}
                         alt=""
-                        className="w-full h-full object-cover bg-white"
+                        className="w-full h-full object-contain p-1"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
                         }}
@@ -497,9 +542,10 @@ export default function ProductDetailPage() {
                   Array.from({ length: 4 }).map((_, i) => (
                     <div
                       key={i}
-                      className={`size-20 shrink-0 rounded-lg border-2 flex items-center justify-center bg-slate-50 ${
+                      className={cn(
+                        "size-20 shrink-0 rounded-lg border-2 flex items-center justify-center bg-slate-50",
                         i === 0 ? "border-epf-500" : "border-slate-200"
-                      }`}
+                      )}
                     >
                       <Package className="size-6 text-slate-300" />
                     </div>
@@ -508,46 +554,8 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Trust badges row (under gallery on desktop) */}
-              <div className="hidden lg:grid grid-cols-3 gap-3 mt-2">
-                <div className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <div className="size-9 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center shrink-0">
-                    <Truck className="size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-slate-800 truncate">
-                      Free Delivery
-                    </p>
-                    <p className="text-[11px] text-slate-500 truncate">
-                      On orders over ৳2,000
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <div className="size-9 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-slate-800 truncate">
-                      Warranty
-                    </p>
-                    <p className="text-[11px] text-slate-500 truncate">
-                      Official brand warranty
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <div className="size-9 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center shrink-0">
-                    <RotateCcw className="size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-slate-800 truncate">
-                      Easy Return
-                    </p>
-                    <p className="text-[11px] text-slate-500 truncate">
-                      7-day return policy
-                    </p>
-                  </div>
-                </div>
+              <div className="hidden lg:block mt-2">
+                <TrustBadges variant="row" />
               </div>
             </div>
 
@@ -556,33 +564,24 @@ export default function ProductDetailPage() {
               {/* Brand + category badges */}
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 {product.brand?.name && (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-3 py-1 text-[11px] font-bold bg-slate-100 text-slate-700 border-0"
-                  >
+                  <span className="rounded px-2.5 py-1 text-[11px] font-bold bg-slate-100 text-slate-700">
                     {product.brand.name}
-                  </Badge>
+                  </span>
                 )}
                 {product.category?.name && (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-full px-3 py-1 text-[11px] font-bold bg-epf-50 text-epf-700 border-0"
-                  >
+                  <span className="rounded px-2.5 py-1 text-[11px] font-bold bg-epf-50 text-epf-700">
                     {product.category.name}
-                  </Badge>
+                  </span>
                 )}
                 {product.stock > 0 ? (
-                  <Badge className="rounded-full px-3 py-1 text-[11px] font-bold bg-green-100 text-green-700 border-0 hover:bg-green-100">
+                  <span className="inline-flex items-center gap-1 rounded px-2.5 py-1 text-[11px] font-bold bg-emerald-50 text-emerald-700">
                     <Check className="size-3" />
                     In Stock
-                  </Badge>
+                  </span>
                 ) : (
-                  <Badge
-                    variant="destructive"
-                    className="rounded-full px-3 py-1 text-[11px] font-bold"
-                  >
+                  <span className="rounded px-2.5 py-1 text-[11px] font-bold bg-red-50 text-red-600">
                     Out of Stock
-                  </Badge>
+                  </span>
                 )}
               </div>
 
@@ -614,24 +613,21 @@ export default function ProductDetailPage() {
                 </span>
               </div>
 
-              {/* Price section */}
-              <div className="mt-5 p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+              {/* Price section — dark text per FleetCart */}
+              <div className="mt-5 p-4 bg-white rounded-lg border border-slate-200">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <p className="text-[28px] font-bold text-epf-600 leading-none">
-                    ৳{product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  <p className="text-[24px] font-bold text-slate-900 leading-none">
+                    ৳{product.price.toLocaleString()}
                   </p>
                   {product.comparePrice && (
                     <p className="text-[16px] text-slate-400 line-through">
-                      ৳
-                      {product.comparePrice.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                      })}
+                      ৳{product.comparePrice.toLocaleString()}
                     </p>
                   )}
                   {discount > 0 && (
-                    <Badge className="bg-epf-500 text-white border-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold hover:bg-epf-500">
+                    <span className="bg-emerald-500 text-white rounded px-2 py-0.5 text-[11px] font-bold">
                       Save {discount}%
-                    </Badge>
+                    </span>
                   )}
                 </div>
                 <p className="text-[12px] text-slate-500 mt-2">
@@ -646,7 +642,7 @@ export default function ProductDetailPage() {
                 </p>
               )}
 
-              {/* Quantity + wishlist */}
+              {/* Quantity + stock info */}
               <div className="mt-5 flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                   <span className="text-[13px] font-medium text-slate-700">
@@ -679,12 +675,12 @@ export default function ProductDetailPage() {
                 </div>
               </div>
 
-              {/* Action buttons */}
+              {/* Action buttons — Add to Cart (epf) + Buy Now (slate-900) */}
               <div className="mt-5 flex gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 h-12 bg-white border border-slate-300 hover:border-epf-500 hover:text-epf-600 text-slate-700 text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 h-12 bg-epf-500 hover:bg-epf-600 text-white text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ShoppingCart className="size-5" />
                   Add to Cart
@@ -692,21 +688,21 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleBuyNow}
                   disabled={product.stock === 0}
-                  className="flex-1 h-12 bg-epf-500 hover:bg-epf-600 text-white text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 h-12 bg-slate-900 hover:bg-slate-800 text-white text-[15px] font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Zap className="size-5" />
                   Buy Now
                 </button>
                 <button
                   onClick={handleWishlist}
-                  className={`h-12 w-12 shrink-0 rounded-lg flex items-center justify-center transition-all border ${
+                  className={cn(
+                    "h-12 w-12 shrink-0 rounded-lg flex items-center justify-center transition-colors border",
                     wishlisted
                       ? "bg-epf-500 border-epf-500 text-white"
                       : "bg-white border-slate-300 text-slate-600 hover:text-epf-500 hover:border-epf-500"
-                  }`}
+                  )}
                   aria-label="Add to wishlist"
                 >
-                  <Heart className={`size-5 ${wishlisted ? "fill-white" : ""}`} />
+                  <Heart className={cn("size-5", wishlisted && "fill-white")} />
                 </button>
               </div>
 
@@ -719,31 +715,8 @@ export default function ProductDetailPage() {
               </button>
 
               {/* Trust badges row (mobile — under buttons) */}
-              <div className="lg:hidden mt-6 grid grid-cols-3 gap-2">
-                <div className="flex flex-col items-center text-center p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <div className="size-8 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center mb-1.5">
-                    <Truck className="size-4" />
-                  </div>
-                  <span className="text-[11px] text-slate-700 font-semibold">
-                    Free Delivery
-                  </span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <div className="size-8 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center mb-1.5">
-                    <ShieldCheck className="size-4" />
-                  </div>
-                  <span className="text-[11px] text-slate-700 font-semibold">
-                    Warranty
-                  </span>
-                </div>
-                <div className="flex flex-col items-center text-center p-3 bg-white rounded-xl border border-slate-200 shadow-sm">
-                  <div className="size-8 rounded-lg bg-epf-50 text-epf-600 flex items-center justify-center mb-1.5">
-                    <RotateCcw className="size-4" />
-                  </div>
-                  <span className="text-[11px] text-slate-700 font-semibold">
-                    Easy Return
-                  </span>
-                </div>
+              <div className="lg:hidden mt-6">
+                <TrustBadges variant="grid" />
               </div>
 
               {/* Meta section: SKU, category, tags */}
@@ -786,7 +759,7 @@ export default function ProductDetailPage() {
                     {product.tags.map((t) => (
                       <span
                         key={t}
-                        className="text-[12px] text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full"
+                        className="text-[12px] text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded"
                       >
                         {t}
                       </span>
@@ -797,37 +770,37 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Tabs Section */}
+          {/* Tabs Section: Description / Specifications / Reviews */}
           <div className="mt-10 sm:mt-12">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
               className="w-full"
             >
-              <TabsList className="bg-white border border-slate-200 rounded-xl p-1 h-auto w-full sm:w-fit flex justify-start shadow-sm">
+              <TabsList className="bg-white border border-slate-200 rounded-lg p-1 h-auto w-full sm:w-fit flex justify-start">
                 <TabsTrigger
                   value="description"
-                  className="rounded-lg px-5 py-2.5 text-[14px] font-semibold data-[state=active]:bg-epf-500 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600"
+                  className="rounded-md px-5 py-2.5 text-[14px] font-semibold data-[state=active]:bg-epf-500 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600"
                 >
                   Description
                 </TabsTrigger>
                 <TabsTrigger
-                  value="reviews"
-                  className="rounded-lg px-5 py-2.5 text-[14px] font-semibold data-[state=active]:bg-epf-500 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600"
+                  value="specifications"
+                  className="rounded-md px-5 py-2.5 text-[14px] font-semibold data-[state=active]:bg-epf-500 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600"
                 >
-                  Reviews ({product.reviewCount})
+                  Specifications
                 </TabsTrigger>
                 <TabsTrigger
-                  value="related"
-                  className="rounded-lg px-5 py-2.5 text-[14px] font-semibold data-[state=active]:bg-epf-500 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600"
+                  value="reviews"
+                  className="rounded-md px-5 py-2.5 text-[14px] font-semibold data-[state=active]:bg-epf-500 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600"
                 >
-                  Related Products
+                  Reviews ({product.reviewCount})
                 </TabsTrigger>
               </TabsList>
 
               {/* Description Tab */}
               <TabsContent value="description" className="mt-6">
-                <Card className="rounded-xl border-slate-200 shadow-sm">
+                <Card className="rounded-lg border-slate-200 shadow-sm">
                   <CardContent className="p-6">
                     <h3 className="text-[18px] font-bold text-slate-900 mb-4">
                       Product Description
@@ -836,35 +809,43 @@ export default function ProductDetailPage() {
                       {product.description ||
                         "No description available for this product yet."}
                     </p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                    {/* Specs table */}
-                    {Object.keys(specs).length > 0 && (
-                      <>
-                        <h4 className="text-[16px] font-bold text-slate-800 mt-6 mb-3">
-                          Specifications
-                        </h4>
-                        <div className="border border-slate-200 rounded-xl overflow-hidden">
-                          <table className="w-full text-[14px]">
-                            <tbody>
-                              {Object.entries(specs).map(([key, val], i) => (
-                                <tr
-                                  key={key}
-                                  className={
-                                    i % 2 === 0 ? "bg-slate-50" : "bg-white"
-                                  }
-                                >
-                                  <td className="px-4 py-2.5 font-medium text-slate-500 w-1/3">
-                                    {key}
-                                  </td>
-                                  <td className="px-4 py-2.5 text-slate-800">
-                                    {val}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </>
+              {/* Specifications Tab */}
+              <TabsContent value="specifications" className="mt-6">
+                <Card className="rounded-lg border-slate-200 shadow-sm">
+                  <CardContent className="p-6">
+                    <h3 className="text-[18px] font-bold text-slate-900 mb-4">
+                      Specifications
+                    </h3>
+                    {Object.keys(specs).length > 0 ? (
+                      <div className="border border-slate-200 rounded-lg overflow-hidden">
+                        <table className="w-full text-[14px]">
+                          <tbody>
+                            {Object.entries(specs).map(([key, val], i) => (
+                              <tr
+                                key={key}
+                                className={
+                                  i % 2 === 0 ? "bg-slate-50" : "bg-white"
+                                }
+                              >
+                                <td className="px-4 py-2.5 font-medium text-slate-500 w-1/3">
+                                  {key}
+                                </td>
+                                <td className="px-4 py-2.5 text-slate-800">
+                                  {val}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-[14px] text-slate-500">
+                        No specifications available for this product.
+                      </p>
                     )}
                   </CardContent>
                 </Card>
@@ -872,7 +853,7 @@ export default function ProductDetailPage() {
 
               {/* Reviews Tab */}
               <TabsContent value="reviews" className="mt-6">
-                <Card className="rounded-xl border-slate-200 shadow-sm">
+                <Card className="rounded-lg border-slate-200 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-6 mb-6 flex-wrap">
                       <div className="text-center">
@@ -883,11 +864,12 @@ export default function ProductDetailPage() {
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
-                              className={`size-4 ${
+                              className={cn(
+                                "size-4",
                                 i < Math.round(product.rating)
-                                  ? "fill-amber-500 text-amber-500"
+                                  ? "fill-amber-400 text-amber-400"
                                   : "fill-slate-200 text-slate-200"
-                              }`}
+                              )}
                             />
                           ))}
                         </div>
@@ -915,7 +897,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     {showReviewForm && (
-                      <div className="border border-slate-200 rounded-xl p-5 mb-6 bg-slate-50">
+                      <div className="border border-slate-200 rounded-lg p-5 mb-6 bg-slate-50">
                         <h4 className="text-[15px] font-semibold text-slate-800 mb-3">
                           Your Review
                         </h4>
@@ -929,11 +911,12 @@ export default function ProductDetailPage() {
                               className="hover:scale-110 transition-transform"
                             >
                               <Star
-                                className={`size-7 ${
+                                className={cn(
+                                  "size-7",
                                   i < reviewRating
-                                    ? "fill-amber-500 text-amber-500"
+                                    ? "fill-amber-400 text-amber-400"
                                     : "fill-slate-200 text-slate-200"
-                                }`}
+                                )}
                               />
                             </button>
                           ))}
@@ -993,11 +976,12 @@ export default function ProductDetailPage() {
                                 {Array.from({ length: 5 }).map((_, i) => (
                                   <Star
                                     key={i}
-                                    className={`size-3.5 ${
+                                    className={cn(
+                                      "size-3.5",
                                       i < rv.rating
-                                        ? "fill-amber-500 text-amber-500"
+                                        ? "fill-amber-400 text-amber-400"
                                         : "fill-slate-200 text-slate-200"
-                                    }`}
+                                    )}
                                   />
                                 ))}
                               </div>
@@ -1023,20 +1007,14 @@ export default function ProductDetailPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-
-              {/* Related Products Tab */}
-              <TabsContent value="related" className="mt-6">
-                <Card className="rounded-xl border-slate-200 shadow-sm">
-                  <CardContent className="p-6">
-                    <RelatedProducts
-                      categoryId={product.category?.id}
-                      currentId={product.id}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
             </Tabs>
           </div>
+
+          {/* Related Products — PremiumCard grid */}
+          <RelatedProducts
+            categoryId={product.category?.id}
+            currentId={product.id}
+          />
         </div>
       </main>
       <div className="mt-auto">
@@ -1049,7 +1027,7 @@ export default function ProductDetailPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Related Products (loaded when Related tab is active)               */
+/*  Related Products (PremiumCard grid)                                */
 /* ------------------------------------------------------------------ */
 function RelatedProducts({
   categoryId,
@@ -1058,6 +1036,7 @@ function RelatedProducts({
   categoryId?: string;
   currentId: string;
 }) {
+  const { setSelectedProductId, setProductDetailOpen } = useUIStore();
   const [items, setItems] = useState<
     Array<{
       id: string;
@@ -1066,6 +1045,8 @@ function RelatedProducts({
       comparePrice: number | null;
       images: string[];
       rating: number;
+      reviewCount?: number;
+      stock?: number;
       slug?: string;
     }>
   >([]);
@@ -1074,6 +1055,7 @@ function RelatedProducts({
 
   useEffect(() => {
     if (!categoryId) {
+      setLoading(false);
       return;
     }
     if (hasFetched.current) {return;}
@@ -1087,6 +1069,8 @@ function RelatedProducts({
           comparePrice: number | null;
           images: string[];
           rating: number;
+          reviewCount?: number;
+          stock?: number;
           slug?: string;
         }>;
         products?: Array<{
@@ -1096,97 +1080,81 @@ function RelatedProducts({
           comparePrice: number | null;
           images: string[];
           rating: number;
+          reviewCount?: number;
+          stock?: number;
           slug?: string;
         }>;
       };
     }>(`/api/products?categoryId=${categoryId}&limit=6`)
       .then((r) => {
         const list = r?.data?.data ?? r?.data?.products ?? [];
-        setItems(list.filter((p) => p.id !== currentId).slice(0, 4));
+        setItems(list.filter((p) => p.id !== currentId).slice(0, 5));
       })
       .catch(() => setItems([]))
       .finally(() => setLoading(false));
   }, [categoryId, currentId]);
 
+  const handleCardClick = useCallback(
+    (id: string) => {
+      setSelectedProductId(id);
+      setProductDetailOpen(true);
+    },
+    [setSelectedProductId, setProductDetailOpen]
+  );
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="size-6 animate-spin text-epf-500" />
+      <div className="mt-10 sm:mt-12">
+        <h2 className="text-[20px] font-bold text-slate-900 mb-5">
+          Related Products
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <PremiumCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (items.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Package className="size-10 text-slate-200 mb-3" />
-        <p className="text-[15px] font-medium text-slate-500">
-          No related products found
-        </p>
-      </div>
-    );
+    return null;
   }
 
+  const cards: PremiumCardData[] = items.map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    comparePrice: p.comparePrice ?? null,
+    images: p.images || [],
+    image: p.images?.[0] || undefined,
+    rating: p.rating,
+    reviewCount: p.reviewCount,
+    stock: p.stock,
+  }));
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((p) => {
-        const d = p.comparePrice
-          ? Math.round(((p.comparePrice - p.price) / p.comparePrice) * 100)
-          : 0;
-        return (
-          <Link
-            key={p.id}
-            href={`/product/${p.id}`}
-            className="group block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-          >
-            <div className="aspect-square bg-slate-50 overflow-hidden relative">
-              {p.images?.[0] ? (
-                <img
-                  src={p.images[0]}
-                  alt={p.name}
-                  className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-300"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="size-10 text-slate-200" />
-                </div>
-              )}
-              {d > 0 && (
-                <span className="absolute top-2 left-2 bg-epf-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  -{d}%
-                </span>
-              )}
-            </div>
-            <div className="p-3">
-              <h4 className="text-[13px] font-medium text-slate-800 line-clamp-2 mb-2 min-h-[34px]">
-                {p.name}
-              </h4>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[14px] font-bold text-epf-600">
-                  ৳{p.price.toLocaleString()}
-                </span>
-                {p.comparePrice && (
-                  <span className="text-[11px] text-slate-400 line-through">
-                    ৳{p.comparePrice.toLocaleString()}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-0.5 mt-1.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`size-3 ${
-                      i < Math.round(p.rating || 0)
-                        ? "fill-amber-500 text-amber-500"
-                        : "fill-slate-200 text-slate-200"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </Link>
-        );
-      })}
+    <div className="mt-10 sm:mt-12">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-[20px] font-bold text-slate-900">
+          Related Products
+        </h2>
+        <Link
+          href="/shop"
+          className="text-[13px] font-semibold text-epf-600 hover:text-epf-700 transition-colors"
+        >
+          View All →
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {cards.map((card) => (
+          <PremiumCard
+            key={card.id}
+            data={card}
+            onCardClick={handleCardClick}
+          />
+        ))}
+      </div>
     </div>
   );
 }
