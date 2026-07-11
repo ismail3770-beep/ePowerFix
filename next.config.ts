@@ -7,11 +7,11 @@ const isDev = process.env.NODE_ENV !== "production";
 // eval for Turbopack HMR) and locked down in production.
 const scriptSrc = isDev
   ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self'";
+  : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 
 const styleSrc = isDev
   ? "style-src 'self' 'unsafe-inline'"
-  : "style-src 'self'";
+  : "style-src 'self' 'unsafe-inline'";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -23,9 +23,9 @@ const securityHeaders = [
     value: "camera=(), microphone=(), geolocation=(), payment=(self)",
   },
   // Cross-Origin Opener Policy - helps isolate browsing context
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   // Cross-Origin Resource Policy - prevents loading resources from other origins
-  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  // { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   {
     key: "Content-Security-Policy",
     value: [
@@ -34,7 +34,7 @@ const securityHeaders = [
       styleSrc,
       "img-src 'self' data: blob: https://res.cloudinary.com https://sfile.chatglm.cn https://images.unsplash.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://api.ipify.org",
+      "connect-src 'self' https://api.ipify.org https://ws-ipify.org",
       "frame-ancestors 'none'",
       "form-action 'self'",
       "base-uri 'self'",
