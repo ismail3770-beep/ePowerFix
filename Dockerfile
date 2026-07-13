@@ -5,6 +5,9 @@ FROM oven/bun:1.3
 
 WORKDIR /app
 
+# Copy Prisma schema FIRST (needed by web's postinstall script during install)
+COPY prisma ./prisma
+
 # Copy workspace configs and install dependencies
 COPY package.json bun.lock turbo.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
@@ -16,8 +19,7 @@ COPY packages/utils/package.json packages/utils/package.json
 
 RUN bun install
 
-# Copy Prisma schema and generate client
-COPY prisma ./prisma
+# Generate Prisma client
 RUN bunx prisma generate --schema=prisma/schema.prisma
 
 # Copy API source code
