@@ -1,7 +1,7 @@
 # ePowerFix API — Docker image for Railway
-# Uses Bun runtime (avoids Node.js EOL issues with Nixpacks)
+# Uses Bun 1.3+ runtime (matches local bun.lock format, avoids Node.js EOL)
 
-FROM oven/bun:1.1
+FROM oven/bun:1.3
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY packages/api-client/package.json packages/api-client/package.json
 COPY packages/store/package.json packages/store/package.json
 COPY packages/utils/package.json packages/utils/package.json
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Copy Prisma schema and generate client
 COPY prisma ./prisma
