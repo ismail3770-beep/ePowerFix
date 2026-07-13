@@ -157,11 +157,13 @@ app.use(errorHandler)
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 
-const PORT = env.PORT
+// Railway injects PORT env var at runtime; fall back to 4000 for local dev
+const PORT = parseInt(process.env.PORT || '4000', 10)
+const HOST = process.env.RAILWAY_STATIC_URL ? '0.0.0.0' : 'localhost'
 
-app.listen(PORT, () => {
-  console.log(`🚀 ePowerFix API running at http://localhost:${PORT}`)
-  console.log(`📋 Health check: http://localhost:${PORT}/health`)
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 ePowerFix API running at http://${HOST}:${PORT}`)
+  console.log(`📋 Health check: http://${HOST}:${PORT}/health`)
   console.log(`🌍 Environment: ${env.NODE_ENV}`)
   console.log(`🌐 Web URL: ${env.WEB_URL}`)
 })
