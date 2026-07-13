@@ -64,7 +64,7 @@ export const GET = adminGetRoute(async (request) => {
     db.project.count({ where }),
   ])
 
-  const data = projects.map((p) => ({
+  const data = projects.map((p: any) => ({
     ...p,
     images: parseJsonField<string>(p.images),
   }))

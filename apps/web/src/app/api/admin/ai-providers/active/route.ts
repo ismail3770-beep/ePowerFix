@@ -17,7 +17,7 @@ export async function GET(_request: NextRequest) {
     })
 
     // Mask api keys before returning.
-    const safe = providers.map((p) => ({
+    const safe = providers.map((p: any) => ({
       ...p,
       apiKey: p.apiKey ? '••••••' : null,
     }))

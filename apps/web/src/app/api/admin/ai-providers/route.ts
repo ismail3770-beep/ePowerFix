@@ -102,7 +102,7 @@ export const POST = adminRoute(createProviderSchema, async (request, body, user)
     })
     // Bump all existing providers' sortOrder by 1 (in a transaction).
     await db.$transaction(
-      existing.map((p) =>
+      existing.map((p: any) =>
         db.aiProvider.update({
           where: { id: p.id },
           data: { sortOrder: p.sortOrder + 1 },

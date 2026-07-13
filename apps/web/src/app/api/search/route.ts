@@ -102,7 +102,7 @@ export const GET = publicGetRoute(async (request: NextRequest) => {
       }),
     ])
 
-    const formatProducts = products.map((p) => ({
+    const formatProducts = products.map((p: any) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,
@@ -112,7 +112,7 @@ export const GET = publicGetRoute(async (request: NextRequest) => {
       category: p.category,
     }))
 
-    const formatServices = services.map((s) => ({
+    const formatServices = services.map((s: any) => ({
       id: s.id,
       name: s.name,
       slug: s.slug,
@@ -123,7 +123,7 @@ export const GET = publicGetRoute(async (request: NextRequest) => {
       category: s.category,
     }))
 
-    const formatProjects = projects.map((p) => ({
+    const formatProjects = projects.map((p: any) => ({
       id: p.id,
       name: p.title,
       slug: p.slug,
