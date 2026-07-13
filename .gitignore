@@ -99,3 +99,13 @@ TYPESCRIPT_STRICT_PLAN.md
 
 # Dev examples / demo folder
 /examples/
+# Mobile app (Expo)
+apps/mobile/.env
+apps/mobile/.env.local
+apps/mobile/node_modules
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/web-build/
+apps/mobile/ios/
+apps/mobile/android/
+*.tsbuildinfo
