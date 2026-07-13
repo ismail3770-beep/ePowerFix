@@ -13,6 +13,7 @@ COPY prisma ./prisma
 # Copy workspace configs (pnpm-workspace.yaml needed for workspace:* protocol)
 COPY package.json turbo.json tsconfig.base.json ./
 COPY pnpm-workspace.yaml ./
+COPY .npmrc ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/types/package.json packages/types/package.json
@@ -20,9 +21,9 @@ COPY packages/api-client/package.json packages/api-client/package.json
 COPY packages/store/package.json packages/store/package.json
 COPY packages/utils/package.json packages/utils/package.json
 
-# Install dependencies with pnpm (supports workspace:* protocol)
-# Use --shamefully-hoist for flat node_modules (Prisma compatibility)
-RUN pnpm install --no-frozen-lockfile --shamefully-hoist
+# Install dependencies with pnpm
+# .npmrc has node-linker=hoisted for flat node_modules (Prisma compatible)
+RUN pnpm install --no-frozen-lockfile
 
 # Generate Prisma client
 RUN npx prisma generate --schema=prisma/schema.prisma
