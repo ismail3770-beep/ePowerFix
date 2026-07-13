@@ -1,15 +1,15 @@
 # ePowerFix API — Docker image for Railway
-# Uses Bun 1.3+ runtime (matches local bun.lock format, avoids Node.js EOL)
+# Uses Node.js 22 (LTS) — most reliable with Prisma
 
-FROM oven/bun:1.3
+FROM node:22-slim
 
 WORKDIR /app
 
-# Copy Prisma schema FIRST (needed by web's postinstall script during install)
+# Copy Prisma schema first (needed by postinstall scripts)
 COPY prisma ./prisma
 
-# Copy workspace configs and install dependencies
-COPY package.json bun.lock turbo.json tsconfig.base.json ./
+# Copy workspace configs
+COPY package.json turbo.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
 COPY packages/types/package.json packages/types/package.json
@@ -17,20 +17,25 @@ COPY packages/api-client/package.json packages/api-client/package.json
 COPY packages/store/package.json packages/store/package.json
 COPY packages/utils/package.json packages/utils/package.json
 
-RUN bun install
+# Install dependencies with npm (flat node_modules — Prisma compatible)
+# npm creates flat node_modules which Prisma client can resolve correctly
+RUN npm install --legacy-peer-deps --no-audit --no-fund
 
 # Generate Prisma client
-RUN bunx prisma generate --schema=prisma/schema.prisma
+RUN npx prisma generate --schema=prisma/schema.prisma
+
+# Install tsx globally for running TypeScript with Node.js
+RUN npm install -g tsx
 
 # Copy API source code
 COPY apps/api ./apps/api
 COPY packages ./packages
 
-# Railway provides PORT env var at runtime; NODE_ENV set by Railway
+# Railway provides PORT env var at runtime
 ENV NODE_ENV=production
 
 EXPOSE 4000
 
-# Start the Express API server
+# Start the Express API server with tsx (TypeScript runner for Node.js)
 WORKDIR /app/apps/api
-CMD ["bun", "run", "start"]
+CMD ["tsx", "src/server.ts"]
