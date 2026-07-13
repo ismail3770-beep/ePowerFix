@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "bun run build",
-  "installCommand": "bun install",
+  "buildCommand": "cd ../.. && bun install && bunx prisma generate --schema=prisma/schema.prisma && cd apps/web && bun run build",
+  "installCommand": "cd ../.. && bun install",
+  "outputDirectory": ".next",
   "functions": {
     "src/app/api/**/route.ts": {
       "maxDuration": 30

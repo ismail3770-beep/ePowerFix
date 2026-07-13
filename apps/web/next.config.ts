@@ -70,13 +70,25 @@ const nextConfig: NextConfig = {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
   async rewrites() {
-    return [
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    const rewrites: { source: string; destination: string }[] = [
       // API versioning: /api/v1/* -> /api/*
       {
         source: "/api/v1/:path*",
         destination: "/api/:path*",
       },
     ];
+
+    // In development, proxy /api/* to the Express API server (port 4000)
+    // In production, the API is at a separate domain (set NEXT_PUBLIC_API_BASE_URL)
+    if (apiBaseUrl) {
+      rewrites.push({
+        source: "/api/:path*",
+        destination: `${apiBaseUrl}/api/:path*`,
+      });
+    }
+
+    return rewrites;
   },
 };
 

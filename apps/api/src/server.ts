@@ -1,73 +1,169 @@
-// ePowerFix Express API Server (Skeleton)
-// This is a placeholder skeleton. The actual API routes currently live in
-// apps/web/src/app/api/ as Next.js API routes. They will be migrated here
-// incrementally when we switch the backend from Next.js API Routes to Express.
+// ePowerFix Express API Server
+// Main entry point — sets up middleware, routes, and starts the server.
 
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import morgan from "morgan";
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import compression from 'compression'
+import cookieParser from 'cookie-parser'
+import rateLimit from 'express-rate-limit'
 
-const app = express();
-const PORT = 4000;
+import { env } from './config/env.js'
+import { errorHandler, notFoundHandler } from './lib/api-handler.js'
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
-app.use(helmet());
+// ─── Route imports ────────────────────────────────────────────────────────────
+import healthRoutes from './routes/health.js'
+import authRoutes from './routes/auth.js'
+import productRoutes from './routes/products.js'
+import categoryRoutes from './routes/categories.js'
+import brandRoutes from './routes/brands.js'
+import orderRoutes from './routes/orders.js'
+import serviceRoutes from './routes/services.js'
+import projectRoutes from './routes/projects.js'
+import projectKitRoutes from './routes/project-kits.js'
+import blogRoutes from './routes/blog.js'
+import reviewRoutes from './routes/reviews.js'
+import wishlistRoutes from './routes/wishlist.js'
+import cartRoutes from './routes/cart.js'
+import paymentRoutes from './routes/payments.js'
+import searchRoutes from './routes/search.js'
+import contactRoutes from './routes/contact.js'
+import newsletterRoutes from './routes/newsletter.js'
+import quoteRequestRoutes from './routes/quote-requests.js'
+import bannerRoutes from './routes/banners.js'
+import settingsRoutes from './routes/settings.js'
+import notificationRoutes from './routes/notifications.js'
+import addressRoutes from './routes/addresses.js'
+import couponRoutes from './routes/coupons.js'
+import returnRoutes from './routes/returns.js'
+import downloadRoutes from './routes/downloads.js'
+import aiRoutes from './routes/ai.js'
+import adminRoutes from './routes/admin/index.js'
+
+// ─── App setup ────────────────────────────────────────────────────────────────
+
+const app = express()
+
+// Trust proxy (needed for rate limiting behind reverse proxy)
+app.set('trust proxy', 1)
+
+// ─── Security & utility middleware ────────────────────────────────────────────
+
+app.use(helmet())
+app.use(compression())
 app.use(
   cors({
-    origin: process.env.WEB_URL || "http://localhost:3000",
+    origin: [
+      env.WEB_URL,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'capacitor://localhost', // mobile app
+      'http://localhost',
+    ],
     credentials: true,
   })
-);
-app.use(express.json());
-app.use(morgan("dev"));
+)
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+app.use(cookieParser())
+app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 
-// ─── Health Check ─────────────────────────────────────────────────────────────
-app.get("/api/health", (_req, res) => {
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // 1000 requests per 15 min per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+})
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50, // 50 auth attempts per 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts, please try again later.' },
+})
+
+app.use('/api', apiLimiter)
+app.use('/api/auth', authLimiter)
+
+// ─── Health check (before routes, no rate limit) ──────────────────────────────
+
+app.get('/health', (_req, res) => {
   res.json({
-    status: "ok",
-    service: "ePowerFix API",
+    status: 'ok',
+    service: 'ePowerFix API',
     timestamp: new Date().toISOString(),
-    version: "0.1.0",
-  });
-});
+    version: '0.2.0',
+    environment: env.NODE_ENV,
+  })
+})
 
-// ─── API Info ─────────────────────────────────────────────────────────────────
-app.get("/api", (_req, res) => {
+// ─── API routes ───────────────────────────────────────────────────────────────
+
+app.use('/api/health', healthRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/products', productRoutes)
+app.use('/api/categories', categoryRoutes)
+app.use('/api/brands', brandRoutes)
+app.use('/api/orders', orderRoutes)
+app.use('/api/services', serviceRoutes)
+app.use('/api/projects', projectRoutes)
+app.use('/api/project-kits', projectKitRoutes)
+app.use('/api/blog', blogRoutes)
+app.use('/api/reviews', reviewRoutes)
+app.use('/api/wishlist', wishlistRoutes)
+app.use('/api/cart', cartRoutes)
+app.use('/api/payments', paymentRoutes)
+app.use('/api/search', searchRoutes)
+app.use('/api/contact', contactRoutes)
+app.use('/api/newsletter', newsletterRoutes)
+app.use('/api/quote-requests', quoteRequestRoutes)
+app.use('/api/banners', bannerRoutes)
+app.use('/api/settings', settingsRoutes)
+app.use('/api/notifications', notificationRoutes)
+app.use('/api/addresses', addressRoutes)
+app.use('/api/coupons', couponRoutes)
+app.use('/api/returns', returnRoutes)
+app.use('/api/downloads', downloadRoutes)
+app.use('/api/ai', aiRoutes)
+app.use('/api/admin', adminRoutes)
+
+// API root info
+app.get('/api', (_req, res) => {
   res.json({
-    name: "ePowerFix API",
-    version: "0.1.0",
-    docs: "/api/docs",
-    health: "/api/health",
+    name: 'ePowerFix API',
+    version: '0.2.0',
+    docs: '/api/health',
     endpoints: {
-      products: "/api/products",
-      orders: "/api/orders",
-      auth: "/api/auth",
+      auth: '/api/auth',
+      products: '/api/products',
+      orders: '/api/orders',
+      services: '/api/services',
+      projects: '/api/projects',
+      blog: '/api/blog',
+      admin: '/api/admin',
     },
-    note: "This is a skeleton. Routes are currently served by Next.js API Routes in apps/web/src/app/api/",
-  });
-});
+  })
+})
 
-// ─── 404 Handler ──────────────────────────────────────────────────────────────
-app.use((_req, res) => {
-  res.status(404).json({ error: "Not found" });
-});
+// ─── Error handling ───────────────────────────────────────────────────────────
 
-// ─── Error Handler ────────────────────────────────────────────────────────────
-app.use(
-  (
-    err: unknown,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction
-  ) => {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-);
+app.use(notFoundHandler)
+app.use(errorHandler)
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
+// ─── Start server ─────────────────────────────────────────────────────────────
+
+const PORT = env.PORT
+
 app.listen(PORT, () => {
-  console.log(`🚀 ePowerFix API running at http://localhost:${PORT}`);
-  console.log(`📋 Health check: http://localhost:${PORT}/api/health`);
-});
+  console.log(`🚀 ePowerFix API running at http://localhost:${PORT}`)
+  console.log(`📋 Health check: http://localhost:${PORT}/health`)
+  console.log(`🌍 Environment: ${env.NODE_ENV}`)
+  console.log(`🌐 Web URL: ${env.WEB_URL}`)
+})
+
+export default app
