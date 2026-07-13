@@ -1,6 +1,7 @@
 // Next.js Middleware — proxies all /api/* requests to Express backend (Railway)
-// Middleware runs BEFORE filesystem routes, so it takes priority over
-// the existing Next.js API routes in src/app/api/
+// This middleware runs BEFORE any filesystem route matching.
+// Since the Next.js API routes folder has been removed, this middleware
+// is the ONLY handler for /api/* requests in the web app.
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
@@ -29,7 +30,18 @@ export function middleware(request: NextRequest) {
     })
   }
 
-  // No API base URL set — fall through to Next.js API routes (legacy mode)
+  // If NEXT_PUBLIC_API_BASE_URL is not set, return a clear error.
+  // This prevents silent failures when the env var is missing.
+  if (!apiBaseUrl && request.nextUrl.pathname.startsWith('/api')) {
+    return NextResponse.json(
+      {
+        error: 'API not configured',
+        message: 'NEXT_PUBLIC_API_BASE_URL environment variable is not set.',
+      },
+      { status: 503 }
+    )
+  }
+
   return NextResponse.next()
 }
 
