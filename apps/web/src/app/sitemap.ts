@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productPages: MetadataRoute.Sitemap = []
   try {
     const products = await db.product.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } })
-    productPages = products.map(p => ({
+    productPages = products.map((p: any) => ({
       url: `${baseUrl}/product/${p.slug}`,
       lastModified: p.updatedAt,
       changeFrequency: 'weekly' as const,
@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let blogPages: MetadataRoute.Sitemap = []
   try {
     const blogs = await db.blogPost.findMany({ where: { isPublished: true }, select: { slug: true, updatedAt: true } })
-    blogPages = blogs.map(b => ({
+    blogPages = blogs.map((b: any) => ({
       url: `${baseUrl}/blog/${b.slug}`,
       lastModified: b.updatedAt,
       changeFrequency: 'monthly' as const,
