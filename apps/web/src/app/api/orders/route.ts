@@ -108,7 +108,7 @@ export const POST = publicRoute(createOrderSchema, async (request, parsed) => {
       })
       if (!product) {return errorResponse('Product not found', 400)}
       if (item.variantId) {
-        const variant = product.variants.find((v) => v.id === item.variantId)
+        const variant = product.variants.find((v: any) => v.id === item.variantId)
         if (!variant) {return errorResponse('Variant not found', 400)}
         unitPrice = variant.salePrice ?? variant.price
         variantName = variant.name

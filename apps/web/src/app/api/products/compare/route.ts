@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Preserve the order requested by the user.
     const ordered = ids
-      .map((id) => products.find((p) => p.id === id))
+      .map((id: string) => products.find((p: any) => p.id === id))
       .filter(Boolean) as typeof products
 
     const parsed = ordered.map((p: any) => ({

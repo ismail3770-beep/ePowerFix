@@ -49,7 +49,7 @@ export async function notifyAdmins(
     if (admins.length === 0) {return}
 
     await db.notification.createMany({
-      data: admins.map((a) => ({
+      data: admins.map((a: any) => ({
         userId: a.id,
         title,
         message,

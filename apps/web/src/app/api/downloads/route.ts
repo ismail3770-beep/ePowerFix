@@ -22,8 +22,8 @@ export async function GET(_request: NextRequest) {
     })
 
     const downloads = items
-      .filter((it) => it.product) // safety filter for TS
-      .map((it) => {
+      .filter((it: any) => it.product) // safety filter for TS
+      .map((it: any) => {
       const product = it.product!
       const downloadLimit = product.downloadLimit ?? 0
       const downloadCount = it.downloadCount ?? 0
