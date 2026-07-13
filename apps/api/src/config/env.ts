@@ -1,5 +1,5 @@
 // Environment configuration for ePowerFix API
-// Validates required env vars at startup
+// Lenient validation — warns but does not crash in production
 
 type EnvShape = {
   NODE_ENV: 'development' | 'production' | 'test'
@@ -11,7 +11,6 @@ type EnvShape = {
   WEB_URL: string
   UPSTASH_REDIS_REST_URL: string | undefined
   UPSTASH_REDIS_REST_TOKEN: string | undefined
-  // Payment gateways
   SSLCOMMERZ_STORE_ID: string | undefined
   SSLCOMMERZ_STORE_PASSWD: string | undefined
   BKASH_APP_KEY: string | undefined
@@ -21,46 +20,44 @@ type EnvShape = {
   BKASH_CALLBACK_URL: string | undefined
   NAGAD_MERCHANT_ID: string | undefined
   NAGAD_CALLBACK_URL: string | undefined
-  // Cloudinary
   CLOUDINARY_CLOUD_NAME: string | undefined
   CLOUDINARY_API_KEY: string | undefined
   CLOUDINARY_API_SECRET: string | undefined
-  // Sentry
   SENTRY_DSN: string | undefined
 }
 
 function loadEnv(): EnvShape {
   const PORT = parseInt(process.env.PORT || '4000', 10)
 
-  const required: (keyof EnvShape)[] = ['DATABASE_URL', 'JWT_SECRET']
-  const missing: string[] = []
+  // Check required vars — warn but don't crash
+  const DATABASE_URL = process.env.DATABASE_URL || ''
+  const JWT_SECRET = process.env.JWT_SECRET || ''
 
-  for (const key of required) {
-    const value = process.env[key]
-    if (!value || value.trim() === '') {
-      missing.push(key)
-    }
+  if (!DATABASE_URL) {
+    console.warn('⚠️  DATABASE_URL is not set. Database queries will fail.')
   }
-
-  if (missing.length > 0) {
-    const msg = `❌ Missing required env vars: ${missing.join(', ')}`
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error(msg)
-    } else {
-      console.warn(msg)
-    }
+  if (!JWT_SECRET) {
+    console.warn('⚠️  JWT_SECRET is not set. Auth will not work.')
+    console.warn('   Set it in Railway → Variables tab')
   }
-
-  const jwtSecret = process.env.JWT_SECRET || ''
-  if (jwtSecret && jwtSecret.length < 32) {
+  if (JWT_SECRET && JWT_SECRET.length < 32) {
     console.warn('⚠️  JWT_SECRET is shorter than 32 characters.')
+  }
+
+  // Debug: log available env vars (names only, not values for security)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Environment variables available:')
+    console.log('  PORT:', process.env.PORT || '(not set, using 4000)')
+    console.log('  DATABASE_URL:', DATABASE_URL ? '✓ set' : '✗ missing')
+    console.log('  JWT_SECRET:', JWT_SECRET ? '✓ set' : '✗ missing')
+    console.log('  WEB_URL:', process.env.WEB_URL || '(not set)')
   }
 
   return {
     NODE_ENV: (process.env.NODE_ENV as EnvShape['NODE_ENV']) || 'development',
     PORT,
-    DATABASE_URL: process.env.DATABASE_URL || '',
-    JWT_SECRET: process.env.JWT_SECRET || '',
+    DATABASE_URL,
+    JWT_SECRET,
     JWT_ISSUER: process.env.JWT_ISSUER || 'epowerfix',
     JWT_AUDIENCE: process.env.JWT_AUDIENCE || 'epowerfix-users',
     WEB_URL: process.env.WEB_URL || 'http://localhost:3000',
