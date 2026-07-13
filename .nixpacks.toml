@@ -1,0 +1,14 @@
+# Nixpacks configuration for Railway
+# Uses Node.js 22 (LTS) and Bun
+
+[phases.setup]
+nixPkgs = ["nodejs_22", "bun"]
+
+[phases.install]
+cmds = ["bun install"]
+
+[phases.build]
+cmds = ["bunx prisma generate --schema=prisma/schema.prisma"]
+
+[start]
+cmd = "cd apps/api && bun run start"
