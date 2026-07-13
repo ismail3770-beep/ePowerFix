@@ -48,7 +48,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   // TypeScript errors will be caught by CI/lint; keep builds strict
   typescript: {
     ignoreBuildErrors: false,
