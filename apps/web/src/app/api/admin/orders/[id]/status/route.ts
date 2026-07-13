@@ -37,7 +37,7 @@ export const PUT = withErrorHandling(async (
     data.deliveredAt = new Date()
   }
 
-  const order = await db.$transaction(async (tx) => {
+  const order = await db.$transaction(async (tx: any) => {
     const updated = await tx.order.update({
       where: { id },
       data,

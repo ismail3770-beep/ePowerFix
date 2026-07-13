@@ -120,7 +120,7 @@ export const POST = adminRoute(createOrderSchema, async (request, body, user) =>
     notes ??
     (shippingAddress ? JSON.stringify(shippingAddress) : null)
 
-  const order = await db.$transaction(async (tx) => {
+  const order = await db.$transaction(async (tx: any) => {
     const created = await tx.order.create({
       data: {
         orderNumber,
