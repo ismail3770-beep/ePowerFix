@@ -1,0 +1,27 @@
+{
+  "name": "@epowerfix/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/server.ts",
+    "build": "echo 'API build: bun runtime, no build step needed'",
+    "start": "bun src/server.ts",
+    "lint": "echo 'api: lint not configured yet'"
+  },
+  "dependencies": {
+    "@epowerfix/types": "workspace:*",
+    "@epowerfix/utils": "workspace:*",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "zod": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/morgan": "^1.9.9",
+    "typescript": "^5"
+  }
+}
