@@ -31,6 +31,7 @@ import {
   Zap,
 } from 'lucide-react-native';
 import { PremiumCard, PremiumCardData } from '../../src/components/PremiumCard';
+import { Footer } from '../../src/components/Footer';
 import { Colors, Typography, Radius, Layout } from '../../src/theme/design-system';
 
 export default function HomeScreen() {
@@ -548,6 +549,11 @@ export default function HomeScreen() {
             </View>
           </Pressable>
         </View>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            FOOTER — matches website Footer.tsx
+           ═══════════════════════════════════════════════════════════════════ */}
+        <Footer />
       </ScrollView>
     </SafeAreaView>
   );
