@@ -1,4 +1,4 @@
-// Product detail screen — matches website design
+// Product detail screen — matches website ProductDetailDialog.tsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -21,6 +21,7 @@ import {
   Shield,
   RotateCcw,
 } from 'lucide-react-native';
+import { Colors, Typography, Radius } from '../theme/design-system';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,16 +50,16 @@ export default function ProductDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#0EA5E9" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.epf[500]} />
       </SafeAreaView>
     );
   }
 
   if (error || !product) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#64748B', fontSize: 16 }}>{error || 'Product not found'}</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: Colors.slate[500], fontSize: 16 }}>{error || 'Product not found'}</Text>
       </SafeAreaView>
     );
   }
@@ -69,31 +70,31 @@ export default function ProductDetailScreen() {
     : 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      {/* Header */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.primary }}>
+      {/* Header — back, share, wishlist */}
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: Colors.slate[200],
       }}>
         <Pressable onPress={() => router.back()} style={{ padding: 4 }}>
-          <ArrowLeft size={22} color="#0F172A" />
+          <ArrowLeft size={22} color={Colors.slate[900]} />
         </Pressable>
         <View style={{ flex: 1 }} />
         <Pressable style={{ padding: 8, marginRight: 4 }}>
-          <Share2 size={20} color="#0F172A" />
+          <Share2 size={20} color={Colors.slate[900]} />
         </Pressable>
         <Pressable onPress={() => setWished(!wished)} style={{ padding: 8 }}>
-          <Heart size={20} color={wished ? '#DC2626' : '#0F172A'} fill={wished ? '#DC2626' : 'none'} />
+          <Heart size={20} color={wished ? Colors.danger : Colors.slate[900]} fill={wished ? Colors.danger : 'none'} />
         </Pressable>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image */}
+        {/* Image — bg-slate-50 */}
         <View style={{
-          backgroundColor: '#F8FAFC',
+          backgroundColor: Colors.slate[50],
           height: 320,
           alignItems: 'center',
           justifyContent: 'center',
@@ -105,62 +106,61 @@ export default function ProductDetailScreen() {
               position: 'absolute',
               top: 16,
               left: 16,
-              backgroundColor: '#DC2626',
-              borderRadius: 6,
+              backgroundColor: Colors.badge.discount,
+              borderRadius: Radius.base,
               paddingHorizontal: 10,
               paddingVertical: 4,
             }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
+              <Text style={{ color: Colors.text.inverse, fontSize: 12, fontWeight: Typography.bold }}>
                 -{discountPct}% OFF
               </Text>
             </View>
           )}
         </View>
 
-        {/* Content */}
         <View style={{ padding: 20 }}>
-          {/* Category */}
+          {/* Category — epf-500, uppercase */}
           {product.category?.name && (
-            <Text style={{ color: '#0EA5E9', fontSize: 13, fontWeight: '600', marginBottom: 6 }}>
+            <Text style={{ color: Colors.epf[500], fontSize: 13, fontWeight: Typography.semibold, marginBottom: 6, textTransform: 'uppercase' }}>
               {product.category.name}
             </Text>
           )}
 
-          {/* Name */}
-          <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', lineHeight: 30 }}>
+          {/* Name — slate-900, bold */}
+          <Text style={{ fontSize: 22, fontWeight: Typography.bold, color: Colors.slate[900], lineHeight: 30 }}>
             {product.name}
           </Text>
 
-          {/* Rating */}
+          {/* Rating — amber-400 stars */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
             <View style={{ flexDirection: 'row' }}>
               {[1, 2, 3, 4, 5].map((i) => (
                 <Star
                   key={i}
                   size={16}
-                  color="#F59E0B"
-                  fill={i <= Math.round(product.rating || 0) ? '#F59E0B' : 'none'}
+                  color={i <= Math.round(product.rating || 0) ? Colors.badge.rating : Colors.slate[200]}
+                  fill={i <= Math.round(product.rating || 0) ? Colors.badge.rating : Colors.slate[200]}
                 />
               ))}
             </View>
-            <Text style={{ color: '#64748B', fontSize: 13, marginLeft: 8 }}>
+            <Text style={{ color: Colors.slate[500], fontSize: 13, marginLeft: 8 }}>
               {product.rating ? product.rating.toFixed(1) : '0.0'} ({product.reviewCount || 0} reviews)
             </Text>
           </View>
 
-          {/* Price */}
+          {/* Price — slate-900 bold + strikethrough */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
-            <Text style={{ fontSize: 28, fontWeight: '800', color: '#0EA5E9' }}>
-              ৳{product.salePrice ?? product.price}
+            <Text style={{ fontSize: 28, fontWeight: Typography.bold, color: Colors.slate[900] }}>
+              ৳{Number(product.salePrice ?? product.price).toLocaleString()}
             </Text>
             {hasDiscount && (
               <Text style={{
-                color: '#94A3B8',
+                color: Colors.slate[400],
                 fontSize: 16,
                 textDecorationLine: 'line-through',
                 marginLeft: 12,
               }}>
-                ৳{product.price}
+                ৳{Number(product.price).toLocaleString()}
               </Text>
             )}
           </View>
@@ -168,10 +168,10 @@ export default function ProductDetailScreen() {
           {/* Description */}
           {product.shortDesc || product.description ? (
             <View style={{ marginTop: 20 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 8 }}>
+              <Text style={{ fontSize: 16, fontWeight: Typography.bold, color: Colors.slate[900], marginBottom: 8 }}>
                 Description
               </Text>
-              <Text style={{ color: '#475569', fontSize: 14, lineHeight: 22 }}>
+              <Text style={{ color: Colors.slate[700], fontSize: 14, lineHeight: 22 }}>
                 {product.shortDesc || product.description}
               </Text>
             </View>
@@ -179,7 +179,7 @@ export default function ProductDetailScreen() {
 
           {/* Quantity */}
           <View style={{ marginTop: 20 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B', marginBottom: 10 }}>
+            <Text style={{ fontSize: 14, fontWeight: Typography.semibold, color: Colors.slate[800], marginBottom: 10 }}>
               Quantity
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -187,35 +187,35 @@ export default function ProductDetailScreen() {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 8,
-                  backgroundColor: '#F1F5F9',
+                  borderRadius: Radius.base,
+                  backgroundColor: Colors.slate[100],
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
                 onPress={() => setQuantity(Math.max(1, quantity - 1))}
               >
-                <Minus size={18} color="#0F172A" />
+                <Minus size={18} color={Colors.slate[900]} />
               </Pressable>
-              <Text style={{ marginHorizontal: 20, fontSize: 18, fontWeight: '700', color: '#0F172A' }}>
+              <Text style={{ marginHorizontal: 20, fontSize: 18, fontWeight: Typography.bold, color: Colors.slate[900] }}>
                 {quantity}
               </Text>
               <Pressable
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 8,
-                  backgroundColor: '#F1F5F9',
+                  borderRadius: Radius.base,
+                  backgroundColor: Colors.slate[100],
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
                 onPress={() => setQuantity(quantity + 1)}
               >
-                <Plus size={18} color="#0F172A" />
+                <Plus size={18} color={Colors.slate[900]} />
               </Pressable>
             </View>
           </View>
 
-          {/* Trust badges */}
+          {/* Trust badges — matches website TrustBar */}
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -223,19 +223,19 @@ export default function ProductDetailScreen() {
             paddingVertical: 16,
             borderTopWidth: 1,
             borderBottomWidth: 1,
-            borderColor: '#E2E8F0',
+            borderColor: Colors.slate[200],
           }}>
             <View style={{ alignItems: 'center', flex: 1 }}>
-              <Truck size={20} color="#0EA5E9" />
-              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Free Delivery</Text>
+              <Truck size={20} color={Colors.epf[500]} />
+              <Text style={{ fontSize: 11, color: Colors.slate[500], marginTop: 4 }}>Free Delivery</Text>
             </View>
             <View style={{ alignItems: 'center', flex: 1 }}>
-              <Shield size={20} color="#0EA5E9" />
-              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Secure Pay</Text>
+              <Shield size={20} color={Colors.epf[500]} />
+              <Text style={{ fontSize: 11, color: Colors.slate[500], marginTop: 4 }}>Secure Pay</Text>
             </View>
             <View style={{ alignItems: 'center', flex: 1 }}>
-              <RotateCcw size={20} color="#0EA5E9" />
-              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>7-Day Return</Text>
+              <RotateCcw size={20} color={Colors.epf[500]} />
+              <Text style={{ fontSize: 11, color: Colors.slate[500], marginTop: 4 }}>7-Day Return</Text>
             </View>
           </View>
         </View>
@@ -243,17 +243,17 @@ export default function ProductDetailScreen() {
 
       {/* Bottom Action Bar */}
       <View style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: Colors.bg.primary,
         borderTopWidth: 1,
-        borderTopColor: '#E2E8F0',
+        borderTopColor: Colors.slate[200],
         padding: 16,
         flexDirection: 'row',
       }}>
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: '#0EA5E9',
-            borderRadius: 8,
+            backgroundColor: Colors.epf[500],
+            borderRadius: Radius.base,
             paddingVertical: 14,
             alignItems: 'center',
             marginRight: 8,
@@ -262,20 +262,20 @@ export default function ProductDetailScreen() {
           }}
           onPress={() => router.push('/(tabs)/cart')}
         >
-          <ShoppingCart size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Add to Cart</Text>
+          <ShoppingCart size={18} color={Colors.text.inverse} style={{ marginRight: 6 }} />
+          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>Add to Cart</Text>
         </Pressable>
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: '#0F172A',
-            borderRadius: 8,
+            backgroundColor: Colors.slate[900],
+            borderRadius: Radius.base,
             paddingVertical: 14,
             alignItems: 'center',
             marginLeft: 8,
           }}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Buy Now</Text>
+          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>Buy Now</Text>
         </Pressable>
       </View>
     </SafeAreaView>

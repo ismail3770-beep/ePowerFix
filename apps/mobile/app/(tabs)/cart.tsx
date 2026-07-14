@@ -1,39 +1,42 @@
-// Cart screen — matches website design
+// Cart screen — matches website CartDrawer.tsx design
 import React, { useState } from 'react';
-import { View, Text, Pressable, FlatList, ScrollView } from 'react-native';
+import { View, Text, Pressable, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ShoppingCart, ArrowRight } from 'lucide-react-native';
+import { ShoppingCart, ArrowRight, PackageOpen } from 'lucide-react-native';
+import { Colors, Typography, Radius } from '../../src/theme/design-system';
 
 export default function CartScreen() {
   const router = useRouter();
-  // Placeholder — will use shared cart store later
   const [items] = useState<any[]>([]);
 
   if (items.length === 0) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary, alignItems: 'center', justifyContent: 'center' }}>
+        {/* Empty state — matches website BestDeals empty state */}
         <View style={{
-          width: 80,
-          height: 80,
-          borderRadius: 40,
-          backgroundColor: '#F0F9FF',
+          width: 64,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: Colors.bg.primary,
+          borderWidth: 1,
+          borderColor: Colors.slate[200],
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: 20,
+          marginBottom: 16,
         }}>
-          <ShoppingCart size={36} color="#0EA5E9" strokeWidth={1.5} />
+          <PackageOpen size={32} color={Colors.slate[300]} strokeWidth={1.5} />
         </View>
-        <Text style={{ fontSize: 20, fontWeight: '700', color: '#0F172A' }}>
+        <Text style={{ fontSize: 18, fontWeight: Typography.medium, color: Colors.slate[700] }}>
           Your cart is empty
         </Text>
-        <Text style={{ color: '#64748B', fontSize: 14, marginTop: 8, textAlign: 'center' }}>
+        <Text style={{ color: Colors.slate[400], fontSize: 14, marginTop: 8, textAlign: 'center', maxWidth: 300 }}>
           Browse our products and add items to your cart
         </Text>
         <Pressable
           style={{
-            backgroundColor: '#0EA5E9',
-            borderRadius: 8,
+            backgroundColor: Colors.epf[500],
+            borderRadius: Radius.base,
             paddingHorizontal: 24,
             paddingVertical: 12,
             marginTop: 20,
@@ -42,24 +45,24 @@ export default function CartScreen() {
           }}
           onPress={() => router.push('/(tabs)/shop')}
         >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600', marginRight: 6 }}>
+          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.semibold, marginRight: 6 }}>
             Start Shopping
           </Text>
-          <ArrowRight size={16} color="#FFFFFF" />
+          <ArrowRight size={16} color={Colors.text.inverse} />
         </Pressable>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary }}>
       <View style={{
         padding: 16,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: Colors.bg.primary,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: Colors.slate[200],
       }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A' }}>
+        <Text style={{ fontSize: 22, fontWeight: Typography.bold, color: Colors.slate[900] }}>
           Cart ({items.length})
         </Text>
       </View>

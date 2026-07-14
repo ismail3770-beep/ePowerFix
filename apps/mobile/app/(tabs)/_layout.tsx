@@ -1,36 +1,37 @@
-// Bottom tab navigation — matches website design (epf sky blue)
+// Bottom tab navigation — matches website MobileBottomNav.tsx
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Home, ShoppingBag, Wrench, ShoppingCart, User } from 'lucide-react-native';
+import { Colors, Typography } from '../../src/theme/design-system';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#0EA5E9', // epf-500
-        tabBarInactiveTintColor: '#94A3B8', // slate-400
+        tabBarActiveTintColor: Colors.epf[500],
+        tabBarInactiveTintColor: Colors.slate[400],
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: Colors.bg.primary,
           borderTopWidth: 1,
-          borderTopColor: '#E2E8F0', // slate-200
+          borderTopColor: Colors.slate[200],
           paddingBottom: 4,
           paddingTop: 4,
           height: 60,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
+          fontSize: Typography.sm,
+          fontWeight: Typography.medium,
         },
         headerStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: Colors.bg.primary,
           borderBottomWidth: 1,
-          borderBottomColor: '#E2E8F0',
+          borderBottomColor: Colors.slate[200],
         },
         headerTitleStyle: {
-          fontWeight: '700',
-          color: '#0F172A',
+          fontWeight: Typography.bold,
+          color: Colors.slate[900],
         },
-        headerTintColor: '#0EA5E9',
+        headerTintColor: Colors.epf[500],
       }}
     >
       <Tabs.Screen

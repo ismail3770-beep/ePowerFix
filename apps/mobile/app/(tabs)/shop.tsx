@@ -1,4 +1,4 @@
-// Shop screen — matches website design
+// Shop screen — matches website shop page design
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, ShoppingCart } from 'lucide-react-native';
 import { PremiumCard, PremiumCardData, PremiumCardSkeleton } from '../../src/components/PremiumCard';
+import { Colors, Typography, Radius } from '../../src/theme/design-system';
 
 export default function ShopScreen() {
   const router = useRouter();
@@ -70,18 +71,23 @@ export default function ShopScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
-      {/* Header */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary }}>
+      {/* Header with search — matches website */}
       <View style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: Colors.bg.primary,
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: Colors.slate[200],
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A' }}>Shop</Text>
-          <Pressable onPress={() => router.push('/(tabs)/cart')} style={{ position: 'relative' }}>
-            <ShoppingCart size={22} color="#0F172A" />
+          <Text style={{ fontSize: 22, fontWeight: Typography.bold, color: Colors.slate[900] }}>
+            Shop
+          </Text>
+          <Pressable
+            onPress={() => router.push('/(tabs)/cart')}
+            style={{ position: 'relative' }}
+          >
+            <ShoppingCart size={22} color={Colors.slate[700]} />
             <View style={{
               position: 'absolute',
               top: -6,
@@ -89,49 +95,50 @@ export default function ShopScreen() {
               minWidth: 15,
               height: 15,
               borderRadius: 8,
-              backgroundColor: '#0EA5E9',
+              backgroundColor: Colors.epf[500],
               alignItems: 'center',
               justifyContent: 'center',
               paddingHorizontal: 2,
             }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>0</Text>
+              <Text style={{ color: Colors.text.inverse, fontSize: 10, fontWeight: Typography.bold }}>0</Text>
             </View>
           </Pressable>
         </View>
-        {/* Search */}
+        {/* Search bar — matches website Header search */}
         <View style={{
           flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: '#F8FAFC',
-          borderRadius: 6,
+          height: 42,
+          borderRadius: Radius.base,
           borderWidth: 1,
-          borderColor: '#E2E8F0',
+          borderColor: Colors.slate[200],
           overflow: 'hidden',
+          backgroundColor: Colors.bg.primary,
         }}>
-          <View style={{ paddingLeft: 10 }}>
-            <Search size={18} color="#94A3B8" />
+          <View style={{ paddingLeft: 10, justifyContent: 'center' }}>
+            <Search size={18} color={Colors.slate[400]} />
           </View>
           <TextInput
             placeholder="Search products, services or projects..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.slate[400]}
             value={search}
             onChangeText={setSearch}
-            style={{ flex: 1, paddingHorizontal: 8, paddingVertical: 9, fontSize: 14, color: '#0F172A' }}
+            style={{ flex: 1, paddingHorizontal: 8, fontSize: 15, color: Colors.slate[900] }}
           />
           <Pressable
             style={{
-              backgroundColor: '#0EA5E9',
-              paddingHorizontal: 14,
-              paddingVertical: 9,
+              backgroundColor: Colors.epf[500],
+              paddingHorizontal: 18,
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>Search</Text>
+            <Text style={{ color: Colors.text.inverse, fontSize: 14, fontWeight: Typography.semibold }}>
+              Search
+            </Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Products Grid */}
+      {/* Products Grid — 2 columns with PremiumCard */}
       {loading ? (
         <FlatList
           data={[1, 2, 3, 4, 5, 6]}
@@ -150,10 +157,10 @@ export default function ShopScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', paddingVertical: 80 }}>
-              <Text style={{ color: '#64748B', fontSize: 16, fontWeight: '600' }}>
+              <Text style={{ color: Colors.slate[500], fontSize: 16, fontWeight: Typography.semibold }}>
                 No products found
               </Text>
-              <Text style={{ color: '#94A3B8', fontSize: 13, marginTop: 4 }}>
+              <Text style={{ color: Colors.slate[400], fontSize: 13, marginTop: 4 }}>
                 Try a different search
               </Text>
             </View>
