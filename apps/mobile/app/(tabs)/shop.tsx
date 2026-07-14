@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { Search, ShoppingCart } from 'lucide-react-native';
+import { PremiumCard, PremiumCardData, PremiumCardSkeleton } from '../../src/components/PremiumCard';
 
 export default function ShopScreen() {
   const router = useRouter();
@@ -19,14 +20,11 @@ export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [error, setError] = useState('');
 
   const loadProducts = async () => {
     try {
-      setError('');
       const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
       if (!apiUrl) {
-        setError('API URL not configured');
         setLoading(false);
         return;
       }
@@ -36,8 +34,8 @@ export default function ShopScreen() {
       const res = await fetch(url);
       const json = await res.json();
       setProducts(json?.data?.data || []);
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load');
+    } catch (e) {
+      // silent
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -55,130 +53,93 @@ export default function ShopScreen() {
   };
 
   const renderItem = ({ item }: { item: any }) => {
-    const hasDiscount = item.salePrice && item.salePrice < item.price;
-    const discountPct = hasDiscount
-      ? Math.round(((item.price - item.salePrice) / item.price) * 100)
-      : 0;
-
-    return (
-      <Pressable
-        style={{
-          flex: 1,
-          margin: 6,
-          backgroundColor: '#FFFFFF',
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: '#E2E8F0',
-          overflow: 'hidden',
-        }}
-        onPress={() => router.push(`/product/${item.id}`)}
-      >
-        {/* Image */}
-        <View style={{
-          backgroundColor: '#F8FAFC',
-          height: 140,
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}>
-          <Text style={{ fontSize: 36 }}>📦</Text>
-          {hasDiscount && (
-            <View style={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-              backgroundColor: '#DC2626',
-              borderRadius: 4,
-              paddingHorizontal: 6,
-              paddingVertical: 2,
-            }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
-                -{discountPct}%
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Content */}
-        <View style={{ padding: 10 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: '#0F172A' }} numberOfLines={2}>
-            {item.name}
-          </Text>
-
-          {/* Rating */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-            <Text style={{ color: '#F59E0B', fontSize: 11 }}>★</Text>
-            <Text style={{ color: '#64748B', fontSize: 11, marginLeft: 2 }}>
-              {item.rating ? item.rating.toFixed(1) : '0.0'}
-            </Text>
-          </View>
-
-          {/* Price */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0EA5E9' }}>
-              ৳{item.salePrice ?? item.price}
-            </Text>
-            {hasDiscount && (
-              <Text style={{
-                color: '#94A3B8',
-                fontSize: 11,
-                textDecorationLine: 'line-through',
-                marginLeft: 6,
-              }}>
-                ৳{item.price}
-              </Text>
-            )}
-          </View>
-        </View>
-      </Pressable>
-    );
+    const cardData: PremiumCardData = {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      salePrice: item.salePrice,
+      comparePrice: item.salePrice,
+      images: item.images,
+      isFeatured: item.isFeatured,
+      stock: item.stock,
+      category: item.category?.name,
+      rating: item.rating,
+      reviewCount: item.reviewCount,
+    };
+    return <PremiumCard data={cardData} />;
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
-      {/* Search Header */}
+      {/* Header */}
       <View style={{
-        padding: 16,
         backgroundColor: '#FFFFFF',
+        padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#E2E8F0',
       }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>
-          Shop
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A' }}>Shop</Text>
+          <Pressable onPress={() => router.push('/(tabs)/cart')} style={{ position: 'relative' }}>
+            <ShoppingCart size={22} color="#0F172A" />
+            <View style={{
+              position: 'absolute',
+              top: -6,
+              right: -8,
+              minWidth: 15,
+              height: 15,
+              borderRadius: 8,
+              backgroundColor: '#0EA5E9',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 2,
+            }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>0</Text>
+            </View>
+          </Pressable>
+        </View>
+        {/* Search */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: '#F1F5F9',
-          borderRadius: 8,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
+          backgroundColor: '#F8FAFC',
+          borderRadius: 6,
+          borderWidth: 1,
+          borderColor: '#E2E8F0',
+          overflow: 'hidden',
         }}>
-          <Search size={18} color="#94A3B8" />
+          <View style={{ paddingLeft: 10 }}>
+            <Search size={18} color="#94A3B8" />
+          </View>
           <TextInput
-            placeholder="Search products..."
+            placeholder="Search products, services or projects..."
+            placeholderTextColor="#94A3B8"
             value={search}
             onChangeText={setSearch}
-            placeholderTextColor="#94A3B8"
-            style={{ flex: 1, color: '#0F172A', marginLeft: 8, fontSize: 14 }}
+            style={{ flex: 1, paddingHorizontal: 8, paddingVertical: 9, fontSize: 14, color: '#0F172A' }}
           />
+          <Pressable
+            style={{
+              backgroundColor: '#0EA5E9',
+              paddingHorizontal: 14,
+              paddingVertical: 9,
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>Search</Text>
+          </Pressable>
         </View>
       </View>
 
-      {error ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <Text style={{ color: '#DC2626', marginBottom: 12 }}>⚠️ {error}</Text>
-          <Pressable
-            style={{ backgroundColor: '#0EA5E9', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 }}
-            onPress={loadProducts}
-          >
-            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Retry</Text>
-          </Pressable>
-        </View>
-      ) : loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#0EA5E9" />
-        </View>
+      {/* Products Grid */}
+      {loading ? (
+        <FlatList
+          data={[1, 2, 3, 4, 5, 6]}
+          renderItem={() => <PremiumCardSkeleton />}
+          keyExtractor={(item) => String(item)}
+          numColumns={2}
+          contentContainerStyle={{ padding: 8 }}
+        />
       ) : (
         <FlatList
           data={products}

@@ -1,4 +1,6 @@
-// Home screen — matches website design (epf sky blue theme)
+// Home screen — matches website design exactly
+// Web reference: apps/web/src/components/epf/Header.tsx, HeroBanner.tsx, TrustBar.tsx, CategoryGrid.tsx, ShopSection.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -7,47 +9,64 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
+  Search,
+  ShoppingCart,
+  Heart,
+  User,
+  ChevronDown,
+  Zap,
   Truck,
   RotateCcw,
   Shield,
   Headphones,
   BadgeCheck,
   ArrowRight,
-  Zap,
 } from 'lucide-react-native';
+import { PremiumCard, PremiumCardData } from '../../src/components/PremiumCard';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
-  const [error, setError] = useState('');
+  const [categories, setCategories] = useState<any[]>([]);
+  const [search, setSearch] = useState('');
 
   const loadProducts = async () => {
     try {
-      setError('');
       const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
-      if (!apiUrl) {
-        setError('EXPO_PUBLIC_API_BASE_URL not set');
-        return;
-      }
+      if (!apiUrl) return;
       const res = await fetch(`${apiUrl}/api/products?limit=10`);
       const json = await res.json();
       setProducts(json?.data?.data || []);
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load');
+    } catch (e) {
+      // silent fail
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
+      if (!apiUrl) return;
+      const res = await fetch(`${apiUrl}/api/categories?counts=true`);
+      const json = await res.json();
+      setCategories(json?.categories || []);
+    } catch (e) {
+      // silent fail
+    }
+  };
+
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
 
   const onRefresh = () => {
@@ -55,106 +74,29 @@ export default function HomeScreen() {
     loadProducts();
   };
 
-  const categories = [
-    { name: 'Wiring', icon: '🔌', color: '#0EA5E9' },
-    { name: 'Lights', icon: '💡', color: '#F59E0B' },
-    { name: 'Switches', icon: '⚡', color: '#4D7300' },
-    { name: 'Tools', icon: '🔧', color: '#8B5CF6' },
-    { name: 'Fans', icon: '🌀', color: '#EC4899' },
-    { name: 'Projects', icon: '📚', color: '#06B6D4' },
+  // Website categories with icons (matching fallback list)
+  const fallbackCategories = [
+    { id: '1', name: 'Cables & Wires', slug: 'cables-wires', icon: '🔌' },
+    { id: '2', name: 'Circuit Breakers', slug: 'circuit-breakers', icon: '🛡️' },
+    { id: '3', name: 'LED & Lighting', slug: 'led-lighting', icon: '💡' },
+    { id: '4', name: 'Switches & Sockets', slug: 'switches-sockets', icon: '⚡' },
+    { id: '5', name: 'Testing Tools', slug: 'testing-tools', icon: '🔧' },
+    { id: '6', name: 'Safety Equipment', slug: 'safety-equipment', icon: '👷' },
+    { id: '7', name: 'Motors & Drives', slug: 'motors-drives', icon: '🔌' },
+    { id: '8', name: 'Solar Equipment', slug: 'solar-equipment', icon: '☀️' },
   ];
+
+  const displayCategories = categories.length > 0 ? categories : fallbackCategories;
 
   const trustFeatures = [
     { icon: Truck, label: 'Free Delivery', desc: 'Orders over ৳5,000' },
-    { icon: RotateCcw, label: 'Easy Returns', desc: '7-day return' },
-    { icon: Shield, label: 'Secure Payment', desc: '100% secure' },
-    { icon: Headphones, label: '24/7 Support', desc: 'Expert help' },
-    { icon: BadgeCheck, label: 'Authentic', desc: 'Official warranty' },
+    { icon: RotateCcw, label: 'Easy Returns', desc: '7-day return policy' },
+    { icon: Shield, label: 'Secure Payment', desc: '100% secure checkout' },
+    { icon: Headphones, label: '24/7 Support', desc: 'Expert help anytime' },
+    { icon: BadgeCheck, label: 'Authentic Products', desc: 'Official warranty' },
   ];
 
-  const renderProduct = (product: any) => {
-    const hasDiscount = product.salePrice && product.salePrice < product.price;
-    const discountPct = hasDiscount
-      ? Math.round(((product.price - product.salePrice) / product.price) * 100)
-      : 0;
-
-    return (
-      <Pressable
-        key={product.id}
-        style={{
-          width: 160,
-          backgroundColor: '#FFFFFF',
-          borderRadius: 12,
-          marginRight: 12,
-          borderWidth: 1,
-          borderColor: '#E2E8F0',
-          overflow: 'hidden',
-        }}
-        onPress={() => router.push(`/product/${product.id}`)}
-      >
-        {/* Image placeholder */}
-        <View style={{
-          backgroundColor: '#F8FAFC',
-          height: 140,
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}>
-          <Text style={{ fontSize: 40 }}>📦</Text>
-          {hasDiscount && (
-            <View style={{
-              position: 'absolute',
-              top: 8,
-              left: 8,
-              backgroundColor: '#DC2626',
-              borderRadius: 4,
-              paddingHorizontal: 6,
-              paddingVertical: 2,
-            }}>
-              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
-                -{discountPct}%
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Content */}
-        <View style={{ padding: 10 }}>
-          <Text
-            style={{ fontSize: 13, fontWeight: '600', color: '#0F172A' }}
-            numberOfLines={2}
-          >
-            {product.name}
-          </Text>
-
-          {/* Rating */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-            <Text style={{ color: '#F59E0B', fontSize: 11 }}>★</Text>
-            <Text style={{ color: '#64748B', fontSize: 11, marginLeft: 2 }}>
-              {product.rating ? product.rating.toFixed(1) : '0.0'}
-            </Text>
-          </View>
-
-          {/* Price */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0EA5E9' }}>
-              ৳{product.salePrice ?? product.price}
-            </Text>
-            {hasDiscount && (
-              <Text style={{
-                color: '#94A3B8',
-                fontSize: 11,
-                textDecorationLine: 'line-through',
-                marginLeft: 6,
-              }}>
-                ৳{product.price}
-              </Text>
-            )}
-          </View>
-        </View>
-      </Pressable>
-    );
-  };
+  const formatPrice = (price: number) => `৳${Number(price).toLocaleString()}`;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
@@ -162,49 +104,126 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* ─── Header ─── */}
-        <View style={{
-          backgroundColor: '#FFFFFF',
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          borderBottomWidth: 1,
-          borderBottomColor: '#E2E8F0',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* ═══ Header Row 1 — White (logo + search + actions) ═══ */}
+        <View style={{ backgroundColor: '#FFFFFF' }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            gap: 12,
+          }}>
+            {/* Logo */}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                backgroundColor: '#0EA5E9',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Zap size={20} color="#FFFFFF" />
+              </View>
+              <View style={{ marginLeft: 8 }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0F172A' }}>
+                  ePowerFix
+                </Text>
+                <Text style={{ fontSize: 9, color: '#64748B', letterSpacing: 1 }}>
+                  ELECTRICAL & DIGITAL TECH
+                </Text>
+              </View>
+            </View>
+
+            {/* Search Bar */}
             <View style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              backgroundColor: '#0EA5E9',
+              flex: 1,
+              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
+              backgroundColor: '#F8FAFC',
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: '#E2E8F0',
+              overflow: 'hidden',
             }}>
-              <Zap size={20} color="#FFFFFF" />
+              <View style={{ paddingLeft: 10 }}>
+                <Search size={18} color="#94A3B8" />
+              </View>
+              <TextInput
+                placeholder="Search products..."
+                placeholderTextColor="#94A3B8"
+                value={search}
+                onChangeText={setSearch}
+                style={{ flex: 1, paddingHorizontal: 8, paddingVertical: 8, fontSize: 14, color: '#0F172A' }}
+                onSubmitEditing={() => router.push('/(tabs)/shop')}
+              />
+              <Pressable
+                style={{
+                  backgroundColor: '#0EA5E9',
+                  paddingHorizontal: 14,
+                  paddingVertical: 9,
+                  alignSelf: 'stretch',
+                  justifyContent: 'center',
+                }}
+                onPress={() => router.push('/(tabs)/shop')}
+              >
+                <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '600' }}>Search</Text>
+              </Pressable>
             </View>
-            <View style={{ marginLeft: 10 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>
-                ePowerFix
-              </Text>
-              <Text style={{ fontSize: 10, color: '#64748B' }}>
-                Electrical & Services
-              </Text>
-            </View>
+
+            {/* Actions */}
+            <Pressable onPress={() => router.push('/login')}>
+              <User size={22} color="#0F172A" />
+            </Pressable>
+            <Pressable>
+              <Heart size={22} color="#0F172A" />
+            </Pressable>
+            <Pressable onPress={() => router.push('/(tabs)/cart')} style={{ position: 'relative' }}>
+              <ShoppingCart size={22} color="#0F172A" />
+              <View style={{
+                position: 'absolute',
+                top: -6,
+                right: -8,
+                minWidth: 15,
+                height: 15,
+                borderRadius: 8,
+                backgroundColor: '#0EA5E9',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 2,
+              }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>0</Text>
+              </View>
+            </Pressable>
           </View>
-          <Pressable onPress={() => router.push('/login')}>
-            <Text style={{ color: '#0EA5E9', fontSize: 13, fontWeight: '600' }}>
-              Login
-            </Text>
-          </Pressable>
+
+          {/* ═══ Header Row 2 — Dark (Navigation) ═══ */}
+          <View style={{
+            backgroundColor: '#0F172A',
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+          }}>
+            <Pressable style={{ flexDirection: 'row', alignItems: 'center', marginRight: 16 }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '500' }}>Categories</Text>
+              <ChevronDown size={16} color="#FFFFFF" style={{ marginLeft: 4 }} />
+            </Pressable>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {['Home', 'Services', 'Shop', 'Projects', 'Project Kits', 'Blog'].map((item, idx) => (
+                <Pressable key={idx} style={{ marginRight: 16 }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '500' }}>{item}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
-        {/* ─── Hero Banner ─── */}
+        {/* ═══ Hero Banner ═══ */}
         <View style={{
-          backgroundColor: '#0C4A6E', // epf-900
+          backgroundColor: '#0C4A6E',
           padding: 24,
-          paddingTop: 30,
+          paddingVertical: 32,
         }}>
           <Text style={{ fontSize: 24, fontWeight: '800', color: '#FFFFFF', lineHeight: 32 }}>
             Quality Electrical{'\n'}Products & Services
@@ -217,13 +236,13 @@ export default function HomeScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               backgroundColor: '#0EA5E9',
-              borderRadius: 8,
+              borderRadius: 6,
               paddingHorizontal: 18,
-              paddingVertical: 11,
+              paddingVertical: 10,
               alignSelf: 'flex-start',
               marginTop: 16,
             }}
-            onPress={() => router.push('/shop')}
+            onPress={() => router.push('/(tabs)/shop')}
           >
             <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 14, marginRight: 6 }}>
               Shop Now
@@ -232,7 +251,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* ─── Trust Bar ─── */}
+        {/* ═══ Trust Bar (horizontal scroll) ═══ */}
         <View style={{
           backgroundColor: '#FFFFFF',
           paddingVertical: 16,
@@ -247,7 +266,7 @@ export default function HomeScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   paddingHorizontal: 10,
-                  marginRight: 8,
+                  marginRight: 16,
                 }}>
                   <View style={{
                     width: 36,
@@ -274,44 +293,44 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* ─── Categories ─── */}
+        {/* ═══ Categories Grid ═══ */}
         <View style={{ padding: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>
               Shop by Category
             </Text>
-            <Pressable onPress={() => router.push('/shop')}>
+            <Pressable onPress={() => router.push('/(tabs)/shop')}>
               <Text style={{ color: '#0EA5E9', fontSize: 12, fontWeight: '600' }}>See all</Text>
             </Pressable>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-            {categories.map((cat) => (
+            {displayCategories.slice(0, 8).map((cat) => (
               <Pressable
-                key={cat.name}
+                key={cat.id}
                 style={{
-                  width: '31%',
+                  width: '23.5%',
                   backgroundColor: '#FFFFFF',
-                  borderRadius: 12,
-                  padding: 14,
-                  marginBottom: 10,
+                  borderRadius: 8,
+                  padding: 10,
+                  marginBottom: 8,
                   alignItems: 'center',
                   borderWidth: 1,
                   borderColor: '#E2E8F0',
                 }}
-                onPress={() => router.push('/shop')}
+                onPress={() => router.push('/(tabs)/shop')}
               >
                 <View style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: cat.color + '15',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: '#F0F9FF',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 8,
+                  marginBottom: 6,
                 }}>
-                  <Text style={{ fontSize: 22 }}>{cat.icon}</Text>
+                  <Text style={{ fontSize: 20 }}>{cat.icon || '📦'}</Text>
                 </View>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#1E293B' }}>
+                <Text style={{ fontSize: 10, fontWeight: '600', color: '#1E293B', textAlign: 'center' }} numberOfLines={2}>
                   {cat.name}
                 </Text>
               </Pressable>
@@ -319,28 +338,18 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ─── Featured Products ─── */}
+        {/* ═══ Featured Products ═══ */}
         <View style={{ paddingBottom: 20 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 12 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>
               Featured Products
             </Text>
-            <Pressable onPress={() => router.push('/shop')}>
+            <Pressable onPress={() => router.push('/(tabs)/shop')}>
               <Text style={{ color: '#0EA5E9', fontSize: 12, fontWeight: '600' }}>See all</Text>
             </Pressable>
           </View>
 
-          {error ? (
-            <View style={{ paddingHorizontal: 16, alignItems: 'center' }}>
-              <Text style={{ color: '#DC2626', marginBottom: 8 }}>⚠️ {error}</Text>
-              <Pressable
-                style={{ backgroundColor: '#0EA5E9', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }}
-                onPress={loadProducts}
-              >
-                <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Retry</Text>
-              </Pressable>
-            </View>
-          ) : loading ? (
+          {loading ? (
             <View style={{ paddingVertical: 40, alignItems: 'center' }}>
               <ActivityIndicator size="large" color="#0EA5E9" />
             </View>
@@ -349,18 +358,37 @@ export default function HomeScreen() {
               <Text style={{ color: '#64748B' }}>No products available</Text>
             </View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
-              {products.map(renderProduct)}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
+              {products.map((product) => {
+                const cardData: PremiumCardData = {
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  salePrice: product.salePrice,
+                  comparePrice: product.salePrice,
+                  images: product.images,
+                  isFeatured: product.isFeatured,
+                  stock: product.stock,
+                  category: product.category?.name,
+                  rating: product.rating,
+                  reviewCount: product.reviewCount,
+                };
+                return (
+                  <View key={product.id} style={{ width: 170 }}>
+                    <PremiumCard data={cardData} />
+                  </View>
+                );
+              })}
             </ScrollView>
           )}
         </View>
 
-        {/* ─── Services CTA ─── */}
+        {/* ═══ Services CTA ═══ */}
         <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
           <Pressable
             style={{
               backgroundColor: '#0F172A',
-              borderRadius: 12,
+              borderRadius: 8,
               padding: 20,
               flexDirection: 'row',
               alignItems: 'center',
@@ -378,7 +406,7 @@ export default function HomeScreen() {
             </View>
             <View style={{
               backgroundColor: '#0EA5E9',
-              borderRadius: 8,
+              borderRadius: 6,
               paddingHorizontal: 14,
               paddingVertical: 8,
               flexDirection: 'row',
