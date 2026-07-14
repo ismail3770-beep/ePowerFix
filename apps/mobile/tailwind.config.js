@@ -1,10 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ['./app/**/*.{js,ts,jsx,tsx}', './src/**/*.{js,ts,jsx,tsx}'],
-  // NOTE: nativewind v2 uses 'nativewind/preset' but it's not always resolvable
-  // in monorepo setups. If you hit "Cannot find module 'nativewind/preset'",
-  // remove the presets line entirely — NativeWind still works without it
-  // because the babel plugin handles the className → style conversion.
+  presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
