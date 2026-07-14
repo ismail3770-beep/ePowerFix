@@ -1,8 +1,7 @@
-// Root layout — NativeWind v4 compatible
+// Root layout — simple, no NativeWind
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import '../global.css';
 
 export default function RootLayout() {
   return (
