@@ -6,6 +6,7 @@
  */
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+const { withNativeWind } = require('nativewind/metro');
 
 // Find the project and workspace directories
 const projectRoot = __dirname;
@@ -25,4 +26,9 @@ config.resolver.nodeModulesPaths = [
 // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
 
-module.exports = config;
+// 4. Enable package exports — required for NativeWind v4
+//    (nativewind/jsx-runtime, nativewind/jsx-dev-runtime are exports, not files)
+config.resolver.unstable_enablePackageExports = true;
+
+// 5. Wrap with NativeWind v4 metro config
+module.exports = withNativeWind(config, { input: './global.css' });
