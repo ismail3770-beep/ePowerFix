@@ -1,4 +1,4 @@
-// Product detail screen — simple version
+// Product detail screen — matches website design
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,6 +9,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  Star,
+  ShoppingCart,
+  Heart,
+  Share2,
+  Minus,
+  Plus,
+  ArrowLeft,
+  Truck,
+  Shield,
+  RotateCcw,
+} from 'lucide-react-native';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,6 +29,7 @@ export default function ProductDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [wished, setWished] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -36,86 +49,233 @@ export default function ProductDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#f59e0b" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#0EA5E9" />
       </SafeAreaView>
     );
   }
 
   if (error || !product) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#64748b', fontSize: 18 }}>{error || 'Product not found'}</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: '#64748B', fontSize: 16 }}>{error || 'Product not found'}</Text>
       </SafeAreaView>
     );
   }
 
+  const hasDiscount = product.salePrice && product.salePrice < product.price;
+  const discountPct = hasDiscount
+    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+    : 0;
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      {/* Header */}
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+      }}>
+        <Pressable onPress={() => router.back()} style={{ padding: 4 }}>
+          <ArrowLeft size={22} color="#0F172A" />
+        </Pressable>
+        <View style={{ flex: 1 }} />
+        <Pressable style={{ padding: 8, marginRight: 4 }}>
+          <Share2 size={20} color="#0F172A" />
+        </Pressable>
+        <Pressable onPress={() => setWished(!wished)} style={{ padding: 8 }}>
+          <Heart size={20} color={wished ? '#DC2626' : '#0F172A'} fill={wished ? '#DC2626' : 'none'} />
+        </Pressable>
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ backgroundColor: '#f1f5f9', height: 320, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 64 }}>📦</Text>
+        {/* Image */}
+        <View style={{
+          backgroundColor: '#F8FAFC',
+          height: 320,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}>
+          <Text style={{ fontSize: 80 }}>📦</Text>
+          {hasDiscount && (
+            <View style={{
+              position: 'absolute',
+              top: 16,
+              left: 16,
+              backgroundColor: '#DC2626',
+              borderRadius: 6,
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+            }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
+                -{discountPct}% OFF
+              </Text>
+            </View>
+          )}
         </View>
 
+        {/* Content */}
         <View style={{ padding: 20 }}>
-          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>
+          {/* Category */}
+          {product.category?.name && (
+            <Text style={{ color: '#0EA5E9', fontSize: 13, fontWeight: '600', marginBottom: 6 }}>
+              {product.category.name}
+            </Text>
+          )}
+
+          {/* Name */}
+          <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', lineHeight: 30 }}>
             {product.name}
           </Text>
+
+          {/* Rating */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#d97706' }}>
+            <View style={{ flexDirection: 'row' }}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star
+                  key={i}
+                  size={16}
+                  color="#F59E0B"
+                  fill={i <= Math.round(product.rating || 0) ? '#F59E0B' : 'none'}
+                />
+              ))}
+            </View>
+            <Text style={{ color: '#64748B', fontSize: 13, marginLeft: 8 }}>
+              {product.rating ? product.rating.toFixed(1) : '0.0'} ({product.reviewCount || 0} reviews)
+            </Text>
+          </View>
+
+          {/* Price */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
+            <Text style={{ fontSize: 28, fontWeight: '800', color: '#0EA5E9' }}>
               ৳{product.salePrice ?? product.price}
             </Text>
-            {product.salePrice ? (
-              <Text style={{ color: '#94a3b8', textDecorationLine: 'line-through', marginLeft: 8 }}>
+            {hasDiscount && (
+              <Text style={{
+                color: '#94A3B8',
+                fontSize: 16,
+                textDecorationLine: 'line-through',
+                marginLeft: 12,
+              }}>
                 ৳{product.price}
               </Text>
-            ) : null}
+            )}
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-            <Text style={{ color: '#eab308', fontSize: 16 }}>★★★★★</Text>
-            <Text style={{ color: '#64748b', marginLeft: 4 }}>
-              ({product.reviewCount || 0} reviews)
+          {/* Description */}
+          {product.shortDesc || product.description ? (
+            <View style={{ marginTop: 20 }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 8 }}>
+                Description
+              </Text>
+              <Text style={{ color: '#475569', fontSize: 14, lineHeight: 22 }}>
+                {product.shortDesc || product.description}
+              </Text>
+            </View>
+          ) : null}
+
+          {/* Quantity */}
+          <View style={{ marginTop: 20 }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B', marginBottom: 10 }}>
+              Quantity
             </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Pressable
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  backgroundColor: '#F1F5F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                <Minus size={18} color="#0F172A" />
+              </Pressable>
+              <Text style={{ marginHorizontal: 20, fontSize: 18, fontWeight: '700', color: '#0F172A' }}>
+                {quantity}
+              </Text>
+              <Pressable
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  backgroundColor: '#F1F5F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={() => setQuantity(quantity + 1)}
+              >
+                <Plus size={18} color="#0F172A" />
+              </Pressable>
+            </View>
           </View>
 
-          <View style={{ backgroundColor: '#f8fafc', borderRadius: 8, padding: 12, marginTop: 16 }}>
-            <Text style={{ color: '#334155' }}>
-              {product.shortDesc || product.description || 'No description available'}
-            </Text>
-          </View>
-
-          {/* Quantity Selector */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
-            <Text style={{ fontWeight: '600', color: '#334155', marginRight: 16 }}>Quantity:</Text>
-            <Pressable
-              style={{ backgroundColor: '#f1f5f9', borderRadius: 8, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
-              onPress={() => setQuantity(Math.max(1, quantity - 1))}
-            >
-              <Text style={{ color: '#334155', fontWeight: 'bold' }}>−</Text>
-            </Pressable>
-            <Text style={{ marginHorizontal: 16, fontWeight: '600', fontSize: 18 }}>{quantity}</Text>
-            <Pressable
-              style={{ backgroundColor: '#f1f5f9', borderRadius: 8, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
-              onPress={() => setQuantity(quantity + 1)}
-            >
-              <Text style={{ color: '#334155', fontWeight: 'bold' }}>+</Text>
-            </Pressable>
+          {/* Trust badges */}
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 24,
+            paddingVertical: 16,
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderColor: '#E2E8F0',
+          }}>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Truck size={20} color="#0EA5E9" />
+              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Free Delivery</Text>
+            </View>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <Shield size={20} color="#0EA5E9" />
+              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>Secure Pay</Text>
+            </View>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <RotateCcw size={20} color="#0EA5E9" />
+              <Text style={{ fontSize: 11, color: '#64748B', marginTop: 4 }}>7-Day Return</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
 
-      <View style={{ backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e2e8f0', padding: 16, flexDirection: 'row' }}>
+      {/* Bottom Action Bar */}
+      <View style={{
+        backgroundColor: '#FFFFFF',
+        borderTopWidth: 1,
+        borderTopColor: '#E2E8F0',
+        padding: 16,
+        flexDirection: 'row',
+      }}>
         <Pressable
-          style={{ flex: 1, backgroundColor: '#f59e0b', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginRight: 8 }}
+          style={{
+            flex: 1,
+            backgroundColor: '#0EA5E9',
+            borderRadius: 8,
+            paddingVertical: 14,
+            alignItems: 'center',
+            marginRight: 8,
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}
           onPress={() => router.push('/(tabs)/cart')}
         >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Add to Cart</Text>
+          <ShoppingCart size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Add to Cart</Text>
         </Pressable>
         <Pressable
-          style={{ flex: 1, backgroundColor: '#0f172a', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginLeft: 8 }}
+          style={{
+            flex: 1,
+            backgroundColor: '#0F172A',
+            borderRadius: 8,
+            paddingVertical: 14,
+            alignItems: 'center',
+            marginLeft: 8,
+          }}
         >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Buy Now</Text>
+          <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Buy Now</Text>
         </Pressable>
       </View>
     </SafeAreaView>

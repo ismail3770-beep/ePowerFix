@@ -1,4 +1,4 @@
-// Shop screen — simple version (no shared packages yet)
+// Shop screen — matches website design
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Search } from 'lucide-react-native';
 
 export default function ShopScreen() {
   const router = useRouter();
@@ -53,66 +54,130 @@ export default function ShopScreen() {
     loadProducts();
   };
 
-  const renderItem = ({ item }: { item: any }) => (
-    <Pressable
-      style={{
-        flex: 1,
-        margin: 6,
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#e2e8f0',
-        borderRadius: 12,
-        padding: 12,
-      }}
-      onPress={() => router.push(`/product/${item.id}`)}
-    >
-      <View style={{
-        backgroundColor: '#f1f5f9',
-        borderRadius: 8,
-        height: 128,
-        marginBottom: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <Text style={{ fontSize: 32 }}>📦</Text>
-      </View>
-      <Text style={{ fontWeight: '600', color: '#0f172a' }} numberOfLines={2}>
-        {item.name}
-      </Text>
-      <Text style={{ color: '#d97706', fontWeight: 'bold', marginTop: 4 }}>
-        ৳{item.price}
-      </Text>
-    </Pressable>
-  );
+  const renderItem = ({ item }: { item: any }) => {
+    const hasDiscount = item.salePrice && item.salePrice < item.price;
+    const discountPct = hasDiscount
+      ? Math.round(((item.price - item.salePrice) / item.price) * 100)
+      : 0;
+
+    return (
+      <Pressable
+        style={{
+          flex: 1,
+          margin: 6,
+          backgroundColor: '#FFFFFF',
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#E2E8F0',
+          overflow: 'hidden',
+        }}
+        onPress={() => router.push(`/product/${item.id}`)}
+      >
+        {/* Image */}
+        <View style={{
+          backgroundColor: '#F8FAFC',
+          height: 140,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}>
+          <Text style={{ fontSize: 36 }}>📦</Text>
+          {hasDiscount && (
+            <View style={{
+              position: 'absolute',
+              top: 8,
+              left: 8,
+              backgroundColor: '#DC2626',
+              borderRadius: 4,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+            }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
+                -{discountPct}%
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Content */}
+        <View style={{ padding: 10 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#0F172A' }} numberOfLines={2}>
+            {item.name}
+          </Text>
+
+          {/* Rating */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+            <Text style={{ color: '#F59E0B', fontSize: 11 }}>★</Text>
+            <Text style={{ color: '#64748B', fontSize: 11, marginLeft: 2 }}>
+              {item.rating ? item.rating.toFixed(1) : '0.0'}
+            </Text>
+          </View>
+
+          {/* Price */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0EA5E9' }}>
+              ৳{item.salePrice ?? item.price}
+            </Text>
+            {hasDiscount && (
+              <Text style={{
+                color: '#94A3B8',
+                fontSize: 11,
+                textDecorationLine: 'line-through',
+                marginLeft: 6,
+              }}>
+                ৳{item.price}
+              </Text>
+            )}
+          </View>
+        </View>
+      </Pressable>
+    );
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-      <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a', marginBottom: 12 }}>Shop</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
-          <Text style={{ color: '#94a3b8', marginRight: 8 }}>🔍</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F1F5F9' }}>
+      {/* Search Header */}
+      <View style={{
+        padding: 16,
+        backgroundColor: '#FFFFFF',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E2E8F0',
+      }}>
+        <Text style={{ fontSize: 22, fontWeight: '700', color: '#0F172A', marginBottom: 12 }}>
+          Shop
+        </Text>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#F1F5F9',
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+        }}>
+          <Search size={18} color="#94A3B8" />
           <TextInput
             placeholder="Search products..."
             value={search}
             onChangeText={setSearch}
-            style={{ flex: 1, color: '#0f172a' }}
+            placeholderTextColor="#94A3B8"
+            style={{ flex: 1, color: '#0F172A', marginLeft: 8, fontSize: 14 }}
           />
         </View>
       </View>
 
       {error ? (
-        <View style={{ padding: 20, alignItems: 'center' }}>
-          <Text style={{ color: '#ef4444' }}>⚠️ {error}</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ color: '#DC2626', marginBottom: 12 }}>⚠️ {error}</Text>
           <Pressable
-            style={{ backgroundColor: '#f59e0b', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, marginTop: 12 }}
+            style={{ backgroundColor: '#0EA5E9', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 10 }}
             onPress={loadProducts}
           >
-            <Text style={{ color: 'white', fontWeight: '600' }}>Retry</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Retry</Text>
           </Pressable>
         </View>
       ) : loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#f59e0b" />
+          <ActivityIndicator size="large" color="#0EA5E9" />
         </View>
       ) : (
         <FlatList
@@ -124,7 +189,12 @@ export default function ShopScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             <View style={{ alignItems: 'center', paddingVertical: 80 }}>
-              <Text style={{ color: '#64748b', fontSize: 18 }}>No products found</Text>
+              <Text style={{ color: '#64748B', fontSize: 16, fontWeight: '600' }}>
+                No products found
+              </Text>
+              <Text style={{ color: '#94A3B8', fontSize: 13, marginTop: 4 }}>
+                Try a different search
+              </Text>
             </View>
           }
         />
