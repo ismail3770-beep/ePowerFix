@@ -21,7 +21,7 @@ import {
   Shield,
   RotateCcw,
 } from 'lucide-react-native';
-import { Colors, Typography, Radius } from '../theme/design-system';
+import { Colors, Typography, Radius } from '../../src/theme/design-system';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
