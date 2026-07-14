@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<title>ePowerFix — Complete Development Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; max-width: 100%; }
+  html, body {
+    background: #ffffff;
+    font-family: 'Noto Sans Bengali', 'Inter', sans-serif;
+    color: #1e293b;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm 16mm;
+    background: #ffffff;
+    position: relative;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* Cover */
+  .cover {
+    background: linear-gradient(135deg, #0f172a 0%, #0C4A6E 100%);
+    color: white;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 297mm;
+  }
+  .cover-top { padding: 30mm 20mm 0; }
+  .cover-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(14, 165, 233, 0.2);
+    border: 1px solid rgba(14, 165, 233, 0.5);
+    border-radius: 50px;
+    font-size: 11pt;
+    color: #38BDF8;
+    font-weight: 500;
+    margin-bottom: 20mm;
+  }
+  .cover-title {
+    font-size: 36pt;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 8mm;
+    background: linear-gradient(135deg, #ffffff 0%, #38BDF8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cover-subtitle {
+    font-size: 14pt;
+    color: #94a3b8;
+    margin-bottom: 15mm;
+    line-height: 1.5;
+  }
+  .cover-divider {
+    width: 80mm;
+    height: 4px;
+    background: linear-gradient(90deg, #0EA5E9, transparent);
+    margin-bottom: 15mm;
+  }
+  .cover-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-top: 10mm; }
+  .meta-item { padding: 5mm; background: rgba(255,255,255,0.05); border-left: 3px solid #0EA5E9; border-radius: 4px; }
+  .meta-label { font-size: 9pt; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+  .meta-value { font-size: 11pt; color: white; font-weight: 500; }
+  .cover-bottom { padding: 0 20mm 25mm; display: flex; justify-content: space-between; align-items: flex-end; }
+  .cover-brand { font-size: 22pt; font-weight: 800; color: #38BDF8; }
+  .cover-version { font-size: 10pt; color: #64748b; text-align: right; }
+  .deco { position: absolute; border-radius: 50%; opacity: 0.1; }
+  .deco-1 { width: 200mm; height: 200mm; background: radial-gradient(circle, #0EA5E9 0%, transparent 70%); top: -50mm; right: -50mm; }
+
+  /* Content */
+  h1 {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8mm 0;
+    padding-bottom: 4mm;
+    border-bottom: 3px solid #0EA5E9;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 15pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 10mm 0 5mm 0;
+    padding-left: 4mm;
+    border-left: 5px solid #0EA5E9;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: 600;
+    color: #0369A1;
+    margin: 6mm 0 3mm 0;
+    page-break-after: avoid;
+  }
+  p { font-size: 10.5pt; line-height: 1.75; color: #334155; margin-bottom: 4mm; text-align: justify; }
+
+  /* Prompt box */
+  .prompt-box {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 5mm 7mm;
+    margin: 5mm 0;
+    page-break-inside: avoid;
+    border-left: 4px solid #0EA5E9;
+  }
+  .prompt-label {
+    font-size: 9pt;
+    color: #38BDF8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 3mm;
+  }
+  .prompt-text {
+    color: #e2e8f0;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 5mm 0 8mm 0; font-size: 9.5pt; page-break-inside: avoid; }
+  thead { background: #0f172a; color: white; }
+  th { padding: 3mm 4mm; text-align: left; font-weight: 600; border-bottom: 2px solid #0EA5E9; }
+  td { padding: 3mm 4mm; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+
+  /* Callout */
+  .callout {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 4px solid #0EA5E9;
+    padding: 5mm 7mm;
+    border-radius: 4px;
+    margin: 5mm 0;
+    font-size: 10pt;
+    line-height: 1.7;
+  }
+  .callout-warn { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left-color: #F59E0B; }
+  .callout-success { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left-color: #10B981; }
+
+  /* Phase card */
+  .phase-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid #0EA5E9;
+    border-radius: 8px;
+    padding: 6mm;
+    margin: 5mm 0;
+    page-break-inside: avoid;
+  }
+  .phase-title { font-size: 13pt; font-weight: 700; color: #0f172a; margin-bottom: 3mm; }
+  .phase-desc { font-size: 10pt; color: #64748b; margin-bottom: 4mm; }
+  .phase-tasks { list-style: none; }
+  .phase-tasks li { padding: 2mm 0; font-size: 10pt; color: #334155; border-bottom: 1px dotted #e2e8f0; }
+  .phase-tasks li:last-child { border-bottom: none; }
+
+  /* Footer */
+  .page-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 16mm;
+    right: 16mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 3mm;
+    border-top: 1px solid #e2e8f0;
+    font-size: 8pt;
+    color: #94a3b8;
+  }
+  .footer-brand { font-weight: 600; color: #0369A1; }
+
+  .section-num {
+    display: inline-block;
+    background: #0EA5E9;
+    color: white;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    border-radius: 50%;
+    font-weight: 700;
+    margin-right: 8px;
+    font-size: 11pt;
+  }
+
+  code {
+    background: #f1f5f9;
+    color: #0369A1;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5pt;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="page cover">
+  <div class="deco deco-1"></div>
+  <div class="cover-top" style="position: relative; z-index: 2;">
+    <div class="cover-badge">⚡ COMPLETE DEVELOPMENT GUIDE</div>
+    <h1 class="cover-title">ePowerFix<br>Build & Improve Guide</h1>
+    <p class="cover-subtitle">Step-by-Step Prompts & Instructions for<br>Website, Admin, App, Security & UX</p>
+    <div class="cover-divider"></div>
+    <div class="cover-meta">
+      <div class="meta-item">
+        <div class="meta-label">Document Type</div>
+        <div class="meta-value">AI Agent Instructions</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">AI Model</div>
+        <div class="meta-value">GPT 5.6 Luna (0.6x)</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Total Credits</div>
+        <div class="meta-value">1000 Credits Budget</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Phases</div>
+        <div class="meta-value">8 Phases, 50+ Tasks</div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-bottom" style="position: relative; z-index: 2;">
+    <div>
+      <div class="cover-brand">ePowerFix</div>
+      <div style="font-size: 9pt; color: #64748b; margin-top: 2mm;">Electrical Marketplace BD</div>
+    </div>
+    <div class="cover-version">Version 1.0<br>2026 Edition</div>
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="page">
+  <h1>সূচি</h1>
+  <p style="margin-bottom: 8mm;">এই গাইডটি ePowerFix প্রজেক্টের সম্পূর্ণ ডেভেলপমেন্ট, ইম্প্রুভমেন্ট এবং মেইনটেন্যান্সের জন্য প্রস্তুত করা হয়েছে। প্রতিটি ধাপে সঠিক প্রম্পট দেওয়া আছে যা আপনি সরাসরি AI এজেন্টে কপি-পেস্ট করতে পারবেন।</p>
+
+  <div style="display: grid; gap: 3mm;">
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">১.</span> প্রস্তুতি ও মডেল সেটআপ</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ৩</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">২.</span> ওয়েবসাইট বাগ অডিট</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ৪</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৩.</span> ফ্রন্টএন্ড ও UI/UX ইম্প্রুভমেন্ট</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ৬</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৪.</span> ব্যাকএন্ড ও API অপ্টিমাইজেশন</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ৮</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৫.</span> অ্যাডমিন ড্যাশবোর্ড ইম্প্রুভমেন্ট</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ১০</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৬.</span> প্রোডাক্ট ম্যানেজমেন্ট সহজীকরণ</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ১২</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৭.</span> মোবাইল অ্যাপ সম্পূর্ণ করা</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ১৪</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৮.</span> সিকিউরিটি সিস্টেম ফিক্স</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ১৬</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">৯.</span> প্রিমিয়াম ইউজার এক্সপেরিয়েন্স</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ১৮</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 1px dotted #e2e8f0; font-size: 11pt;">
+      <span><span style="color: #0EA5E9; font-weight: 700;">১০.</span> ক্রেডিট বাজেট ও টাইমলাইন</span>
+      <span style="color: #94a3b8;">পৃষ্ঠা ২০</span>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top: 10mm;">
+    <strong>📋 ব্যবহারবিধি:</strong> প্রতিটি ধাপের প্রম্পট বক্সে থাকা টেক্সট কপি করে আপনার AI এজেন্টে পেস্ট করুন। একবারে একটি কাজ করুন, কাজ শেষ হলে পরেরটাতে যান।
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>সূচি | পৃষ্ঠা ২</span>
+  </div>
+</div>
+
+<!-- PHASE 1 -->
+<div class="page">
+  <h1><span class="section-num">১</span>প্রস্তুতি ও মডেল সেটআপ</h1>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ গুরুত্বপূর্ণ:</strong> কখনো GPT 5.6 Sol (2.4x) ব্যবহার করবেন না! এটি আপনার ক্রেডিট দ্রুত শেষ করে দেবে। সবসময় Luna (0.6x) ব্যবহার করুন।
+  </div>
+
+  <h2>মডেল নির্বাচন</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30%;">কাজের ধরন</th>
+        <th style="width: 25%;">মডেল</th>
+        <th style="width: 15%;">ক্রেডিট</th>
+        <th style="width: 30%;">কেন?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>ডিফল্ট (সব কাজ)</strong></td><td>GPT 5.6 Luna</td><td>0.6x</td><td>সেরা ভারসাম্য</td></tr>
+      <tr><td>জটিল ফিচার</td><td>GPT 5.6 Terra</td><td>1.2x</td><td>শক্তিশালী</td></tr>
+      <tr><td>ছবি/ডিজাইন বিশ্লেষণ</td><td>GLM 5</td><td>0.5x</td><td>সাশ্রয়ী Vision</td></tr>
+      <tr><td><strong>জরুরি জটিল সমস্যা</strong></td><td>GPT 5.6 Sol</td><td>2.4x</td><td>শুধু শেষ উপায়</td></tr>
+    </tbody>
+  </table>
+
+  <h2>প্রজেক্ট কনটেক্সট প্রম্পট</h2>
+  <p>AI এজেন্টে প্রথমবার এই প্রম্পট দিন যাতে সে প্রজেক্ট বুঝতে পারে:</p>
+
+  <div class="prompt-box">
+    <div class="prompt-label">📋 Context Prompt — প্রতিটি সেশনের শুরুতে দিন</div>
+    <div class="prompt-text"># Project: ePowerFix — Electrical Marketplace BD
+
+## Architecture (Monorepo - Turborepo)
+- apps/web/ — Next.js 16 (Vercel, LIVE: epowerfix.com)
+- apps/api/ — Express.js (Railway, LIVE)
+- apps/mobile/ — Expo React Native (in development)
+- packages/ — shared types, api-client, store, utils
+- prisma/ — PostgreSQL schema (Neon)
+- Design: epf-500 (#0EA5E9), slate colors, lucide icons
+- Mobile: inline styles (NO NativeWind), design-system.ts
+
+## Rules
+1. Never modify apps/web/ or apps/api/ without asking
+2. Mobile uses inline styles only (style={{}})
+3. All colors from design-system.ts
+4. Use lucide-react-native for mobile icons
+5. One task at a time — don't rush
+6. Always test before committing</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>প্রস্তুতি | পৃষ্ঠা ৩</span>
+  </div>
+</div>
+
+<!-- PHASE 2 -->
+<div class="page">
+  <h1><span class="section-num">২</span>ওয়েবসাইট বাগ অডিট</h1>
+
+  <p>প্রথমে সম্পূর্ণ ওয়েবসাইট স্ক্যান করে সব বাগ খুঁজে বের করতে হবে। নিচের প্রম্পট দিন:</p>
+
+  <h2>ধাপ ২.১: সম্পূর্ণ অডিট</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🔍 Prompt — Website Bug Audit</div>
+    <div class="prompt-text">ePowerFix ওয়েবসাইটের সম্পূর্ণ বাগ অডিট করো।
+নিচের পেজগুলো চেক করো:
+
+১. হোম পেজ — https://www.epowerfix.com
+২. শপ পেজ — /shop
+৩. প্রোডাক্ট ডিটেইল — /product/[id]
+৪. কার্ট ও চেকআউট — /checkout
+৫. লগইন/রেজিস্টার — /login, /register
+৬. অ্যাডমিন প্যানেল — /admin
+৭. ব্লগ — /blog
+৮. সার্ভিস — /services
+
+প্রতিটি পেজের জন্য দাও:
+- Console errors
+- API errors
+- UI/UX issues
+- Mobile responsiveness issues
+- Performance issues
+
+তালিকা আকারে দাও। কোনো কোড পরিবর্তন করো না।</div>
+  </div>
+
+  <h2>ধাপ ২.২: বাগ ফিক্স (একটা একটা করে)</h2>
+  <p>অডিট রিপোর্ট পাওয়ার পর, প্রতিটি বাগের জন্য আলাদা প্রম্পট দিন:</p>
+
+  <div class="prompt-box">
+    <div class="prompt-label">🔧 Prompt — Fix Bug (প্রতিটি বাগের জন্য)</div>
+    <div class="prompt-text">অডিট রিপোর্টের [N] নম্বর বাগ ফিক্স করো।
+ফাইল: [file path]
+সমস্যা: [bug description]
+সমাধান: [what needs to change]
+
+শুধু এই একটি বাগ ফিক্স করো। অন্য কিছু পরিবর্তন করো না।
+ফিক্স করে কমিট মেসেজ দাও।</div>
+  </div>
+
+  <div class="callout callout-success">
+    <strong>💡 টিপ:</strong> একসাথে ৫-১০টি বাগ ফিক্স করতে বলবেন না। একটা একটা করে করলে ভুল কম হয় এবং ক্রেডিটও কম খরচ হয়।
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>বাগ অডিট | পৃষ্ঠা ৪</span>
+  </div>
+</div>
+
+<!-- PHASE 3 -->
+<div class="page">
+  <h1><span class="section-num">৩</span>ফ্রন্টএন্ড ও UI/UX ইম্প্রুভমেন্ট</h1>
+
+  <p>বাগ ফিক্স হওয়ার পর, ওয়েবসাইটের ডিজাইন আরও প্রিমিয়াম ও পলিশড করতে হবে।</p>
+
+  <h2>ধাপ ৩.১: লোডিং স্টেটস যোগ</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">✨ Prompt — Loading States</div>
+    <div class="prompt-text">apps/web/ এ সব পেজে loading skeleton যোগ করো।
+নিচের পেজগুলোতে:
+- /shop — প্রোডাক্ট গ্রিডে skeleton
+- /admin — ড্যাশবোর্ড স্ট্যাটসে skeleton
+- /blog — ব্লগ লিস্টে skeleton
+- /services — সার্ভিস কার্ডে skeleton
+
+PremiumCardSkeleton কম্পোনেন্ট ব্যবহার করো।
+epf-500 কালার দিয়ে pulse animation দাও।</div>
+  </div>
+
+  <h2>ধাপ ৩.২: এরর হ্যান্ডলিং</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🛡️ Prompt — Error Handling</div>
+    <div class="prompt-text">সব পেজে proper error boundaries যোগ করো:
+- নেটওয়ার্ক এরর → "ইন্টারনেট সংযোগ চেক করুন"
+- 404 → "পেজ পাওয়া যায়নি" + হোম বাটন
+- 500 → "সার্ভার সমস্যা" + retry বাটন
+- API timeout → "সময় শেষ" + retry
+
+প্রতিটি এররে বাংলা মেসেজ দাও।
+epf-500 কালারের আইকন ব্যবহার করো।</div>
+  </div>
+
+  <h2>ধাপ ৩.৩: মাইক্রো-ইন্টারঅ্যাকশন</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🎯 Prompt — Micro Interactions</div>
+    <div class="prompt-text">ফ্রন্টএন্ডে premium micro-interactions যোগ করো:
+- বাটন hover: scale + shadow
+- কার্ড hover: -translate-y-1 + shadow-lg
+- পেজ ট্রানজিশন: fade-in
+- কার্ট যোগ: bounce animation
+- উইশলিস্ট: heart pulse
+
+framer-motion ব্যবহার করো।
+হালকা ও প্রফেশনাল রাখো।</div>
+  </div>
+
+  <h2>ধাপ ৩.৪: মোবাইল রেসপন্সিভনেস</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📱 Prompt — Mobile Responsive</div>
+    <div class="prompt-text">সব পেজ মোবাইল (375px) এ চেক করো:
+- হেডার রেসপন্সিভ?
+- প্রোডাক্ট গ্রিড ২ কলাম?
+- টেক্সট রিডেবল?
+- বাটন ট্যাপেবল (৪৪px)?
+- সার্চ বার ফুল উইডথ?
+
+প্রতিটি সমস্যার জন্য ফিক্স দাও।</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>UI/UX ইম্প্রুভমেন্ট | পৃষ্ঠা ৬</span>
+  </div>
+</div>
+
+<!-- PHASE 4 -->
+<div class="page">
+  <h1><span class="section-num">৪</span>ব্যাকএন্ড ও API অপ্টিমাইজেশন</h1>
+
+  <h2>ধাপ ৪.১: API পারফরম্যান্স</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">⚡ Prompt — API Performance</div>
+    <div class="prompt-text">apps/api/ এর API পারফরম্যান্স অডিট করো:
+- কোন endpoints ধীর?
+- কোন queries অপ্টিমাইজ করা দরকার?
+- কোথায় indexing দরকার?
+- কোথায় caching যোগ করা যায়?
+
+রিপোর্ট দাও, কোড পরিবর্তন করো না।</div>
+  </div>
+
+  <h2>ধাপ ৪.২: ক্যাশিং যোগ</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">💾 Prompt — Add Caching</div>
+    <div class="prompt-text">নিচের endpoints এ Redis caching যোগ করো:
+- GET /api/products — ২ মিনিট cache
+- GET /api/categories — ৫ মিনিট cache
+- GET /api/brands — ৫ মিনিট cache
+- GET /api/settings — ১০ মিনিট cache
+
+cache.getOrSet() প্যাটার্ন ব্যবহার করো।
+Admin পরিবর্তন করলে cache invalidate করো।</div>
+  </div>
+
+  <h2>ধাপ ৪.৩: এরর হ্যান্ডলিং</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🛡️ Prompt — API Error Handling</div>
+    <div class="prompt-text">সব API routes এ proper error handling যোগ করো:
+- try-catch ব্লক
+- Zod validation
+- Proper HTTP status codes
+- Structured error response
+- Logging (Pino)
+
+asyncHandler wrapper ব্যবহার করো।</div>
+  </div>
+
+  <h2>ধাপ ৪.৪: রেট লিমিটিং</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🚦 Prompt — Rate Limiting</div>
+    <div class="prompt-text">API তে rate limiting যোগ করো:
+- General API: ১০০ requests/১৫ min
+- Auth endpoints: ৫ requests/১৫ min
+- Payment endpoints: ১০ requests/মিনিট
+- Search: ৩০ requests/মিনিট
+
+express-rate-limit ব্যবহার করো।
+Redis এ স্টোর করো।</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>ব্যাকএন্ড | পৃষ্ঠা ৮</span>
+  </div>
+</div>
+
+<!-- PHASE 5 -->
+<div class="page">
+  <h1><span class="section-num">৫</span>অ্যাডমিন ড্যাশবোর্ড ইম্প্রুভমেন্ট</h1>
+
+  <h2>ধাপ ৫.১: ড্যাশবোর্ড চার্ট</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📊 Prompt — Dashboard Charts</div>
+    <div class="prompt-text">apps/web/src/app/admin/page.tsx এ চার্ট যোগ করো:
+- দৈনিক বিক্রি (লাইন চার্ট)
+- টপ প্রোডাক্ট (বার চার্ট)
+- অর্ডার স্ট্যাটাস (পাই চার্ট)
+- মাসিক রেভিনিউ (এরিয়া চার্ট)
+
+recharts লাইব্রেরি ব্যবহার করো।
+epf-500 কালার থিম ব্যবহার করো।
+৭ দিনের ও ৩০ দিনের ভিউ দাও।</div>
+  </div>
+
+  <h2>ধাপ ৫.২: বাল্ক অপারেশন</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📦 Prompt — Bulk Operations</div>
+    <div class="prompt-text">অ্যাডমিন প্যানেলে bulk operations যোগ করো:
+- প্রোডাক্ট: বাল্ক ডিলিট, বাল্ক এক্টিভ/ডিঅ্যাক্টিভ
+- অর্ডার: বাল্ক স্ট্যাটাস আপডেট
+- ইউজার: বাল্ক ব্যান/আনব্যান
+
+চেকবক্স দিয়ে সিলেক্ট করার সুবিধা দাও।
+কনফার্মেশন ডায়ালগ দাও।</div>
+  </div>
+
+  <h2>ধাপ ৫.৩: কুইক অ্যাকশন</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">⚡ Prompt — Quick Actions</div>
+    <div class="prompt-text">অ্যাডমিন ড্যাশবোর্ডে quick action buttons যোগ করো:
+- "নতুন প্রোডাক্ট" বাটন
+- "নতুন ব্লগ" বাটন
+- "নতুন কুপন" বাটন
+- "অর্ডার দেখুন" বাটন
+
+সব বাটন epf-500 কালারে।
+হেডারে রাখো।</div>
+  </div>
+
+  <h2>ধাপ ৫.৪: রিপোর্ট জেনারেশন</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📈 Prompt — Reports</div>
+    <div class="prompt-text">অ্যাডমিনে রিপোর্ট পেজ যোগ করো:
+- বিক্রি রিপোর্ট (তারিখ অনুযায়ী)
+- স্টক রিপোর্ট (লো স্টক অ্যালার্ট)
+- কাস্টমার রিপোর্ট (টপ কাস্টমার)
+- পেমেন্ট রিপোর্ট (bKash/Nagad/SSL)
+
+CSV ডাউনলোড সুবিধা দাও।
+তারিখ রেঞ্জ সিলেক্টর দাও।</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>অ্যাডমিন ড্যাশবোর্ড | পৃষ্ঠা ১০</span>
+  </div>
+</div>
+
+<!-- PHASE 6 -->
+<div class="page">
+  <h1><span class="section-num">৬</span>প্রোডাক্ট ম্যানেজমেন্ট সহজীকরণ</h1>
+
+  <h2>ধাপ ৬.১: বাল্ক প্রোডাক্ট আপলোড</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📤 Prompt — Bulk Product Upload</div>
+    <div class="prompt-text">অ্যাডমিনে CSV দিয়ে bulk product upload যোগ করো:
+- CSV টেমপ্লেট ডাউনলোড
+- CSV আপলোড করে বাল্ক প্রোডাক্ট যোগ
+- প্রিভিউ দেখাও আগে
+- ভুল থাকলে এরর দেখাও
+- সফল হলে কতটা যোগ হলো দেখাও
+
+apps/web/src/app/admin/products/page.tsx এ যোগ করো।</div>
+  </div>
+
+  <h2>ধাপ ৬.২: প্রোডাক্ট ভ্যারিয়েন্ট</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🎨 Prompt — Product Variants</div>
+    <div class="prompt-text">প্রোডাক্ট ভ্যারিয়েন্ট ম্যানেজমেন্ট সহজ করো:
+- কালার, সাইজ, ওয়াটেজ ভ্যারিয়েন্ট
+- প্রতিটি ভ্যারিয়েন্টের আলাদা দাম
+- প্রতিটি ভ্যারিয়েন্টের আলাদা স্টক
+- ভ্যারিয়েন্ট ছবি
+
+অ্যাডমিনে UI তে ড্র্যাগ-ড্রপ সুবিধা দাও।</div>
+  </div>
+
+  <h2>ধাপ ৬.৩: স্টক ম্যানেজমেন্ট</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📦 Prompt — Stock Management</div>
+    <div class="prompt-text">স্টক ম্যানেজমেন্ট উন্নত করো:
+- লো স্টক অ্যালার্ট (১০টির কম)
+- স্টকআউট নোটিফিকেশন
+- স্টক হিস্ট্রি লগ
+- অটো রিস্টক রিমাইন্ডার
+
+অ্যাডমিন ড্যাশবোর্ডে স্টক উইজেট দাও।</div>
+  </div>
+
+  <h2>ধাপ ৬.৪: ক্যাটাগরি ম্যানেজমেন্ট</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🗂️ Prompt — Category Management</div>
+    <div class="prompt-text">ক্যাটাগরি ম্যানেজমেন্ট সহজ করো:
+- ড্র্যাগ-ড্রপ সর্টিং
+- নেস্টেড ক্যাটাগরি (৩ লেভেল)
+- ক্যাটাগরি আইকন আপলোড
+- বাল্ক প্রোডাক্ট মুভ
+
+@dnd-kit ব্যবহার করো।</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>প্রোডাক্ট ম্যানেজমেন্ট | পৃষ্ঠা ১২</span>
+  </div>
+</div>
+
+<!-- PHASE 7 -->
+<div class="page">
+  <h1><span class="section-num">৭</span>মোবাইল অ্যাপ সম্পূর্ণ করা</h1>
+
+  <h2>ধাপ ৭.১: অথেনটিকেশন ফ্লো</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🔐 Prompt — Mobile Auth Flow</div>
+    <div class="prompt-text">apps/mobile/ এ সম্পূর্ণ auth flow বানাও:
+
+১. app/register.tsx — রেজিস্ট্রেশন স্ক্রিন
+   (name, email, phone, password, confirm)
+২. src/store/auth-store.ts — Auth state (SecureStore)
+৩. src/hooks/useAuth.ts — Auth hook
+৪. app/_layout.tsx আপডেট — auth gate
+
+login.tsx এর ডিজাইন ফলো করো।
+design-system.ts থেকে রঙ ব্যবহার করো।
+inline styles ব্যবহার করো (NO NativeWind)।</div>
+  </div>
+
+  <h2>ধাপ ৭.২: চেকআউট ফ্লো</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🛒 Prompt — Mobile Checkout</div>
+    <div class="prompt-text">apps/mobile/ এ checkout flow বানাও:
+
+১. app/checkout.tsx — ঠিকানা, পেমেন্ট, সামারি
+২. app/payment/[orderId].tsx — WebView পেমেন্ট
+৩. app/payment/success.tsx — সফলতা স্ক্রিন
+৪. app/payment/fail.tsx — ব্যর্থতা স্ক্রিন
+
+ওয়েবসাইটের চেকআউট ফ্লো ফলো করো।
+bKash/Nagad/SSL সাপোর্ট দাও।</div>
+  </div>
+
+  <h2>ধাপ ৭.৩: অর্ডার ট্র্যাকিং</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">📦 Prompt — Order Tracking</div>
+    <div class="prompt-text">apps/mobile/ এ order tracking বানাও:
+১. app/orders/index.tsx — অর্ডার লিস্ট
+২. app/orders/[id].tsx — অর্ডার ডিটেইল
+৩. app/order-track.tsx — ট্র্যাকিং আইডি দিয়ে খুঁজা
+
+স্ট্যাটাস টাইমলাইন দেখাও:
+PENDING → CONFIRMED → PROCESSING → SHIPPED → DELIVERED</div>
+  </div>
+
+  <h2>ধাপ ৭.৪: উইশলিস্ট ও প্রোফাইল</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">❤️ Prompt — Wishlist & Profile</div>
+    <div class="prompt-text">apps/mobile/ এ:
+১. app/wishlist.tsx — উইশলিস্ট স্ক্রিন
+২. app/profile/edit.tsx — প্রোফাইল এডিট
+৩. app/profile/addresses.tsx — ঠিকানা ম্যানেজ
+৪. app/profile/change-password.tsx — পাসওয়ার্ড পরিবর্তন
+
+ওয়েবসাইটের ডিজাইন ম্যাচ করো।</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>মোবাইল অ্যাপ | পৃষ্ঠা ১৪</span>
+  </div>
+</div>
+
+<!-- PHASE 8 -->
+<div class="page">
+  <h1><span class="section-num">৮</span>সিকিউরিটি সিস্টেম ফিক্স</h1>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ গুরুত্বপূর্ণ:</strong> সিকিউরিটি অডিটের জন্য GPT 5.6 Terra (1.2x) ব্যবহার করুন। এটি জটিল কাজ, তাই বেশি ক্ষমতা দরকার।
+  </div>
+
+  <h2>ধাপ ৮.১: সিকিউরিটি অডিট</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🔒 Prompt — Security Audit (Terra মডেল)</div>
+    <div class="prompt-text">ePowerFix এর সম্পূর্ণ সিকিউরিটি অডিট করো:
+
+১. XSS vulnerabilities
+২. SQL injection risks
+৩. CSRF protection
+৪. Authentication security
+৫. API rate limiting
+৬. Input validation
+৭. File upload security
+৮. Payment gateway security
+৯. Admin panel access control
+১০. Environment variable leaks
+
+প্রতিটি সমস্যার জন্য severity (HIGH/MEDIUM/LOW) দাও।
+সমাধানের পরামর্শ দাও।</div>
+  </div>
+
+  <h2>ধাপ ৮.২: সিকিউরিটি ফিক্স</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🛡️ Prompt — Fix Security Issues</div>
+    <div class="prompt-text">সিকিউরিটি অডিটে পাওয়া HIGH severity সমস্যাগুলো ফিক্স করো:
+
+১. XSS — sanitize সব ইউজার ইনপুট
+২. SQL injection — Prisma parameterized queries
+৩. CSRF — SameSite cookies + CSRF tokens
+৪. Rate limiting — express-rate-limit
+৫. Input validation — Zod schemas
+৬. File upload — fileType validation + size limit
+
+একটা একটা করে ফিক্স করো।</div>
+  </div>
+
+  <h2>ধাপ ৮.৩: অথেনটিকেশন শক্তিশালীকরণ</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🔑 Prompt — Strengthen Auth</div>
+    <div class="prompt-text">অথেনটিকেশন সিস্টেম শক্তিশালী করো:
+- JWT expiry কমাও (৭ দিন → ২৪ ঘণ্টা)
+- Refresh token যোগ করো
+- Password policy (min ৮ char, ১ সংখ্যা, ১ বড় অক্ষর)
+- Login attempt limiting (৫ বার → ১৫ মিনিট লক)
+- Email verification
+- Phone OTP (ঐচ্ছিক)</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>সিকিউরিটি | পৃষ্ঠা ১৬</span>
+  </div>
+</div>
+
+<!-- PHASE 9 -->
+<div class="page">
+  <h1><span class="section-num">৯</span>প্রিমিয়াম ইউজার এক্সপেরিয়েন্স</h1>
+
+  <h2>ধাপ ৯.১: প্রিমিয়াম UI ফিচার</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">💎 Prompt — Premium UI Features</div>
+    <div class="prompt-text">ওয়েবসাইটে প্রিমিয়াম feel যোগ করো:
+
+১. Skeleton loading (shimmer effect)
+২. Smooth page transitions (framer-motion)
+৩. Toast notifications (sonner)
+৪. Progress bars for uploads
+৫. Infinite scroll for products
+৬. Image zoom on hover
+৭. Quick view modal for products
+৮. Recently viewed products
+৯. Compare products feature
+১০. Sticky add-to-cart on mobile
+
+epf-500 কালার থিম মেইনটেইন করো।</div>
+  </div>
+
+  <h2>ধাপ ৯.২: পার্সোনালাইজেশন</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🎯 Prompt — Personalization</div>
+    <div class="prompt-text">ইউজার পার্সোনালাইজেশন যোগ করো:
+- "আপনার জন্য সুপারিশ" সেকশন
+- সাম্প্রতিক দেখা প্রোডাক্ট
+- ব্রাউজিং হিস্ট্রি ভিত্তিক সাজেশন
+- উইশলিস্ট ভিত্তিক সাজেশন
+- "আবার অর্ডার করুন" বাটন
+
+সব বাংলায় লেখা।</div>
+  </div>
+
+  <h2>ধাপ ৯.৩: লয়্যালটি প্রোগ্রাম</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🏆 Prompt — Loyalty Program</div>
+    <div class="prompt-text">লয়্যালটি প্রোগ্রাম যোগ করো:
+- প্রতি অর্ডারে পয়েন্ট (১% ক্যাশব্যাক)
+- পয়েন্ট দিয়ে ডিসকাউন্ট
+- রেফারেল বোনাস
+- বার্থডে ডিসকাউন্ট
+- মেম্বারশিপ টিয়ার (Silver/Gold/Platinum)
+
+অ্যাডমিনে ম্যানেজমেন্ট পেজ দাও।</div>
+  </div>
+
+  <h2>ধাপ ৯.৪: নোটিফিকেশন</h2>
+  <div class="prompt-box">
+    <div class="prompt-label">🔔 Prompt — Notifications</div>
+    <div class="prompt-text">পুশ নোটিফিকেশন সিস্টেম যোগ করো:
+- অর্ডার স্ট্যাটাস আপডেট
+- ডিসকাউন্ট অফার
+- লো স্টক অ্যালার্ট (অ্যাডমিন)
+- নতুন প্রোডাক্ট নোটিফিকেশন
+- বার্থডে উইশ
+
+Firebase Cloud Messaging ব্যবহার করো।</div>
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>প্রিমিয়াম UX | পৃষ্ঠা ১৮</span>
+  </div>
+</div>
+
+<!-- PHASE 10 -->
+<div class="page">
+  <h1><span class="section-num">১০</span>ক্রেডিট বাজেট ও টাইমলাইন</h1>
+
+  <h2>ক্রেডিট বাজেট (১০০০ ক্রেডিট)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">ফেজ</th>
+        <th style="width: 20%;">মডেল</th>
+        <th style="width: 20%;">ক্রেডিট</th>
+        <th style="width: 35%;">কাজ</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>১. প্রস্তুতি</strong></td><td>Luna</td><td>~১০</td><td>সেটআপ, কনটেক্সট</td></tr>
+      <tr><td><strong>২. বাগ অডিট</strong></td><td>Luna</td><td>~৫০-৮০</td><td>স্ক্যান, রিপোর্ট</td></tr>
+      <tr><td><strong>৩. বাগ ফিক্স</strong></td><td>Luna</td><td>~৮০-১২০</td><td>একটা একটা ফিক্স</td></tr>
+      <tr><td><strong>৪. UI/UX ইম্প্রুভ</strong></td><td>Luna</td><td>~৬০-১০০</td><td>লোডিং, এরর, অ্যানিমেশন</td></tr>
+      <tr><td><strong>৫. ব্যাকএন্ড</strong></td><td>Luna+Terra</td><td>~৮০-১২০</td><td>ক্যাশিং, এরর হ্যান্ডলিং</td></tr>
+      <tr><td><strong>৬. অ্যাডমিন</strong></td><td>Luna</td><td>~৬০-১০০</td><td>চার্ট, বাল্ক, রিপোর্ট</td></tr>
+      <tr><td><strong>৭. প্রোডাক্ট ম্যানেজ</strong></td><td>Luna</td><td>~৫০-৮০</td><td>বাল্ক আপলোড, ভ্যারিয়েন্ট</td></tr>
+      <tr><td><strong>৮. মোবাইল অ্যাপ</strong></td><td>Luna+Terra</td><td>~১৫০-২৫০</td><td>Auth, চেকআউট, অর্ডার</td></tr>
+      <tr><td><strong>৯. সিকিউরিটি</strong></td><td>Terra</td><td>~১০০-১৫০</td><td>অডিট + ফিক্স</td></tr>
+      <tr><td><strong>১০. প্রিমিয়াম UX</strong></td><td>Terra</td><td>~৮০-১২০</td><td>পার্সোনালাইজ, লয়্যালটি</td></tr>
+      <tr><td><strong>মোট</strong></td><td>—</td><td><strong>~৭২০-১১৩০</strong></td><td>সব কাজ</td></tr>
+    </tbody>
+  </table>
+
+  <h2>টাইমলাইন</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>সপ্তাহ</th>
+        <th>কাজ</th>
+        <th>ক্রেডিট</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>সপ্তাহ ১</strong></td><td>অডিট + বাগ ফিক্স</td><td>~১৩০-২০০</td></tr>
+      <tr><td><strong>সপ্তাহ ২</strong></td><td>UI/UX + ব্যাকএন্ড</td><td>~১৪০-২২০</td></tr>
+      <tr><td><strong>সপ্তাহ ৩</strong></td><td>অ্যাডমিন + প্রোডাক্ট</td><td>~১১০-১৮০</td></tr>
+      <tr><td><strong>সপ্তাহ ৪</strong></td><td>মোবাইল অ্যাপ</td><td>~১৫০-২৫০</td></tr>
+      <tr><td><strong>সপ্তাহ ৫</strong></td><td>সিকিউরিটি + প্রিমিয়াম</td><td>~১৮০-২৭০</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-success">
+    <strong>✅ সারসংক্ষেক:</strong> ১০০০ ক্রেডিট দিয়ে সব কাজ সম্ভব যদি আপনি Luna (0.6x) ব্যবহার করেন এবং ধাপে ধাপে কাজ করেন। Sol (2.4x) শুধু জরুরি জটিল সমস্যায় ব্যবহার করুন।
+  </div>
+
+  <div class="page-footer">
+    <span class="footer-brand">ePowerFix</span>
+    <span>বাজেট | পৃষ্ঠা ২০</span>
+  </div>
+</div>
+
+</body>
+</html>
