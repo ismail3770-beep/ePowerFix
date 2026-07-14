@@ -1,79 +1,61 @@
-// Profile screen — user account, login/logout
+// Profile screen — simple version
 import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Colors } from '../../src/theme/colors';
 
 export default function ProfileScreen() {
   const router = useRouter();
 
-  // TODO: Get auth state from store
-  const isLoggedIn = false;
-
   const menuItems = [
-    { label: 'My Orders', icon: '📦', action: () => {} },
-    { label: 'Wishlist', icon: '❤️', action: () => {} },
-    { label: 'Addresses', icon: '📍', action: () => {} },
-    { label: 'Downloads', icon: '⬇️', action: () => {} },
-    { label: 'Track Order', icon: '🚚', action: () => {} },
-    { label: 'Help & Support', icon: '💬', action: () => {} },
-    { label: 'Settings', icon: '⚙️', action: () => {} },
+    { label: 'My Orders', icon: '📦' },
+    { label: 'Wishlist', icon: '❤️' },
+    { label: 'Addresses', icon: '📍' },
+    { label: 'Downloads', icon: '⬇️' },
+    { label: 'Track Order', icon: '🚚' },
+    { label: 'Help & Support', icon: '💬' },
+    { label: 'Settings', icon: '⚙️' },
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f8fafc' }}>
       <ScrollView>
-        <View className="bg-white p-6 items-center border-b border-slate-200">
-          <View className="bg-primary-100 rounded-full w-20 h-20 items-center justify-center mb-3">
-            <Text className="text-4xl">{isLoggedIn ? '👤' : '👋'}</Text>
+        <View style={{ backgroundColor: 'white', padding: 24, alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}>
+          <View style={{ backgroundColor: '#fef3c7', borderRadius: 40, width: 80, height: 80, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 36 }}>👋</Text>
           </View>
-          {isLoggedIn ? (
-            <>
-              <Text className="text-xl font-bold text-slate-900">
-                Welcome back!
-              </Text>
-              <Text className="text-slate-500 mt-1">user@example.com</Text>
-            </>
-          ) : (
-            <>
-              <Text className="text-xl font-bold text-slate-900">
-                Welcome to ePowerFix
-              </Text>
-              <Text className="text-slate-500 mt-1 text-center">
-                Login to access your account, orders, and wishlist
-              </Text>
-              <Pressable
-                className="bg-primary-500 rounded-xl px-6 py-3 mt-4"
-                onPress={() => router.push('/login')}
-              >
-                <Text className="text-white font-bold">Login / Register</Text>
-              </Pressable>
-            </>
-          )}
+          <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0f172a' }}>
+            Welcome to ePowerFix
+          </Text>
+          <Text style={{ color: '#64748b', marginTop: 4, textAlign: 'center' }}>
+            Login to access your account, orders, and wishlist
+          </Text>
+          <Pressable
+            style={{ backgroundColor: '#f59e0b', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12, marginTop: 16 }}
+            onPress={() => router.push('/login')}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>Login / Register</Text>
+          </Pressable>
         </View>
 
-        <View className="p-4">
+        <View style={{ padding: 16 }}>
           {menuItems.map((item, index) => (
             <Pressable
               key={index}
-              className="bg-white border border-slate-200 rounded-xl p-4 mb-2 flex-row items-center"
-              onPress={item.action}
+              style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 16, marginBottom: 8, flexDirection: 'row', alignItems: 'center' }}
             >
-              <Text className="text-2xl mr-3">{item.icon}</Text>
-              <Text className="flex-1 font-medium text-slate-700">
-                {item.label}
-              </Text>
-              <Text className="text-slate-400">→</Text>
+              <Text style={{ fontSize: 24, marginRight: 12 }}>{item.icon}</Text>
+              <Text style={{ flex: 1, fontWeight: '500', color: '#334155' }}>{item.label}</Text>
+              <Text style={{ color: '#94a3b8' }}>→</Text>
             </Pressable>
           ))}
         </View>
 
-        <View className="p-4">
-          <Text className="text-slate-400 text-center text-sm">
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: '#94a3b8', textAlign: 'center', fontSize: 14 }}>
             ePowerFix v1.0.0
           </Text>
-          <Text className="text-slate-400 text-center text-xs mt-1">
+          <Text style={{ color: '#94a3b8', textAlign: 'center', fontSize: 12, marginTop: 4 }}>
             Electrical services & products in Bangladesh
           </Text>
         </View>

@@ -1,4 +1,4 @@
-// Shop screen — product listing with filters
+// Shop screen — simple version (no shared packages yet)
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,9 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { productsApi } from '@epowerfix/api-client';
-import { formatPrice } from '@epowerfix/utils';
-import { Colors } from '../../src/theme/colors';
 
 export default function ShopScreen() {
   const router = useRouter();
@@ -21,13 +18,25 @@ export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const [error, setError] = useState('');
 
   const loadProducts = async () => {
     try {
-      const res = await productsApi.list({ limit: 20, search });
-      setProducts(res.data?.data || []);
-    } catch (e) {
-      // API not reachable
+      setError('');
+      const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
+      if (!apiUrl) {
+        setError('API URL not configured');
+        setLoading(false);
+        return;
+      }
+      const url = search
+        ? `${apiUrl}/api/products?limit=20&search=${encodeURIComponent(search)}`
+        : `${apiUrl}/api/products?limit=20`;
+      const res = await fetch(url);
+      const json = await res.json();
+      setProducts(json?.data?.data || []);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -46,44 +55,64 @@ export default function ShopScreen() {
 
   const renderItem = ({ item }: { item: any }) => (
     <Pressable
-      className="flex-1 m-1.5 bg-white border border-slate-200 rounded-xl p-3"
+      style={{
+        flex: 1,
+        margin: 6,
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        borderRadius: 12,
+        padding: 12,
+      }}
       onPress={() => router.push(`/product/${item.id}`)}
     >
-      <View className="bg-slate-100 rounded-lg h-32 mb-2 items-center justify-center">
-        <Text className="text-3xl">📦</Text>
+      <View style={{
+        backgroundColor: '#f1f5f9',
+        borderRadius: 8,
+        height: 128,
+        marginBottom: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <Text style={{ fontSize: 32 }}>📦</Text>
       </View>
-      <Text className="font-semibold text-slate-900" numberOfLines={2}>
+      <Text style={{ fontWeight: '600', color: '#0f172a' }} numberOfLines={2}>
         {item.name}
       </Text>
-      <Text className="text-primary-600 font-bold mt-1">
-        {formatPrice(item.price)}
+      <Text style={{ color: '#d97706', fontWeight: 'bold', marginTop: 4 }}>
+        ৳{item.price}
       </Text>
-      {item.comparePrice && (
-        <Text className="text-slate-400 line-through text-xs">
-          {formatPrice(item.comparePrice)}
-        </Text>
-      )}
     </Pressable>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="p-4 border-b border-slate-200">
-        <Text className="text-2xl font-bold text-slate-900 mb-3">Shop</Text>
-        <View className="flex-row items-center bg-slate-100 rounded-lg px-3 py-2">
-          <Text className="text-slate-400 mr-2">🔍</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: '#e2e8f0' }}>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a', marginBottom: 12 }}>Shop</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
+          <Text style={{ color: '#94a3b8', marginRight: 8 }}>🔍</Text>
           <TextInput
             placeholder="Search products..."
             value={search}
             onChangeText={setSearch}
-            className="flex-1 text-slate-900"
+            style={{ flex: 1, color: '#0f172a' }}
           />
         </View>
       </View>
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={Colors.primary} />
+      {error ? (
+        <View style={{ padding: 20, alignItems: 'center' }}>
+          <Text style={{ color: '#ef4444' }}>⚠️ {error}</Text>
+          <Pressable
+            style={{ backgroundColor: '#f59e0b', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8, marginTop: 12 }}
+            onPress={loadProducts}
+          >
+            <Text style={{ color: 'white', fontWeight: '600' }}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#f59e0b" />
         </View>
       ) : (
         <FlatList
@@ -92,13 +121,10 @@ export default function ShopScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           contentContainerStyle={{ padding: 8 }}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
-            <View className="items-center py-20">
-              <Text className="text-slate-500 text-lg">No products found</Text>
-              <Text className="text-slate-400 mt-1">Try a different search</Text>
+            <View style={{ alignItems: 'center', paddingVertical: 80 }}>
+              <Text style={{ color: '#64748b', fontSize: 18 }}>No products found</Text>
             </View>
           }
         />

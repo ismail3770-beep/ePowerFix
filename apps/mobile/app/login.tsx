@@ -1,4 +1,4 @@
-// Login screen
+// Login screen — simple version
 import React, { useState } from 'react';
 import {
   View,
@@ -11,8 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { authApi } from '@epowerfix/api-client';
-import { Colors } from '../src/theme/colors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -31,11 +29,20 @@ export default function LoginScreen() {
     setError('');
 
     try {
-      const res = await authApi.login(email, password);
-      if (res.data?.user) {
-        // TODO: Save user to auth store
-        router.back();
+      const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
+      const res = await fetch(`${apiUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || 'Login failed');
       }
+
+      // TODO: Save token to SecureStore
+      router.back();
     } catch (e: any) {
       setError(e?.message || 'Login failed');
     } finally {
@@ -44,68 +51,65 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
-        <View className="flex-1 justify-center px-6">
-          <View className="items-center mb-8">
-            <View className="bg-primary-500 rounded-2xl w-16 h-16 items-center justify-center mb-3">
-              <Text className="text-3xl">⚡</Text>
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
+          <View style={{ alignItems: 'center', marginBottom: 32 }}>
+            <View style={{ backgroundColor: '#f59e0b', borderRadius: 16, width: 64, height: 64, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 32 }}>⚡</Text>
             </View>
-            <Text className="text-2xl font-bold text-slate-900">
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>
               Welcome to ePowerFix
             </Text>
-            <Text className="text-slate-500 mt-1">Login to your account</Text>
+            <Text style={{ color: '#64748b', marginTop: 4 }}>Login to your account</Text>
           </View>
 
           {error ? (
-            <View className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-              <Text className="text-red-700 text-sm">{error}</Text>
+            <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 8, padding: 12, marginBottom: 16 }}>
+              <Text style={{ color: '#dc2626', fontSize: 14 }}>{error}</Text>
             </View>
           ) : null}
 
-          <View className="mb-4">
-            <Text className="text-slate-700 font-medium mb-1.5">Email</Text>
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ color: '#334155', fontWeight: '500', marginBottom: 6 }}>Email</Text>
             <TextInput
               value={email}
               onChangeText={setEmail}
               placeholder="you@example.com"
               keyboardType="email-address"
               autoCapitalize="none"
-              className="border border-slate-200 rounded-lg px-4 py-3 text-slate-900"
+              style={{ borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, color: '#0f172a' }}
             />
           </View>
 
-          <View className="mb-6">
-            <Text className="text-slate-700 font-medium mb-1.5">Password</Text>
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ color: '#334155', fontWeight: '500', marginBottom: 6 }}>Password</Text>
             <TextInput
               value={password}
               onChangeText={setPassword}
               placeholder="Enter password"
               secureTextEntry
-              className="border border-slate-200 rounded-lg px-4 py-3 text-slate-900"
+              style={{ borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, color: '#0f172a' }}
             />
           </View>
 
           <Pressable
-            className="bg-primary-500 rounded-xl py-3.5 items-center"
+            style={{ backgroundColor: '#f59e0b', borderRadius: 12, paddingVertical: 14, alignItems: 'center' }}
             onPress={handleLogin}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-bold text-base">Login</Text>
+              <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Login</Text>
             )}
           </Pressable>
 
-          <Pressable
-            className="mt-4 items-center"
-            onPress={() => router.back()}
-          >
-            <Text className="text-slate-500">← Back to home</Text>
+          <Pressable style={{ marginTop: 16, alignItems: 'center' }} onPress={() => router.back()}>
+            <Text style={{ color: '#64748b' }}>← Back to home</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

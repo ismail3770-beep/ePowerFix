@@ -4,10 +4,11 @@
 export function formatPrice(amount: number, currency: string = "BDT"): string {
   const symbols: Record<string, string> = { BDT: "৳", USD: "$", EUR: "€" };
   const symbol = symbols[currency] || currency;
-  return `${symbol}${amount.toLocaleString("en-BD", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })}`;
+  // Use simple number formatting (works in both web and React Native)
+  const formatted = Number(amount || 0).toFixed(
+    amount % 1 === 0 ? 0 : 2
+  );
+  return `${symbol}${formatted}`;
 }
 
 export function formatDate(date: string | Date, locale: string = "bn-BD"): string {

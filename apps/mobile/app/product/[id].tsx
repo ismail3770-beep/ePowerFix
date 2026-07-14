@@ -1,4 +1,4 @@
-// Product detail screen
+// Product detail screen — simple version
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,127 +9,113 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { productsApi } from '@epowerfix/api-client';
-import { formatPrice } from '@epowerfix/utils';
-import { useCartStore } from '@epowerfix/store';
-import { Colors } from '../src/theme/colors';
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [product, setProduct] = useState<any>(null);
-  const [related, setRelated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
 
-  const addItem = useCartStore((s) => s.addItem);
-
   useEffect(() => {
-    if (id) {
-      productsApi
-        .getById(id)
-        .then((res) => {
-          setProduct(res.data?.product);
-          setRelated(res.data?.related || []);
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
+    const load = async () => {
+      try {
+        const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
+        const res = await fetch(`${apiUrl}/api/products/${id}`);
+        const json = await res.json();
+        setProduct(json?.data?.product);
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) load();
   }, [id]);
-
-  const handleAddToCart = () => {
-    if (!product) return;
-    addItem({
-      productId: product.id,
-      productName: product.name,
-      productImage: '',
-      price: product.salePrice ?? product.price,
-      quantity,
-    });
-    router.push('/(tabs)/cart');
-  };
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#f59e0b" />
       </SafeAreaView>
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text className="text-slate-500 text-lg">Product not found</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: '#64748b', fontSize: 18 }}>{error || 'Product not found'}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Product Image Placeholder */}
-        <View className="bg-slate-100 h-80 items-center justify-center">
-          <Text className="text-6xl">📦</Text>
+        <View style={{ backgroundColor: '#f1f5f9', height: 320, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: 64 }}>📦</Text>
         </View>
 
-        <View className="p-5">
-          <Text className="text-2xl font-bold text-slate-900">
+        <View style={{ padding: 20 }}>
+          <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0f172a' }}>
             {product.name}
           </Text>
-          <View className="flex-row items-center mt-2">
-            <Text className="text-2xl font-bold text-primary-600">
-              {formatPrice(product.salePrice ?? product.price)}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#d97706' }}>
+              ৳{product.salePrice ?? product.price}
             </Text>
-            {product.salePrice && (
-              <Text className="text-slate-400 line-through ml-2">
-                {formatPrice(product.price)}
+            {product.salePrice ? (
+              <Text style={{ color: '#94a3b8', textDecorationLine: 'line-through', marginLeft: 8 }}>
+                ৳{product.price}
               </Text>
-            )}
+            ) : null}
           </View>
 
-          <View className="flex-row items-center mt-2">
-            <Text className="text-yellow-500">★★★★★</Text>
-            <Text className="text-slate-500 ml-1">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+            <Text style={{ color: '#eab308', fontSize: 16 }}>★★★★★</Text>
+            <Text style={{ color: '#64748b', marginLeft: 4 }}>
               ({product.reviewCount || 0} reviews)
             </Text>
           </View>
 
-          <View className="bg-slate-50 rounded-lg p-3 mt-4">
-            <Text className="text-slate-700">
+          <View style={{ backgroundColor: '#f8fafc', borderRadius: 8, padding: 12, marginTop: 16 }}>
+            <Text style={{ color: '#334155' }}>
               {product.shortDesc || product.description || 'No description available'}
             </Text>
           </View>
 
           {/* Quantity Selector */}
-          <View className="flex-row items-center mt-4">
-            <Text className="font-semibold text-slate-700 mr-4">Quantity:</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
+            <Text style={{ fontWeight: '600', color: '#334155', marginRight: 16 }}>Quantity:</Text>
             <Pressable
-              className="bg-slate-100 rounded w-9 h-9 items-center justify-center"
+              style={{ backgroundColor: '#f1f5f9', borderRadius: 8, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
               onPress={() => setQuantity(Math.max(1, quantity - 1))}
             >
-              <Text className="text-slate-700 font-bold">−</Text>
+              <Text style={{ color: '#334155', fontWeight: 'bold' }}>−</Text>
             </Pressable>
-            <Text className="mx-4 font-semibold text-lg">{quantity}</Text>
+            <Text style={{ marginHorizontal: 16, fontWeight: '600', fontSize: 18 }}>{quantity}</Text>
             <Pressable
-              className="bg-slate-100 rounded w-9 h-9 items-center justify-center"
+              style={{ backgroundColor: '#f1f5f9', borderRadius: 8, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
               onPress={() => setQuantity(quantity + 1)}
             >
-              <Text className="text-slate-700 font-bold">+</Text>
+              <Text style={{ color: '#334155', fontWeight: 'bold' }}>+</Text>
             </Pressable>
           </View>
         </View>
       </ScrollView>
 
-      <View className="bg-white border-t border-slate-200 p-4 flex-row">
+      <View style={{ backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e2e8f0', padding: 16, flexDirection: 'row' }}>
         <Pressable
-          className="flex-1 bg-primary-500 rounded-xl py-3.5 items-center mr-2"
-          onPress={handleAddToCart}
+          style={{ flex: 1, backgroundColor: '#f59e0b', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginRight: 8 }}
+          onPress={() => router.push('/(tabs)/cart')}
         >
-          <Text className="text-white font-bold">Add to Cart</Text>
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Add to Cart</Text>
         </Pressable>
-        <Pressable className="flex-1 bg-slate-900 rounded-xl py-3.5 items-center ml-2">
-          <Text className="text-white font-bold">Buy Now</Text>
+        <Pressable
+          style={{ flex: 1, backgroundColor: '#0f172a', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginLeft: 8 }}
+        >
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Buy Now</Text>
         </Pressable>
       </View>
     </SafeAreaView>
