@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Minus, Plus, Trash2, ShoppingBag, Zap } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +11,7 @@ import { EPFCartFilled } from "@/components/epf/icons/EPFIcons";
 import { apiFetch } from "@/lib/api";
 
 export default function CartDrawer() {
-  const { cartOpen, setCartOpen, setCheckoutOpen } = useUIStore();
+  const { cartOpen, setCartOpen } = useUIStore();
   const { items, removeItem, updateQuantity, getTotal, getItemCount } = useCartStore();
   const subtotal = getTotal();
 

@@ -1,4 +1,5 @@
 "use client";
+import type * as React from "react";
 import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
@@ -14,8 +15,6 @@ import {
   Lightbulb,
   Wrench,
   ChevronRight,
-  Home,
-  Check,
   ArrowRight,
   ArrowLeft,
   Download,
@@ -31,6 +30,7 @@ import {
   Minus,
   Plus,
   Star,
+  Check,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -481,7 +481,6 @@ export default function CostEstimatorPage() {
                     const stepNum = i + 1;
                     const isActive = step === stepNum;
                     const isCompleted = step > stepNum;
-                    const isFuture = step < stepNum;
 
                     return (
                       <div key={stepNum} className="flex items-center flex-1 last:flex-none">

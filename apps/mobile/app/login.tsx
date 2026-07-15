@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Zap, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react-native';
-import { Colors, Typography, Radius } from '../../src/theme/design-system';
+import { Colors, Typography, Radius } from '../src/theme/design-system';
 
 export default function LoginScreen() {
   const router = useRouter();

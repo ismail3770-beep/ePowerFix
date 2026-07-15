@@ -1,4 +1,5 @@
 "use client";
+import type * as React from "react";
 import { useState } from "react";
 import { Check, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { apiFetch } from "@/lib/api";

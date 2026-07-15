@@ -1,7 +1,7 @@
 "use client";
 
+import type * as React from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Send, Phone, Mail, MapPin, Check } from "lucide-react";
 import { EPFHome, EPFChevronRight } from "@/components/epf/icons/EPFIcons";
 import Header from "@/components/epf/Header";
@@ -11,7 +11,6 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from "@/lib/api";
 
 export default function ContactPage() {
-  const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

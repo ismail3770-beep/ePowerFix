@@ -35,7 +35,7 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server'
 import type { ZodSchema} from 'zod';
 import { ZodError, z } from 'zod'
-import { requireAdmin, requireAuth, jsonResponse, errorResponse } from '@/lib/auth'
+import { requireAdmin, requireAuth } from '@/lib/auth'
 import { captureError } from '@/lib/monitoring'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -77,13 +77,13 @@ type NoBodyPublicHandler = (
  * Wraps an async handler in a try/catch that NEVER leaks stack traces to
  * the client. Logs the full error server-side, returns a generic 500.
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<Response | NextResponse>>(
+export function withErrorHandling<T extends (...args: never[]) => Promise<Response | NextResponse>>(
   handler: T,
 ): T {
   return (async (...args: Parameters<T>) => {
     try {
       return await handler(...args)
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Send to Sentry / structured logging (never leaks to client)
       await captureError(err, {
         handler: handler.name || 'anonymous',
@@ -104,7 +104,7 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<Response
       }
 
       // Already-formatted error responses (from auth helpers)
-      if (err?.message && err?.status) {
+      if (err instanceof Error && 'status' in err && typeof err.status === 'number') {
         return NextResponse.json({ error: err.message }, { status: err.status })
       }
 
@@ -131,8 +131,7 @@ export async function validateBody<T>(request: NextRequest, schema: ZodSchema<T>
       code: 'custom',
       path: ['_body'],
       message: 'Invalid JSON body',
-      fatal: true,
-    } as any])
+    }])
   }
   return schema.parse(body)
 }
@@ -149,9 +148,11 @@ export function adminRoute<T>(
 ) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAdmin()
-    if (!auth.ok) {return auth.response!}
+    if (!auth.ok || !auth.user) {
+      return auth.response ?? NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
     const parsed = await validateBody(request, schema)
-    return handler(request, parsed, auth.user!)
+    return handler(request, parsed, auth.user)
   })
 }
 
@@ -162,8 +163,10 @@ export function adminRoute<T>(
 export function adminGetRoute(handler: NoBodyAdminHandler) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAdmin()
-    if (!auth.ok) {return auth.response!}
-    return handler(request, auth.user!)
+    if (!auth.ok || !auth.user) {
+      return auth.response ?? NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+    return handler(request, auth.user)
   })
 }
 
@@ -176,9 +179,11 @@ export function authRoute<T>(
 ) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAuth()
-    if (!auth.ok) {return auth.response!}
+    if (!auth.ok || !auth.user) {
+      return auth.response ?? NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
     const parsed = await validateBody(request, schema)
-    return handler(request, parsed, auth.user!)
+    return handler(request, parsed, auth.user)
   })
 }
 
@@ -188,8 +193,10 @@ export function authRoute<T>(
 export function authGetRoute(handler: NoBodyAuthHandler) {
   return withErrorHandling(async (request: NextRequest) => {
     const auth = await requireAuth()
-    if (!auth.ok) {return auth.response!}
-    return handler(request, auth.user!)
+    if (!auth.ok || !auth.user) {
+      return auth.response ?? NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+    return handler(request, auth.user)
   })
 }
 

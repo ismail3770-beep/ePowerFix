@@ -2,7 +2,7 @@
 // This avoids CORS issues and ensures httpOnly cookies work correctly.
 // The proxy is configured in next.config.ts → rewrites → /api/:path* → Express API.
 
-export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+export async function apiFetch<T>(endpoint: string, options?: globalThis.RequestInit): Promise<T> {
   const url = endpoint // always same-origin, Next.js proxy handles it
   const res = await fetch(url, {
     ...options,

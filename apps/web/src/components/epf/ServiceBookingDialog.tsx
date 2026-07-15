@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -57,7 +58,6 @@ export default function ServiceBookingDialog() {
     preferredTime: "",
     description: "",
   });
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!bookingServiceId || !serviceBookingOpen) {return;}

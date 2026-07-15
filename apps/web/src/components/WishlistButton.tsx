@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";

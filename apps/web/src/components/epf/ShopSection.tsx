@@ -1,6 +1,7 @@
 "use client";
+import type * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useCartStore, useUIStore } from "@/store";
+import { useCartStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
 import { ArrowRight } from "lucide-react";
@@ -58,7 +59,6 @@ const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-
 
 export default function ShopSection() {
   const addItem = useCartStore((s) => s.addItem);
-  const { setSelectedProjectId, setProjectDetailOpen } = useUIStore();
 
   const { data: productsData, isLoading: productsLoading } = useQuery<{ data: { data: Product[] } }>({
     queryKey: ["products-shop-home"],

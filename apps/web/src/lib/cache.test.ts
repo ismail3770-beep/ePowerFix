@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { cache, cacheKeys } from '@/lib/cache'
 
 describe('Cache Layer', () => {

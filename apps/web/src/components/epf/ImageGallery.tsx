@@ -1,4 +1,5 @@
 "use client";
+import type * as React from "react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { EPFArrowLeft, EPFArrowRight } from "@/components/epf/icons/EPFIcons";

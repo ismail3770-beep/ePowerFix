@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { toast } from "sonner";

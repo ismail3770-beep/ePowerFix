@@ -110,7 +110,7 @@ export const Typography = {
 
   // Line heights
   tight: 1.15,   // Headings
-  normal: 1.5,   // Body
+  normalLineHeight: 1.5,   // Body
   relaxed: 1.75, // Descriptions
 } as const;
 

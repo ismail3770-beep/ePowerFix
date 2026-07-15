@@ -203,6 +203,7 @@ describe('API Handler Schemas', () => {
     it('uses defaults when not provided', () => {
       const result = schemas.pagination.safeParse({})
       expect(result.success).toBe(true)
+      if (!result.success) throw new Error("Expected valid pagination data")
       expect(result.data.page).toBe(1)
       expect(result.data.limit).toBe(20)
       expect(result.data.search).toBe('')
@@ -215,6 +216,7 @@ describe('API Handler Schemas', () => {
         search: 'cable',
       })
       expect(result.success).toBe(true)
+      if (!result.success) throw new Error("Expected valid pagination data")
       expect(result.data.page).toBe(2)
       expect(result.data.limit).toBe(50)
       expect(result.data.search).toBe('cable')

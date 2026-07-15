@@ -1,7 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import type { ComponentProps } from "react";
+
+type MotionChildren = ComponentProps<typeof motion.div>["children"];
 
 /* -------------------------------------------------------------------------- */
 /*  Premium animation tokens — smoother, ease-out, 0.5s                       */
@@ -16,7 +18,7 @@ const DISTANCE = 16;
 /* -------------------------------------------------------------------------- */
 
 interface FadeInProps {
-  children: ReactNode;
+  children: MotionChildren;
   delay?: number;
   className?: string;
   direction?: "up" | "down" | "left" | "right";
@@ -56,7 +58,7 @@ export default function FadeIn({
 /* -------------------------------------------------------------------------- */
 
 interface FadeInStaggerProps {
-  children: ReactNode;
+  children: MotionChildren;
   className?: string;
   staggerDelay?: number;
 }
@@ -90,7 +92,7 @@ export function FadeInStagger({
 /* -------------------------------------------------------------------------- */
 
 interface FadeInItemProps {
-  children: ReactNode;
+  children: MotionChildren;
   className?: string;
 }
 

@@ -138,7 +138,7 @@ export async function requireAuth(): Promise<AuthResult> {
 export async function requireAdmin(): Promise<AuthResult> {
   const auth = await requireAuth()
   if (!auth.ok) {return auth}
-  if (auth.user!.role !== 'ADMIN') {
+  if (!auth.user || auth.user.role !== 'ADMIN') {
     return {
       ok: false,
       response: Response.json(
@@ -153,7 +153,7 @@ export async function requireAdmin(): Promise<AuthResult> {
 /**
  * Helper to send a JSON response with consistent shape.
  */
-export function jsonResponse(data: unknown, status = 200, init?: ResponseInit) {
+export function jsonResponse(data: unknown, status = 200, init?: globalThis.ResponseInit) {
   return Response.json(data, { status, ...init })
 }
 
@@ -202,7 +202,7 @@ export function errorResponse(message: string, status = 400) {
 /**
  * Parses JSON body safely.
  */
-export async function parseBody<T = any>(request: Request): Promise<T | null> {
+export async function parseBody<T = unknown>(request: Request): Promise<T | null> {
   try {
     return await request.json()
   } catch {

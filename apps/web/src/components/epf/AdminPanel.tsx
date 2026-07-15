@@ -3,6 +3,7 @@
 // DEPRECATED: This component is replaced by individual admin pages under /app/admin/*
 // Kept temporarily in case any remaining references depend on it.
 
+import type * as React from "react";
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,27 +14,16 @@ import {
   Wrench,
   Package,
   ArrowLeft,
-  Clock,
   FolderOpen,
-  Trash2,
   Star,
   Users,
   Tag,
   MessageSquareQuote,
   FileText,
   Send,
-  Plus,
-  Pencil,
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  EyeOff,
-  CheckCircle2,
-  XCircle,
   DollarSign,
   Menu,
   X,
-  ImageIcon,
   RotateCcw,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

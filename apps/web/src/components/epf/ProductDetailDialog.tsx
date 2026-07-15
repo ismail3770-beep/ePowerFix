@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Minus, Plus, ShoppingCart, Loader2, ChevronRight, Truck, Banknote, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";

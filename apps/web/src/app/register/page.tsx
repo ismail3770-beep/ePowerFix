@@ -126,7 +126,13 @@ export default function RegisterPage() {
 
     try {
       // Register via Express API (exclude confirmPassword)
-      const { confirmPassword: _, ...registerData } = result.data;
+      const registerData = {
+        name: result.data.name,
+        nameBn: result.data.nameBn,
+        email: result.data.email,
+        phone: result.data.phone,
+        password: result.data.password,
+      };
       const registerRes = await apiFetch<any>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(registerData),

@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { api, apiFetch } from "@/lib/api";
 import { Button } from "@/components/ui/button";

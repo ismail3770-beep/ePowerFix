@@ -1,5 +1,7 @@
 "use client"
 
+import type { ComponentProps } from "react"
+
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
@@ -19,12 +21,18 @@ export function Toaster() {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
+              {title && (
+                <ToastTitle>
+                  {title as ComponentProps<typeof ToastTitle>["children"]}
+                </ToastTitle>
+              )}
               {description && (
-                <ToastDescription>{description}</ToastDescription>
+                <ToastDescription>
+                  {description as ComponentProps<typeof ToastDescription>["children"]}
+                </ToastDescription>
               )}
             </div>
-            {action}
+            {action as ComponentProps<typeof Toast>["children"]}
             <ToastClose />
           </Toast>
         )

@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -275,7 +276,6 @@ export default function ProfilePage() {
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [returnOrderId, setReturnOrderId] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState("");
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "", nameBn: "", phone: "", address: "", area: "", city: "", postalCode: "",
   });
@@ -395,7 +395,7 @@ export default function ProfilePage() {
       city: user.city || "",
       postalCode: user.postalCode || "",
     });
-    setEditDialogOpen(true);
+    setActiveSection("profile");
   }
 
   const handleSaveProfile = async () => {
@@ -409,7 +409,6 @@ export default function ProfilePage() {
         setUser(res.data as Parameters<typeof setUser>[0]);
         queryClient.invalidateQueries({ queryKey: ["auth-me"] });
         toast.success("প্রোফাইল সফলভাবে আপডেট হয়েছে");
-        setEditDialogOpen(false);
       }
     } catch (err: any) {
       toast.error(err?.message || "প্রোফাইল আপডেট করতে সমস্যা হয়েছে");

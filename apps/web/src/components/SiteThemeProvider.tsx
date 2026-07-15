@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 

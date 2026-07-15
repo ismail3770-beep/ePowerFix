@@ -16,7 +16,7 @@ export default function AnnouncementBar() {
 
   return (
     <div className="bg-slate-900 text-slate-400 text-[14px] relative overflow-hidden">
-      <style jsx>{`
+      <style>{`
         @keyframes epf-marquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }

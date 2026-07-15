@@ -1,9 +1,10 @@
 "use client";
 
+import type * as React from "react";
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { Home, ChevronRight, Zap, ArrowLeft, MapPin, Phone, Mail } from "lucide-react";
+import { Home, ChevronRight, ArrowLeft, MapPin, Phone, Mail } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";

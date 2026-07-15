@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState, memo } from "react";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";

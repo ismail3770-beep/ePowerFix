@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { EPFTag, EPFLogoBolt } from "@/components/epf/icons/EPFIcons";
+import { EPFTag } from "@/components/epf/icons/EPFIcons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

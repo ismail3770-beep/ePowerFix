@@ -159,7 +159,7 @@ app.use(errorHandler)
 
 // Railway injects PORT env var at runtime; fall back to 4000 for local dev
 const PORT = parseInt(process.env.PORT || '4000', 10)
-const HOST = process.env.RAILWAY_STATIC_URL ? '0.0.0.0' : 'localhost'
+const HOST = env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
 
 app.listen(PORT, HOST, () => {
   console.log(`🚀 ePowerFix API running at http://${HOST}:${PORT}`)

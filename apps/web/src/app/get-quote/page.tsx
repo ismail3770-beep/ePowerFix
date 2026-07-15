@@ -1,7 +1,7 @@
 "use client";
 
+import type * as React from "react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Home, ChevronRight, Send, Check } from "lucide-react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";

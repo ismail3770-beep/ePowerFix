@@ -1,4 +1,5 @@
 "use client";
+import type * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -46,7 +47,7 @@ const navLinks = [
   { href: "/shop", label: "Shop" },
   { href: "/projects", label: "Projects" },
   { href: "/project-kits", label: "Project Kits" },
-  { href: "/Blog", label: "Blog" },
+  { href: "/blog", label: "Blog" },
 ];
 
 const subcategories = [

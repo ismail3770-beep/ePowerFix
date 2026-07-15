@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { api } from "@/lib/api";
 import { Bot, Send, X, Sparkles, Loader2, Minimize2, MessageSquare, StopCircle, Trash2 } from "lucide-react";

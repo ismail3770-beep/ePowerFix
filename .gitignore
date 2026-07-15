@@ -109,3 +109,6 @@ apps/mobile/web-build/
 apps/mobile/ios/
 apps/mobile/android/
 *.tsbuildinfo
+
+# Local browser/dev-tool output
+.playwright-mcp/

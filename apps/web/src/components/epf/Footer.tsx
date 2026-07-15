@@ -1,4 +1,5 @@
 "use client";
+import type * as React from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Facebook, Youtube, Instagram, Twitter, Phone, Mail, MapPin } from "lucide-react";

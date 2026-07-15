@@ -1,4 +1,5 @@
 "use client";
+import type * as React from "react";
 import { useState, useEffect } from "react";
 import { X, Zap, Mail, ShieldCheck } from "lucide-react";
 import { apiFetch } from "@/lib/api";
@@ -37,7 +38,7 @@ export default function NewsletterPopup() {
     setLoading(true);
     setError("");
     try {
-      const res = await apiFetch("/api/newsletter", {
+      await apiFetch("/api/newsletter", {
         method: "POST",
         body: JSON.stringify({ email }),
       });

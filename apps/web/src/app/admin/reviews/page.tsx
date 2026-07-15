@@ -22,7 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
-import { CheckCircle, XCircle, Eye, Star } from "lucide-react"
+import { CheckCircle, XCircle, Eye } from "lucide-react"
 
 interface Review {
   id: string

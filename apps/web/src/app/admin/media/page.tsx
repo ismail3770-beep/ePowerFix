@@ -1,5 +1,6 @@
 "use client";
 
+import type * as React from "react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
@@ -14,7 +15,6 @@ import {
   Copy,
   X,
   ExternalLink,
-  Image as ImageIcon,
   FolderOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
