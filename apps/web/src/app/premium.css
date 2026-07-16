@@ -1,0 +1,171 @@
+/*
+ * ePowerFix — Premium UI utility layer
+ * FleetCart / Martfury-inspired polish. Imported after globals.css.
+ * Brand: electric sky-blue #0EA5E9. No layout changes — visual craft only.
+ */
+
+/* ---- Elevation system ---------------------------------------------------- */
+:root {
+  --epf-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --epf-shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08);
+  --epf-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --epf-shadow-brand: 0 10px 28px rgba(14, 165, 233, 0.28);
+  --epf-ring-brand: 0 0 0 3px rgba(14, 165, 233, 0.14);
+}
+
+/* ---- Card lift ----------------------------------------------------------- */
+.epf-card {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease;
+  will-change: transform;
+}
+.epf-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--epf-shadow-lg);
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+/* ---- Premium primary button with sheen ----------------------------------- */
+.epf-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease;
+}
+.epf-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -75%;
+  z-index: -1;
+  width: 46%;
+  height: 100%;
+  transform: skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: left 0.55s ease;
+}
+.epf-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--epf-shadow-brand);
+}
+.epf-btn:hover::after {
+  left: 145%;
+}
+.epf-btn:active {
+  transform: translateY(0);
+}
+
+/* ---- Section reveal on scroll -------------------------------------------- */
+@keyframes epf-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.epf-rise {
+  animation: epf-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---- Electric glow accents (brand motif) --------------------------------- */
+.epf-glow {
+  position: relative;
+}
+.epf-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.5), rgba(56, 189, 248, 0));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+.epf-glow:hover::before {
+  opacity: 1;
+}
+
+/* ---- Eyebrow / section label refinement ---------------------------------- */
+.epf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #0284c7;
+}
+.epf-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #0ea5e9, rgba(14, 165, 233, 0));
+}
+
+/* ---- Skeleton shimmer (premium loading) ---------------------------------- */
+.epf-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #eef2f6;
+}
+.epf-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: epf-shimmer 1.4s infinite;
+}
+@keyframes epf-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ---- Discount / status badge polish -------------------------------------- */
+.epf-badge-sale {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+}
+
+/* ---- Image hover zoom helper --------------------------------------------- */
+.epf-zoom img,
+.epf-zoom svg {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.epf-zoom:hover img,
+.epf-zoom:hover svg {
+  transform: scale(1.06);
+}
+
+/* ---- Underline slide link ------------------------------------------------ */
+.epf-link {
+  position: relative;
+}
+.epf-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.28s ease;
+}
+.epf-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .epf-card,
+  .epf-btn,
+  .epf-btn::after,
+  .epf-rise,
+  .epf-zoom img,
+  .epf-zoom svg,
+  .epf-skeleton::after,
+  .epf-link::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
