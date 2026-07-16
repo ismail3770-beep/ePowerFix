@@ -2,7 +2,7 @@
 import type * as React from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Facebook, Youtube, Instagram, Twitter, Phone, Mail, MapPin } from "lucide-react";
+import { Facebook, Youtube, Instagram, Twitter, Phone, Mail, MapPin, Send } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import FadeIn from "@/components/epf/FadeIn";
 
@@ -63,7 +63,7 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
 function FooterItem({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
-      <a href={href} className="text-[14px] text-white/50 hover:text-epf-500 transition-colors duration-150 leading-relaxed">
+      <a href={href} className="epf-link inline-block text-[14px] text-white/50 hover:text-epf-500 transition-colors duration-150 leading-relaxed">
         {children}
       </a>
     </li>
@@ -89,6 +89,28 @@ export default function Footer() {
   return (
     <footer className="bg-slate-900 border-t border-white/5">
       <FadeIn>
+        {/* Newsletter strip — real e-commerce feel */}
+        <div className="border-b border-white/5 bg-gradient-to-r from-slate-900 via-slate-900 to-epf-600/20">
+          <div className="mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-4 px-4 py-6 sm:px-8 lg:flex-row lg:items-center lg:px-12">
+            <div>
+              <h3 className="text-[17px] font-bold text-white">Stay charged with ePowerFix</h3>
+              <p className="mt-1 text-[13px] text-white/50">Get the latest deals, guides and product drops in your inbox.</p>
+            </div>
+            <form className="flex w-full max-w-md gap-2" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="email"
+                required
+                placeholder="Enter your email"
+                aria-label="Email address"
+                className="h-11 flex-1 rounded-md border border-white/10 bg-white/5 px-4 text-[14px] text-white placeholder:text-white/40 focus:border-epf-500 focus:outline-none focus:ring-2 focus:ring-epf-500/20"
+              />
+              <button type="submit" className="epf-btn inline-flex h-11 items-center gap-2 rounded-md bg-epf-500 px-5 text-[13px] font-bold text-white hover:bg-epf-600">
+                Subscribe <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+
         <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-10 lg:py-12">
           <div className="lg:grid lg:grid-cols-5 lg:gap-6">
             {/* Brand Column */}
@@ -126,7 +148,7 @@ export default function Footer() {
                 <div className="flex flex-wrap items-center gap-3">
                   {socials.map((s) => (
                     <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full border border-white/10 hover:border-epf-500 hover:bg-epf-500 text-white/50 hover:text-white transition-colors"
+                      className="h-9 w-9 flex items-center justify-center rounded-full border border-white/10 text-white/50 transition-all duration-200 hover:-translate-y-0.5 hover:border-epf-500 hover:bg-epf-500 hover:text-white hover:shadow-[0_8px_18px_rgba(14,165,233,0.3)]"
                       aria-label={s.label}>
                       <s.icon className="h-4 w-4" />
                     </a>
