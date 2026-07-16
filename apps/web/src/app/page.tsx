@@ -19,6 +19,8 @@ import {
   ShoppingCart,
   Star,
   Sun,
+  Truck,
+  Users,
   Wrench,
   Zap,
 } from "lucide-react";
@@ -138,10 +140,10 @@ function SectionHeading({
   return (
     <div className="mb-4 flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
       <div>
-        {eyebrow && <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-epf-600">{eyebrow}</p>}
+        {eyebrow && <span className="epf-eyebrow mb-1.5">{eyebrow}</span>}
         <h2 className="text-[19px] font-bold tracking-tight text-slate-900 sm:text-[21px]">{title}</h2>
       </div>
-      <Link href={href} className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-epf-600 hover:text-epf-700">
+      <Link href={href} className="epf-link inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-epf-600 hover:text-epf-700">
         {linkLabel} <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>
@@ -159,15 +161,20 @@ function HomeHero() {
   return (
     <section className="border-b border-slate-200 bg-slate-50 py-4 sm:py-5">
       <div className="mx-auto grid max-w-[1400px] gap-3 px-4 sm:px-12 lg:grid-cols-[minmax(0,1fr)_218px]">
-        <div className="relative min-h-[286px] overflow-hidden rounded-md bg-slate-900 sm:min-h-[320px] lg:min-h-[350px]">
+        <div className="epf-rise relative min-h-[286px] overflow-hidden rounded-lg bg-slate-900 shadow-[var(--epf-shadow-lg)] sm:min-h-[320px] lg:min-h-[350px]">
           {banner?.image ? (
             <img src={banner.image} alt={banner.title} className="absolute inset-0 h-full w-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,#3b8270_0%,transparent_35%),linear-gradient(115deg,#0f172a_0%,#1e293b_55%,#0f766e_100%)]" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/45 to-transparent" />
-          <div className="relative flex h-full max-w-[520px] flex-col justify-center px-6 py-8 text-white sm:px-10">
-            <span className="mb-3 w-fit rounded-sm bg-epf-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em]">ePowerFix marketplace</span>
+          {/* Electric brand glow */}
+          <div className="pointer-events-none absolute -left-16 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-epf-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -right-10 -top-10 h-56 w-56 rounded-full bg-sky-400/20 blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-900/45 to-transparent" />
+          <div className="relative flex h-full max-w-[560px] flex-col justify-center px-6 py-8 text-white sm:px-10">
+            <span className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-epf-500/90 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] shadow-[var(--epf-shadow-brand)]">
+              <Zap className="h-3 w-3" /> ePowerFix marketplace
+            </span>
             <h1 className="max-w-lg text-[28px] font-bold leading-[1.12] tracking-tight sm:text-[38px]">
               {banner?.title || "Power your work with confidence"}
             </h1>
@@ -175,12 +182,18 @@ function HomeHero() {
               {banner?.subtitle || "Quality electrical products, expert services and practical project solutions — all from one trusted partner."}
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
-              <Link href={banner?.link || "/shop"} className="inline-flex h-10 items-center gap-2 rounded-sm bg-epf-500 px-4 text-[13px] font-bold text-white hover:bg-epf-600">
+              <Link href={banner?.link || "/shop"} className="epf-btn inline-flex h-11 items-center gap-2 rounded-md bg-epf-500 px-5 text-[13px] font-bold text-white hover:bg-epf-600">
                 Shop now <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/services" className="inline-flex h-10 items-center rounded-sm border border-white/35 px-4 text-[13px] font-semibold text-white hover:border-white">
+              <Link href="/services" className="inline-flex h-11 items-center rounded-md border border-white/35 bg-white/5 px-5 text-[13px] font-semibold text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-white/10">
                 Explore services
               </Link>
+            </div>
+            {/* Trust row — real e-commerce feel */}
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] font-medium text-white/70">
+              <span className="inline-flex items-center gap-1.5"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> 4.9 rating</span>
+              <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5 text-epf-400" /> 10,000+ customers</span>
+              <span className="inline-flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-epf-400" /> Fast delivery</span>
             </div>
           </div>
           <div className="absolute bottom-3 right-4 flex gap-1.5">
@@ -191,15 +204,15 @@ function HomeHero() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-          <Link href="/shop?search=LED" className="group relative min-h-[138px] overflow-hidden rounded-md border border-slate-200 bg-white p-4 sm:min-h-[154px]">
-            <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-amber-100" />
+          <Link href="/shop?search=LED" className="epf-card epf-zoom group relative min-h-[138px] overflow-hidden rounded-lg border border-slate-200 bg-white p-4 sm:min-h-[154px]">
+            <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-amber-100 transition-transform duration-500 group-hover:scale-110" />
             <Lightbulb className="relative h-6 w-6 text-amber-500" />
             <p className="relative mt-5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Bright choices</p>
-            <h3 className="relative mt-1 text-[16px] font-bold text-slate-900">LED & Lighting</h3>
+            <h3 className="relative mt-1 text-[16px] font-bold text-slate-900">LED &amp; Lighting</h3>
             <span className="relative mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-epf-600">Shop now <ArrowRight className="h-3 w-3" /></span>
           </Link>
-          <Link href="/project-kits" className="group relative min-h-[138px] overflow-hidden rounded-md bg-slate-900 p-4 text-white sm:min-h-[154px]">
-            <div className="absolute -bottom-12 -right-8 h-32 w-32 rounded-full bg-epf-500/35" />
+          <Link href="/project-kits" className="epf-card group relative min-h-[138px] overflow-hidden rounded-lg bg-slate-900 p-4 text-white sm:min-h-[154px]">
+            <div className="absolute -bottom-12 -right-8 h-32 w-32 rounded-full bg-epf-500/35 transition-transform duration-500 group-hover:scale-110" />
             <Package className="relative h-6 w-6 text-epf-400" />
             <p className="relative mt-5 text-[11px] font-bold uppercase tracking-wider text-white/45">Build smarter</p>
             <h3 className="relative mt-1 text-[16px] font-bold">Project Kits</h3>
@@ -223,8 +236,10 @@ function BenefitsStrip() {
     <section className="border-b border-slate-200 bg-white">
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 divide-x divide-slate-200 px-4 py-4 sm:grid-cols-4 sm:px-12">
         {benefits.map(([Icon, title, description]) => (
-          <div key={title} className="flex items-center gap-2.5 px-3 first:pl-0 sm:justify-center sm:px-4 lg:px-6">
-            <Icon className="h-5 w-5 shrink-0 text-epf-500" strokeWidth={1.8} />
+          <div key={title} className="group flex items-center gap-2.5 px-3 first:pl-0 sm:justify-center sm:px-4 lg:px-6">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-epf-50 text-epf-500 transition-colors group-hover:bg-epf-500 group-hover:text-white">
+              <Icon className="h-5 w-5" strokeWidth={1.8} />
+            </span>
             <div className="min-w-0">
               <p className="truncate text-[12px] font-bold text-slate-800 sm:text-[13px]">{title}</p>
               <p className="hidden truncate text-[11px] text-slate-400 sm:block">{description}</p>
@@ -251,7 +266,7 @@ function CategoryRail() {
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
           {(isLoading ? Array.from({ length: 8 }) : categories).map((category, index) => {
             if (!category) {
-              return <div key={index} className="h-[118px] animate-pulse rounded-md border border-slate-200 bg-white" />;
+              return <div key={index} className="epf-skeleton h-[118px] rounded-lg border border-slate-200" />;
             }
             const item = category as Category | (typeof fallbackCategories)[number];
             const fallbackIcon = fallbackCategories[index % fallbackCategories.length].icon;
@@ -259,8 +274,8 @@ function CategoryRail() {
             const Icon = typeof apiIcon === "function" ? apiIcon : fallbackIcon;
             const href = `/shop?category=${item.slug}`;
             return (
-              <Link key={item.slug} href={href} className="group flex min-h-[118px] flex-col items-center justify-center rounded-md border border-slate-200 bg-white px-2 text-center transition-colors hover:border-epf-300 hover:bg-epf-50">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition-colors group-hover:bg-white group-hover:text-epf-600">
+              <Link key={item.slug} href={href} className="epf-card group flex min-h-[118px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-center hover:bg-epf-50">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-50 text-slate-500 transition-colors group-hover:bg-epf-500 group-hover:text-white">
                   <Icon className="h-5 w-5" strokeWidth={1.7} />
                 </span>
                 <span className="mt-2 line-clamp-2 text-[12px] font-semibold leading-4 text-slate-700 group-hover:text-epf-700">{item.name}</span>
@@ -300,19 +315,19 @@ function StoreProductCard({ product, compact = false }: { product: Product; comp
   };
 
   return (
-    <article className={cn("group relative flex min-w-0 flex-col border border-slate-200 bg-white transition-shadow hover:border-slate-300 hover:shadow-md", compact && "border-slate-100")}>
-      <div className="relative aspect-square overflow-hidden bg-white">
+    <article className={cn("epf-card group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white", compact && "border-slate-100")}>
+      <div className="epf-zoom relative aspect-square overflow-hidden bg-white">
         {image && !imageError ? (
-          <img src={image} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105" loading="lazy" onError={() => setImageError(true)} />
+          <img src={image} alt={product.name} className="h-full w-full object-contain p-2" loading="lazy" onError={() => setImageError(true)} />
         ) : (
           <div className="flex h-full items-center justify-center bg-slate-50"><Package className="h-8 w-8 text-slate-300" /></div>
         )}
-        {discount > 0 && <span className="absolute left-2 top-2 bg-epf-500 px-1.5 py-0.5 text-[10px] font-bold text-white">-{discount}%</span>}
-        {!inStock && <span className="absolute left-2 top-2 bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">Out of stock</span>}
-        <button type="button" aria-label="Add to wishlist" className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center bg-white/90 text-slate-400 shadow-sm hover:text-red-500" onClick={(event) => event.stopPropagation()}>
+        {discount > 0 && <span className="epf-badge-sale absolute left-2 top-2 rounded px-1.5 py-0.5 text-[10px] font-bold text-white">-{discount}%</span>}
+        {!inStock && <span className="absolute left-2 top-2 rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-bold text-white">Out of stock</span>}
+        <button type="button" aria-label="Add to wishlist" className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-slate-400 shadow-sm backdrop-blur-sm transition-colors hover:text-red-500" onClick={(event) => event.stopPropagation()}>
           <Heart className="h-3.5 w-3.5" />
         </button>
-        {inStock && <button type="button" aria-label="Add to cart" onClick={handleAdd} className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-sm bg-slate-900 text-white hover:bg-epf-500"><ShoppingCart className="h-4 w-4" /></button>}
+        {inStock && <button type="button" aria-label="Add to cart" onClick={handleAdd} className="absolute bottom-2 right-2 flex h-8 w-8 translate-y-1 items-center justify-center rounded-md bg-slate-900 text-white opacity-0 shadow-md transition-all duration-300 hover:bg-epf-500 group-hover:translate-y-0 group-hover:opacity-100"><ShoppingCart className="h-4 w-4" /></button>}
       </div>
       <Link href={href} className="flex min-h-[112px] flex-1 flex-col border-t border-slate-100 p-2.5">
         {product.category?.name && <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-epf-600">{product.category.name}</span>}
@@ -333,14 +348,14 @@ function ProductRail({ title, eyebrow, href, products, isLoading }: { title: str
         <SectionHeading eyebrow={eyebrow} title={title} href={href} />
         {isLoading ? (
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, index) => <div key={index} className="aspect-[.78] animate-pulse border border-slate-200 bg-white" />)}
+            {Array.from({ length: 6 }).map((_, index) => <div key={index} className="epf-skeleton aspect-[.78] rounded-lg border border-slate-200" />)}
           </div>
         ) : products.length > 0 ? (
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {products.slice(0, 6).map((product) => <StoreProductCard key={product.id} product={product} />)}
           </div>
         ) : (
-          <div className="border border-dashed border-slate-300 bg-white py-10 text-center text-sm text-slate-400">Products will appear here soon.</div>
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white py-10 text-center text-sm text-slate-400">Products will appear here soon.</div>
         )}
       </div>
     </section>
@@ -351,19 +366,19 @@ function PromotionStrip() {
   return (
     <section className="bg-slate-50 pb-7 sm:pb-9">
       <div className="mx-auto grid max-w-[1400px] gap-3 px-3 sm:grid-cols-3 sm:px-5 lg:px-6">
-        <Link href="/shop?category=cables-wires" className="group relative min-h-[132px] overflow-hidden bg-slate-900 px-5 py-5 text-white">
-          <div className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-epf-500/25 transition-transform group-hover:scale-110" />
+        <Link href="/shop?category=cables-wires" className="epf-card group relative min-h-[132px] overflow-hidden rounded-lg bg-slate-900 px-5 py-5 text-white">
+          <div className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-epf-500/25 transition-transform duration-500 group-hover:scale-110" />
           <Cable className="relative h-6 w-6 text-epf-400" />
           <p className="relative mt-4 text-[11px] font-bold uppercase tracking-widest text-white/50">Reliable connections</p>
           <h3 className="relative mt-1 text-[17px] font-bold">Cables for every setup</h3>
         </Link>
-        <Link href="/services" className="group relative min-h-[132px] overflow-hidden border border-slate-200 bg-white px-5 py-5">
+        <Link href="/services" className="epf-card group relative min-h-[132px] overflow-hidden rounded-lg border border-slate-200 bg-white px-5 py-5">
           <Wrench className="h-6 w-6 text-epf-500" />
           <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">Need an expert?</p>
           <h3 className="mt-1 text-[17px] font-bold text-slate-900">Book an electrical service</h3>
           <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-epf-600">Get started <ArrowRight className="h-3.5 w-3.5" /></span>
         </Link>
-        <Link href="/projects" className="group relative min-h-[132px] overflow-hidden border border-slate-200 bg-epf-50 px-5 py-5">
+        <Link href="/projects" className="epf-card group relative min-h-[132px] overflow-hidden rounded-lg border border-slate-200 bg-epf-50 px-5 py-5">
           <Zap className="h-6 w-6 text-epf-600" />
           <p className="mt-4 text-[11px] font-bold uppercase tracking-widest text-epf-700/60">Built by ePowerFix</p>
           <h3 className="mt-1 text-[17px] font-bold text-slate-900">See our latest projects</h3>
@@ -394,11 +409,11 @@ function ServicesProjectsBlock() {
         <div>
           <SectionHeading title="Popular services" href="/services" />
           <div className="divide-y divide-slate-100 border-y border-slate-100">
-            {servicesLoading ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-[68px] animate-pulse bg-slate-50" />) : services.length > 0 ? services.map((service) => (
+            {servicesLoading ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="epf-skeleton h-[68px]" />) : services.length > 0 ? services.map((service) => (
               <Link key={service.id} href={service.slug ? `/services/${service.slug}` : "/services"} className="group flex items-center gap-3 py-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-epf-50 text-epf-600"><Wrench className="h-5 w-5" /></div>
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-epf-50 text-epf-600 transition-colors group-hover:bg-epf-500 group-hover:text-white"><Wrench className="h-5 w-5" /></div>
                 <div className="min-w-0 flex-1"><h3 className="truncate text-[14px] font-semibold text-slate-800 group-hover:text-epf-600">{service.name}</h3><p className="mt-0.5 line-clamp-1 text-[12px] text-slate-500">{service.shortDesc || service.description}</p></div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-epf-500" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-epf-500" />
               </Link>
             )) : <p className="py-8 text-sm text-slate-400">Services will appear here soon.</p>}
           </div>
@@ -406,9 +421,9 @@ function ServicesProjectsBlock() {
         <div>
           <SectionHeading title="Featured projects" href="/projects" />
           <div className="grid grid-cols-3 gap-2.5">
-            {projectsLoading ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="aspect-[.85] animate-pulse bg-slate-100" />) : projects.length > 0 ? projects.map((project) => {
+            {projectsLoading ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="epf-skeleton aspect-[.85] rounded-lg" />) : projects.length > 0 ? projects.map((project) => {
               const image = project.coverImage || project.images?.[0];
-              return <Link key={project.id} href={`/projects/${project.slug}`} className="group overflow-hidden border border-slate-200 bg-white"><div className="aspect-[1.15] overflow-hidden bg-slate-100">{image ? <img src={image} alt={project.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center"><Zap className="h-6 w-6 text-slate-300" /></div>}</div><div className="p-2.5"><p className="line-clamp-2 text-[12px] font-semibold leading-4 text-slate-700 group-hover:text-epf-600">{project.title}</p></div></Link>;
+              return <Link key={project.id} href={`/projects/${project.slug}`} className="epf-card epf-zoom group overflow-hidden rounded-lg border border-slate-200 bg-white"><div className="aspect-[1.15] overflow-hidden bg-slate-100">{image ? <img src={image} alt={project.title} className="h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full items-center justify-center"><Zap className="h-6 w-6 text-slate-300" /></div>}</div><div className="p-2.5"><p className="line-clamp-2 text-[12px] font-semibold leading-4 text-slate-700 group-hover:text-epf-600">{project.title}</p></div></Link>;
             }) : <p className="col-span-3 py-8 text-sm text-slate-400">Projects will appear here soon.</p>}
           </div>
         </div>
@@ -438,7 +453,7 @@ function BlogRail() {
     <section className="bg-slate-50 py-8 sm:py-10">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
         <SectionHeading eyebrow="Knowledge hub" title="Ideas and electrical guides" href="/blog" linkLabel="View all articles" />
-        {isLoading ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-32 animate-pulse bg-white" />)}</div> : posts.length > 0 ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{posts.map((post) => <Link key={post.id} href={`/blog/${post.slug}`} className="group flex gap-3 border border-slate-200 bg-white p-3"><div className="h-24 w-28 shrink-0 overflow-hidden bg-slate-100">{post.coverImage ? <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center"><BookOpen className="h-6 w-6 text-slate-300" /></div>}</div><div className="min-w-0"><p className="text-[10px] text-slate-400">Electrical guide</p><h3 className="mt-1 line-clamp-3 text-[13px] font-semibold leading-5 text-slate-800 group-hover:text-epf-600">{post.titleBn || post.title}</h3><span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-epf-600">Read more <ArrowRight className="h-3 w-3" /></span></div></Link>)}</div> : <div className="border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-400">New electrical guides are coming soon.</div>}
+        {isLoading ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{Array.from({ length: 3 }).map((_, index) => <div key={index} className="epf-skeleton h-32 rounded-lg" />)}</div> : posts.length > 0 ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">{posts.map((post) => <Link key={post.id} href={`/blog/${post.slug}`} className="epf-card epf-zoom group flex gap-3 rounded-lg border border-slate-200 bg-white p-3"><div className="h-24 w-28 shrink-0 overflow-hidden rounded-md bg-slate-100">{post.coverImage ? <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover" loading="lazy" /> : <div className="flex h-full items-center justify-center"><BookOpen className="h-6 w-6 text-slate-300" /></div>}</div><div className="min-w-0"><p className="text-[10px] text-slate-400">Electrical guide</p><h3 className="mt-1 line-clamp-3 text-[13px] font-semibold leading-5 text-slate-800 group-hover:text-epf-600">{post.titleBn || post.title}</h3><span className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-epf-600">Read more <ArrowRight className="h-3 w-3" /></span></div></Link>)}</div> : <div className="rounded-lg border border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-400">New electrical guides are coming soon.</div>}
       </div>
     </section>
   );
