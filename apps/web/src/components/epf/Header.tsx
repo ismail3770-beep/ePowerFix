@@ -229,7 +229,7 @@ export default function Header() {
     `}</style>
     <header
       data-customer-shell={pathname === "/" ? "home" : "page"}
-      className="sticky top-0 z-50 bg-white"
+      className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${headerShadow ? "shadow-[var(--epf-shadow-md)]" : ""}`}
     >
       {/* ROW 1 */}
       <div className="border-b border-slate-200">
@@ -245,7 +245,7 @@ export default function Header() {
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:flex flex-1 justify-center relative" ref={searchRef}>
-              <div className="flex w-full max-w-[700px] h-[42px] rounded border border-slate-200 relative">
+              <div className="flex w-full max-w-[700px] h-[42px] rounded border border-slate-200 relative transition-all duration-200 focus-within:border-epf-500 focus-within:shadow-[var(--epf-ring-brand)]">
                 <I.Search className="h-[18px] w-[18px] text-slate-400 my-auto ml-3 shrink-0" />
                 <input
                   type="text"
@@ -259,7 +259,7 @@ export default function Header() {
                 />
                 <button
                   onClick={handleSearch}
-                  className="bg-epf-500 text-white h-full px-5 flex items-center hover:bg-epf-600 transition-colors text-[14px] font-semibold"
+                  className="bg-epf-500 text-white h-full px-5 flex items-center hover:bg-epf-600 active:scale-[0.98] transition-all text-[14px] font-semibold"
                 >
                   Search
                 </button>
@@ -277,7 +277,7 @@ export default function Header() {
                       <div>
                         <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Products</p>
                         {searchResults.products.map((p) => (
-                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/shop?search=${encodeURIComponent(localSearch)}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/shop?search=${encodeURIComponent(localSearch)}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left transition-colors">
                             <div className="h-9 w-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
                               {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-contain" /> : <I.Package className="h-4 w-4 text-slate-400" />}
                             </div>
@@ -293,7 +293,7 @@ export default function Header() {
                       <div>
                         <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Services</p>
                         {searchResults.services.map((s) => (
-                          <button key={s.id} onClick={() => { setShowDropdown(false); window.location.href = `/services/${(s as any).slug || s.id}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                          <button key={s.id} onClick={() => { setShowDropdown(false); window.location.href = `/services/${(s as any).slug || s.id}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left transition-colors">
                             <div className="h-9 w-9 bg-epf-50 rounded-full flex items-center justify-center shrink-0">
                               <I.Wrench className="h-4 w-4 text-epf-500" />
                             </div>
@@ -309,7 +309,7 @@ export default function Header() {
                       <div>
                         <p className="px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">Projects</p>
                         {searchResults.projects.map((p) => (
-                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/projects/${(p as any).slug || p.id}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left">
+                          <button key={p.id} onClick={() => { setShowDropdown(false); window.location.href = `/projects/${(p as any).slug || p.id}`; }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 border-b border-slate-200 last:border-0 text-left transition-colors">
                             <div className="h-9 w-9 bg-slate-100 rounded flex items-center justify-center shrink-0">
                               {p.image ? <img src={p.image} alt="" className="h-7 w-7 object-cover rounded" /> : <I.Cpu className="h-4 w-4 text-slate-400" />}
                             </div>
@@ -400,15 +400,15 @@ export default function Header() {
               </div>
 
               {/* Wishlist */}
-              <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-slate-50 transition-colors">
-                <EPFHeartFilled className="h-[22px] w-[22px] text-slate-700" />
-                <span className="text-[13px] text-slate-700 mt-0.5">Wishlist</span>
+              <a href="/wishlist" className="hidden lg:flex flex-col items-center px-2 py-1 rounded hover:bg-slate-50 transition-colors group">
+                <EPFHeartFilled className="h-[22px] w-[22px] text-slate-700 group-hover:text-epf-500 group-hover:scale-110 transition-all" />
+                <span className="text-[13px] text-slate-700 mt-0.5 group-hover:text-epf-500 transition-colors">Wishlist</span>
               </a>
 
               {/* Cart */}
               <button
                 onClick={() => setCartOpen(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors relative"
+                className="flex items-center gap-2 px-3 py-2 rounded border border-slate-200 hover:border-epf-500 hover:bg-slate-50 hover:-translate-y-0.5 transition-all relative"
               >
                 <div className="relative">
                   <EPFCartFilled className="h-[22px] w-[22px] text-slate-700" />
@@ -449,12 +449,12 @@ export default function Header() {
               <button className="flex items-center gap-2 h-[44px] px-5 bg-slate-900 text-white hover:bg-slate-950 transition-colors">
                 <I.Menu className="h-[18px] w-[18px]" />
                 <span className="text-[15px] font-bold">Categories</span>
-                <ChevronDown className="h-3.5 w-3.5 text-epf-500" />
+                <ChevronDown className={`h-3.5 w-3.5 text-epf-500 transition-transform duration-200 ${megaOpen ? "rotate-180" : ""}`} />
               </button>
 
               {megaOpen && (
                 <div
-                  className="absolute top-[44px] left-0 w-[750px] bg-white border border-slate-200 z-[60] flex rounded-b"
+                  className="absolute top-[44px] left-0 w-[750px] bg-white border border-slate-200 z-[60] flex rounded-b shadow-[var(--epf-shadow-lg)]"
                   onMouseEnter={() => { clearTimeout(megaTimeout.current!); setMegaOpen(true); }}
                   onMouseLeave={() => { megaTimeout.current = setTimeout(() => setMegaOpen(false), 200); }}
                 >
@@ -469,7 +469,7 @@ export default function Header() {
                           className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-[14px] transition-all border-l-[3px] ${
                             i === 0
                               ? "bg-white text-epf-500 font-semibold border-epf-500"
-                              : "text-slate-700 hover:bg-white hover:text-slate-900 border-transparent"
+                              : "text-slate-700 hover:bg-white hover:text-slate-900 border-transparent hover:border-epf-500"
                           }`}
                         >
                           <span className={i === 0 ? "text-epf-500" : "text-slate-500"}>
@@ -506,7 +506,7 @@ export default function Header() {
                         <a
                           href="/shop?category=wires-cables"
                           onClick={(e) => { e.preventDefault(); setMegaOpen(false); window.location.href = "/shop?category=wires-cables"; }}
-                          className="h-9 px-4 bg-epf-500 text-white text-[14px] font-bold hover:bg-epf-600 transition-colors flex items-center gap-1.5 rounded-[4px]"
+                          className="h-9 px-4 bg-epf-500 text-white text-[14px] font-bold hover:bg-epf-600 active:scale-[0.98] transition-all flex items-center gap-1.5 rounded-[4px]"
                         >
                           View <I.ArrowRight className="h-3 w-3" />
                         </a>
@@ -628,7 +628,7 @@ export default function Header() {
                       setMobileOpen(false);
                     }
                   }}
-                  className={`flex items-center justify-between w-full px-5 py-3.5 text-[15px] font-medium border-b border-slate-200 ${
+                  className={`flex items-center justify-between w-full px-5 py-3.5 text-[15px] font-medium border-b border-slate-200 transition-colors ${
                     isActive ? "bg-epf-50 text-slate-900 font-semibold" : "text-slate-700 hover:bg-slate-50"
                   }`}
                 >
@@ -651,7 +651,7 @@ export default function Header() {
                     setMobileOpen(false);
                     window.location.href = `/shop?category=${cat.dbSlug || cat.slug}`;
                   }}
-                  className="flex items-center gap-3 w-full px-5 py-3 text-[14px] text-slate-700 hover:bg-slate-50 border-b border-slate-200"
+                  className="flex items-center gap-3 w-full px-5 py-3 text-[14px] text-slate-700 hover:bg-slate-50 border-b border-slate-200 transition-colors"
                 >
                   <span className="text-epf-500"><EPFTag className="h-4 w-4" /></span>
                   <span className="flex-1 text-left">{cat.name}</span>
@@ -660,7 +660,7 @@ export default function Header() {
               ))}
             </div>
             <div className="p-4 border-t border-slate-200 flex gap-2">
-              <button onClick={() => window.location.href = '/login'} className="flex-1 h-10 bg-epf-500 text-white text-[14px] font-bold rounded-[4px] hover:bg-epf-600">Login / Register</button>
+              <button onClick={() => window.location.href = '/login'} className="flex-1 h-10 bg-epf-500 text-white text-[14px] font-bold rounded-[4px] hover:bg-epf-600 active:scale-[0.98] transition-all">Login / Register</button>
             </div>
           </div>
           <div className="fixed inset-0 bg-black/30 z-[65]" style={{ animation: 'fadeIn 0.2s ease-out' }} onClick={() => setMobileOpen(false)} />
