@@ -2,7 +2,7 @@
 
 import { type MouseEvent, Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronDown,
   ChevronLeft,
@@ -21,7 +21,6 @@ import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import CartDrawer from "@/components/epf/CartDrawer";
 import CheckoutDialog from "@/components/epf/CheckoutDialog";
-import ProjectDetailDialog from "@/components/epf/ProjectDetailDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
 import { useCartStore, useUIStore } from "@/store";
@@ -60,8 +59,9 @@ function getKitImage(kit: ProjectKit) {
   return kit.coverImage || kit.images?.[0] || "";
 }
 
-function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => void }) {
+function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (slug: string) => void }) {
   const addItem = useCartStore((state) => state.addItem);
+  const setCartOpen = useUIStore((state) => state.setCartOpen);
   const [imageError, setImageError] = useState(false);
   const displayPrice = getKitPrice(kit);
   const originalPrice = displayPrice < kit.price ? kit.price : null;
@@ -82,6 +82,7 @@ function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => voi
       quantity: 1,
     });
     toast.success("Kit added to cart", { description: kit.title });
+    setCartOpen(true);
   };
 
   return (
@@ -89,11 +90,11 @@ function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => voi
       className="group relative flex min-w-0 cursor-pointer flex-col border border-slate-200 bg-white transition-shadow hover:border-slate-300 hover:shadow-md"
       role="button"
       tabIndex={0}
-      onClick={() => onOpen(kit.id)}
+      onClick={() => onOpen(kit.slug)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpen(kit.id);
+          onOpen(kit.slug);
         }
       }}
     >
@@ -154,8 +155,9 @@ function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => voi
   );
 }
 
-function KitListRow({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => void }) {
+function KitListRow({ kit, onOpen }: { kit: ProjectKit; onOpen: (slug: string) => void }) {
   const addItem = useCartStore((state) => state.addItem);
+  const setCartOpen = useUIStore((state) => state.setCartOpen);
   const image = getKitImage(kit);
   const displayPrice = getKitPrice(kit);
   const inStock = kit.stock > 0;
@@ -173,6 +175,7 @@ function KitListRow({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => 
       quantity: 1,
     });
     toast.success("Kit added to cart", { description: kit.title });
+    setCartOpen(true);
   };
 
   return (
@@ -180,11 +183,11 @@ function KitListRow({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => 
       className="flex cursor-pointer gap-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
       role="button"
       tabIndex={0}
-      onClick={() => onOpen(kit.id)}
+      onClick={() => onOpen(kit.slug)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpen(kit.id);
+          onOpen(kit.slug);
         }
       }}
     >
@@ -215,7 +218,7 @@ function KitListRow({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => 
 function LatestKit({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => void }) {
   const image = getKitImage(kit);
   return (
-    <button type="button" onClick={() => onOpen(kit.id)} className="group flex w-full items-center gap-3 border-b border-slate-100 py-3 text-left last:border-b-0">
+    <button type="button" onClick={() => onOpen(kit.slug)} className="group flex w-full items-center gap-3 border-b border-slate-100 py-3 text-left last:border-b-0">
       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-50">
         {image ? <img src={image} alt="" className="h-full w-full object-contain p-1" loading="lazy" /> : <Package className="h-5 w-5 text-slate-300" />}
       </div>
@@ -229,7 +232,7 @@ function LatestKit({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => v
 
 function ProjectKitsPageContent() {
   const searchParams = useSearchParams();
-  const { setProjectDetailOpen, setSelectedProjectId } = useUIStore();
+  const router = useRouter();
   const initialCategory = searchParams.get("category") || "";
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(12);
@@ -274,9 +277,8 @@ function ProjectKitsPageContent() {
   const selectedCategoryName = category || "";
   const activeFilterCount = [category, minPrice, maxPrice].filter(Boolean).length;
 
-  const openKit = (id: string) => {
-    setSelectedProjectId(id);
-    setProjectDetailOpen(true);
+  const openKit = (slug: string) => {
+    router.push(`/project-kits/${slug}`);
   };
 
   const resetPageAnd = (action: () => void) => {
@@ -442,7 +444,6 @@ function ProjectKitsPageContent() {
       <Footer />
       <CartDrawer />
       <CheckoutDialog />
-      <ProjectDetailDialog />
       <ChatWidget />
       <BackToTopButton />
       {kitsQuery.isFetching && !kitsQuery.isLoading && <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900 px-3 py-2 text-xs text-white shadow-lg"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating project kits</div>}

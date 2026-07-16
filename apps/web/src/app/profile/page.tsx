@@ -164,6 +164,14 @@ function formatDate(dateStr: string) {
   });
 }
 
+function formatStatus(status: string) {
+  return status
+    .toLowerCase()
+    .split(/[_\s]+/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 /* ------------------------------------------------------------------ */
 /*  Info row (Account Information card)                                */
 /*  icon h-5 w-5 text-slate-400 + label uppercase text-[12px] + value  */
@@ -541,7 +549,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 bg-slate-50">
+        <main className="flex-1 bg-white">
           <div className="bg-white border-b border-slate-200">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
               <nav className="flex items-center gap-1.5 h-[44px] text-[14px]">
@@ -555,7 +563,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-270px)]">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center max-w-sm w-full">
+            <div className="bg-white rounded-[4px] border border-slate-200 shadow-none gap-0 py-0 p-8 text-center max-w-sm w-full">
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
                 <User className="h-8 w-8 text-slate-400" />
               </div>
@@ -591,7 +599,7 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 bg-slate-50">
+      <main className="flex-1 bg-white">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-slate-200">
           <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
@@ -610,9 +618,9 @@ export default function ProfilePage() {
         </div>
 
         {/* Page Content */}
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6 sm:py-8">
+          <div className="mx-auto max-w-[1200px] px-4 sm:px-10 py-6 sm:py-8">
           {userLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-10">
               <Skeleton className="h-72 w-full rounded-xl" />
               <div className="space-y-6">
                 <Skeleton className="h-64 w-full rounded-xl" />
@@ -620,10 +628,10 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-10">
               {/* ---------- Sidebar ---------- */}
               <aside className="md:shrink-0">
-                <nav className="bg-white border border-slate-200 rounded-xl shadow-sm p-2 md:sticky md:top-4">
+                <nav className="bg-transparent border-0 rounded-none shadow-none p-0 md:sticky md:top-4">
                   <ul className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
                     {sidebarItems.map((item) => {
                       const Icon = item.icon;
@@ -634,11 +642,11 @@ export default function ProfilePage() {
                           <button
                             type="button"
                             onClick={() => handleSidebarClick(item)}
-                            className={`flex items-center gap-3 h-11 px-4 text-[14px] font-medium rounded-lg whitespace-nowrap transition-colors w-full text-left border-l-[3px] border-transparent ${
+                            className={`flex items-center gap-2.5 h-9 px-2 text-[12px] font-medium rounded-md whitespace-nowrap transition-colors w-full text-left border-l-[3px] border-transparent ${
                               isLogout
                                 ? "text-red-500 hover:bg-red-50"
                                 : isActive
-                                ? "bg-epf-50 text-epf-600 border-epf-500"
+                                ? "text-slate-900 font-semibold border-slate-900 bg-transparent"
                                 : "text-slate-600 hover:bg-slate-50"
                             }`}
                           >
@@ -657,9 +665,9 @@ export default function ProfilePage() {
 
                 {/* ---- Recent Orders (Dashboard + Orders sections) ---- */}
                 {(activeSection === "dashboard" || activeSection === "orders") && (
-                  <Card className="rounded-xl border border-slate-200 shadow-sm">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-                      <CardTitle className="text-[16px] font-semibold text-slate-900">
+                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
+                      <CardTitle className="text-[14px] font-semibold text-slate-900">
                         Recent Orders
                       </CardTitle>
                       <a
@@ -698,7 +706,7 @@ export default function ProfilePage() {
                             <TableHeader>
                               <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
                                 <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
-                                  Order #
+                                  Order ID
                                 </TableHead>
                                 <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
                                   Date
@@ -735,7 +743,7 @@ export default function ProfilePage() {
                                         "bg-slate-100 text-slate-700 border-slate-200"
                                       }`}
                                     >
-                                      {order.status}
+                                      {formatStatus(order.status)}
                                     </span>
                                   </TableCell>
                                   <TableCell className="px-4 py-3 text-right text-[14px] font-semibold text-slate-900">
@@ -784,9 +792,9 @@ export default function ProfilePage() {
 
                 {/* ---- Account Information (Dashboard only) ---- */}
                 {activeSection === "dashboard" && (
-                  <Card className="rounded-xl border border-slate-200 shadow-sm">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-[16px] font-semibold text-slate-900">
+                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
+                      <CardTitle className="text-[14px] font-semibold text-slate-900">
                         Account Information
                       </CardTitle>
                       <button
@@ -805,8 +813,8 @@ export default function ProfilePage() {
                           <InfoRow icon={Mail} label="Email" value={user?.email} />
                         </div>
                         <div className="sm:pl-8">
-                          <InfoRow icon={Phone} label="Phone" value={user?.phone} />
-                          <InfoRow icon={MapPin} label="Address" value={fullAddress} />
+                          {user?.phone && <InfoRow icon={Phone} label="Phone" value={user.phone} />}
+                          {fullAddress && <InfoRow icon={MapPin} label="Address" value={fullAddress} />}
                         </div>
                       </div>
                     </CardContent>
@@ -817,8 +825,8 @@ export default function ProfilePage() {
                 {(activeSection === "downloads" ||
                   (activeSection === "dashboard" &&
                     (downloadsLoading || downloads.length > 0))) && (
-                  <Card className="rounded-xl border border-slate-200 shadow-sm">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
                       <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
                         <Download className="h-5 w-5 text-slate-500" />
                         My Downloads
@@ -908,8 +916,8 @@ export default function ProfilePage() {
                 {/* ---- My Returns (Dashboard only, only if returns exist) ---- */}
                 {activeSection === "dashboard" &&
                   (returnsLoading || returns.length > 0) && (
-                    <Card className="rounded-xl border border-slate-200 shadow-sm">
-                      <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                    <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                      <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
                         <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
                           <RotateCcw className="h-5 w-5 text-slate-500" />
                           My Returns
@@ -982,8 +990,8 @@ export default function ProfilePage() {
                 {/* ---- My Addresses (addresses section OR dashboard if any) ---- */}
                 {(activeSection === "addresses" ||
                   (activeSection === "dashboard" && addresses.length > 0)) && (
-                  <Card className="rounded-xl border border-slate-200 shadow-sm">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
                       <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
                         <MapPin className="h-5 w-5 text-slate-500" />
                         My Addresses
@@ -1099,8 +1107,8 @@ export default function ProfilePage() {
                 {/* ---- My Reviews (reviews section OR dashboard if any) ---- */}
                 {(activeSection === "reviews" ||
                   (activeSection === "dashboard" && reviews.length > 0)) && (
-                  <Card className="rounded-xl border border-slate-200 shadow-sm">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
+                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
                       <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
                         <Star className="h-5 w-5 text-slate-500" />
                         My Reviews
@@ -1219,7 +1227,7 @@ export default function ProfilePage() {
 
                 {/* ---- My Profile (inline edit form — no popup) ---- */}
                 {activeSection === "profile" && (
-                  <Card className="rounded-xl border border-slate-200 shadow-sm">
+                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
                     <CardHeader className="pb-4">
                       <CardTitle className="text-[18px] font-bold text-slate-900">My Profile</CardTitle>
                       <p className="text-[13px] text-slate-500 mt-1">

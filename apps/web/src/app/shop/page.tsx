@@ -25,7 +25,7 @@ import CartDrawer from "@/components/epf/CartDrawer";
 import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
 import BackToTopButton from "@/components/epf/BackToTopButton";
-import { useCartStore } from "@/store";
+import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -92,6 +92,7 @@ function getCardData(product: Product) {
 
 function StoreProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem);
+  const setCartOpen = useUIStore((state) => state.setCartOpen);
   const [imageError, setImageError] = useState(false);
   const card = getCardData(product);
   const displayPrice = card.price;
@@ -114,6 +115,7 @@ function StoreProductCard({ product }: { product: Product }) {
       quantity: 1,
     });
     toast.success("Added to cart", { description: product.name });
+    setCartOpen(true);
   };
 
   return (
@@ -245,6 +247,7 @@ function ListProductRow({ product, onAddToCart }: { product: Product; onAddToCar
 function ShopPageContent() {
   const searchParams = useSearchParams();
   const addItem = useCartStore((state) => state.addItem);
+  const setCartOpen = useUIStore((state) => state.setCartOpen);
   const initialCategory = searchParams.get("category") || "";
   const search = searchParams.get("search") || "";
 
@@ -312,6 +315,7 @@ function ShopPageContent() {
       quantity: 1,
     });
     toast.success("Added to cart", { description: product.name });
+    setCartOpen(true);
   };
 
   const resetPageAnd = (action: () => void) => {

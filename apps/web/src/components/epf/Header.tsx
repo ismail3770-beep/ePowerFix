@@ -227,7 +227,10 @@ export default function Header() {
         to { opacity: 1; }
       }
     `}</style>
-    <header className="sticky top-0 z-50 bg-white">
+    <header
+      data-customer-shell={pathname === "/" ? "home" : "page"}
+      className="sticky top-0 z-50 bg-white"
+    >
       {/* ROW 1 */}
       <div className="border-b border-slate-200">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-12">

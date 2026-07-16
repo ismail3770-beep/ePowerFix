@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
-  --font-sans: var(--font-bn), var(--font-en), system-ui, sans-serif;
+  --font-sans: var(--font-en), var(--font-bn), system-ui, sans-serif;
   --font-mono: var(--font-en), monospace;
   --color-sidebar-ring: hsl(var(--sidebar-ring));
   --color-sidebar-border: hsl(var(--sidebar-border));
@@ -172,3 +172,328 @@ img {
 /* Hide scrollbar utility for horizontal scroll */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Auth pages — lightweight ePowerFix motion system */
+.auth-page {
+  isolation: isolate;
+}
+
+.auth-grid {
+  animation: auth-grid-drift 24s ease-in-out infinite alternate;
+  transform: scale(1.04);
+  transform-origin: center;
+}
+
+.auth-orb {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(2px);
+  opacity: 0.5;
+  will-change: transform;
+}
+
+.auth-orb-one {
+  top: 7%;
+  left: 11%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.22), rgba(14, 165, 233, 0) 70%);
+  animation: auth-orb-float-one 11s ease-in-out infinite;
+}
+
+.auth-orb-two {
+  right: 8%;
+  bottom: 10%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.2), rgba(125, 211, 252, 0) 70%);
+  animation: auth-orb-float-two 14s ease-in-out infinite;
+}
+
+.auth-orb-three {
+  top: 42%;
+  right: 25%;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.12), rgba(45, 212, 191, 0) 70%);
+  animation: auth-orb-float-three 9s ease-in-out infinite;
+}
+
+.auth-spark {
+  position: absolute;
+  pointer-events: none;
+  color: rgba(14, 165, 233, 0.42);
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 1;
+  animation: auth-spark-twinkle 4s ease-in-out infinite;
+}
+
+.auth-spark-one { top: 24%; left: 23%; animation-delay: -1.4s; }
+.auth-spark-two { right: 19%; top: 31%; font-size: 12px; animation-delay: -2.6s; }
+.auth-spark-three { bottom: 20%; left: 20%; font-size: 14px; animation-delay: -0.5s; }
+
+.auth-panel {
+  animation: auth-panel-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-form-stagger > * {
+  animation: auth-item-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-form-stagger > *:nth-child(1) { animation-delay: 90ms; }
+.auth-form-stagger > *:nth-child(2) { animation-delay: 135ms; }
+.auth-form-stagger > *:nth-child(3) { animation-delay: 180ms; }
+.auth-form-stagger > *:nth-child(4) { animation-delay: 225ms; }
+.auth-form-stagger > *:nth-child(5) { animation-delay: 270ms; }
+.auth-form-stagger > *:nth-child(6) { animation-delay: 315ms; }
+.auth-form-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.auth-form-stagger > *:nth-child(8) { animation-delay: 405ms; }
+
+.auth-logo-mark {
+  animation: auth-logo-pulse 3.8s ease-in-out infinite;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.auth-logo-mark:hover {
+  transform: translateY(-2px) rotate(-4deg) scale(1.06);
+  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.28);
+}
+
+.auth-field {
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+.auth-field:focus-within {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.08);
+}
+
+.auth-primary-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.auth-primary-button::after {
+  position: absolute;
+  top: 0;
+  left: -75%;
+  z-index: -1;
+  width: 46%;
+  height: 100%;
+  content: "";
+  transform: skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transition: left 520ms ease;
+}
+
+.auth-primary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(14, 165, 233, 0.2);
+}
+
+.auth-primary-button:hover:not(:disabled)::after {
+  left: 135%;
+}
+
+.auth-social-button {
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.auth-social-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
+}
+
+@keyframes auth-grid-drift {
+  0% { transform: scale(1.04) translate3d(-0.5%, -0.5%, 0); }
+  100% { transform: scale(1.08) translate3d(0.5%, 0.5%, 0); }
+}
+
+@keyframes auth-orb-float-one {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(28px, 18px, 0) scale(1.1); }
+}
+
+@keyframes auth-orb-float-two {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-24px, -20px, 0) scale(0.92); }
+}
+
+@keyframes auth-orb-float-three {
+  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.35; }
+  50% { transform: translate3d(-18px, 24px, 0); opacity: 0.7; }
+}
+
+@keyframes auth-spark-twinkle {
+  0%, 100% { opacity: 0.18; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 0.85; transform: scale(1.2) rotate(45deg); }
+}
+
+@keyframes auth-panel-enter {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes auth-item-enter {
+  from { opacity: 0; transform: translateY(9px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes auth-logo-pulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
+  50% { box-shadow: 0 8px 22px rgba(14, 165, 233, 0.34); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-page *,
+  .auth-page *::before,
+  .auth-page *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Customer-facing visual system — home-page readability without layout changes */
+body:has(header[data-customer-shell]) {
+  font-family: var(--font-body, var(--font-en)), var(--font-bn), system-ui, sans-serif;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+body:has(header[data-customer-shell]) :is(h1, h2, h3, h4, h5, h6),
+.auth-page :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-heading, var(--font-en)), var(--font-bn), system-ui, sans-serif;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+body:has(header[data-customer-shell="page"]) main,
+.auth-page {
+  color: #0f172a;
+  font-family: var(--font-body, var(--font-en)), var(--font-bn), system-ui, sans-serif;
+}
+
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  .auth-page,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where(p, li, dt, dd, blockquote, label) {
+  line-height: 1.55;
+}
+
+/* Lift only undersized customer copy; normal text and page geometry stay intact. */
+body:has(header[data-customer-shell="page"]) main :where([class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"]),
+.auth-page :where([class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"]),
+body:has(header[data-customer-shell="page"]) [role="dialog"] :where([class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"]) {
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+body:has(header[data-customer-shell="page"]) main :where([class*="text-[12px]"]),
+.auth-page :where([class*="text-[12px]"]),
+body:has(header[data-customer-shell="page"]) [role="dialog"] :where([class*="text-[12px]"]) {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+body:has(header[data-customer-shell="page"]) main :where([class*="text-[13px]"]),
+.auth-page :where([class*="text-[13px]"]),
+body:has(header[data-customer-shell="page"]) [role="dialog"] :where([class*="text-[13px]"]) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Keep muted copy readable while preserving the existing color hierarchy. */
+body:has(header[data-customer-shell="page"]) main :where(p, span, small, label, li, dt, dd)[class*="text-slate-400"],
+.auth-page :where(p, span, small, label, li, dt, dd)[class*="text-slate-400"],
+body:has(header[data-customer-shell="page"]) [role="dialog"] :where(p, span, small, label, li, dt, dd)[class*="text-slate-400"] {
+  color: #64748b;
+}
+
+/* Forms stay 16px on touch screens (no mobile zoom), then match home at 14px. */
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  .auth-page,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+  textarea,
+  select,
+  [data-slot="select-trigger"]
+) {
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  .auth-page,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where(label) {
+  font-size: 0.875rem;
+}
+
+/* Shared tables/cards keep their layout but use a legible customer scale. */
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where([data-slot="table"]) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where([data-slot="table-head"]) {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where([data-slot="table-cell"]) {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where([data-slot="card-title"][class*="text-[14px]"]) {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+:is(
+  body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]
+) :where([data-slot="card-description"]) {
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 768px) {
+  :is(
+    body:has(header[data-customer-shell="page"]) main,
+    .auth-page,
+    body:has(header[data-customer-shell="page"]) [role="dialog"]
+  ) :where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+    textarea,
+    select,
+    [data-slot="select-trigger"]
+  ) {
+    font-size: 0.875rem;
+  }
+}

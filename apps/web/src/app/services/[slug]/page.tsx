@@ -1,29 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import {
-  ChevronRight,
-  Home,
   ArrowLeft,
   ArrowRight,
-  Phone,
-  MessageCircle,
-  Star,
-  Check,
-  Clock,
-  FolderOpen,
   Calendar,
-  Zap,
-  Sun,
+  Check,
+  ChevronRight,
+  Clock3,
+  Copy,
+  FolderOpen,
+  Home,
+  MessageCircle,
+  Phone,
+  Share2,
+  ShieldCheck,
+  Star,
   Wrench,
-  Shield,
-  Building2,
-  Bot,
-  Sparkles,
-  Loader2,
 } from "lucide-react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
@@ -38,18 +33,18 @@ import { useUIStore } from "@/store";
 interface ServiceDetail {
   id: string;
   name: string;
-  nameBn?: string;
+  nameBn?: string | null;
   description: string;
   slug: string;
   basePrice: number;
   priceUnit: string;
   shortDesc?: string | null;
   images: string[];
-  features: string;
+  features?: string | string[] | null;
   isFeatured: boolean;
   rating: number;
   reviewCount: number;
-  category: { id: string; name: string; nameBn: string; slug: string } | null;
+  category: { id: string; name: string; nameBn?: string | null; slug: string } | null;
 }
 
 interface ServiceItem {
@@ -60,386 +55,110 @@ interface ServiceItem {
   images: string[];
   rating: number;
   reviewCount: number;
-  isFeatured: boolean;
   category: { id: string; name: string; slug: string } | null;
 }
 
-function parseJsonArray(val: unknown): string[] {
-  if (Array.isArray(val)) {return val;}
-  if (typeof val === "string") {
+function parseList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
+  if (typeof value === "string") {
     try {
-      const p = JSON.parse(val);
-      if (Array.isArray(p)) {return p;}
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter((item): item is string => typeof item === "string");
     } catch {
-      /* ignore */
+      return value.split(/[\n,]+/).map((item) => item.trim()).filter(Boolean);
     }
   }
   return [];
 }
 
-/* Module-scope wrapper so we don't create components during render */
-function CatIcon({ name, className }: { name?: string; className?: string }) {
-  const key = name?.toLowerCase() || "";
-  if (key.includes("solar")) {return <Sun className={className} />;}
-  if (key.includes("industrial")) {return <Building2 className={className} />;}
-  if (key.includes("repair") || key.includes("wrench")) {return <Wrench className={className} />;}
-  if (key.includes("inspection") || key.includes("shield")) {return <Shield className={className} />;}
-  if (key.includes("automation") || key.includes("bot")) {return <Bot className={className} />;}
-  return <Zap className={className} />;
+function dateLabel(value: string) {
+  return new Date(value).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function ShareRow({ title }: { title: string }) {
+  const copyLink = async () => {
+    await navigator.clipboard?.writeText(window.location.href);
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4 text-[11px] text-slate-500">
+      <span className="mr-2 font-semibold text-slate-800">Social Share</span>
+      <button type="button" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, "_blank", "noopener,noreferrer")} className="flex h-7 w-7 items-center justify-center border border-slate-200 text-[11px] font-bold text-slate-500 hover:border-epf-500 hover:text-epf-600" aria-label={`Share ${title} on Facebook`}>f</button>
+      <button type="button" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(title)}`, "_blank", "noopener,noreferrer")} className="flex h-7 w-7 items-center justify-center border border-slate-200 text-[11px] font-bold text-slate-500 hover:border-epf-500 hover:text-epf-600" aria-label="Share on X">𝕏</button>
+      <button type="button" onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, "_blank", "noopener,noreferrer")} className="flex h-7 w-7 items-center justify-center border border-slate-200 text-[11px] font-bold text-slate-500 hover:border-epf-500 hover:text-epf-600" aria-label="Share on LinkedIn">in</button>
+      <button type="button" onClick={copyLink} className="flex h-7 w-7 items-center justify-center border border-slate-200 text-slate-500 hover:border-epf-500 hover:text-epf-600" aria-label="Copy link"><Copy className="h-3 w-3" /></button>
+    </div>
+  );
+}
+
+function RelatedService({ service, onOpen }: { service: ServiceItem; onOpen: (slug: string) => void }) {
+  return (
+    <button type="button" onClick={() => onOpen(service.slug)} className="group flex w-full items-center gap-2.5 border-b border-slate-100 py-2.5 text-left last:border-b-0">
+      <div className="h-11 w-14 shrink-0 overflow-hidden bg-slate-100">
+        {service.images?.[0] ? <img src={service.images[0]} alt="" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center"><Wrench className="h-5 w-5 text-slate-300" /></div>}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="line-clamp-2 text-[11px] font-medium leading-4 text-slate-700 group-hover:text-epf-600">{service.name}</p>
+        <p className="mt-1 text-[10px] text-slate-400">{service.category?.name || "Electrical service"}</p>
+      </div>
+      <ArrowRight className="h-3 w-3 shrink-0 text-slate-300 group-hover:text-epf-500" />
+    </button>
+  );
 }
 
 export default function ServiceDetailPage() {
   const router = useRouter();
-  const params = useParams();
-  const slug = params.slug as string;
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug;
   const { setServiceBookingOpen, setBookingServiceId } = useUIStore();
   const [heroError, setHeroError] = useState(false);
+  const serviceQuery = useQuery<{ success: boolean; data: ServiceDetail }>({ queryKey: ["service-detail", slug], queryFn: () => apiFetch(`/api/services/${slug}`), enabled: Boolean(slug) });
+  const listQuery = useQuery<{ success: boolean; data: { services: ServiceItem[] } }>({ queryKey: ["services-detail-related"], queryFn: () => apiFetch("/api/services"), staleTime: 60 * 1000 });
+  const service = serviceQuery.data?.data;
+  const related = (listQuery.data?.data?.services ?? []).filter((item) => item.slug !== slug).slice(0, 5);
 
-  const { data: apiRes, isLoading } = useQuery<{ success: boolean; data: ServiceDetail }>({
-    queryKey: ["service-detail", slug],
-    queryFn: () => apiFetch(`/api/services/${slug}`),
-    enabled: !!slug,
-  });
+  if (serviceQuery.isLoading) return <LoadingPage />;
+  if (!service) return <NotFoundPage onBack={() => router.push("/services")} />;
 
-  const service = apiRes?.data;
-
-  // Fetch other services for sidebar
-  const { data: listRes } = useQuery<{ success: boolean; data: { services: ServiceItem[] } }>({
-    queryKey: ["services-sidebar", slug],
-    queryFn: () => apiFetch("/api/services"),
-    enabled: !!slug,
-  });
-
-  const otherServices = (listRes?.data?.services ?? [])
-    .filter((s) => s.slug !== slug)
-    .slice(0, 5);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-epf-500 animate-spin" />
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (!service) {
-    return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <FolderOpen className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h1 className="text-[24px] font-bold text-slate-900 mb-2">Service not found</h1>
-            <p className="text-[14px] text-slate-500 mb-5">
-              The service you're looking for doesn't exist or has been removed.
-            </p>
-            <button
-              onClick={() => router.push("/services")}
-              className="h-10 px-6 bg-epf-500 text-white rounded-lg hover:bg-epf-600 transition-colors"
-            >
-              Back to Services
-            </button>
-          </div>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
-
-  const features = parseJsonArray(service.features);
-  const duration = service.shortDesc || "1-3 days";
-
-  const openBooking = () => {
-    setBookingServiceId(service.id);
-    setServiceBookingOpen(true);
-  };
+  const features = parseList(service.features);
+  const shareTitle = service.nameBn || service.name;
+  const openBooking = () => { setBookingServiceId(service.id); setServiceBookingOpen(true); };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen bg-white text-slate-900">
       <Header />
-      <CartDrawer />
-      <CheckoutDialog />
+      <main>
+        <div className="mx-auto max-w-[1400px] px-4 py-5 sm:px-12 sm:py-7">
+          <nav className="mb-5 flex items-center gap-2 text-xs text-slate-400"><a href="/" className="hover:text-epf-600">Home</a><ChevronRight className="h-3 w-3" /><a href="/services" className="hover:text-epf-600">Services</a><ChevronRight className="h-3 w-3" /><span className="truncate text-slate-700">{service.name}</span></nav>
+          <button type="button" onClick={() => router.push("/services")} className="mb-5 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-epf-600"><ArrowLeft className="h-3.5 w-3.5" /> Back to Services</button>
 
-      <main className="flex-1">
-        {/* Breadcrumb */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-            <nav className="flex items-center gap-1.5 h-11 text-[13px]">
-              <a href="/" className="flex items-center gap-1 text-slate-500 hover:text-epf-600 transition-colors">
-                <Home className="h-3.5 w-3.5" />
-                <span>Home</span>
-              </a>
-              <ChevronRight className="h-3 w-3 text-slate-300" />
-              <a href="/services" className="text-slate-500 hover:text-epf-600 transition-colors">
-                Services
-              </a>
-              <ChevronRight className="h-3 w-3 text-slate-300" />
-              <span className="text-slate-900 font-medium truncate max-w-[260px]">
-                {service.name}
-              </span>
-            </nav>
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <button
-            onClick={() => router.push("/services")}
-            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-slate-500 hover:text-epf-500 transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Services
-          </button>
-
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Main content */}
-            <div className="flex-1 min-w-0 lg:w-[70%]">
-              <article className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                {/* Hero image */}
-                <div className="relative w-full h-72 sm:h-96 bg-slate-100 overflow-hidden">
-                  {!heroError && service.images?.[0] ? (
-                    <Image
-                      src={service.images[0]}
-                      alt={service.name}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                      onError={() => setHeroError(true)}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <CatIcon name={service.category?.name} className="w-16 h-16 text-slate-300" />
-                    </div>
-                  )}
-                  {service.isFeatured && (
-                    <span className="absolute top-4 left-4 z-10 inline-flex items-center gap-1 h-7 px-3 rounded-full text-[12px] font-semibold bg-epf-500 text-white shadow-sm">
-                      <Sparkles className="h-3.5 w-3.5" /> Popular
-                    </span>
-                  )}
-                </div>
-
-                <div className="p-6 sm:p-8">
-                  {/* Category badge */}
-                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold bg-epf-50 text-epf-600 mb-3">
-                    {service.category?.name || "General"}
-                  </span>
-
-                  {/* Title */}
-                  <h1 className="text-[28px] sm:text-[32px] font-bold text-slate-900 leading-tight mb-4 tracking-tight">
-                    {service.name}
-                  </h1>
-
-                  {/* Meta row */}
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-slate-500 mb-6 pb-6 border-b border-slate-200">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock className="h-4 w-4 text-slate-400" />
-                      {duration}
-                    </span>
-                    {Number(service.rating || 0) > 0 && (
-                      <span className="inline-flex items-center gap-1.5">
-                        <Star className="h-4 w-4 text-amber-400" />
-                        <span className="font-medium text-slate-700">
-                          {Number(service.rating || 0).toFixed(1)}
-                        </span>
-                        <span className="text-slate-400">
-                          ({service.reviewCount} review{service.reviewCount === 1 ? "" : "s"})
-                        </span>
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1.5 text-emerald-600">
-                      <Shield className="h-4 w-4" />
-                      Available
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <div className="prose prose-slate max-w-none mb-8">
-                    <h2 className="text-[18px] font-bold text-slate-900 mb-4">
-                      Service Overview
-                    </h2>
-                    <p className="text-[15px] leading-7 text-slate-700 whitespace-pre-line">
-                      {service.description}
-                    </p>
-                  </div>
-
-                  {/* Features */}
-                  {features.length > 0 && (
-                    <div className="mb-8">
-                      <h2 className="text-[18px] font-bold text-slate-900 mb-4">
-                        What's Included
-                      </h2>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                        {features.map((feat, i) => (
-                          <div
-                            key={i}
-                            className="flex items-start gap-3 text-[14px] text-slate-700"
-                          >
-                            <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-epf-50 flex items-center justify-center">
-                              <Check className="w-3.5 h-3.5 text-epf-600" />
-                            </span>
-                            <span className="leading-snug">{feat}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Pricing CTA */}
-                  <div className="bg-epf-50 rounded-xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <p className="text-[13px] text-slate-500 uppercase tracking-wide font-medium">
-                        Pricing
-                      </p>
-                      <p className="text-[22px] font-bold text-slate-900 mt-0.5">
-                        Price on request
-                      </p>
-                      <p className="text-[13px] text-slate-500 mt-1">
-                        Contact us for a custom quote based on your needs.
-                      </p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      <button
-                        onClick={openBooking}
-                        className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-[14px] rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm"
-                      >
-                        <Calendar className="w-4 h-4" />
-                        Request Quote
-                      </button>
-                      <a
-                        href="https://wa.me/8801700000000"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="h-11 px-6 bg-white border border-epf-500 text-epf-600 hover:bg-epf-50 font-semibold text-[14px] rounded-lg transition-all flex items-center justify-center gap-2"
-                      >
-                        <Phone className="w-4 h-4" />
-                        Contact Us
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            </div>
-
-            {/* Sidebar */}
-            <aside className="w-full lg:w-[30%] shrink-0">
-              <div className="lg:sticky lg:top-[88px] space-y-6">
-                {/* Other Services */}
-                <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                  <div className="px-5 py-4 border-b border-slate-100">
-                    <h3 className="text-[16px] font-semibold text-slate-900">
-                      Other Services
-                    </h3>
-                  </div>
-                  <div className="p-2 space-y-1">
-                    {otherServices.length === 0 ? (
-                      <p className="p-3 text-[13px] text-slate-400">No other services.</p>
-                    ) : (
-                      otherServices.map((svc) => {
-                        return (
-                          <button
-                            key={svc.id}
-                            onClick={() => router.push(`/services/${svc.slug || svc.id}`)}
-                            className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors text-left group"
-                          >
-                            <div className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-                              {svc.images?.[0] ? (
-                                <Image
-                                  src={svc.images[0]}
-                                  alt={svc.name}
-                                  fill
-                                  className="object-cover group-hover:scale-105 transition-transform"
-                                  unoptimized
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <CatIcon name={svc.category?.name} className="w-5 h-5 text-slate-300" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="text-[13px] font-medium text-slate-800 leading-snug line-clamp-1 group-hover:text-epf-600 transition-colors">
-                                {svc.name}
-                              </h4>
-                              <div className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">
-                                <Star className="h-3 w-3 text-amber-400" />
-                                {Number(svc.rating || 0).toFixed(1)} ·{" "}
-                                {svc.category?.name || "Service"}
-                              </div>
-                            </div>
-                            <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-epf-500 transition-colors shrink-0" />
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                  <div className="px-3 pb-3">
-                    <a
-                      href="/services"
-                      className="block text-center w-full py-2 text-[13px] font-medium text-epf-600 hover:bg-epf-50 rounded-lg transition-colors"
-                    >
-                      View All Services
-                    </a>
-                  </div>
-                </section>
-
-                {/* Quick Contact */}
-                <section className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-                  <div className="px-5 py-4 border-b border-slate-100">
-                    <h3 className="text-[16px] font-semibold text-slate-900">
-                      Quick Contact
-                    </h3>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <a
-                      href="tel:+8801700000000"
-                      className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-white hover:shadow-sm transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-epf-500/10 flex items-center justify-center shrink-0">
-                        <Phone className="w-5 h-5 text-epf-500" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-medium text-slate-800">Call Us</p>
-                        <p className="text-[12px] text-slate-400">+880 1700-000000</p>
-                      </div>
-                    </a>
-                    <a
-                      href="https://wa.me/8801700000000"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-white hover:shadow-sm transition-all"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                        <MessageCircle className="w-5 h-5 text-green-500" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[13px] font-medium text-slate-800">WhatsApp</p>
-                        <p className="text-[12px] text-slate-400">Chat with us</p>
-                      </div>
-                    </a>
-                    <a
-                      href="/contact"
-                      className="block text-center w-full py-2.5 px-4 border border-dashed border-epf-500 text-epf-500 text-[13px] font-medium rounded-lg hover:bg-epf-500 hover:text-white transition-all duration-200"
-                    >
-                      Request a Callback
-                    </a>
-                  </div>
-                </section>
+          <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_205px]">
+            <article className="min-w-0">
+              <div className="relative h-[250px] overflow-hidden bg-slate-100 sm:h-[390px]">
+                {!heroError && service.images?.[0] ? <img src={service.images[0]} alt={service.name} className="h-full w-full object-cover" onError={() => setHeroError(true)} /> : <div className="flex h-full items-center justify-center"><Wrench className="h-14 w-14 text-slate-300" /></div>}
+                {service.isFeatured && <span className="absolute left-3 top-3 bg-epf-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Featured Service</span>}
               </div>
-            </aside>
+              <div className="pt-5">
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-wide text-epf-600"><span>{service.category?.name || "Electrical service"}</span><span className="text-slate-300">•</span><span>{service.priceUnit || "Professional support"}</span></div>
+                <h1 className="text-2xl font-semibold leading-tight text-slate-900 sm:text-[30px]">{shareTitle}</h1>
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-slate-200 pb-4 text-[11px] text-slate-400"><span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" /> {service.shortDesc || "Flexible scheduling"}</span>{Number(service.rating || 0) > 0 && <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {Number(service.rating).toFixed(1)} ({service.reviewCount || 0})</span>}<span className="inline-flex items-center gap-1 text-emerald-600"><ShieldCheck className="h-3.5 w-3.5" /> Available</span></div>
+
+                <div className="mt-5 text-[12px] leading-6 text-slate-600"><h2 className="mb-2 text-base font-semibold text-slate-900">Service Overview</h2><p className="whitespace-pre-line">{service.description}</p></div>
+                {features.length > 0 && <div className="mt-6"><h2 className="mb-3 text-base font-semibold text-slate-900">What&apos;s Included</h2><div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">{features.map((feature) => <div key={feature} className="flex items-start gap-2 text-[12px] leading-5 text-slate-600"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-epf-500" />{feature}</div>)}</div></div>}
+                <div className="mt-7 flex flex-col items-start justify-between gap-4 border-y border-slate-100 py-5 sm:flex-row sm:items-center"><div><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Starting price</p><p className="mt-1 text-xl font-bold text-slate-900">{service.basePrice > 0 ? `৳${Number(service.basePrice).toLocaleString()}` : "Price on request"}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={openBooking} className="inline-flex h-9 items-center gap-1.5 bg-epf-500 px-4 text-xs font-semibold text-white hover:bg-epf-600"><Calendar className="h-3.5 w-3.5" /> Request Quote</button><a href="tel:+8801700000000" className="inline-flex h-9 items-center gap-1.5 border border-slate-200 px-4 text-xs font-semibold text-slate-700 hover:border-epf-500 hover:text-epf-600"><Phone className="h-3.5 w-3.5" /> Contact</a></div></div>
+                <ShareRow title={shareTitle} />
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] text-slate-400"><span className="font-semibold text-slate-700">Tags</span><span className="border border-slate-200 px-2 py-1">{service.category?.name || "Electrical"}</span><span className="border border-slate-200 px-2 py-1">Professional Service</span></div>
+              </div>
+            </article>
+
+            <aside className="h-fit lg:sticky lg:top-[92px]"><div className="border-b border-slate-200 pb-3"><h2 className="text-[16px] font-semibold text-slate-900">Other Services</h2><div className="mt-2 h-0.5 w-8 bg-epf-500" /></div><div>{related.length > 0 ? related.map((item) => <RelatedService key={item.id} service={item} onOpen={(next) => router.push(`/services/${next}`)} />) : <p className="py-4 text-xs text-slate-400">No other services.</p>}</div><a href="/services" className="mt-3 block border border-slate-200 py-2 text-center text-[11px] font-semibold text-epf-600 hover:bg-epf-50">View All Services</a><div className="mt-7 border-b border-slate-200 pb-3"><h2 className="text-[16px] font-semibold text-slate-900">Quick Contact</h2><div className="mt-2 h-0.5 w-8 bg-epf-500" /></div><div className="space-y-2.5 py-3"><a href="tel:+8801700000000" className="flex items-center gap-2 border-b border-slate-100 pb-2.5 text-[11px] text-slate-600"><Phone className="h-4 w-4 text-epf-500" /> +880 1700-000000</a><a href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 border-b border-slate-100 pb-2.5 text-[11px] text-slate-600"><MessageCircle className="h-4 w-4 text-green-500" /> Chat on WhatsApp</a><a href="/contact" className="inline-flex items-center gap-1 text-[11px] font-semibold text-epf-600">Request a callback <ArrowRight className="h-3 w-3" /></a></div></aside>
           </div>
         </div>
       </main>
-
-      <div className="mt-auto">
-        <Footer />
-      </div>
-
-      <ServiceBookingDialog />
-      <ChatWidget />
-      <BackToTopButton />
+      <Footer /><CartDrawer /><CheckoutDialog /><ServiceBookingDialog /><ChatWidget /><BackToTopButton />
     </div>
   );
 }
+
+function LoadingPage() { return <div className="flex min-h-screen items-center justify-center bg-white"><Wrench className="h-6 w-6 animate-pulse text-epf-500" /></div>; }
+function NotFoundPage({ onBack }: { onBack: () => void }) { return <div className="flex min-h-screen flex-col bg-white"><Header /><div className="flex flex-1 items-center justify-center px-4 py-20 text-center"><div><FolderOpen className="mx-auto h-10 w-10 text-slate-300" /><h1 className="mt-3 text-xl font-semibold text-slate-900">Service not found</h1><p className="mt-1 text-sm text-slate-500">This service may have been removed.</p><button type="button" onClick={onBack} className="mt-5 bg-epf-500 px-4 py-2 text-sm font-semibold text-white">Back to Services</button></div></div><Footer /></div>; }

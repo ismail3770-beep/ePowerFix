@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Security Diff-Scan Suggester",
+      "trigger": "Stop",
+      "description": "After each agent turn, evaluate whether completed security-sensitive changes warrant a diff scan.",
+      "action": {
+        "type": "agent",
+        "prompt": "Evaluate the code changes from this turn. A change is security-sensitive ONLY if untrusted input (request params, headers, body, file uploads, external data) flows into a sensitive sink (SQL without parameterization, shell/subprocess, filesystem paths, network requests, deserialization, auth decisions, or secrets). Also trigger for changes to authentication, authorization, cryptography, or security configuration (CORS, headers, session handling). Do NOT trigger for: new endpoints that only read data with parameterized queries, refactoring that preserves behavior, test/doc/logging changes, cosmetic edits, or adding static configuration. Completeness check: only trigger if the work is done — the user committed, said done, or the agent completed the requested task with no pending follow-ups. Do NOT trigger if the agent indicated more work is coming, the user asked for additional changes, or implementation is partial. If security-sensitive AND complete: say one line — 'Changes affect security posture — running a diff scan.' — then run the Diff Scan workflow from the AWS Security Agent power (base_ref='HEAD'). No permission needed. Otherwise output absolutely nothing."
+      }
+    }
+  ]
+}

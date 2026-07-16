@@ -11,6 +11,7 @@ export interface CartItem {
   // Identity slot: holds the product/service/project id depending on itemType.
   productId: string
   variantId?: string
+  variantLabel?: string
   productName: string
   productImage: string
   price: number
