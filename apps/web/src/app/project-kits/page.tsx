@@ -87,7 +87,7 @@ function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (slug: string) => v
 
   return (
     <article
-      className="group relative flex min-w-0 cursor-pointer flex-col border border-slate-200 bg-white transition-shadow hover:border-slate-300 hover:shadow-md"
+      className="epf-reference-product-card group relative flex min-w-0 cursor-pointer flex-col overflow-hidden border border-slate-200 bg-white"
       role="button"
       tabIndex={0}
       onClick={() => onOpen(kit.slug)}

@@ -127,19 +127,19 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="rounded-xl border-slate-200 shadow-sm overflow-hidden">
-      <CardHeader className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-row items-center gap-3 space-y-0">
-        <div className="w-9 h-9 rounded-lg bg-epf-50 text-epf-500 flex items-center justify-center shrink-0">
-          <Icon className="w-4.5 h-4.5" />
+    <Card className="overflow-hidden rounded-xl border-slate-200 shadow-sm">
+      <CardHeader className="flex flex-row items-center gap-3 space-y-0 border-b border-slate-800 bg-slate-900 px-5 py-3.5 sm:px-6">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-epf-500 text-white">
+          <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <CardTitle className="text-[16px] font-semibold text-slate-900 leading-tight">
+          <CardTitle className="text-[15px] font-bold leading-tight text-white">
             {title}
           </CardTitle>
-          {desc && <p className="text-[12px] text-slate-500 mt-0.5">{desc}</p>}
+          {desc && <p className="mt-0.5 text-[12px] text-white/60">{desc}</p>}
         </div>
       </CardHeader>
-      <CardContent className="p-5 sm:p-6 pt-5">{children}</CardContent>
+      <CardContent className="p-5 pt-5 sm:p-6">{children}</CardContent>
     </Card>
   );
 }

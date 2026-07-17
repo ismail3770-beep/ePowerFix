@@ -498,3 +498,101 @@ body:has(header[data-customer-shell="page"]) [role="dialog"] :where(p, span, sma
     font-size: 0.875rem;
   }
 }
+
+
+/* Reference-storefront visual layer: layout and elevation only. Brand color and typography
+   remain controlled by the existing ePowerFix theme variables and font providers. */
+.epf-reference-home {
+  background: hsl(var(--background));
+}
+
+.epf-reference-hero {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 84% 18%, color-mix(in srgb, hsl(var(--primary)) 38%, transparent), transparent 29%),
+    radial-gradient(circle at 8% 92%, rgba(255, 255, 255, 0.07), transparent 28%),
+    #0f172a;
+}
+
+.epf-reference-hero::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+  opacity: 0.46;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(90deg, black, transparent 82%);
+}
+
+.epf-reference-section-heading {
+  position: relative;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.epf-reference-section-heading::after {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 3.25rem;
+  height: 2px;
+  content: "";
+  background: hsl(var(--primary));
+}
+
+.epf-reference-category-card,
+.epf-reference-product-card,
+.epf-reference-project-card,
+.epf-reference-article-card {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.epf-reference-category-card:hover,
+.epf-reference-product-card:hover,
+.epf-reference-project-card:hover,
+.epf-reference-article-card:hover {
+  z-index: 1;
+  border-color: color-mix(in srgb, hsl(var(--primary)) 48%, #cbd5e1);
+  box-shadow: var(--epf-shadow-lg);
+}
+
+.epf-reference-category-card:hover,
+.epf-reference-product-card:hover,
+.epf-reference-project-card:hover {
+  transform: translateY(-4px);
+}
+
+.epf-reference-article-card:hover {
+  transform: translateY(-2px);
+}
+
+.epf-reference-product-card {
+  min-height: 100%;
+  box-shadow: var(--epf-shadow-sm);
+}
+
+.epf-reference-product-card--compact {
+  box-shadow: none;
+}
+
+@media (max-width: 639px) {
+  .epf-reference-section-heading {
+    align-items: flex-start;
+  }
+
+  .epf-reference-section-heading > a {
+    padding-top: 0.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .epf-reference-category-card,
+  .epf-reference-product-card,
+  .epf-reference-project-card,
+  .epf-reference-article-card {
+    transition: none;
+  }
+}

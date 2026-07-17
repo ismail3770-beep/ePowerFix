@@ -119,26 +119,26 @@ function StoreProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <article className="group relative flex min-w-0 flex-col border border-slate-200 bg-white transition-shadow hover:border-slate-300 hover:shadow-md">
-      <div className="relative aspect-square overflow-hidden bg-white">
+    <article className="epf-reference-product-card group relative flex min-w-0 flex-col overflow-hidden border border-slate-200 bg-white">
+      <div className="relative aspect-square overflow-hidden bg-slate-50">
         {image && !imageError ? (
-          <img src={image} alt={product.name} className="h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105" loading="lazy" onError={() => setImageError(true)} />
+          <img src={image} alt={product.name} className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={() => setImageError(true)} />
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-50"><Package className="h-8 w-8 text-slate-300" /></div>
+          <div className="flex h-full items-center justify-center"><Package className="h-8 w-8 text-slate-300" /></div>
         )}
-        {discount > 0 && <span className="absolute left-2 top-2 bg-epf-500 px-1.5 py-0.5 text-[10px] font-bold text-white">-{discount}%</span>}
-        {!inStock && <span className="absolute left-2 top-2 bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">Out of stock</span>}
-        <button type="button" aria-label="Add to wishlist" className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center bg-white/90 text-slate-400 shadow-sm hover:text-red-500" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}>
-          <Heart className="h-3.5 w-3.5" />
-        </button>
-        {inStock && <button type="button" aria-label="Add to cart" onClick={handleAdd} className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-sm bg-slate-900 text-white hover:bg-epf-500"><ShoppingCart className="h-4 w-4" /></button>}
+        {discount > 0 && <span className="absolute left-2 top-2 bg-epf-500 px-2 py-0.5 text-[10px] font-bold text-white">-{discount}%</span>}
+        {!inStock && <span className="absolute left-2 top-2 bg-slate-700 px-2 py-0.5 text-[10px] font-bold text-white">Out of stock</span>}
+        <div className="absolute inset-x-0 bottom-0 flex translate-y-full gap-2 border-t border-slate-200 bg-white/95 p-2 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          {inStock ? <button type="button" onClick={handleAdd} className="flex h-8 flex-1 items-center justify-center gap-1.5 bg-epf-500 px-2 text-[11px] font-bold text-white transition-colors hover:bg-epf-600"><ShoppingCart className="h-3.5 w-3.5" /> Add to cart</button> : <span className="flex h-8 flex-1 items-center justify-center bg-slate-100 text-[11px] font-semibold text-slate-500">Out of stock</span>}
+          <button type="button" aria-label="Add to wishlist" className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-red-200 hover:text-red-500" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}><Heart className="h-3.5 w-3.5" /></button>
+        </div>
       </div>
-      <Link href={href} className="flex min-h-[112px] flex-1 flex-col border-t border-slate-100 p-2.5">
-        {product.category?.name && <span className="truncate text-[11px] font-semibold uppercase tracking-wide text-epf-600">{product.category.name}</span>}
-        <h3 className="mt-1 line-clamp-2 text-[14px] font-medium leading-[1.35] text-slate-800 group-hover:text-epf-600">{product.name}</h3>
+      <Link href={href} className="flex min-h-[122px] flex-1 flex-col border-t border-slate-100 p-3">
+        {product.category?.name && <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-epf-600">{product.category.name}</span>}
+        <h3 className="mt-1 line-clamp-2 text-[14px] font-semibold leading-5 text-slate-800 transition-colors group-hover:text-epf-600">{product.name}</h3>
         <div className="mt-auto pt-2">
           {(product.rating || 0) > 0 && <span className="inline-flex items-center gap-1 text-[11px] text-slate-400"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {Number(product.rating).toFixed(1)} ({product.reviewCount || 0})</span>}
-          <div className="mt-1 flex items-center gap-1.5"><span className="text-[16px] font-bold text-slate-900">৳{Number(displayPrice).toLocaleString()}</span>{originalPrice && <del className="text-[12px] text-slate-400">৳{Number(originalPrice).toLocaleString()}</del>}</div>
+          <div className="mt-1 flex items-baseline gap-1.5"><span className="text-[16px] font-bold text-slate-900">৳{Number(displayPrice).toLocaleString()}</span>{originalPrice && <del className="text-[12px] text-slate-400">৳{Number(originalPrice).toLocaleString()}</del>}</div>
         </div>
       </Link>
     </article>
