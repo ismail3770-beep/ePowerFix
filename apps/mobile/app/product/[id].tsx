@@ -6,9 +6,14 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { productsApi } from '@epowerfix/api-client';
+import { useCartStore } from '@epowerfix/store';
+import { useAuthStore } from '../../src/store/auth';
+import { useWishlistStore } from '../../src/store/wishlist';
 import {
   Star,
   ShoppingCart,
@@ -26,26 +31,32 @@ import { Colors, Typography, Radius } from '../../src/theme/design-system';
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const addItem = useCartStore((state) => state.addItem);
+  const user = useAuthStore((state) => state.user);
+  const wishlistItems = useWishlistStore((state) => state.items);
+  const toggleWishlist = useWishlistStore((state) => state.toggle);
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [wished, setWished] = useState(false);
+  const [wishlistBusy, setWishlistBusy] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const wished = wishlistItems.some((item) => item.productId === id);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
-        const res = await fetch(`${apiUrl}/api/products/${id}`);
-        const json = await res.json();
-        setProduct(json?.data?.product);
+        if (!id) return;
+        const response = await productsApi.getById(id);
+        setProduct(response.data?.product);
       } catch (e: any) {
         setError(e?.message || 'Failed to load');
       } finally {
         setLoading(false);
       }
     };
-    if (id) load();
+    void load();
   }, [id]);
 
   if (loading) {
@@ -64,10 +75,58 @@ export default function ProductDetailScreen() {
     );
   }
 
-  const hasDiscount = product.salePrice && product.salePrice < product.price;
+  const hasDiscount = Number(product.salePrice) > 0 && Number(product.salePrice) < Number(product.price);
+  const displayPrice = Number(product.salePrice ?? product.price);
   const discountPct = hasDiscount
-    ? Math.round(((product.price - product.salePrice) / product.price) * 100)
+    ? Math.round(((Number(product.price) - Number(product.salePrice)) / Number(product.price)) * 100)
     : 0;
+  const productImages = Array.isArray(product.images)
+    ? product.images
+    : typeof product.images === 'string'
+      ? (() => {
+          try {
+            const parsed = JSON.parse(product.images);
+            return Array.isArray(parsed) ? parsed : [product.images];
+          } catch {
+            return [product.images];
+          }
+        })()
+      : [];
+  const imageUrl = product.coverImage || productImages[0] || '';
+  const maxStock = typeof product.stock === 'number' && product.stock > 0 ? product.stock : 99;
+
+  const handleWishlist = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (wishlistBusy) return;
+    setWishlistBusy(true);
+    try {
+      await toggleWishlist(product.id);
+    } catch {
+      // Keep the last server-confirmed state if the request fails.
+    } finally {
+      setWishlistBusy(false);
+    }
+  };
+
+  const addToCart = (buyNow = false) => {
+    addItem({
+      itemType: 'PRODUCT',
+      productId: product.id,
+      productName: product.name,
+      productImage: imageUrl,
+      price: displayPrice,
+      quantity,
+    });
+    setAdded(true);
+    if (buyNow) {
+      router.push('/checkout' as never);
+    } else {
+      setTimeout(() => setAdded(false), 1500);
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.primary }}>
@@ -86,7 +145,7 @@ export default function ProductDetailScreen() {
         <Pressable style={{ padding: 8, marginRight: 4 }}>
           <Share2 size={20} color={Colors.slate[900]} />
         </Pressable>
-        <Pressable onPress={() => setWished(!wished)} style={{ padding: 8 }}>
+        <Pressable onPress={handleWishlist} style={{ padding: 8 }} disabled={wishlistBusy}>
           <Heart size={20} color={wished ? Colors.danger : Colors.slate[900]} fill={wished ? Colors.danger : 'none'} />
         </Pressable>
       </View>
@@ -100,7 +159,14 @@ export default function ProductDetailScreen() {
           justifyContent: 'center',
           position: 'relative',
         }}>
-          <Text style={{ fontSize: 80 }}>📦</Text>
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
+            />
+          ) : (
+            <Text style={{ fontSize: 80 }}>📦</Text>
+          )}
           {hasDiscount && (
             <View style={{
               position: 'absolute',
@@ -208,7 +274,7 @@ export default function ProductDetailScreen() {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
-                onPress={() => setQuantity(quantity + 1)}
+                onPress={() => setQuantity(Math.min(maxStock, quantity + 1))}
               >
                 <Plus size={18} color={Colors.slate[900]} />
               </Pressable>
@@ -260,10 +326,12 @@ export default function ProductDetailScreen() {
             flexDirection: 'row',
             justifyContent: 'center',
           }}
-          onPress={() => router.push('/(tabs)/cart')}
+          onPress={() => addToCart(false)}
         >
           <ShoppingCart size={18} color={Colors.text.inverse} style={{ marginRight: 6 }} />
-          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>Add to Cart</Text>
+          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>
+            {added ? 'Added to Cart' : 'Add to Cart'}
+          </Text>
         </Pressable>
         <Pressable
           style={{
@@ -274,6 +342,7 @@ export default function ProductDetailScreen() {
             alignItems: 'center',
             marginLeft: 8,
           }}
+          onPress={() => addToCart(true)}
         >
           <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>Buy Now</Text>
         </Pressable>

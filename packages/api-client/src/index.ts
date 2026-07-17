@@ -8,6 +8,18 @@ const API_BASE_URL =
       process.env.EXPO_PUBLIC_API_BASE_URL)) ||
   "";
 
+// Web requests continue to use the session cookie. Mobile can set a bearer
+// token here after restoring it from SecureStore.
+let apiToken: string | null = null;
+
+export function setApiToken(token: string | null): void {
+  apiToken = token;
+}
+
+export function getApiToken(): string | null {
+  return apiToken;
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   options?: RequestInit
@@ -17,6 +29,7 @@ export async function apiFetch<T>(
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(apiToken ? { Authorization: `Bearer ${apiToken}` } : {}),
       ...options?.headers,
     },
     credentials: "include",
@@ -28,6 +41,22 @@ export async function apiFetch<T>(
   }
 
   return res.json();
+}
+
+export async function apiFetchRedirectUrl(endpoint: string): Promise<string> {
+  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    headers: {
+      ...(apiToken ? { Authorization: `Bearer ${apiToken}` } : {}),
+    },
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+
+  return res.url;
 }
 
 export const api = {
@@ -105,11 +134,55 @@ export const authApi = {
 };
 
 export const ordersApi = {
-  create: (data: any) =>
-    api.post<{ data: any; paymentUrl?: string }>("/api/orders", data),
+  list: () => api.get<{ data: any[] }>("/api/orders"),
 
-  track: (trackingId: string) =>
-    api.get<{ data: any }>(`/api/orders/track?id=${trackingId}`),
+  create: (data: any) =>
+    api.post<{ success?: boolean; data: any; paymentUrl?: string }>("/api/orders", data),
+
+  track: (orderNumber: string, phone: string) =>
+    api.get<{ data: any }>(
+      `/api/orders/track?orderNumber=${encodeURIComponent(orderNumber)}&phone=${encodeURIComponent(phone)}`
+    ),
+};
+
+export const wishlistApi = {
+  list: () => api.get<{ success: boolean; data: any[] }>("/api/wishlist"),
+  add: (productId: string) =>
+    api.post<{ success: boolean; data: any }>("/api/wishlist", { productId }),
+  remove: (wishlistId: string) =>
+    api.delete<{ success: boolean; message: string }>(`/api/wishlist/${wishlistId}`),
+};
+
+export const addressesApi = {
+  list: () => api.get<{ data: any[] }>("/api/addresses"),
+  create: (data: any) => api.post<{ data: any; message: string }>("/api/addresses", data),
+  update: (id: string, data: any) =>
+    api.put<{ data: any; message: string }>(`/api/addresses/${id}`, data),
+  remove: (id: string) => api.delete<{ message: string }>(`/api/addresses/${id}`),
+};
+
+export const couponsApi = {
+  validate: (code: string, orderTotal: number) =>
+    api.get<{ data: any }>(
+      `/api/coupons/validate?code=${encodeURIComponent(code)}&orderTotal=${encodeURIComponent(String(orderTotal))}`
+    ),
+};
+
+export const paymentsApi = {
+  initiate: (data: {
+    orderId: string;
+    paymentMethod: "sslcommerz" | "bkash" | "nagad";
+    amount: number;
+    customerName: string;
+    customerPhone: string;
+    customerEmail?: string;
+    address: string;
+  }) => api.post<{ paymentUrl: string; transactionId?: string }>("/api/payments", data),
+};
+
+export const downloadsApi = {
+  list: () => api.get<{ data: any[] }>("/api/downloads"),
+  open: (orderItemId: string) => apiFetchRedirectUrl(`/api/downloads/${encodeURIComponent(orderItemId)}`),
 };
 
 export const servicesApi = {

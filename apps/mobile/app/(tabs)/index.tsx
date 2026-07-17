@@ -32,22 +32,25 @@ import {
 } from 'lucide-react-native';
 import { PremiumCard, PremiumCardData } from '../../src/components/PremiumCard';
 import { Footer } from '../../src/components/Footer';
+import { productsApi } from '@epowerfix/api-client';
+import { useCartStore } from '@epowerfix/store';
+import { useAuthStore } from '../../src/store/auth';
 import { Colors, Typography, Radius, Layout } from '../../src/theme/design-system';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const cartItems = useCartStore((state) => state.items);
+  const user = useAuthStore((state) => state.user);
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [products, setProducts] = useState<any[]>([]);
   const [search, setSearch] = useState('');
 
   const loadProducts = async () => {
     try {
-      const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
-      if (!apiUrl) return;
-      const res = await fetch(`${apiUrl}/api/products?limit=10`);
-      const json = await res.json();
-      setProducts(json?.data?.data || []);
+      const response = await productsApi.list({ limit: 10 });
+      setProducts(response.data?.data || []);
     } catch (e) {
       // silent
     } finally {
@@ -161,10 +164,10 @@ export default function HomeScreen() {
             </View>
 
             {/* Right Icons — Login, Wishlist, Cart */}
-            <Pressable onPress={() => router.push('/login')} style={{ padding: 4 }}>
+            <Pressable onPress={() => router.push(user ? '/(tabs)/profile' : '/login')} style={{ padding: 4 }}>
               <User size={22} color={Colors.slate[700]} />
             </Pressable>
-            <Pressable style={{ padding: 4 }}>
+            <Pressable onPress={() => router.push('/wishlist' as never)} style={{ padding: 4 }}>
               <Heart size={22} color={Colors.slate[700]} />
             </Pressable>
             <Pressable
@@ -197,7 +200,7 @@ export default function HomeScreen() {
                   paddingHorizontal: 2,
                 }}>
                   <Text style={{ color: Colors.text.inverse, fontSize: 10, fontWeight: Typography.bold }}>
-                    0
+                    {cartCount}
                   </Text>
                 </View>
               </View>
@@ -241,7 +244,10 @@ export default function HomeScreen() {
           </ScrollView>
 
           {/* Track Order — epf-500 text */}
-          <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 8 }}>
+          <Pressable
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 8 }}
+            onPress={() => router.push('/order-track' as never)}
+          >
             <Truck size={16} color={Colors.epf[500]} />
             <Text style={{ color: Colors.epf[500], fontSize: 14, fontWeight: Typography.medium }}>
               Track
@@ -471,7 +477,7 @@ export default function HomeScreen() {
                   name: product.name,
                   price: product.price,
                   salePrice: product.salePrice,
-                  comparePrice: product.salePrice,
+                  comparePrice: product.price,
                   images: product.images,
                   isFeatured: product.isFeatured,
                   stock: product.stock,

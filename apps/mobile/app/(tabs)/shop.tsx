@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Search, ShoppingCart } from 'lucide-react-native';
+import { productsApi } from '@epowerfix/api-client';
+import { useCartStore } from '@epowerfix/store';
 import { PremiumCard, PremiumCardData, PremiumCardSkeleton } from '../../src/components/PremiumCard';
 import { Colors, Typography, Radius } from '../../src/theme/design-system';
 
@@ -21,20 +23,13 @@ export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const cartItems = useCartStore((state) => state.items);
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const loadProducts = async () => {
     try {
-      const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
-      if (!apiUrl) {
-        setLoading(false);
-        return;
-      }
-      const url = search
-        ? `${apiUrl}/api/products?limit=20&search=${encodeURIComponent(search)}`
-        : `${apiUrl}/api/products?limit=20`;
-      const res = await fetch(url);
-      const json = await res.json();
-      setProducts(json?.data?.data || []);
+      const response = await productsApi.list({ limit: 20, ...(search ? { search } : {}) });
+      setProducts(response.data?.data || []);
     } catch (e) {
       // silent
     } finally {
@@ -59,7 +54,7 @@ export default function ShopScreen() {
       name: item.name,
       price: item.price,
       salePrice: item.salePrice,
-      comparePrice: item.salePrice,
+      comparePrice: item.price,
       images: item.images,
       isFeatured: item.isFeatured,
       stock: item.stock,
@@ -100,7 +95,7 @@ export default function ShopScreen() {
               justifyContent: 'center',
               paddingHorizontal: 2,
             }}>
-              <Text style={{ color: Colors.text.inverse, fontSize: 10, fontWeight: Typography.bold }}>0</Text>
+              <Text style={{ color: Colors.text.inverse, fontSize: 10, fontWeight: Typography.bold }}>{cartCount}</Text>
             </View>
           </Pressable>
         </View>

@@ -4,9 +4,12 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, Image } from 'react-native';
+import { View, Text, Pressable, Image, GestureResponderEvent } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ShoppingCart, Heart, Check, Star } from 'lucide-react-native';
+import { useCartStore } from '@epowerfix/store';
+import { useAuthStore } from '../store/auth';
+import { useWishlistStore } from '../store/wishlist';
 import { Colors, Typography, Radius, Shadows } from '../theme/design-system';
 
 export interface PremiumCardData {
@@ -38,9 +41,13 @@ interface PremiumCardProps {
 
 export function PremiumCard({ data, onAddToCart }: PremiumCardProps) {
   const router = useRouter();
+  const addItem = useCartStore((state) => state.addItem);
+  const user = useAuthStore((state) => state.user);
+  const wishlistItems = useWishlistStore((state) => state.items);
+  const toggleWishlist = useWishlistStore((state) => state.toggle);
   const [imgError, setImgError] = useState(false);
   const [added, setAdded] = useState(false);
-  const [wished, setWished] = useState(false);
+  const [wishlistBusy, setWishlistBusy] = useState(false);
 
   const images = data.images || [];
   const imageUrl = data.image || data.coverImage || images[0] || '';
@@ -56,24 +63,50 @@ export function PremiumCard({ data, onAddToCart }: PremiumCardProps) {
   const inStock = data.stock == null || data.stock > 0;
   const rating = data.rating || 0;
   const reviewCount = data.reviewCount || 0;
+  const wished = wishlistItems.some((item) => item.productId === data.id);
 
   const handleClick = () => {
     router.push(`/product/${data.id}`);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (event?: GestureResponderEvent) => {
+    event?.stopPropagation();
     if (!inStock) return;
+
     if (onAddToCart) {
       onAddToCart(data);
-      return;
+    } else {
+      addItem({
+        itemType: data.itemType ?? 'PRODUCT',
+        productId: data.id,
+        productName: data.name,
+        productImage: imageUrl,
+        price: Number(displayPrice),
+        quantity: 1,
+      });
     }
-    // TODO: Add to shared cart store
+
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const handleWishlist = () => {
-    setWished((v) => !v);
+  const handleWishlist = async (event?: GestureResponderEvent) => {
+    event?.stopPropagation();
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (wishlistBusy) return;
+
+    setWishlistBusy(true);
+    try {
+      await toggleWishlist(data.id);
+    } catch {
+      // The wishlist store retains the error; the card stays in its last
+      // server-confirmed state instead of showing a false optimistic change.
+    } finally {
+      setWishlistBusy(false);
+    }
   };
 
   return (

@@ -1,33 +1,48 @@
-// Services screen — matches website ServicesSection.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Pressable, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowRight, Wrench } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ArrowRight, CalendarDays, Wrench } from 'lucide-react-native';
+import { servicesApi } from '@epowerfix/api-client';
 import { Colors, Typography, Radius } from '../../src/theme/design-system';
 
 export default function ServicesScreen() {
+  const router = useRouter();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL || '';
-        if (!apiUrl) return;
-        const res = await fetch(`${apiUrl}/api/services`);
-        const json = await res.json();
-        setServices(json?.services || json?.data?.services || []);
-      } catch (e) {
-        // silent
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+  const loadServices = useCallback(async () => {
+    try {
+      setError('');
+      const response = await servicesApi.list();
+      setServices(Array.isArray(response.data?.services) ? response.data.services : []);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load services');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
 
+  useEffect(() => {
+    void loadServices();
+  }, [loadServices]);
+
+  const openBooking = (service: any) => {
+    router.push({
+      pathname: '/service-booking',
+      params: {
+        serviceId: String(service.id),
+        serviceName: String(service.name || 'Electrical service'),
+        basePrice: String(service.basePrice ?? ''),
+      },
+    } as never);
+  };
+
   const renderItem = ({ item }: { item: any }) => (
-    <Pressable
+    <View
       style={{
         backgroundColor: Colors.bg.primary,
         borderRadius: Radius.xl,
@@ -37,7 +52,6 @@ export default function ServicesScreen() {
         borderWidth: 1,
         borderColor: Colors.slate[200],
         flexDirection: 'row',
-        // shadow-sm
         elevation: 1,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
@@ -45,85 +59,55 @@ export default function ServicesScreen() {
         shadowRadius: 3,
       }}
     >
-      {/* Icon — bg-epf-50, rounded-xl, 52x52 */}
-      <View style={{
-        width: 52,
-        height: 52,
-        borderRadius: Radius.xl,
-        backgroundColor: Colors.epf[50],
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 14,
-      }}>
+      <View style={{ width: 52, height: 52, borderRadius: Radius.xl, backgroundColor: Colors.epf[50], alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
         <Wrench size={24} color={Colors.epf[500]} />
       </View>
 
-      {/* Content */}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15, fontWeight: Typography.bold, color: Colors.slate[900] }}>
-          {item.name}
+        <Text style={{ fontSize: 15, fontWeight: Typography.bold, color: Colors.slate[900] }}>{item.name}</Text>
+        <Text style={{ color: Colors.slate[500], fontSize: 13, marginTop: 4, lineHeight: 19 }} numberOfLines={2}>
+          {item.shortDesc || item.description || 'Professional electrical service at your doorstep'}
         </Text>
-        <Text style={{ color: Colors.slate[500], fontSize: 13, marginTop: 4 }} numberOfLines={2}>
-          {item.shortDesc || item.description || 'Professional electrical service'}
-        </Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-          <Text style={{ fontSize: 16, fontWeight: Typography.bold, color: Colors.epf[500] }}>
-            {item.basePrice ? `৳${item.basePrice}` : 'Contact'}
-          </Text>
-          <Pressable style={{
-            backgroundColor: Colors.epf[500],
-            borderRadius: Radius.base,
-            paddingHorizontal: 14,
-            paddingVertical: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}>
-            <Text style={{ color: Colors.text.inverse, fontSize: 12, fontWeight: Typography.semibold, marginRight: 4 }}>
-              Book Now
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 11 }}>
+          <View>
+            <Text style={{ color: Colors.slate[400], fontSize: 11 }}>Starting from</Text>
+            <Text style={{ fontSize: 16, fontWeight: Typography.bold, color: Colors.epf[600], marginTop: 2 }}>
+              {item.basePrice ? `৳${Number(item.basePrice).toLocaleString()}` : 'Contact us'}
             </Text>
-            <ArrowRight size={14} color={Colors.text.inverse} />
+          </View>
+          <Pressable
+            onPress={() => openBooking(item)}
+            style={({ pressed }) => ({ backgroundColor: pressed ? Colors.epf[600] : Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 13, paddingVertical: 9, flexDirection: 'row', alignItems: 'center' })}
+          >
+            <CalendarDays size={14} color={Colors.text.inverse} />
+            <Text style={{ color: Colors.text.inverse, fontSize: 12, fontWeight: Typography.semibold, marginLeft: 5 }}>Book now</Text>
+            <ArrowRight size={14} color={Colors.text.inverse} style={{ marginLeft: 3 }} />
           </Pressable>
         </View>
       </View>
-    </Pressable>
+    </View>
   );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.tertiary }}>
-      {/* Header — matches website ServicesSection header */}
-      <View style={{
-        backgroundColor: Colors.bg.primary,
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.slate[200],
-      }}>
-        <Text style={{ fontSize: 22, fontWeight: Typography.bold, color: Colors.slate[900] }}>
-          Our Services
-        </Text>
-        <Text style={{ color: Colors.slate[500], fontSize: 14, marginTop: 4 }}>
-          Expert electrical solutions at your doorstep
-        </Text>
+      <View style={{ backgroundColor: Colors.bg.primary, padding: 16, borderBottomWidth: 1, borderBottomColor: Colors.slate[200] }}>
+        <Text style={{ fontSize: 22, fontWeight: Typography.bold, color: Colors.slate[900] }}>Our Services</Text>
+        <Text style={{ color: Colors.slate[500], fontSize: 14, marginTop: 4, lineHeight: 20 }}>Expert electrical solutions at your doorstep</Text>
       </View>
 
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={Colors.epf[500]} />
-        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" color={Colors.epf[500]} /></View>
       ) : (
         <FlatList
           data={services}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingVertical: 16 }}
-          ListEmptyComponent={
-            <View style={{ alignItems: 'center', paddingVertical: 80 }}>
-              <Text style={{ color: Colors.slate[500], fontSize: 16, fontWeight: Typography.semibold }}>
-                No services available
-              </Text>
-            </View>
-          }
+          contentContainerStyle={{ paddingVertical: 16, flexGrow: services.length === 0 ? 1 : undefined }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadServices(); }} tintColor={Colors.epf[500]} />}
+          ListEmptyComponent={<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}><Wrench size={40} color={Colors.slate[300]} /><Text style={{ color: Colors.slate[800], fontSize: 17, fontWeight: Typography.semibold, marginTop: 13 }}>No services available</Text><Text style={{ color: Colors.slate[500], fontSize: 13, textAlign: 'center', marginTop: 6 }}>{error || 'Please check back soon.'}</Text></View>}
         />
       )}
+      {error && services.length > 0 ? <Text style={{ color: Colors.danger, fontSize: 12, textAlign: 'center', paddingHorizontal: 16, paddingBottom: 10 }}>{error}</Text> : null}
     </SafeAreaView>
   );
 }
