@@ -12,6 +12,9 @@ import { Redis } from '@upstash/redis'
 let redis: Redis | null = null
 
 function getRedis(): Redis | null {
+  // Tests must use isolated in-memory buckets even when a developer's .env
+  // contains Upstash credentials. Check this before returning a cached client.
+  if (process.env.NODE_ENV === 'test') {return null}
   if (redis) {return redis}
 
   const url = process.env.UPSTASH_REDIS_REST_URL

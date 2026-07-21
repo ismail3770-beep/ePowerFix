@@ -97,30 +97,39 @@ router.get(
 )
 
 // ─── POST /api/services/book ──────────────────────────────────────────────────
-// Auth optional: logged-in users attach their id; guests book with phone and a
-// synthetic `guest-<timestamp>` userId (mirrors Next.js source behavior).
+// Auth optional: guests retain their contact snapshot without requiring a
+// synthetic User row or an invalid foreign-key value.
 
 router.post(
   '/book',
   asyncHandler(async (req, res) => {
-    const { serviceId, bookingDate, bookingTime, address, phone, notes } = validateBody(
-      req,
-      schemas.serviceBooking
-    )
+    const {
+      serviceId,
+      customerName,
+      customerEmail,
+      bookingDate,
+      bookingTime,
+      address,
+      phone,
+      notes,
+    } = validateBody(req, schemas.serviceBooking)
 
     const service = await db.service.findFirst({
-      where: { id: serviceId, isActive: true },
+      where: { id: serviceId, isActive: true, isDeleted: false },
     })
     if (!service) {
       throw new ApiError('Service not found', 404)
     }
 
-    // Attach the logged-in user if present (guests may also book).
+    // Attach the logged-in user if present. Guest bookings are intentionally
+    // represented by a null userId plus immutable contact snapshots.
     const authUser = await getSession(req)
 
     const booking = await db.serviceBooking.create({
       data: {
-        userId: authUser ? authUser.id : 'guest-' + Date.now(),
+        userId: authUser?.id ?? null,
+        customerName: customerName?.trim() || authUser?.name || null,
+        customerEmail: customerEmail?.trim() || authUser?.email || null,
         serviceId,
         bookingDate: new Date(bookingDate),
         bookingTime,

@@ -46,6 +46,7 @@ export default function CheckoutDialog() {
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
   const [shippingRates, setShippingRates] = useState({
     insideDhaka: 60,
     outsideDhaka: 120,
@@ -95,8 +96,20 @@ export default function CheckoutDialog() {
       const order = data.data || data;
       const isOnlinePayment = form.paymentMethod !== 'COD';
 
-      // Online methods → hand off to the payment gateway, then redirect.
+      // Online methods → create one reusable pending order, then redirect.
+      // Cart contents are retained until a server-verified success page clears them.
       if (isOnlinePayment && orderId) {
+        const pendingOrder = {
+          orderId: String(orderId),
+          orderNumber: String(order.orderNumber || orderId),
+          paymentMethod: form.paymentMethod,
+        };
+        try {
+          window.sessionStorage.setItem("epowerfix-pending-online-order", JSON.stringify(pendingOrder));
+        } catch {
+          // The checkout page can still process the current flow if browser storage is unavailable.
+        }
+
         try {
           const pay = await apiFetch<{ paymentUrl?: string; error?: string }>("/api/payments/initiate", {
             method: "POST",
@@ -111,16 +124,18 @@ export default function CheckoutDialog() {
             }),
           });
           if (pay?.paymentUrl) {
-            clearCart();
+            setIdempotencyKey(null);
             handleClose();
-            window.location.href = pay.paymentUrl;
+            window.location.assign(pay.paymentUrl);
             return;
           }
           throw new Error(pay?.error || "Payment initiation failed");
         } catch (err: any) {
           toast.error("Payment could not be started", {
-            description: err?.message || "Please try again, or choose Cash on Delivery.",
+            description: err?.message || "Opening checkout so you can safely retry the same order.",
           });
+          handleClose();
+          window.location.assign(`/checkout?order=${encodeURIComponent(String(orderId))}`);
           return;
         }
       }
@@ -129,6 +144,7 @@ export default function CheckoutDialog() {
         description: `Order #${order.orderNumber || "confirmed"} — শীঘ্রই যোগাযোগ করা হবে।`,
       });
       clearCart();
+      setIdempotencyKey(null);
       handleClose();
     },
     onError: (err: Error) => {
@@ -166,6 +182,12 @@ export default function CheckoutDialog() {
       toast.error("কার্টে কোনো আইটেম নেই");
       return;
     }
+    const nextIdempotencyKey = idempotencyKey || (
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    );
+    setIdempotencyKey(nextIdempotencyKey);
     mutation.mutate({
       customerName: form.customerName,
       customerPhone: form.customerPhone,
@@ -175,6 +197,7 @@ export default function CheckoutDialog() {
       notes: form.notes || undefined,
       couponCode: appliedCoupon ?? undefined,
       paymentMethod: form.paymentMethod,
+      idempotencyKey: nextIdempotencyKey,
       items: items.map(toOrderItemPayload),
     });
   };

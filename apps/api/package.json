@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "bun --hot src/server.ts",
-    "build": "echo 'API build: bun runtime, no build step needed'",
-    "start": "tsx src/server.ts",
-    "lint": "echo 'api: lint not configured yet'"
+    "build": "tsc --noEmit --pretty false",
+    "typecheck": "tsc --noEmit --pretty false",
+    "start": "bun src/server.ts",
+    "lint": "tsc --noEmit --pretty false"
   },
   "dependencies": {
     "@epowerfix/types": "workspace:*",

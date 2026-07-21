@@ -87,8 +87,8 @@ export default function ProjectDetailDialog() {
   const handleBuy = () => {
     if (!kit) {return;}
     addItem({
-      itemType: "PROJECT",
-      productId: kit.id,
+      itemType: "PROJECT_KIT",
+      projectKitId: kit.id,
       productName: kit.title,
       productImage: kit.coverImage || (kit.images && kit.images[0]) || "",
       price: Number(kit.salePrice ?? kit.price ?? 0),

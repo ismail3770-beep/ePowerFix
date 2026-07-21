@@ -72,6 +72,7 @@ const menuItems: MenuItem[] = [
       { key: "attribute-sets", label: "Attribute Sets", icon: FolderOpen },
       { key: "options", label: "Options", icon: Settings2 },
       { key: "tags", label: "Tags", icon: Tags },
+      { key: "import", label: "Import", icon: FolderOpen },
     ],
   },
   {

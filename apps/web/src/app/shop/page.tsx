@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Grid2X2,
@@ -119,27 +118,49 @@ function StoreProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <article className="epf-reference-product-card group relative flex min-w-0 flex-col overflow-hidden border border-slate-200 bg-white">
-      <div className="relative aspect-square overflow-hidden bg-slate-50">
+    <article className="group relative bg-white border border-gray-100 rounded overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
+      <div className="relative aspect-square bg-gray-50 overflow-hidden">
         {image && !imageError ? (
-          <img src={image} alt={product.name} className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={() => setImageError(true)} />
+          <img src={image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={() => setImageError(true)} />
         ) : (
-          <div className="flex h-full items-center justify-center"><Package className="h-8 w-8 text-slate-300" /></div>
+          <div className="flex h-full items-center justify-center bg-gray-100"><Package className="h-8 w-8 text-gray-300" /></div>
         )}
-        {discount > 0 && <span className="absolute left-2 top-2 bg-epf-500 px-2 py-0.5 text-[10px] font-bold text-white">-{discount}%</span>}
-        {!inStock && <span className="absolute left-2 top-2 bg-slate-700 px-2 py-0.5 text-[10px] font-bold text-white">Out of stock</span>}
-        <div className="absolute inset-x-0 bottom-0 flex translate-y-full gap-2 border-t border-slate-200 bg-white/95 p-2 opacity-0 backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          {inStock ? <button type="button" onClick={handleAdd} className="flex h-8 flex-1 items-center justify-center gap-1.5 bg-epf-500 px-2 text-[11px] font-bold text-white transition-colors hover:bg-epf-600"><ShoppingCart className="h-3.5 w-3.5" /> Add to cart</button> : <span className="flex h-8 flex-1 items-center justify-center bg-slate-100 text-[11px] font-semibold text-slate-500">Out of stock</span>}
-          <button type="button" aria-label="Add to wishlist" className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition-colors hover:border-red-200 hover:text-red-500" onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}><Heart className="h-3.5 w-3.5" /></button>
+        {discount > 0 && <span className="absolute left-2 top-2 bg-[#0EA5E9] px-2 py-0.5 text-[10px] font-bold text-white rounded-full">-{discount}%</span>}
+        {!inStock && <span className="absolute left-2 top-2 bg-gray-700 px-2 py-0.5 text-[10px] font-bold text-white rounded-full">Out of stock</span>}
+        {/* Hover overlay — slide up */}
+        <div className="absolute bottom-0 left-0 right-0 flex gap-2 p-2.5 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={!inStock}
+            className="flex-1 bg-[#0EA5E9] text-white text-xs font-semibold py-2 rounded hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
+            {inStock ? "Add to Cart" : "Out of Stock"}
+          </button>
+          <button
+            type="button"
+            aria-label="Add to wishlist"
+            className="p-2 rounded bg-white/80 border border-white/30 text-gray-700 hover:bg-white transition-colors"
+            onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
+          >
+            <Heart className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
-      <Link href={href} className="flex min-h-[122px] flex-1 flex-col border-t border-slate-100 p-3">
-        {product.category?.name && <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-epf-600">{product.category.name}</span>}
-        <h3 className="mt-1 line-clamp-2 text-[14px] font-semibold leading-5 text-slate-800 transition-colors group-hover:text-epf-600">{product.name}</h3>
-        <div className="mt-auto pt-2">
-          {(product.rating || 0) > 0 && <span className="inline-flex items-center gap-1 text-[11px] text-slate-400"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {Number(product.rating).toFixed(1)} ({product.reviewCount || 0})</span>}
-          <div className="mt-1 flex items-baseline gap-1.5"><span className="text-[16px] font-bold text-slate-900">৳{Number(displayPrice).toLocaleString()}</span>{originalPrice && <del className="text-[12px] text-slate-400">৳{Number(originalPrice).toLocaleString()}</del>}</div>
+      <Link href={href} className="block p-3">
+        {product.category?.name && <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1 font-medium">{product.category.name}</p>}
+        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 leading-snug group-hover:text-[#0EA5E9] transition-colors">{product.name}</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-base font-bold text-[#0EA5E9]">৳{Number(displayPrice).toLocaleString()}</span>
+          {originalPrice && <del className="text-xs text-gray-400">৳{Number(originalPrice).toLocaleString()}</del>}
         </div>
+        {(product.rating || 0) > 0 && (
+          <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-gray-400">
+            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+            {Number(product.rating).toFixed(1)} ({product.reviewCount || 0})
+          </span>
+        )}
       </Link>
     </article>
   );
@@ -150,18 +171,10 @@ function RatingStars({ rating, count }: { rating: number; count: number }) {
     <div className="flex items-center gap-1">
       <span className="flex items-center gap-0.5" aria-label={`${rating.toFixed(1)} out of 5 stars`}>
         {Array.from({ length: 5 }).map((_, index) => (
-          <Star
-            key={index}
-            className={cn(
-              "h-3.5 w-3.5",
-              index < Math.round(rating)
-                ? "fill-amber-400 text-amber-400"
-                : "fill-slate-200 text-slate-200",
-            )}
-          />
+          <Star key={index} className={cn("h-3.5 w-3.5", index < Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200")} />
         ))}
       </span>
-      <span className="text-xs text-slate-400">({count})</span>
+      <span className="text-xs text-gray-400">({count})</span>
     </div>
   );
 }
@@ -171,24 +184,17 @@ function LatestProduct({ product }: { product: Product }) {
   const image = card.images?.[0];
 
   return (
-    <Link
-      href={`/shop/${product.slug || product.id}`}
-      className="group flex items-center gap-3 border-b border-slate-100 py-3 last:border-b-0"
-    >
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-50">
+    <Link href={`/shop/${product.slug || product.id}`} className="group flex gap-2.5 cursor-pointer">
+      <div className="w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
         {image ? (
-          <img src={image} alt="" className="h-full w-full object-contain p-1" loading="lazy" />
+          <img src={image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
         ) : (
-          <Package className="h-5 w-5 text-slate-300" />
+          <Package className="m-3 h-5 w-5 text-gray-300" />
         )}
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="line-clamp-2 text-[13px] font-medium leading-5 text-slate-700 transition-colors group-hover:text-epf-600">
-          {product.name}
-        </p>
-        <p className="mt-1 text-sm font-bold text-slate-900">
-          ৳{Number(card.price).toLocaleString()}
-        </p>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-gray-700 line-clamp-2 group-hover:text-[#0EA5E9] transition-colors leading-snug">{product.name}</p>
+        <p className="text-xs font-bold text-[#0EA5E9] mt-0.5">৳{Number(card.price).toLocaleString()}</p>
       </div>
     </Link>
   );
@@ -200,44 +206,33 @@ function ListProductRow({ product, onAddToCart }: { product: Product; onAddToCar
   const inStock = product.stock > 0;
 
   return (
-    <article className="flex gap-4 rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-      <Link
-        href={`/shop/${product.slug || product.id}`}
-        className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-50 sm:h-40 sm:w-40"
-      >
+    <article className="flex gap-4 border border-gray-100 rounded bg-white p-4 hover:shadow-md transition-shadow cursor-pointer group">
+      <Link href={`/shop/${product.slug || product.id}`} className="h-24 w-24 shrink-0 overflow-hidden rounded bg-gray-50 sm:h-32 sm:w-32">
         {image ? (
-          <img src={image} alt={product.name} className="h-full w-full object-contain p-2" />
+          <img src={image} alt={product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
-          <Package className="h-8 w-8 text-slate-300" />
+          <Package className="m-8 h-8 w-8 text-gray-300" />
         )}
       </Link>
       <div className="flex min-w-0 flex-1 flex-col justify-center">
         {product.category?.name && (
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-epf-500">
-            {product.category.name}
-          </p>
+          <p className="mb-1 text-[10px] text-gray-400 font-medium uppercase tracking-widest">{product.category.name}</p>
         )}
         <Link href={`/shop/${product.slug || product.id}`}>
-          <h3 className="line-clamp-2 text-base font-semibold text-slate-800 hover:text-epf-600 sm:text-lg">
-            {product.name}
-          </h3>
+          <h3 className="font-medium text-sm text-gray-800 group-hover:text-[#0EA5E9] line-clamp-2 mb-1 leading-snug">{product.name}</h3>
         </Link>
-        <div className="mt-2">
-          <RatingStars rating={product.rating || 0} count={product.reviewCount || 0} />
-        </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-lg font-bold text-slate-900">৳{Number(card.price).toLocaleString()}</span>
-          {card.comparePrice != null && (
-            <del className="text-sm text-slate-400">৳{Number(card.comparePrice).toLocaleString()}</del>
-          )}
+        <RatingStars rating={product.rating || 0} count={product.reviewCount || 0} />
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-base font-bold text-[#0EA5E9]">৳{Number(card.price).toLocaleString()}</span>
+          {card.comparePrice != null && <del className="text-sm text-gray-400">৳{Number(card.comparePrice).toLocaleString()}</del>}
         </div>
         <button
           type="button"
           onClick={() => onAddToCart(product)}
           disabled={!inStock}
-          className="mt-3 w-fit rounded-md bg-epf-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-epf-600 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="mt-3 w-fit bg-[#0EA5E9] text-white text-xs font-semibold px-4 py-2 rounded hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {inStock ? "Add to cart" : "Out of stock"}
+          {inStock ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
     </article>
@@ -326,74 +321,60 @@ function ShopPageContent() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-slate-50">
-        <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-          <div className="mb-5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-            <Link href="/" className="hover:text-epf-600">Home</Link>
-            <ChevronRight className="h-4 w-4 text-slate-300" />
-            <span className="font-medium text-slate-800">Shop</span>
-            {selectedCategoryName && (
-              <>
-                <ChevronRight className="h-4 w-4 text-slate-300" />
-                <span className="text-epf-600">{selectedCategoryName}</span>
-              </>
-            )}
+      <main className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="mb-6 flex items-center gap-2 text-xs text-gray-500">
+            <Link href="/" className="hover:text-gray-900">Home</Link>
+            <ChevronRight className="h-3 w-3 text-gray-300" />
+            <span className="text-gray-900 font-medium">{selectedCategoryName || "All Products"}</span>
           </div>
 
-          <div className="flex items-end justify-between gap-4 border-b border-slate-200 pb-5">
-            <div>
-              <p className="mb-1 text-xs font-bold uppercase tracking-[0.18em] text-epf-500">ePowerFix marketplace</p>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Shop</h1>
-              <p className="mt-1 text-sm text-slate-500">Find quality electrical products at the right price.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFiltersOpen((open) => !open)}
-              className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 lg:hidden"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-            </button>
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-[248px_minmax(0,1fr)]">
-            <aside className={cn("h-fit rounded-lg border border-slate-200 bg-white lg:block", filtersOpen ? "block" : "hidden")}>
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
-                <h2 className="text-base font-bold text-slate-900">Browse Categories</h2>
-                <button type="button" onClick={() => setFiltersOpen(false)} className="text-slate-400 lg:hidden" aria-label="Close filters">
+          <div className="mt-6 flex gap-8">
+            {/* Sidebar — desktop only */}
+            <aside className={cn("w-56 shrink-0 space-y-5 md:block", filtersOpen ? "block" : "hidden")}>
+              {/* Mobile close */}
+              <div className="flex items-center justify-between md:hidden">
+                <h3 className="font-semibold text-sm uppercase tracking-wider">Filters</h3>
+                <button type="button" onClick={() => setFiltersOpen(false)} className="text-gray-400" aria-label="Close filters">
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <div className="border-b border-slate-200 px-4 py-3">
-                <button
-                  type="button"
-                  onClick={() => resetPageAnd(() => setCategory(""))}
-                  className={cn("flex w-full items-center justify-between py-1.5 text-left text-sm", !category ? "font-semibold text-epf-600" : "text-slate-600 hover:text-epf-600")}
-                >
-                  <span>All Products</span>
-                  <span className="text-xs text-slate-400">{total || "—"}</span>
-                </button>
-                {categoriesQuery.isLoading ? (
-                  <div className="space-y-3 py-2">
-                    {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-4 animate-pulse rounded bg-slate-100" />)}
-                  </div>
-                ) : (
-                  categories.map((item) => (
-                    <button
-                      type="button"
-                      key={item.id}
-                      onClick={() => resetPageAnd(() => setCategory(item.slug))}
-                      className={cn("flex w-full items-center justify-between gap-2 py-1.5 text-left text-sm", category === item.slug ? "font-semibold text-epf-600" : "text-slate-600 hover:text-epf-600")}
-                    >
-                      <span className="truncate">{item.name}</span>
-                      <span className="shrink-0 text-xs text-slate-400">{item._count?.products ?? "—"}</span>
-                    </button>
-                  ))
-                )}
+
+              {/* Categories */}
+              <div>
+                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Categories</h3>
+                <div className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => resetPageAnd(() => setCategory(""))}
+                    className={cn("w-full flex items-center justify-between py-1.5 text-sm", !category ? "text-[#0EA5E9] font-semibold" : "text-gray-500 hover:text-gray-900")}
+                  >
+                    <span>All Products</span>
+                    <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{total}</span>
+                  </button>
+                  {categoriesQuery.isLoading ? (
+                    <div className="space-y-2 py-1">
+                      {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-4 animate-pulse rounded bg-gray-100" />)}
+                    </div>
+                  ) : (
+                    categories.map((item) => (
+                      <button
+                        type="button"
+                        key={item.id}
+                        onClick={() => resetPageAnd(() => setCategory(item.slug))}
+                        className={cn("w-full flex items-center justify-between py-1.5 text-sm", category === item.slug ? "text-[#0EA5E9] font-semibold" : "text-gray-500 hover:text-gray-900")}
+                      >
+                        <span>{item.name}</span>
+                        {item._count?.products != null && <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{item._count.products}</span>}
+                      </button>
+                    ))
+                  )}
+                </div>
               </div>
 
-              <div className="border-b border-slate-200 px-4 py-4">
-                <h3 className="mb-3 text-sm font-bold text-slate-900">Price Range</h3>
+              {/* Price Range */}
+              <div className="border-t border-gray-200 pt-5">
+                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Price Range</h3>
                 <div className="flex items-center gap-2">
                   <input
                     value={minPrice}
@@ -401,83 +382,96 @@ function ShopPageContent() {
                     inputMode="numeric"
                     placeholder="Min"
                     aria-label="Minimum price"
-                    className="h-9 w-full rounded border border-slate-200 px-2 text-sm outline-none focus:border-epf-500"
+                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs outline-none focus:border-[#0EA5E9] transition-colors"
                   />
-                  <span className="text-slate-300">—</span>
+                  <span className="text-gray-400 text-xs">—</span>
                   <input
                     value={maxPrice}
                     onChange={(event) => resetPageAnd(() => setMaxPrice(event.target.value.replace(/\D/g, "")))}
                     inputMode="numeric"
                     placeholder="Max"
                     aria-label="Maximum price"
-                    className="h-9 w-full rounded border border-slate-200 px-2 text-sm outline-none focus:border-epf-500"
+                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs outline-none focus:border-[#0EA5E9] transition-colors"
                   />
                 </div>
-                <p className="mt-2 text-[11px] text-slate-400">Prices are shown in Bangladeshi Taka.</p>
               </div>
 
-              <div className="px-4 py-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-900">Latest Products</h3>
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
+              {/* Latest Products */}
+              <div className="border-t border-gray-200 pt-5">
+                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Latest Products</h3>
+                <div className="space-y-3">
+                  {latestQuery.isLoading ? (
+                    Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded bg-gray-100" />)
+                  ) : (
+                    latestQuery.data?.data.data.slice(0, 4).map((product) => <LatestProduct key={product.id} product={product} />)
+                  )}
                 </div>
-                {latestQuery.isLoading ? (
-                  <div className="space-y-3">
-                    {Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded bg-slate-100" />)}
-                  </div>
-                ) : (
-                  latestQuery.data?.data.data.slice(0, 4).map((product) => <LatestProduct key={product.id} product={product} />)
-                )}
               </div>
+
+              {/* Clear filters */}
+              {(category || minPrice || maxPrice) && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="w-full border border-gray-200 rounded py-2 text-xs font-medium text-gray-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9] transition-colors"
+                >
+                  Clear All Filters
+                </button>
+              )}
             </aside>
 
-            <section className="min-w-0">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 sm:px-4">
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <span className="font-semibold text-slate-900">Shop</span>
-                  <span className="hidden text-slate-300 sm:inline">|</span>
-                  <span>{total} results</span>
+            <section className="flex-1 min-w-0">
+              {/* Toolbar */}
+              <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFiltersOpen((open) => !open)}
+                    className="md:hidden flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-xs font-medium"
+                  >
+                    <SlidersHorizontal className="h-3 w-3" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                  </button>
+                  <p className="text-xs text-gray-500"><span className="font-semibold text-gray-900">{total}</span> products found</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <label htmlFor="shop-sort" className="hidden text-sm text-slate-500 sm:inline">Sort by:</label>
+                <div className="flex items-center gap-3">
                   <select
                     id="shop-sort"
                     value={sort}
                     onChange={(event) => resetPageAnd(() => setSort(event.target.value))}
-                    className="h-9 rounded border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-epf-500"
+                    className="text-xs border border-gray-200 rounded px-3 py-1.5 outline-none bg-white"
                   >
                     {sortOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
-                  <div className="hidden items-center rounded border border-slate-200 sm:flex">
-                    <button type="button" onClick={() => setView("grid")} className={cn("flex h-9 w-9 items-center justify-center", view === "grid" ? "bg-epf-50 text-epf-600" : "text-slate-400 hover:text-slate-700")} aria-label="Grid view">
-                      <Grid2X2 className="h-4 w-4" />
+                  <div className="flex border border-gray-200 rounded overflow-hidden">
+                    <button type="button" onClick={() => setView("grid")} className={cn("p-1.5", view === "grid" ? "bg-[#0EA5E9] text-white" : "text-gray-500 hover:bg-gray-100")} aria-label="Grid view">
+                      <Grid2X2 className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" onClick={() => setView("list")} className={cn("flex h-9 w-9 items-center justify-center", view === "list" ? "bg-epf-50 text-epf-600" : "text-slate-400 hover:text-slate-700")} aria-label="List view">
-                      <List className="h-4 w-4" />
+                    <button type="button" onClick={() => setView("list")} className={cn("p-1.5", view === "list" ? "bg-[#0EA5E9] text-white" : "text-gray-500 hover:bg-gray-100")} aria-label="List view">
+                      <List className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
               </div>
 
               {productQuery.isError ? (
-                <div className="rounded-lg border border-red-100 bg-white px-5 py-16 text-center">
-                  <p className="font-semibold text-slate-800">We couldn&apos;t load the products.</p>
-                  <p className="mt-1 text-sm text-slate-500">Please check your connection and try again.</p>
-                  <button type="button" onClick={() => productQuery.refetch()} className="mt-4 rounded-md bg-epf-500 px-4 py-2 text-sm font-semibold text-white hover:bg-epf-600">Try again</button>
+                <div className="rounded border border-red-100 bg-white px-5 py-16 text-center">
+                  <p className="font-semibold text-gray-800">We couldn&apos;t load the products.</p>
+                  <p className="mt-1 text-sm text-gray-500">Please check your connection and try again.</p>
+                  <button type="button" onClick={() => productQuery.refetch()} className="mt-4 rounded bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">Try again</button>
                 </div>
               ) : productQuery.isLoading ? (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
-                  {Array.from({ length: 12 }).map((_, index) => <div key={index} className="aspect-square animate-pulse border border-slate-200 bg-white" />)}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {Array.from({ length: 12 }).map((_, index) => <div key={index} className="aspect-square animate-pulse border border-gray-100 bg-white rounded" />)}
                 </div>
               ) : products.length === 0 ? (
-                <div className="rounded-lg border border-slate-200 bg-white px-5 py-20 text-center">
-                  <Package className="mx-auto h-10 w-10 text-slate-300" />
-                  <h2 className="mt-4 text-lg font-semibold text-slate-800">No products found</h2>
-                  <p className="mt-1 text-sm text-slate-500">Try a different category or clear your filters.</p>
-                  <button type="button" onClick={clearFilters} className="mt-4 rounded-md bg-epf-500 px-4 py-2 text-sm font-semibold text-white hover:bg-epf-600">Clear all filters</button>
+                <div className="text-center py-20">
+                  <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                  <h2 className="text-lg font-semibold text-gray-800 mb-2">No products found</h2>
+                  <p className="text-gray-500 text-sm">Try a different category or clear your filters.</p>
+                  <button type="button" onClick={clearFilters} className="mt-4 rounded bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">Clear all filters</button>
                 </div>
               ) : view === "grid" ? (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {products.map((product) => (
                     <StoreProductCard key={product.id} product={product} />
                   ))}
@@ -489,17 +483,19 @@ function ShopPageContent() {
               )}
 
               {!productQuery.isLoading && products.length > 0 && (
-                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-5">
-                  <p className="text-sm text-slate-500">Showing <span className="font-semibold text-slate-700">{firstResult}–{lastResult}</span> of <span className="font-semibold text-slate-700">{total}</span> products</p>
+                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-5">
+                  <p className="text-sm text-gray-500">Showing <span className="font-semibold text-gray-700">{firstResult}–{lastResult}</span> of <span className="font-semibold text-gray-700">{total}</span> products</p>
                   <div className="flex items-center gap-3">
-                    <label htmlFor="shop-limit" className="hidden text-sm text-slate-500 sm:inline">Show:</label>
-                    <select id="shop-limit" value={limit} onChange={(event) => resetPageAnd(() => setLimit(Number(event.target.value)))} className="h-9 rounded border border-slate-200 bg-white px-2 text-sm text-slate-700 outline-none focus:border-epf-500">
+                    <label htmlFor="shop-limit" className="hidden text-sm text-gray-500 sm:inline">Show:</label>
+                    <select id="shop-limit" value={limit} onChange={(event) => resetPageAnd(() => setLimit(Number(event.target.value)))} className="h-9 rounded border border-gray-300 bg-white px-2 text-sm text-gray-700 outline-none focus:border-[#0EA5E9]">
                       {[12, 24, 48].map((value) => <option key={value} value={value}>{value}</option>)}
                     </select>
-                    <div className="flex items-center gap-1">
-                      <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:border-epf-500 hover:text-epf-600 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Previous page"><ChevronLeft className="h-4 w-4" /></button>
-                      <span className="min-w-16 text-center text-sm text-slate-600">{page} / {totalPages}</span>
-                      <button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 hover:border-epf-500 hover:text-epf-600 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Next page"><ChevronRight className="h-4 w-4" /></button>
+                    <div className="flex items-center gap-1.5">
+                      <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white" aria-label="Previous page"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((n) => (
+                        <button key={n} type="button" onClick={() => setPage(n)} className={`w-8 h-8 border rounded text-sm font-medium transition-colors ${page === n ? "bg-[#0EA5E9] text-white border-[#0EA5E9]" : "border-gray-300 text-gray-600 hover:border-[#0EA5E9] hover:text-[#0EA5E9] bg-white"}`}>{n}</button>
+                      ))}
+                      <button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white" aria-label="Next page"><ChevronRight className="h-3.5 w-3.5" /></button>
                     </div>
                   </div>
                 </div>
@@ -514,7 +510,7 @@ function ShopPageContent() {
       <ChatWidget />
       <BackToTopButton />
       {productQuery.isFetching && !productQuery.isLoading && (
-        <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900 px-3 py-2 text-xs text-white shadow-lg">
+        <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#0d1a2d] px-3 py-2 text-xs text-white shadow-lg">
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating products
         </div>
       )}
@@ -524,8 +520,8 @@ function ShopPageContent() {
 
 function ShopPageFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50">
-      <Loader2 className="h-6 w-6 animate-spin text-epf-500" />
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <Loader2 className="h-6 w-6 animate-spin text-[#0EA5E9]" />
     </div>
   );
 }

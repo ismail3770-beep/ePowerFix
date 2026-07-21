@@ -36,6 +36,10 @@ import statsRouter from './stats.js'
 import uploadRouter from './upload.js'
 import aiProvidersRouter from './ai-providers.js'
 import securityRouter from './security.js'
+import marketplaceRouter from './marketplace.js'
+import marketplaceDispatchRouter from './marketplace-dispatch.js'
+import marketplaceFinanceRouter from './marketplace-finance.js'
+import marketplaceCasesRouter from './marketplace-cases.js'
 
 const router = Router()
 
@@ -70,6 +74,8 @@ router.use(requireAdmin)
 //   /api/admin/upload             → uploadRouter
 //   /api/admin/ai-providers       → aiProvidersRouter
 //   /api/admin/security           → securityRouter
+//   /api/admin/marketplace        → marketplaceRouter
+//   /api/admin/marketplace/requests → marketplaceDispatchRouter
 
 router.use('/products', productsRouter)
 router.use('/categories', categoriesRouter)
@@ -98,5 +104,9 @@ router.use('/stats', statsRouter)
 router.use('/upload', uploadRouter)
 router.use('/ai-providers', aiProvidersRouter)
 router.use('/security', securityRouter)
+router.use('/marketplace/requests', marketplaceDispatchRouter)
+router.use('/marketplace/finance', marketplaceFinanceRouter)
+router.use('/marketplace/cases', marketplaceCasesRouter)
+router.use('/marketplace', marketplaceRouter)
 
 export default router

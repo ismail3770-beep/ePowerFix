@@ -70,6 +70,8 @@ export default function ServiceBookingScreen() {
     setError('');
     try {
       await servicesApi.book({
+        customerName: user?.name || undefined,
+        customerEmail: user?.email || undefined,
         serviceId,
         bookingDate,
         bookingTime,

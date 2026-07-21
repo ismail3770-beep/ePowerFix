@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { Providers } from "@/components/providers";
 import { AuthProvider } from "@/components/AuthProvider";
+import { CartSyncProvider } from "@/components/CartSyncProvider";
 import { SiteThemeProvider } from "@/components/SiteThemeProvider";
 
 const inter = Inter({
@@ -72,9 +73,10 @@ export default function RootLayout({
         >
           <Providers>
             <SiteThemeProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+              <AuthProvider>
+                <CartSyncProvider />
+                {children}
+              </AuthProvider>
             </SiteThemeProvider>
             <Toaster position="top-center" richColors />
           </Providers>

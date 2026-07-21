@@ -91,6 +91,7 @@ export default function BookServicePage() {
         body: JSON.stringify({
           serviceId: serviceId,
           customerName: form.customerName.trim(),
+          customerEmail: form.customerEmail.trim() || undefined,
           phone,
           bookingDate: form.preferredDate,
           bookingTime: form.preferredTime,

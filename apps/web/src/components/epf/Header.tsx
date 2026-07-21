@@ -43,6 +43,7 @@ interface MegaCategory extends ApiCategory {
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/electrician", label: "Call Electrician" },
   { href: "/services", label: "Services" },
   { href: "/shop", label: "Shop" },
   { href: "/projects", label: "Projects" },
@@ -385,8 +386,8 @@ export default function Header() {
                     <a href="/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
                       <I.User className="h-4 w-4" /> My Profile
                     </a>
-                    <a href="/cost-estimator" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
-                      <I.Calculator className="h-4 w-4" /> Cost Estimator
+                    <a href="/electrician" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
+                      <EPFWrench className="h-4 w-4" /> Call Electrician
                     </a>
                     <a href="/wishlist" className="flex items-center gap-2.5 px-4 py-2.5 text-[14px] text-slate-700 hover:bg-slate-50 hover:text-epf-500 transition-colors">
                       <I.Heart className="h-4 w-4" /> Wishlist
@@ -519,7 +520,7 @@ export default function Header() {
 
             {/* Nav Links */}
             <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-              {navLinks.map((link) => {
+              {navLinks.filter((link) => link.href !== "/electrician").map((link) => {
                 const isActive = link.href === "/"
                   ? pathname === "/"
                   : pathname.startsWith(link.href);
@@ -554,10 +555,10 @@ export default function Header() {
               </a>
               <span className="w-px h-4 bg-white/20" />
               <a
-                href="/cost-estimator"
+                href="/electrician"
                 className="flex items-center gap-1.5 text-[14px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
               >
-                <I.LogoBolt className="h-[16px] w-[16px]" /> Cost Estimator
+                <EPFWrench className="h-[16px] w-[16px]" /> Call Electrician
               </a>
             </div>
 

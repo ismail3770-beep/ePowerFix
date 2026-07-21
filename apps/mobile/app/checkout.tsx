@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -66,11 +66,48 @@ type CheckoutForm = {
   paymentMethod: (typeof PAYMENT_METHODS)[number]['value'];
 };
 
+type PendingOnlineOrder = {
+  orderId: string;
+  orderNumber: string;
+  paymentMethod: Exclude<CheckoutForm['paymentMethod'], 'COD'>;
+};
+
+type RecoverableOnlineOrder = {
+  id: string;
+  orderNumber: string;
+  paymentMethod: string;
+};
+
+function isOnlinePaymentMethod(
+  value: string,
+): value is PendingOnlineOrder['paymentMethod'] {
+  return value === 'BKASH' || value === 'NAGAD' || value === 'SSLCOMMERZ';
+}
+
+function toPendingOnlineOrder(
+  order: RecoverableOnlineOrder | null | undefined,
+): PendingOnlineOrder | null {
+  if (!order || !isOnlinePaymentMethod(order.paymentMethod)) return null;
+  return {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    paymentMethod: order.paymentMethod,
+  };
+}
+
+function createIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `mobile-checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export default function CheckoutScreen() {
   const router = useRouter();
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
   const user = useAuthStore((state) => state.user);
+  const authHydrated = useAuthStore((state) => state.hydrated);
   const [form, setForm] = useState<CheckoutForm>({
     customerName: '',
     customerPhone: '',
@@ -86,8 +123,41 @@ export default function CheckoutScreen() {
   const [discount, setDiscount] = useState(0);
   const [couponLoading, setCouponLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [checkingPayment, setCheckingPayment] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<{ orderNumber: string; online: boolean } | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const [pendingOnlineOrder, setPendingOnlineOrder] = useState<PendingOnlineOrder | null>(null);
+
+  const getActivePendingOnlineOrder = useCallback(async (): Promise<PendingOnlineOrder | null> => {
+    if (!user?.id) return null;
+    const response = await ordersApi.getActivePaymentReservation();
+    return toPendingOnlineOrder(response.data);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!authHydrated) return;
+    if (!user?.id) {
+      setPendingOnlineOrder(null);
+      return;
+    }
+
+    let active = true;
+    void getActivePendingOnlineOrder()
+      .then((pending) => {
+        if (!active || !pending) return;
+        setPendingOnlineOrder(pending);
+        setForm((current) => ({ ...current, paymentMethod: pending.paymentMethod }));
+      })
+      .catch(() => {
+        // The server-side create guard still prevents a duplicate reservation
+        // if recovery is temporarily unavailable.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [authHydrated, getActivePendingOnlineOrder, user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -157,7 +227,34 @@ export default function CheckoutScreen() {
     }
   };
 
+  const openPendingPayment = async (pending: PendingOnlineOrder) => {
+    const paymentMethod = pending.paymentMethod === 'SSLCOMMERZ'
+      ? 'sslcommerz'
+      : pending.paymentMethod.toLowerCase() as 'bkash' | 'nagad';
+    const payment = await paymentsApi.initiate({
+      orderId: pending.orderId,
+      paymentMethod,
+    });
+    if (!payment.paymentUrl) {
+      throw new Error('The payment gateway did not return a checkout link.');
+    }
+    await Linking.openURL(payment.paymentUrl);
+  };
+
   const placeOrder = async () => {
+    if (pendingOnlineOrder) {
+      setSubmitting(true);
+      setError('');
+      try {
+        await openPendingPayment(pendingOnlineOrder);
+      } catch (paymentError) {
+        setError(paymentError instanceof Error ? paymentError.message : 'Unable to reopen payment. Your cart has not been cleared.');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     if (!form.customerName.trim() || form.customerPhone.trim().length < 6 || !form.address.trim() || !form.area.trim()) {
       setError('Please provide your name, a valid phone number, delivery address, and area.');
       return;
@@ -171,6 +268,8 @@ export default function CheckoutScreen() {
       return;
     }
 
+    const nextIdempotencyKey = idempotencyKey || createIdempotencyKey();
+    setIdempotencyKey(nextIdempotencyKey);
     setSubmitting(true);
     setError('');
     try {
@@ -183,36 +282,116 @@ export default function CheckoutScreen() {
         notes: form.notes.trim() || undefined,
         couponCode: appliedCoupon || undefined,
         paymentMethod: form.paymentMethod,
+        idempotencyKey: nextIdempotencyKey,
         items: items.map(toOrderItemPayload),
       });
       const order = response.data;
-      const orderNumber = String(order?.orderNumber || order?.id || '');
+      if (!order?.id) {
+        throw new Error('The order was created without an identifier.');
+      }
+      const orderNumber = String(order.orderNumber || order.id || '');
 
       if (form.paymentMethod !== 'COD') {
-        const paymentMethod = form.paymentMethod === 'SSLCOMMERZ' ? 'sslcommerz' : form.paymentMethod.toLowerCase() as 'bkash' | 'nagad';
-        const payment = await paymentsApi.initiate({
+        const pending: PendingOnlineOrder = {
           orderId: String(order.id),
-          paymentMethod,
-          amount: Number(order.total ?? total),
-          customerName: form.customerName.trim(),
-          customerPhone: form.customerPhone.trim(),
-          customerEmail: form.customerEmail.trim() || undefined,
-          address: form.address.trim(),
-        });
-        if (!payment.paymentUrl) {
-          throw new Error('The payment gateway did not return a checkout link.');
-        }
-        await Linking.openURL(payment.paymentUrl);
+          orderNumber,
+          paymentMethod: form.paymentMethod,
+        };
+        setPendingOnlineOrder(pending);
+        setIdempotencyKey(null);
+        await openPendingPayment(pending);
+        return;
       }
 
       clearCart();
-      setSuccess({ orderNumber, online: form.paymentMethod !== 'COD' });
+      setIdempotencyKey(null);
+      setSuccess({ orderNumber, online: false });
     } catch (orderError) {
-      setError(orderError instanceof Error ? orderError.message : 'Unable to place your order. Please try again.');
+      let recoveredPending: PendingOnlineOrder | null = null;
+      try {
+        recoveredPending = await getActivePendingOnlineOrder();
+      } catch {
+        // Preserve the original checkout error when the recovery lookup is unavailable.
+      }
+
+      const recovered = recoveredPending;
+      if (recovered) {
+        setPendingOnlineOrder(recovered);
+        setForm((current) => ({ ...current, paymentMethod: recovered.paymentMethod }));
+        setError('Your existing online payment has been restored. Complete or verify it before placing another online order.');
+      } else {
+        setError(orderError instanceof Error ? orderError.message : 'Unable to place your order. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
   };
+
+  const checkPendingPayment = async () => {
+    if (!pendingOnlineOrder) return;
+    setCheckingPayment(true);
+    setError('');
+    try {
+      const response = await ordersApi.getPaymentStatus(pendingOnlineOrder.orderId);
+      const payment = response.data;
+      if (payment.paymentStatus === 'PAID') {
+        clearCart();
+        setPendingOnlineOrder(null);
+        setSuccess({ orderNumber: payment.orderNumber || pendingOnlineOrder.orderNumber, online: true });
+        return;
+      }
+      if (payment.reservationStatus !== 'ACTIVE') {
+        setPendingOnlineOrder(null);
+        setError('This payment reservation is no longer active. Your cart is still available to place a new order.');
+        return;
+      }
+      setError('Payment is still pending confirmation. You can reopen the same payment link without creating a duplicate order.');
+    } catch (paymentError) {
+      setError(paymentError instanceof Error ? paymentError.message : 'Unable to verify payment status. Your cart has not been changed.');
+    } finally {
+      setCheckingPayment(false);
+    }
+  };
+
+  if (pendingOnlineOrder) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary }}>
+        <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: Colors.bg.primary, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.slate[200], padding: 24, alignItems: 'center' }}>
+            <View style={{ width: 70, height: 70, borderRadius: 35, backgroundColor: Colors.epf[50], alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+              <ShieldCheck size={38} color={Colors.epf[600]} />
+            </View>
+            <Text style={{ color: Colors.slate[900], fontSize: 22, fontWeight: Typography.bold, textAlign: 'center' }}>
+              Complete Your Payment
+            </Text>
+            <Text style={{ color: Colors.slate[500], fontSize: 14, textAlign: 'center', lineHeight: 21, marginTop: 8 }}>
+              Your order is reserved while the gateway confirms payment. Your cart will remain available until payment is verified.
+            </Text>
+            <Text style={{ color: Colors.epf[600], fontSize: 16, fontWeight: Typography.bold, marginTop: 14 }}>
+              Order #{pendingOnlineOrder.orderNumber}
+            </Text>
+            {error ? <Text style={{ color: Colors.danger, fontSize: 13, lineHeight: 19, marginTop: 12, textAlign: 'center' }}>{error}</Text> : null}
+            <View style={{ width: '100%', marginTop: 24, gap: 10 }}>
+              <Pressable
+                style={{ backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingVertical: 14, alignItems: 'center', opacity: submitting ? 0.7 : 1 }}
+                disabled={submitting}
+                onPress={placeOrder}
+              >
+                {submitting ? <ActivityIndicator color={Colors.text.inverse} /> : <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>Open Secure Payment</Text>}
+              </Pressable>
+              <Pressable
+                style={{ borderWidth: 1, borderColor: Colors.slate[200], borderRadius: Radius.base, paddingVertical: 14, alignItems: 'center', opacity: checkingPayment ? 0.7 : 1 }}
+                disabled={checkingPayment}
+                onPress={checkPendingPayment}
+              >
+                {checkingPayment ? <ActivityIndicator color={Colors.epf[600]} /> : <Text style={{ color: Colors.slate[800], fontWeight: Typography.semibold }}>Check Payment Status</Text>}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (success) {
     return (

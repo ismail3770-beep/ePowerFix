@@ -3,6 +3,7 @@ import { Alert, Image, Linking, Pressable, ScrollView, Text, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
+  Bell,
   ChevronRight,
   Download,
   Heart,
@@ -26,6 +27,7 @@ export default function ProfileScreen() {
 
   const menuItems = [
     { label: 'My Orders', icon: Package, color: Colors.epf[500], action: () => router.push('/orders' as never) },
+    { label: 'Service Inbox', icon: Bell, color: '#F97316', action: () => router.push('/notifications' as never) },
     { label: 'Wishlist', icon: Heart, color: '#EC4899', action: () => router.push('/wishlist' as never) },
     { label: 'Addresses', icon: MapPin, color: Colors.success, action: () => router.push('/addresses' as never) },
     { label: 'Downloads', icon: Download, color: '#8B5CF6', action: () => router.push('/downloads' as never) },

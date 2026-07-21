@@ -29,6 +29,8 @@ interface AdminStats {
   totalServices?: number; totalProjects?: number; totalContacts?: number;
   pendingReturns?: number; totalReturns?: number;
   recentOrders?: { id: string; orderNumber: string; total: number; status: string; createdAt: string }[];
+  revenueByMonth?: { month: string; year: number; revenue: number; orders: number }[];
+  salesByStatus?: Record<string, { count: number; revenue: number }>;
 }
 
 interface Product {
@@ -107,25 +109,30 @@ function DashboardTab() {
   });
   const s: AdminStats = statsRes?.data ?? {};
 
-  // Sample sales trend (last 7 days) — if API ever exposes revenueByMonth we can map it.
-  const salesData = [
-    { name: "Mon", sales: 4200, orders: 12 },
-    { name: "Tue", sales: 5800, orders: 18 },
-    { name: "Wed", sales: 4900, orders: 14 },
-    { name: "Thu", sales: 7200, orders: 22 },
-    { name: "Fri", sales: 8400, orders: 26 },
-    { name: "Sat", sales: 6900, orders: 19 },
-    { name: "Sun", sales: 9100, orders: 28 },
-  ];
+  // Sales trend from API revenueByMonth (last 6 months)
+  const salesData = (s.revenueByMonth ?? []).map((m) => ({
+    name: m.month,
+    sales: m.revenue,
+    orders: m.orders,
+  }));
 
-  // Orders-by-status distribution (donut)
-  const orderStatusData = [
-    { name: "Pending", value: s.pendingOrders ?? 0, color: "#F59E0B" },
-    { name: "Confirmed", value: Math.round((s.totalOrders ?? 0) * 0.18), color: "#0EA5E9" },
-    { name: "Shipped", value: Math.round((s.totalOrders ?? 0) * 0.22), color: "#8B5CF6" },
-    { name: "Delivered", value: Math.round((s.totalOrders ?? 0) * 0.5), color: "#10B981" },
-    { name: "Cancelled", value: Math.round((s.totalOrders ?? 0) * 0.08), color: "#EF4444" },
-  ].filter((d) => d.value > 0);
+  // Orders-by-status distribution (donut) — from real salesByStatus counts
+  const statusColors: Record<string, string> = {
+    PENDING: "#F59E0B",
+    CONFIRMED: "#0EA5E9",
+    PROCESSING: "#A855F7",
+    SHIPPED: "#8B5CF6",
+    DELIVERED: "#10B981",
+    CANCELLED: "#EF4444",
+    RETURNED: "#64748B",
+  };
+  const orderStatusData = Object.entries(s.salesByStatus ?? {})
+    .map(([status, v]) => ({
+      name: status.charAt(0) + status.slice(1).toLowerCase(),
+      value: v.count,
+      color: statusColors[status] ?? "#94A3B8",
+    }))
+    .filter((d) => d.value > 0);
 
   // Top products by sales — best-effort derived from recentOrders + best sellers.
   const { data: productsRes } = useQuery<{ data: { data: Product[] } }>({
@@ -205,7 +212,7 @@ function DashboardTab() {
           <CardHeader className="flex-row items-center justify-between border-b border-slate-100 py-4">
             <div>
               <CardTitle className="text-[15px] font-semibold text-slate-900">Sales Overview</CardTitle>
-              <p className="text-[12px] text-slate-500 mt-0.5">Last 7 days revenue trend</p>
+              <p className="text-[12px] text-slate-500 mt-0.5">Last 6 months revenue trend</p>
             </div>
             <div className="flex items-center gap-1.5 text-[12px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-semibold">
               <TrendingUp className="w-3.5 h-3.5" /> +12.5%

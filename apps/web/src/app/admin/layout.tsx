@@ -49,6 +49,7 @@ const pageTitleMap: Record<string, string> = {
   'attribute-sets': 'Attribute Sets',
   'options': 'Options',
   'tags': 'Tags',
+  'import': 'Import Products',
   'services': 'Services',
   'service-categories': 'Service Categories',
   'project-kits': 'Project Kits',
@@ -96,6 +97,7 @@ const tabRouteMap: Record<string, string> = {
   'attribute-sets': '/admin/attribute-sets',
   'options': '/admin/options',
   'tags': '/admin/tags',
+  'import': '/admin/import',
   'services': '/admin/services',
   'service-categories': '/admin/service-categories',
   'project-kits': '/admin/project-kits',
@@ -145,6 +147,7 @@ const pathToTabMap: Array<{ prefix: string; tab: string }> = [
   { prefix: '/admin/attribute-sets', tab: 'attribute-sets' },
   { prefix: '/admin/options', tab: 'options' },
   { prefix: '/admin/tags', tab: 'tags' },
+  { prefix: '/admin/import', tab: 'import' },
   // Sales
   { prefix: '/admin/orders', tab: 'orders' },
   { prefix: '/admin/transactions', tab: 'transactions' },

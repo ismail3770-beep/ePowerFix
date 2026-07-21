@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setStorage, useCartStore } from '@epowerfix/store';
+import { CartSyncProvider } from '../src/components/CartSyncProvider';
 import { useAuthStore } from '../src/store/auth';
 import { useWishlistStore } from '../src/store/wishlist';
 
@@ -33,6 +34,7 @@ export default function RootLayout() {
 
   return (
     <>
+      <CartSyncProvider />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
@@ -49,6 +51,7 @@ export default function RootLayout() {
         />
         <Stack.Screen name="checkout" options={{ title: 'Checkout' }} />
         <Stack.Screen name="orders" options={{ title: 'My orders' }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
         <Stack.Screen name="wishlist" options={{ title: 'Wishlist' }} />
         <Stack.Screen name="order-track" options={{ title: 'Track order' }} />
         <Stack.Screen name="service-booking" options={{ title: 'Book a service' }} />

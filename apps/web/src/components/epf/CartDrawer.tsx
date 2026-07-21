@@ -44,19 +44,19 @@ export default function CartDrawer() {
                       {item.productImage ? <img src={item.productImage} alt={item.productName} className="h-full w-full object-contain p-1" /> : <ShoppingBag className="h-5 w-5 text-slate-300" />}
                     </div>
                     <div className="min-w-0 flex-1 pr-5">
-                      {item.itemType === "PROJECT" && <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-epf-600">Project kit</p>}
+                      {item.itemType === "PROJECT_KIT" && <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-epf-600">Project kit</p>}
                       <p className="line-clamp-2 text-[13px] font-semibold leading-5 text-slate-800">{item.productName}</p>
                       {(item.variantLabel || item.variantId) && <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-400">{item.variantLabel || "Selected variant"}</p>}
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <div className="flex h-7 items-center rounded border border-slate-200 bg-white">
-                          <button type="button" onClick={() => updateQuantity(item.productId, item.quantity - 1)} className="flex h-full w-7 items-center justify-center text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" aria-label={`Decrease ${item.productName}`}><Minus className="h-3 w-3" /></button>
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="flex h-full w-7 items-center justify-center text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" aria-label={`Decrease ${item.productName}`}><Minus className="h-3 w-3" /></button>
                           <span className="flex h-full min-w-8 items-center justify-center border-x border-slate-200 px-1 text-[11px] font-bold text-slate-800">{item.quantity}</span>
-                          <button type="button" onClick={() => updateQuantity(item.productId, item.quantity + 1)} className="flex h-full w-7 items-center justify-center text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" aria-label={`Increase ${item.productName}`}><Plus className="h-3 w-3" /></button>
+                          <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} className="flex h-full w-7 items-center justify-center text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900" aria-label={`Increase ${item.productName}`}><Plus className="h-3 w-3" /></button>
                         </div>
                         <span className="text-[14px] font-bold text-slate-900">৳{(Number(item.price) * item.quantity).toLocaleString()}</span>
                       </div>
                     </div>
-                    <button type="button" onClick={() => removeItem(item.productId)} className="absolute right-3 top-3 text-slate-400 transition-colors hover:text-red-500" aria-label={`Remove ${item.productName}`}><Trash2 className="h-3.5 w-3.5" /></button>
+                    <button type="button" onClick={() => removeItem(item.id)} className="absolute right-3 top-3 text-slate-400 transition-colors hover:text-red-500" aria-label={`Remove ${item.productName}`}><Trash2 className="h-3.5 w-3.5" /></button>
                   </article>
                 ))}
               </div>

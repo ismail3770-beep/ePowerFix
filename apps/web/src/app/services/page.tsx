@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, ChevronLeft, ChevronRight, Mail, Search, Star, UserRound, Wrench } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronRight as ChevRight, Clock, Search, Wrench, Zap } from "lucide-react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import ServiceBookingDialog from "@/components/epf/ServiceBookingDialog";
@@ -15,28 +15,85 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-interface Service { id: string; name: string; slug: string; description: string; shortDesc?: string | null; basePrice: number; priceUnit: string; images?: string[]; isFeatured?: boolean; rating?: number; reviewCount?: number; category?: { name: string; slug: string } | null }
-interface ServiceResponse { data?: { services: Service[] }; services?: Service[] }
+interface Service {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  shortDesc?: string | null;
+  basePrice: number;
+  priceUnit: string;
+  images?: string[];
+  isFeatured?: boolean;
+  rating?: number;
+  reviewCount?: number;
+  category?: { name: string; slug: string } | null;
+}
+
+interface ServiceResponse {
+  data?: { services: Service[] };
+  services?: Service[];
+}
+
 const pageSize = 6;
+
+function formatPrice(price: number) {
+  return "৳" + new Intl.NumberFormat("en-BD").format(Math.round(price));
+}
+
+function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div className="flex items-center justify-center gap-1.5 mt-8">
+      <button
+        onClick={() => onChange(Math.max(1, page - 1))}
+        disabled={page === 1}
+        className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white"
+      >
+        <ChevronLeft size={14} />
+      </button>
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+        <button
+          key={n}
+          onClick={() => onChange(n)}
+          className={cn(
+            "w-8 h-8 border rounded text-sm font-medium transition-colors",
+            page === n ? "bg-[#0EA5E9] text-white border-[#0EA5E9]" : "border-gray-300 text-gray-600 hover:border-[#0EA5E9] hover:text-[#0EA5E9] bg-white"
+          )}
+        >
+          {n}
+        </button>
+      ))}
+      <button
+        onClick={() => onChange(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages}
+        className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white"
+      >
+        <ChevronRight size={14} />
+      </button>
+    </div>
+  );
+}
 
 function ServicesContent() {
   const params = useSearchParams();
-  const initialSearch = params.get("search") || "";
-  const [searchInput, setSearchInput] = useState(initialSearch);
-  const [search, setSearch] = useState(initialSearch);
-  const [category, setCategory] = useState(params.get("category") || "");
-  const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [searchInput, setSearchInput] = useState(params.get("search") || "");
+  const [search, setSearch] = useState(params.get("search") || "");
+  const [selectedCat, setSelectedCat] = useState(params.get("category") || "");
   const [page, setPage] = useState(1);
 
-  const catalogQuery = useQuery<ServiceResponse>({ queryKey: ["services-catalog"], queryFn: () => apiFetch<ServiceResponse>("/api/services"), staleTime: 5 * 60 * 1000 });
+  const catalogQuery = useQuery<ServiceResponse>({
+    queryKey: ["services-catalog"],
+    queryFn: () => apiFetch<ServiceResponse>("/api/services"),
+    staleTime: 5 * 60 * 1000,
+  });
   const servicesQuery = useQuery<ServiceResponse>({
-    queryKey: ["services-list", { search, category, featuredOnly }],
+    queryKey: ["services-list", { search, selectedCat }],
     queryFn: () => {
-      const query = new URLSearchParams();
-      if (search) query.set("search", search);
-      if (category) query.set("category", category);
-      if (featuredOnly) query.set("featured", "true");
-      return apiFetch<ServiceResponse>(`/api/services?${query.toString()}`);
+      const q = new URLSearchParams();
+      if (search) q.set("search", search);
+      if (selectedCat) q.set("category", selectedCat);
+      return apiFetch<ServiceResponse>(`/api/services?${q.toString()}`);
     },
   });
 
@@ -44,42 +101,201 @@ function ServicesContent() {
   const services = servicesQuery.data?.data?.services ?? servicesQuery.data?.services ?? [];
   const categories = useMemo(() => {
     const seen = new Set<string>();
-    return allServices.reduce<Array<{ name: string; slug: string }>>((result, service) => {
-      if (service.category && !seen.has(service.category.slug)) { seen.add(service.category.slug); result.push(service.category); }
-      return result;
+    return allServices.reduce<Array<{ name: string; slug: string }>>((acc, s) => {
+      if (s.category && !seen.has(s.category.slug)) { seen.add(s.category.slug); acc.push(s.category); }
+      return acc;
     }, []);
   }, [allServices]);
-  const featured = allServices.filter((service) => service.isFeatured).slice(0, 4);
+
+  const featured = allServices.filter((s) => s.isFeatured).slice(0, 4);
   const totalPages = Math.max(1, Math.ceil(services.length / pageSize));
   const visible = services.slice((page - 1) * pageSize, page * pageSize);
-  const apply = (action: () => void) => { action(); setPage(1); };
+  const apply = (fn: () => void) => { fn(); setPage(1); };
 
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-white">
-        <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-12 sm:py-8">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
-            <div><div className="mb-2 flex items-center gap-2 text-xs text-slate-400"><Link href="/" className="hover:text-epf-600">Home</Link><span>/</span><span className="text-slate-700">Services</span></div><h1 className="text-xl font-semibold text-slate-900">Services</h1></div>
-            <form onSubmit={(event) => { event.preventDefault(); apply(() => setSearch(searchInput.trim())); }} className="flex h-9 w-full sm:w-[250px]"><input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search services" aria-label="Search services" className="min-w-0 flex-1 border border-slate-200 bg-slate-50 px-3 text-xs outline-none focus:border-epf-500" /><button type="submit" className="flex w-10 items-center justify-center bg-slate-900 text-white hover:bg-epf-500" aria-label="Search"><Search className="h-4 w-4" /></button></form>
+      <main className="bg-gray-50 min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                <Link href="/" className="hover:text-[#0EA5E9]">Home</Link>
+                <ChevRight size={11} />
+                <span className="text-gray-700 font-medium">Services</span>
+              </div>
+              <h1 className="font-black text-3xl tracking-tight text-gray-900">Services</h1>
+            </div>
+            <form
+              onSubmit={(e) => { e.preventDefault(); apply(() => setSearch(searchInput.trim())); }}
+              className="flex items-center border border-gray-300 rounded overflow-hidden bg-white shadow-sm"
+            >
+              <input
+                type="text"
+                placeholder="Search services..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="px-3 py-2 text-sm outline-none text-gray-700 w-56 bg-white"
+              />
+              <button type="submit" className="bg-[#0EA5E9] px-3 py-2.5 text-white hover:bg-sky-600 transition-colors">
+                <Search size={15} />
+              </button>
+            </form>
           </div>
 
-          <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_205px]">
-            <section>
-              {servicesQuery.isLoading ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-[318px] animate-pulse border border-slate-200 bg-slate-50" />)}</div> : servicesQuery.isError ? <div className="border border-red-100 bg-slate-50 px-6 py-16 text-center"><p className="font-semibold text-slate-800">Services could not be loaded.</p><button type="button" onClick={() => servicesQuery.refetch()} className="mt-4 bg-epf-500 px-4 py-2 text-sm font-semibold text-white">Try again</button></div> : visible.length > 0 ? <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{visible.map((service) => { const image = service.images?.[0]; return <Link key={service.id} href={`/services/${service.slug}`} className="group flex min-h-[318px] flex-col overflow-hidden rounded-md border border-slate-200 bg-white transition-shadow hover:border-slate-300 hover:shadow-lg"><div className="relative h-[158px] shrink-0 overflow-hidden bg-slate-100">{image ? <img src={image} alt={service.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center bg-epf-50"><Wrench className="h-9 w-9 text-epf-300" /></div>}{service.isFeatured && <span className="absolute left-3 top-3 bg-epf-500 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Popular</span>}</div><div className="flex flex-1 flex-col p-3.5"><div className="flex items-center gap-2 text-[10px] text-slate-400"><span>{service.category?.name || "Electrical service"}</span>{(service.rating || 0) > 0 && <><span>•</span><span className="inline-flex items-center gap-1"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{Number(service.rating).toFixed(1)}</span></>}</div><h2 className="mt-2 line-clamp-2 text-[14px] font-semibold leading-5 text-slate-800 group-hover:text-epf-600">{service.name}</h2><p className="mt-2 line-clamp-2 text-[12px] leading-5 text-slate-500">{service.shortDesc || service.description}</p><div className="mt-auto flex items-end justify-between pt-3"><div><p className="text-[10px] text-slate-400">Starting from</p><p className="text-[14px] font-bold text-slate-900">৳{Number(service.basePrice).toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/ {service.priceUnit.replaceAll("_", " ")}</span></p></div><span className="inline-flex items-center gap-1 text-[11px] font-semibold text-epf-600">View <ArrowRight className="h-3 w-3" /></span></div></div></Link>; })}</div> : <div className="border border-slate-200 bg-slate-50 px-6 py-20 text-center"><Wrench className="mx-auto h-9 w-9 text-slate-300" /><h2 className="mt-3 text-lg font-semibold text-slate-800">No services found</h2><p className="mt-1 text-sm text-slate-500">Try another search or category.</p></div>}
+          <div className="flex gap-8">
+            {/* Main grid */}
+            <div className="flex-1 min-w-0">
+              {servicesQuery.isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="bg-white rounded-lg overflow-hidden animate-pulse border border-gray-100">
+                      <div className="aspect-[16/10] bg-gray-100" />
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-100 rounded w-3/4" />
+                        <div className="h-3 bg-gray-100 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : visible.length === 0 ? (
+                <div className="text-center py-20">
+                  <Zap size={48} className="mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500 text-sm">No services found. Try a different search or category.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                  {visible.map((service) => {
+                    const image = service.images?.[0];
+                    return (
+                      <Link
+                        key={service.id}
+                        href={`/services/${service.slug}`}
+                        className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group border border-gray-100"
+                      >
+                        <div className="aspect-[16/10] overflow-hidden bg-gray-100 relative">
+                          {image ? (
+                            <img src={image} alt={service.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0d1a2d] to-[#0EA5E9]/30">
+                              <Wrench size={36} className="text-white/40" />
+                            </div>
+                          )}
+                          {service.category?.name && (
+                            <div className="absolute top-2.5 left-2.5">
+                              <span className="bg-[#0EA5E9] text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                {service.category.name}
+                              </span>
+                            </div>
+                          )}
+                          <div className="absolute bottom-2.5 right-2.5 bg-white/95 rounded-md px-2.5 py-1 text-xs font-bold text-[#0d1a2d] shadow-sm">
+                            From {formatPrice(service.basePrice)}
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <div className="flex items-center gap-2 mb-1.5 text-xs text-gray-400">
+                            <Wrench size={10} />
+                            <span className="font-medium text-gray-600">{service.name}</span>
+                          </div>
+                          <h3 className="font-semibold text-sm text-gray-800 line-clamp-2 mb-3 group-hover:text-[#0EA5E9] transition-colors leading-snug">
+                            {service.shortDesc || service.description}
+                          </h3>
+                          <span className="text-xs font-semibold text-gray-500 hover:text-[#0EA5E9] transition-colors flex items-center gap-0.5">
+                            Book Now <ChevRight size={12} />
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
 
-              {services.length > 0 && <div className="mt-7 flex items-center justify-center gap-1 border-t border-slate-100 pt-5"><button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 text-slate-500 disabled:opacity-40" aria-label="Previous page"><ChevronLeft className="h-4 w-4" /></button>{Array.from({ length: totalPages }).map((_, index) => <button key={index} type="button" onClick={() => setPage(index + 1)} className={cn("flex h-8 w-8 items-center justify-center rounded text-xs font-semibold", page === index + 1 ? "bg-slate-900 text-white" : "border border-slate-200 text-slate-600")}>{index + 1}</button>)}<button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 text-slate-500 disabled:opacity-40" aria-label="Next page"><ChevronRight className="h-4 w-4" /></button></div>}
-            </section>
+              <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+            </div>
 
-            <aside className="h-fit"><div className="border-b border-slate-200 pb-4"><h2 className="text-[16px] font-semibold text-slate-900">Categories</h2><div className="mt-2 h-0.5 w-8 bg-epf-500" /></div><div className="py-2"><button type="button" onClick={() => apply(() => setCategory(""))} className="flex w-full items-center justify-between border-b border-slate-100 py-2.5 text-left text-[12px] text-slate-600 hover:text-epf-600"><span>All Services</span><span className="text-[10px] text-slate-400">›</span></button>{categories.map((item) => <button key={item.slug} type="button" onClick={() => apply(() => setCategory(item.slug))} className={cn("flex w-full items-center justify-between border-b border-slate-100 py-2.5 text-left text-[12px]", category === item.slug ? "font-semibold text-epf-600" : "text-slate-600 hover:text-epf-600")}><span>{item.name}</span><span className="text-[10px] text-slate-400">›</span></button>)}</div><div className="mt-7 border-b border-slate-200 pb-4"><h2 className="text-[16px] font-semibold text-slate-900">Featured Services</h2><div className="mt-2 h-0.5 w-8 bg-epf-500" /></div><div>{featured.map((service) => <Link key={service.id} href={`/services/${service.slug}`} className="group flex items-center gap-2.5 border-b border-slate-100 py-2.5"><div className="flex h-11 w-14 shrink-0 items-center justify-center overflow-hidden bg-slate-100">{service.images?.[0] ? <img src={service.images[0]} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Wrench className="h-5 w-5 text-slate-300" />}</div><div className="min-w-0"><p className="line-clamp-2 text-[11px] font-medium leading-4 text-slate-700 group-hover:text-epf-600">{service.name}</p><p className="mt-1 text-[10px] text-slate-400">From ৳{Number(service.basePrice).toLocaleString()}</p></div></Link>)}</div></aside>
+            {/* Sidebar */}
+            <aside className="hidden lg:block w-60 shrink-0 space-y-5">
+              {/* Categories */}
+              <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm">
+                <h3 className="font-bold text-sm text-gray-800 mb-4 pb-2 border-b border-gray-100">Categories</h3>
+                <div className="space-y-0">
+                  <button
+                    onClick={() => apply(() => setSelectedCat(""))}
+                    className={cn(
+                      "w-full flex items-center justify-between py-2.5 text-sm border-b border-gray-50 group transition-colors",
+                      !selectedCat ? "text-[#0EA5E9]" : "text-gray-600 hover:text-[#0EA5E9]"
+                    )}
+                  >
+                    <span>All Services</span>
+                    <ChevRight size={14} className={cn("transition-colors shrink-0", !selectedCat ? "text-[#0EA5E9]" : "text-gray-300 group-hover:text-[#0EA5E9]")} />
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.slug}
+                      onClick={() => apply(() => setSelectedCat(selectedCat === cat.slug ? "" : cat.slug))}
+                      className={cn(
+                        "w-full flex items-center justify-between py-2.5 text-sm border-b border-gray-50 group transition-colors",
+                        selectedCat === cat.slug ? "text-[#0EA5E9]" : "text-gray-600 hover:text-[#0EA5E9]"
+                      )}
+                    >
+                      <span>{cat.name}</span>
+                      <ChevRight size={14} className={cn("transition-colors shrink-0", selectedCat === cat.slug ? "text-[#0EA5E9]" : "text-gray-300 group-hover:text-[#0EA5E9]")} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Featured Services */}
+              {featured.length > 0 && (
+                <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm">
+                  <h3 className="font-bold text-sm text-gray-800 mb-4 pb-2 border-b border-gray-100">Featured Services</h3>
+                  <div className="space-y-4">
+                    {featured.map((service) => (
+                      <Link key={service.id} href={`/services/${service.slug}`} className="flex gap-3 cursor-pointer group">
+                        <div className="w-14 h-14 rounded-md overflow-hidden shrink-0 bg-gray-100">
+                          {service.images?.[0] ? (
+                            <img src={service.images[0]} alt={service.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Wrench size={20} className="text-gray-300" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-medium text-gray-700 line-clamp-2 group-hover:text-[#0EA5E9] transition-colors leading-snug">
+                            {service.name}
+                          </h4>
+                          <p className="text-[11px] font-bold text-[#0EA5E9] mt-1">From {formatPrice(service.basePrice)}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </aside>
           </div>
         </div>
-        <section className="bg-slate-900 py-7"><div className="mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-4 px-4 sm:flex-row sm:items-center sm:px-12"><div><h2 className="text-lg font-semibold text-white">Need professional help?</h2><p className="mt-1 text-xs text-white/60">Book a qualified ePowerFix technician for your next job.</p></div><Link href="/get-quote" className="inline-flex h-9 items-center gap-1 rounded-full bg-epf-500 px-5 text-xs font-semibold text-white hover:bg-epf-600">Get a quote <ArrowRight className="h-3.5 w-3.5" /></Link></div></section>
       </main>
-      <Footer /><ServiceBookingDialog /><CartDrawer /><CheckoutDialog /><ChatWidget /><BackToTopButton />
+      <Footer />
+      <ServiceBookingDialog />
+      <CartDrawer />
+      <CheckoutDialog />
+      <ChatWidget />
+      <BackToTopButton />
     </>
   );
 }
 
-function LoadingPage() { return <div className="flex min-h-screen items-center justify-center bg-white"><Wrench className="h-6 w-6 animate-pulse text-epf-500" /></div>; }
-export default function ServicesPage() { return <Suspense fallback={<LoadingPage />}><ServicesContent /></Suspense>; }
+function LoadingPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <Zap className="h-6 w-6 animate-pulse text-[#0EA5E9]" />
+    </div>
+  );
+}
+
+export default function ServicesPage() {
+  return <Suspense fallback={<LoadingPage />}><ServicesContent /></Suspense>;
+}

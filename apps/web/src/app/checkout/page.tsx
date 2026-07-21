@@ -1,7 +1,7 @@
 "use client";
 
 import type * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -60,6 +60,43 @@ const PAYMENT_METHODS = [
   { value: "NAGAD", label: "Nagad", desc: "Mobile payment", icon: Smartphone },
   { value: "SSLCOMMERZ", label: "SSLCommerz", desc: "Card / Mobile Banking", icon: CreditCard },
 ];
+
+type OnlinePaymentMethod = "BKASH" | "NAGAD" | "SSLCOMMERZ";
+type PendingOnlineOrder = {
+  orderId: string;
+  orderNumber: string;
+  paymentMethod: OnlinePaymentMethod;
+};
+
+type ActivePaymentReservationResponse = {
+  data: {
+    id: string;
+    orderNumber: string;
+    paymentMethod: OnlinePaymentMethod;
+    reservationExpiresAt: string | null;
+  } | null;
+};
+
+type PaymentStatusResponse = {
+  data: {
+    id: string;
+    status: string;
+    paymentStatus: string;
+    reservationStatus: string;
+    reservationExpiresAt?: string | null;
+  };
+};
+
+function isOnlinePaymentMethod(value: string): value is OnlinePaymentMethod {
+  return value === "BKASH" || value === "NAGAD" || value === "SSLCOMMERZ";
+}
+
+function createIdempotencyKey(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Step Indicator                                                     */
@@ -151,9 +188,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, removeItem, updateQuantity, getTotal, clearCart, getItemCount } = useCartStore();
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
-
   const [form, setForm] = useState({
     customerName: "",
     customerPhone: "",
@@ -169,11 +203,16 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [paymentStarting, setPaymentStarting] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const [pendingOnlineOrder, setPendingOnlineOrder] = useState<PendingOnlineOrder | null>(null);
   const [shippingRates, setShippingRates] = useState({
     insideDhaka: 60,
     outsideDhaka: 120,
     freeShippingThreshold: 0,
   });
+
+  useEffect(() => { setMounted(true); }, []);
 
   // Fetch shipping rates from site settings once.
   useEffect(() => {
@@ -188,6 +227,100 @@ export default function CheckoutPage() {
       })
       .catch(() => {});
   }, []);
+
+  // The API, not browser storage or redirect query values, is the durable
+  // source of truth for an authenticated user's active payment reservation.
+  const recoverActiveOnlineOrder = useCallback(async (): Promise<boolean> => {
+    const response = await apiFetch<ActivePaymentReservationResponse>(
+      "/api/orders/active-payment-reservation"
+    );
+    const reservation = response.data;
+    if (!reservation || !isOnlinePaymentMethod(reservation.paymentMethod)) {
+      return false;
+    }
+
+    const pending = {
+      orderId: reservation.id,
+      orderNumber: reservation.orderNumber,
+      paymentMethod: reservation.paymentMethod,
+    } satisfies PendingOnlineOrder;
+    setPendingOnlineOrder(pending);
+    setForm((current) => ({ ...current, paymentMethod: pending.paymentMethod }));
+    return true;
+  }, []);
+
+  useEffect(() => {
+    void recoverActiveOnlineOrder().catch(() => {
+      // An offline or signed-out browser cannot restore UI state, but the
+      // server-side create guard still prevents a duplicate online reservation.
+    });
+  }, [recoverActiveOnlineOrder]);
+
+  useEffect(() => {
+    if (!pendingOnlineOrder) {return;}
+    let active = true;
+    apiFetch<PaymentStatusResponse>(`/api/orders/${encodeURIComponent(pendingOnlineOrder.orderId)}/payment-status`)
+      .then((response) => {
+        if (!active) {return;}
+        const status = response.data;
+        if (status.paymentStatus === "PAID") {
+          router.replace(`/payment/success?order=${encodeURIComponent(status.id)}`);
+          return;
+        }
+        if (status.reservationStatus !== "ACTIVE") {
+          setPendingOnlineOrder(null);
+        }
+      })
+      .catch(() => {
+        // Ownership is verified server-side whenever the status is retried.
+      });
+    return () => { active = false; };
+  }, [pendingOnlineOrder?.orderId, router]);
+
+  const discardPendingOnlineOrder = () => {
+    setPendingOnlineOrder(null);
+  };
+
+  const startPayment = async (pending: PendingOnlineOrder) => {
+    setPaymentStarting(true);
+    try {
+      const pay = await apiFetch<{ paymentUrl?: string; transactionId?: string }>("/api/payments/initiate", {
+        method: "POST",
+        body: JSON.stringify({
+          orderId: pending.orderId,
+          paymentMethod: pending.paymentMethod.toLowerCase(),
+        }),
+      });
+      if (!pay.paymentUrl) {
+        throw new Error("Payment initiation did not return a checkout link.");
+      }
+      window.location.assign(pay.paymentUrl);
+    } catch (err: any) {
+      let reservationReleased = false;
+      try {
+        const response = await apiFetch<PaymentStatusResponse>(
+          `/api/orders/${encodeURIComponent(pending.orderId)}/payment-status`
+        );
+        if (response.data.paymentStatus === "PAID") {
+          router.replace(`/payment/success?order=${encodeURIComponent(response.data.id)}`);
+          return;
+        }
+        if (response.data.reservationStatus !== "ACTIVE") {
+          reservationReleased = true;
+          discardPendingOnlineOrder();
+        }
+      } catch {
+        // Retain the opaque retry marker when the status cannot be verified.
+      }
+      toast.error("Payment could not be started", {
+        description: reservationReleased
+          ? "This payment reservation is no longer active. Your cart is still available to place a new order."
+          : err?.message || "Please try again. Your cart has not been cleared.",
+      });
+    } finally {
+      setPaymentStarting(false);
+    }
+  };
 
   const subtotal = getTotal();
   const formArea = (form.area || "").trim().toLowerCase();
@@ -232,48 +365,41 @@ export default function CheckoutPage() {
       if (!res.success) {throw new Error(res.error || "Order failed");}
       return res;
     },
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
       const order = data.data || data;
       const num = order?.orderNumber || order?.id || "";
       const orderId = order?.id;
-      const method = form.paymentMethod;
+      const selectedMethod = String(variables.paymentMethod || form.paymentMethod).toUpperCase();
 
-      // Online methods → hand off to the payment gateway, then redirect.
-      if (method !== "COD" && orderId) {
-        try {
-          const pay = await apiFetch<{ paymentUrl?: string; error?: string }>("/api/payments/initiate", {
-            method: "POST",
-            body: JSON.stringify({
-              orderId,
-              paymentMethod: method.toLowerCase(),
-              amount: Number(order.total),
-              customerName: form.customerName,
-              customerPhone: form.customerPhone,
-              customerEmail: form.customerEmail || undefined,
-              address: form.address || "Dhaka",
-            }),
-          });
-          if (pay?.paymentUrl) {
-            clearCart();
-            window.location.href = pay.paymentUrl;
-            return;
-          }
-          throw new Error(pay?.error || "Payment initiation failed");
-        } catch (err: any) {
-          toast.error("Payment could not be started", {
-            description: err?.message || "Please try again, or choose Cash on Delivery.",
-          });
-          return;
-        }
+      if (orderId && isOnlinePaymentMethod(selectedMethod)) {
+        const pending = {
+          orderId: String(orderId),
+          orderNumber: String(num),
+          paymentMethod: selectedMethod,
+        } satisfies PendingOnlineOrder;
+        setPendingOnlineOrder(pending);
+        setIdempotencyKey(null);
+        await startPayment(pending);
+        return;
       }
 
       // COD → confirm immediately.
       setOrderNumber(String(num));
       setOrderPlaced(true);
+      setIdempotencyKey(null);
+      discardPendingOnlineOrder();
       clearCart();
     },
     onError: (err: Error) => {
-      toast.error("Order failed", { description: err.message });
+      void recoverActiveOnlineOrder()
+        .catch(() => false)
+        .then((recovered) => {
+          toast.error("Order failed", {
+            description: recovered
+              ? "Your existing online payment has been restored. Complete or verify it before placing another online order."
+              : err.message,
+          });
+        });
     },
   });
 
@@ -284,6 +410,20 @@ export default function CheckoutPage() {
       return;
     }
     if (items.length === 0) {return;}
+
+    if (pendingOnlineOrder) {
+      if (!isOnlinePaymentMethod(form.paymentMethod) || form.paymentMethod !== pendingOnlineOrder.paymentMethod) {
+        toast.error("A payment is already pending", {
+          description: `Retry the existing ${pendingOnlineOrder.paymentMethod} payment before placing another order.`,
+        });
+        return;
+      }
+      void startPayment(pendingOnlineOrder);
+      return;
+    }
+
+    const nextIdempotencyKey = idempotencyKey || createIdempotencyKey();
+    setIdempotencyKey(nextIdempotencyKey);
     mutation.mutate({
       customerName: form.customerName,
       customerPhone: form.customerPhone,
@@ -293,6 +433,7 @@ export default function CheckoutPage() {
       notes: form.notes || undefined,
       couponCode: appliedCoupon ?? undefined,
       paymentMethod: form.paymentMethod,
+      idempotencyKey: nextIdempotencyKey,
       items: items.map(toOrderItemPayload),
     });
   };
@@ -697,7 +838,7 @@ export default function CheckoutPage() {
                               <div className="flex flex-col items-end gap-1.5">
                                 <button
                                   type="button"
-                                  onClick={() => removeItem(item.productId)}
+                                  onClick={() => removeItem(item.id)}
                                   className="text-slate-400 hover:text-red-500 transition-colors"
                                   title="Remove"
                                   aria-label={`Remove ${item.productName}`}
@@ -707,7 +848,7 @@ export default function CheckoutPage() {
                                 <div className="flex items-center border border-slate-200 rounded-md bg-white">
                                   <button
                                     type="button"
-                                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                     className="w-7 h-7 flex items-center justify-center hover:bg-slate-50 rounded-l-md transition-colors"
                                     aria-label="Decrease quantity"
                                   >
@@ -718,7 +859,7 @@ export default function CheckoutPage() {
                                   </span>
                                   <button
                                     type="button"
-                                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                     className="w-7 h-7 flex items-center justify-center hover:bg-slate-50 rounded-r-md transition-colors"
                                     aria-label="Increase quantity"
                                   >
@@ -823,13 +964,13 @@ export default function CheckoutPage() {
                         {/* Place Order Button */}
                         <Button
                           type="submit"
-                          disabled={mutation.isPending}
+                          disabled={mutation.isPending || paymentStarting}
                           className="w-full h-12 mt-5 bg-epf-500 hover:bg-epf-600 text-white text-[15px] font-semibold rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                         >
-                          {mutation.isPending ? (
+                          {mutation.isPending || paymentStarting ? (
                             <>
                               <Loader2 className="w-4 h-4 animate-spin" />
-                              Processing...
+                              {paymentStarting ? "Opening secure payment..." : "Processing..."}
                             </>
                           ) : (
                             <>

@@ -32,7 +32,7 @@ export interface PremiumCardData {
   badge?: string;
   rating?: number;
   reviewCount?: number;
-  itemType?: "PRODUCT" | "PROJECT";
+  itemType?: "PRODUCT" | "PROJECT" | "PROJECT_KIT";
 }
 
 interface PremiumCardProps {
@@ -89,7 +89,11 @@ function PremiumCardBase({ data, onCardClick, onAddToCart, className }: PremiumC
 
     addItem({
       itemType: data.itemType || "PRODUCT",
-      productId: data.id,
+      ...(data.itemType === "PROJECT_KIT"
+        ? { projectKitId: data.id }
+        : data.itemType === "PROJECT"
+        ? { projectId: data.id }
+        : { productId: data.id }),
       productName: data.name,
       productImage: imageUrl,
       price: Number(displayPrice),

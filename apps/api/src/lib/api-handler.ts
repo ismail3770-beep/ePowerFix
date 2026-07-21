@@ -2,6 +2,7 @@
 // Mirrors the pattern from apps/web/src/lib/api-handler.ts
 
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
+import type { ParamsFlatDictionary } from 'express-serve-static-core'
 import { ZodError, type ZodSchema } from 'zod'
 
 // ─── Error class ──────────────────────────────────────────────────────────────
@@ -22,8 +23,8 @@ export class ApiError extends Error {
  * Wraps an async route handler to catch promise rejections automatically.
  */
 export function asyncHandler(
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
-): RequestHandler {
+  fn: (req: Request<ParamsFlatDictionary>, res: Response, next: NextFunction) => Promise<any>
+): RequestHandler<ParamsFlatDictionary> {
   return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next)
   }

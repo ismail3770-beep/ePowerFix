@@ -90,8 +90,8 @@ export default function ShopSection() {
     e.preventDefault();
     e.stopPropagation();
     addItem({
-      itemType: "PROJECT",
-      productId: k.id,
+      itemType: "PROJECT_KIT",
+      projectKitId: k.id,
       productName: k.title,
       productImage: k.coverImage || k.images?.[0] || "",
       price: Number(k.salePrice || k.price || 0),
@@ -155,7 +155,7 @@ export default function ShopSection() {
                         coverImage: kit.coverImage,
                         images: kit.images,
                         badge: "KIT",
-                        itemType: "PROJECT",
+                        itemType: "PROJECT_KIT",
                         category: kit.category,
                       }}
                       onCardClick={(id) => { window.location.href = `/project-kits/${(kit as any).slug || id}`; }}

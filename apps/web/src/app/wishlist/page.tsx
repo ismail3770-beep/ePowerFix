@@ -2,8 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { apiFetch } from '@/lib/api'
-import { Button } from '@/components/ui/button'
-import { Trash2, Heart, ShoppingCart, ChevronRight, Home, X, AlertCircle } from 'lucide-react'
+import { Trash2, Heart, ShoppingCart, ChevronRight, X, AlertCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useCartStore } from '@/store'
@@ -68,10 +67,9 @@ export default function WishlistPage() {
   }, [])
 
   const handleClearAll = useCallback(async () => {
-    if (items.length === 0) {return}
+    if (items.length === 0) { return }
     setClearing(true)
     try {
-      // Remove all wishlist items in parallel
       await Promise.all(
         items.map((item) =>
           apiFetch(`/api/wishlist/${item.id}`, { method: 'DELETE' })
@@ -98,11 +96,8 @@ export default function WishlistPage() {
           productImage: item.product.images?.[0] || '',
           quantity: 1,
         })
-
-        // Now remove from wishlist
         await apiFetch(`/api/wishlist/${item.id}`, { method: 'DELETE' })
         setItems((prev) => prev.filter((i) => i.id !== item.id))
-
         toast.success('Moved to cart', { description: item.product.name })
       } catch (err) {
         console.error(err)
@@ -115,14 +110,14 @@ export default function WishlistPage() {
   /* ---- Loading skeleton ---- */
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <CartDrawer />
         <CheckoutDialog />
         <main className="flex-1">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-8">
-            <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-8" />
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-8" />
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <PremiumCardSkeleton key={i} />
@@ -140,7 +135,7 @@ export default function WishlistPage() {
   /* ---- Error state ---- */
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-gray-50">
         <Header />
         <CartDrawer />
         <CheckoutDialog />
@@ -149,16 +144,11 @@ export default function WishlistPage() {
             <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
               <AlertCircle className="h-8 w-8 text-red-400" />
             </div>
-            <h2 className="text-[18px] font-bold text-slate-900 mb-2">
-              Something went wrong
-            </h2>
-            <p className="text-[14px] text-slate-500 mb-6">{error}</p>
-            <Button
-              onClick={load}
-              className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white rounded-lg font-semibold"
-            >
+            <h2 className="text-lg font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <p className="text-sm text-gray-500 mb-6">{error}</p>
+            <button onClick={load} className="h-11 px-6 bg-[#0EA5E9] hover:bg-sky-600 text-white rounded font-bold text-sm uppercase tracking-wider">
               Try Again
-            </Button>
+            </button>
           </div>
         </main>
         <div className="mt-auto"><Footer /></div>
@@ -169,79 +159,47 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <CartDrawer />
       <CheckoutDialog />
 
       <main className="flex-1">
-        {/* Breadcrumb */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12">
-            <nav className="flex items-center gap-1.5 h-11 text-[13px]">
-              <a
-                href="/"
-                className="flex items-center gap-1 text-slate-500 hover:text-epf-600 transition-colors"
-              >
-                <Home className="h-3.5 w-3.5" />
-                <span>Home</span>
-              </a>
-              <ChevronRight className="h-3 w-3 text-slate-300" />
-              <span className="text-slate-900 font-medium">Wishlist</span>
-            </nav>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
+            <Link href="/" className="hover:text-[#0EA5E9]">Home</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-gray-700 font-semibold">Wishlist</span>
           </div>
-        </div>
 
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-8">
-          {/* Header */}
+          {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center">
-                <Heart className="h-6 w-6 text-red-500 fill-red-500" />
-              </div>
-              <div>
-                <h1 className="text-[24px] font-bold text-slate-900 tracking-tight">
-                  My Wishlist
-                </h1>
-                <p className="text-[13px] text-slate-500 mt-0.5">
-                  {items.length} {items.length === 1 ? 'item' : 'items'} saved for later
-                </p>
-              </div>
-            </div>
+            <h1 className="font-black text-3xl uppercase tracking-tight text-gray-900">
+              My Wishlist{' '}
+              <span className="text-gray-400 text-xl font-normal">({items.length})</span>
+            </h1>
             {items.length > 0 && (
-              <Button
+              <button
                 onClick={handleClearAll}
                 disabled={clearing}
-                variant="outline"
-                className="h-10 px-4 border-slate-200 text-slate-700 hover:bg-red-50 hover:border-red-200 hover:text-red-600 rounded-lg font-semibold"
+                className="inline-flex items-center gap-1.5 border border-gray-300 rounded px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-colors"
               >
-                <Trash2 className="h-4 w-4 mr-1.5" />
+                <Trash2 className="h-4 w-4" />
                 {clearing ? 'Clearing…' : 'Clear All'}
-              </Button>
+              </button>
             )}
           </div>
 
           {items.length === 0 ? (
             /* Empty State */
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
-              <div className="flex flex-col items-center justify-center py-20 px-4">
-                <div className="h-20 w-20 rounded-full bg-red-50 flex items-center justify-center mb-5">
-                  <Heart className="h-10 w-10 text-red-300" />
-                </div>
-                <h3 className="text-[18px] font-bold text-slate-900 mb-2">
-                  Your wishlist is empty
-                </h3>
-                <p className="text-[14px] text-slate-500 mb-6 text-center max-w-md">
-                  Save items you love by clicking the heart icon on any product.
-                  They&apos;ll appear here so you can easily find them later.
-                </p>
-                <Link href="/shop">
-                  <Button className="h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white text-[14px] font-semibold rounded-lg shadow-sm">
-                    <ShoppingCart className="h-4 w-4 mr-1.5" />
-                    Browse Products
-                  </Button>
-                </Link>
-              </div>
+            <div className="text-center py-20">
+              <Heart className="mx-auto h-16 w-16 text-gray-300 mb-5" />
+              <h2 className="font-black text-3xl uppercase tracking-tight text-gray-900 mb-3">Your Wishlist is Empty</h2>
+              <p className="text-gray-500 text-sm mb-8">Save items you love by clicking the heart icon on any product.</p>
+              <Link href="/shop" className="inline-flex items-center gap-2 bg-[#0EA5E9] text-white font-bold px-8 py-3 rounded hover:bg-sky-600 transition-colors uppercase tracking-wider">
+                Discover Products <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           ) : (
             /* Wishlist Grid */
@@ -263,14 +221,11 @@ export default function WishlistPage() {
                     <PremiumCard
                       data={cardData}
                       onAddToCart={() => handleMoveToCart(item)}
-                      onCardClick={() => {
-                        // Open product page (let anchor handle default)
-                      }}
+                      onCardClick={() => {}}
                     />
-                    {/* Remove button overlay (covers WishlistButton at top-right) */}
                     <button
                       onClick={() => handleRemove(item.id)}
-                      className="absolute top-2 right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm transition-colors"
+                      className="absolute top-2 right-2 z-20 h-8 w-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-500 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-sm transition-colors"
                       title="Remove from wishlist"
                       aria-label="Remove from wishlist"
                     >

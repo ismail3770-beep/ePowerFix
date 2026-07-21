@@ -17,35 +17,35 @@ datasource db {
 // ==================== MODELS ====================
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  nameBn    String?  @map("name_bn")
-  email     String   @unique
-  phone     String   @unique
-  password  String
-  role      String   @default("CUSTOMER")
-  avatar    String?
-  isActive  Boolean  @default(true) @map("is_active")
-  isDeleted Boolean  @default(false) @map("is_deleted")
+  id                   String    @id @default(uuid())
+  name                 String
+  nameBn               String?   @map("name_bn")
+  email                String    @unique
+  phone                String    @unique
+  password             String
+  role                 String    @default("CUSTOMER")
+  avatar               String?
+  isActive             Boolean   @default(true) @map("is_active")
+  isDeleted            Boolean   @default(false) @map("is_deleted")
   // Customer profile fields (editable from /profile page)
-  address    String?  @map("address")
-  area       String?  @map("area")
-  city       String?  @map("city")
-  postalCode String?  @map("postal_code")
+  address              String?   @map("address")
+  area                 String?   @map("area")
+  city                 String?   @map("city")
+  postalCode           String?   @map("postal_code")
   // Email verification + password reset. Tokens store a sha256 hash of the
   // random token that was emailed — never the raw value.
   emailVerified        Boolean   @default(false) @map("email_verified")
   emailVerifyToken     String?   @map("email_verify_token")
   passwordResetToken   String?   @map("password_reset_token")
   passwordResetExpires DateTime? @map("password_reset_expires")
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
   addresses       UserAddress[]
   orders          Order[]
   reviews         Review[]
   wishlistItems   Wishlist[]
-  quoteRequests    QuoteRequest[]
+  quoteRequests   QuoteRequest[]
   serviceBookings ServiceBooking[]
   cartItems       CartItem[]
   contacts        Contact[]
@@ -56,30 +56,51 @@ model User {
   notifications   Notification[]
   questions       ProductQuestion[]
 
+  // Marketplace identity is additive and intentionally separate from legacy ServiceBooking.
+  providerProfile                 ProviderProfile?            @relation("ProviderOwner")
+  reviewedProviderProfiles        ProviderProfile[]           @relation("ProviderReviewer")
+  reviewedProviderDocuments       ProviderDocument[]          @relation("ProviderDocumentReviewer")
+  marketplaceRequests             MarketplaceServiceRequest[] @relation("MarketplaceRequestCustomer")
+  marketplaceAssignmentsCreated   JobAssignment[]             @relation("AssignmentDispatcher")
+  marketplaceJobStatusChanges     JobStatusHistory[]          @relation("JobStatusActor")
+  marketplaceQuotesReviewed       MarketplaceQuote[]          @relation("QuoteAdminReviewer")
+  marketplaceQuoteDecisions       MarketplaceQuote[]          @relation("QuoteCustomerDecision")
+  marketplacePayments             MarketplacePayment[]        @relation("MarketplacePaymentCustomer")
+  marketplacePayoutsCreated       ProviderPayout[]             @relation("PayoutCreator")
+  marketplacePayoutsApproved      ProviderPayout[]             @relation("PayoutApprover")
+  marketplaceReviews              MarketplaceReview[]         @relation("MarketplaceReviewCustomer")
+  marketplaceWarrantyClaims       MarketplaceWarrantyClaim[]  @relation("WarrantyClaimCustomer")
+  marketplaceWarrantyClaimsResolved MarketplaceWarrantyClaim[] @relation("WarrantyClaimResolver")
+  marketplaceDisputesOpened       MarketplaceDispute[]        @relation("DisputeOpener")
+  marketplaceDisputesResolved     MarketplaceDispute[]        @relation("DisputeResolver")
+  marketplaceNotificationDelivery NotificationDelivery[]      @relation("NotificationRecipient")
+  marketplaceSettingsUpdated      MarketplaceSetting[]        @relation("MarketplaceSettingUpdater")
+  marketplaceAuditEvents          MarketplaceAuditEvent[]     @relation("MarketplaceAuditActor")
+
   // Performance: index frequently queried fields
-  @@index([role])           // Admin panel filters by role (ADMIN vs CUSTOMER)
-  @@index([isActive])       // Soft-delete filter on every query
-  @@index([createdAt])      // Admin user list sorted by newest
+  @@index([role]) // Admin panel filters by role (ADMIN vs CUSTOMER)
+  @@index([isActive]) // Soft-delete filter on every query
+  @@index([createdAt]) // Admin user list sorted by newest
   @@map("users")
 }
 
 model UserAddress {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  label       String?
-  fullName    String   @map("full_name")
-  phone       String
-  address     String
-  city        String
-  area        String?
-  postalCode  String?  @map("postal_code")
-  isDefault   Boolean  @default(false) @map("is_default")
-  isDeleted   Boolean  @default(false) @map("is_deleted")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  label      String?
+  fullName   String   @map("full_name")
+  phone      String
+  address    String
+  city       String
+  area       String?
+  postalCode String?  @map("postal_code")
+  isDefault  Boolean  @default(false) @map("is_default")
+  isDeleted  Boolean  @default(false) @map("is_deleted")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders  Order[]
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
 
   @@index([userId])
   @@map("user_addresses")
@@ -117,69 +138,69 @@ model ProductCategory {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  products  Product[]
-  parent    ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children  ProductCategory[] @relation("CategoryHierarchy")
+  products Product[]
+  parent   ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children ProductCategory[] @relation("CategoryHierarchy")
 
   @@map("product_categories")
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  nameBn      String?  @map("name_bn")
-  slug        String   @unique
-  description String
-  shortDesc   String?  @map("short_desc")
-  sku         String?  @unique
-  price       Float
-  salePrice   Float?   @map("sale_price")
-  costPrice   Float?   @map("cost_price")
-  stock       Int      @default(0)
-  minStock    Int      @default(5) @map("min_stock")
-  images      String   @default("[]") // JSON-stringified array of URLs
-  specs       String?
-  isFeatured  Boolean  @default(false) @map("is_featured")
-  isBestDeal  Boolean  @default(false) @map("is_best_deal")
-  hasVariant  Boolean  @default(false) @map("has_variant")
+  id            String   @id @default(uuid())
+  name          String
+  nameBn        String?  @map("name_bn")
+  slug          String   @unique
+  description   String
+  shortDesc     String?  @map("short_desc")
+  sku           String?  @unique
+  price         Float
+  salePrice     Float?   @map("sale_price")
+  costPrice     Float?   @map("cost_price")
+  stock         Int      @default(0)
+  minStock      Int      @default(5) @map("min_stock")
+  images        String   @default("[]") // JSON-stringified array of URLs
+  specs         String?
+  isFeatured    Boolean  @default(false) @map("is_featured")
+  isBestDeal    Boolean  @default(false) @map("is_best_deal")
+  hasVariant    Boolean  @default(false) @map("has_variant")
   // Digital delivery: isDigital products skip stock/shipping and are delivered
   // via secure download. digitalFile is a PRIVATE path (never publicly served).
-  isDigital     Boolean        @default(false) @map("is_digital")
-  digitalFile   String?        @map("digital_file")
-  downloadLimit Int?           @map("download_limit")
-  isActive    Boolean          @default(true) @map("is_active")
-  isDeleted   Boolean          @default(false) @map("is_deleted")
-  brandId     String           @map("brand_id")
-  categoryId  String           @map("category_id")
-  tags        String           @default("[]") // JSON-stringified array of tags
-  rating      Float            @default(0)
-  reviewCount Int              @default(0) @map("review_count")
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
+  isDigital     Boolean  @default(false) @map("is_digital")
+  digitalFile   String?  @map("digital_file")
+  downloadLimit Int?     @map("download_limit")
+  isActive      Boolean  @default(true) @map("is_active")
+  isDeleted     Boolean  @default(false) @map("is_deleted")
+  brandId       String   @map("brand_id")
+  categoryId    String   @map("category_id")
+  tags          String   @default("[]") // JSON-stringified array of tags
+  rating        Float    @default(0)
+  reviewCount   Int      @default(0) @map("review_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  brand     Brand            @relation(fields: [brandId], references: [id])
-  category  ProductCategory  @relation(fields: [categoryId], references: [id])
-  variants  ProductVariant[]
-  reviews   Review[]
+  brand         Brand             @relation(fields: [brandId], references: [id])
+  category      ProductCategory   @relation(fields: [categoryId], references: [id])
+  variants      ProductVariant[]
+  reviews       Review[]
   wishlistItems Wishlist[]
-  cartItems CartItem[]
-  orderItems OrderItem[]
-  kitItems  ProjectKitItem[]
-  flashSaleId String?           @map("flash_sale_id")
-  flashSale   FlashSale?        @relation(fields: [flashSaleId], references: [id])
-  taxId       String?           @map("tax_id")
-  tax         Tax?              @relation(fields: [taxId], references: [id])
-  questions   ProductQuestion[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  kitItems      ProjectKitItem[]
+  flashSaleId   String?           @map("flash_sale_id")
+  flashSale     FlashSale?        @relation(fields: [flashSaleId], references: [id])
+  taxId         String?           @map("tax_id")
+  tax           Tax?              @relation(fields: [taxId], references: [id])
+  questions     ProductQuestion[]
 
   @@index([categoryId])
   @@index([brandId])
   @@index([flashSaleId])
   @@index([isActive])
-  @@index([isFeatured])     // Homepage "Featured Products" section
-  @@index([isBestDeal])     // Homepage "Best Deals" section + /deals page
-  @@index([price])          // Shop page price sort + price filter
-  @@index([slug])           // Product detail page lookup by slug
-  @@index([createdAt])      // "Newest" sort option in shop
+  @@index([isFeatured]) // Homepage "Featured Products" section
+  @@index([isBestDeal]) // Homepage "Best Deals" section + /deals page
+  @@index([price]) // Shop page price sort + price filter
+  @@index([slug]) // Product detail page lookup by slug
+  @@index([createdAt]) // "Newest" sort option in shop
   @@map("products")
 }
 
@@ -205,30 +226,34 @@ model ProductVariant {
 }
 
 model CartItem {
-  id        String    @id @default(uuid())
-  userId    String    @map("user_id")
-  itemType  String    @default("PRODUCT") @map("item_type")
-  productId String?   @map("product_id")
-  variantId String?   @map("variant_id")
-  serviceId String?   @map("service_id")
-  projectId String?   @map("project_id")
-  quantity  Int       @default(1)
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  itemType     String   @default("PRODUCT") @map("item_type")
+  productId    String?  @map("product_id")
+  variantId    String?  @map("variant_id")
+  serviceId    String?  @map("service_id")
+  projectId    String?  @map("project_id")
+  projectKitId String?  @map("project_kit_id")
+  quantity     Int      @default(1)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product?        @relation(fields: [productId], references: [id])
-  variant ProductVariant? @relation(fields: [variantId], references: [id])
-  service Service?        @relation(fields: [serviceId], references: [id])
-  project Project?        @relation(fields: [projectId], references: [id])
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product    Product?        @relation(fields: [productId], references: [id])
+  variant    ProductVariant? @relation(fields: [variantId], references: [id])
+  service    Service?        @relation(fields: [serviceId], references: [id])
+  project    Project?        @relation(fields: [projectId], references: [id])
+  projectKit ProjectKit?     @relation(fields: [projectKitId], references: [id], onDelete: SetNull)
 
+  @@unique([userId, productId, variantId])
+  @@unique([userId, serviceId])
+  @@unique([userId, projectId])
+  @@unique([userId, projectKitId])
   @@index([userId])
   @@index([productId])
   @@index([serviceId])
   @@index([projectId])
-  @@unique([userId, productId, variantId])
-  @@unique([userId, serviceId])
-  @@unique([userId, projectId])
+  @@index([projectKitId])
   @@map("cart_items")
 }
 
@@ -241,49 +266,55 @@ model Wishlist {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])
 
+  @@unique([userId, productId])
   @@index([userId])
   @@index([productId])
-  @@unique([userId, productId])
   @@map("wishlists")
 }
 
 model Order {
-  id              String   @id @default(uuid())
-  orderNumber     String   @unique @map("order_number")
-  userId          String?  @map("user_id")
-  customerName    String?  @map("customer_name")
-  customerPhone   String?  @map("customer_phone")
-  customerEmail   String?  @map("customer_email")
-  subtotal        Float
-  deliveryCharge  Float    @default(0) @map("delivery_charge")
-  discount        Float    @default(0)
-  taxAmount       Float    @default(0) @map("tax_amount")
-  total           Float
-  status          String   @default("PENDING")
-  paymentStatus   String   @default("PENDING") @map("payment_status")
-  paymentMethod   String   @map("payment_method")
-  couponId        String?  @map("coupon_id")
-  addressId       String?  @map("address_id")
-  notes           String?
-  deliveredAt     DateTime? @map("delivered_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  id                       String    @id @default(uuid())
+  orderNumber              String    @unique @map("order_number")
+  userId                   String?   @map("user_id")
+  customerName             String?   @map("customer_name")
+  customerPhone            String?   @map("customer_phone")
+  customerEmail            String?   @map("customer_email")
+  subtotal                 Float
+  deliveryCharge           Float     @default(0) @map("delivery_charge")
+  discount                 Float     @default(0)
+  taxAmount                Float     @default(0) @map("tax_amount")
+  total                    Float
+  status                   String    @default("PENDING")
+  paymentStatus            String    @default("PENDING") @map("payment_status")
+  paymentMethod            String    @map("payment_method")
+  idempotencyKey           String?   @unique @map("idempotency_key")
+  reservationStatus        String    @default("NONE") @map("reservation_status")
+  reservationExpiresAt     DateTime? @map("reservation_expires_at")
+  reservationReleasedAt    DateTime? @map("reservation_released_at")
+  reservationReleaseReason String?   @map("reservation_release_reason")
+  couponId                 String?   @map("coupon_id")
+  addressId                String?   @map("address_id")
+  notes                    String?
+  deliveredAt              DateTime? @map("delivered_at")
+  createdAt                DateTime  @default(now()) @map("created_at")
+  updatedAt                DateTime  @updatedAt @map("updated_at")
 
-  user     User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  address  UserAddress? @relation(fields: [addressId], references: [id])
-  items    OrderItem[]
-  payments Payment[]
-  histories OrderHistory[]
-  couponUsages CouponUsage[]
-  coupon   Coupon?     @relation(fields: [couponId], references: [id])
-  shipment Shipment?
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  address        UserAddress?    @relation(fields: [addressId], references: [id])
+  items          OrderItem[]
+  payments       Payment[]
+  histories      OrderHistory[]
+  couponUsages   CouponUsage[]
+  coupon         Coupon?         @relation(fields: [couponId], references: [id])
+  shipment       Shipment?
   returnRequests ReturnRequest[]
 
   @@index([userId])
   @@index([addressId])
   @@index([status])
   @@index([createdAt])
-  @@index([paymentStatus])  // Admin: filter by payment status
+  @@index([paymentStatus]) // Admin: filter by payment status
+  @@index([reservationStatus, reservationExpiresAt])
   @@map("orders")
 }
 
@@ -341,17 +372,17 @@ model Notification {
 }
 
 model Payment {
-  id               String   @id @default(cuid())
-  orderId          String?  @map("order_id")
-  serviceBookingId String?  @map("service_booking_id")
+  id               String    @id @default(cuid())
+  orderId          String?   @map("order_id")
+  serviceBookingId String?   @map("service_booking_id")
   amount           Float
   method           String
-  status           String   @default("PENDING")
-  transactionId    String?  @unique @map("transaction_id")
-  paymentData      String?  @map("payment_data")
+  status           String    @default("PENDING")
+  transactionId    String?   @unique @map("transaction_id")
+  paymentData      String?   @map("payment_data")
   paidAt           DateTime? @map("paid_at")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   order          Order?          @relation(fields: [orderId], references: [id])
   serviceBooking ServiceBooking? @relation(fields: [serviceBookingId], references: [id])
@@ -362,48 +393,52 @@ model Payment {
 }
 
 model OrderItem {
-  id           String   @id @default(uuid())
-  orderId      String   @map("order_id")
-  itemType     String   @default("PRODUCT") @map("item_type")
-  productId    String?  @map("product_id")
-  variantId    String?  @map("variant_id")
-  serviceId    String?  @map("service_id")
-  projectId    String?  @map("project_id")
-  productName  String   @map("product_name")
-  productImage String?  @map("product_image")
-  variantName  String?  @map("variant_name")
-  price        Float
-  quantity     Int
-  total        Float
+  id                String   @id @default(uuid())
+  orderId           String   @map("order_id")
+  itemType          String   @default("PRODUCT") @map("item_type")
+  productId         String?  @map("product_id")
+  variantId         String?  @map("variant_id")
+  serviceId         String?  @map("service_id")
+  projectId         String?  @map("project_id")
+  projectKitId      String?  @map("project_kit_id")
+  productName       String   @map("product_name")
+  productImage      String?  @map("product_image")
+  variantName       String?  @map("variant_name")
+  price             Float
+  quantity          Int
+  total             Float
+  inventoryReserved Boolean  @default(false) @map("inventory_reserved")
   // Number of times a digital asset for this line has been downloaded.
-  downloadCount Int      @default(0) @map("download_count")
-  createdAt    DateTime  @default(now()) @map("created_at")
+  downloadCount     Int      @default(0) @map("download_count")
+  createdAt         DateTime @default(now()) @map("created_at")
 
-  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product?        @relation(fields: [productId], references: [id])
-  variant ProductVariant? @relation(fields: [variantId], references: [id])
-  service Service?        @relation(fields: [serviceId], references: [id])
-  project Project?        @relation(fields: [projectId], references: [id])
+  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product?        @relation(fields: [productId], references: [id])
+  variant    ProductVariant? @relation(fields: [variantId], references: [id])
+  service    Service?        @relation(fields: [serviceId], references: [id])
+  project    Project?        @relation(fields: [projectId], references: [id])
+  projectKit ProjectKit?     @relation(fields: [projectKitId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([productId])
   @@index([serviceId])
   @@index([projectId])
+  @@index([projectKitId])
   @@map("order_items")
 }
 
 model Shipment {
-  id                String   @id @default(cuid())
-  orderId           String   @unique @map("order_id")
-  trackingNumber    String?  @unique @map("tracking_number")
+  id                String    @id @default(cuid())
+  orderId           String    @unique @map("order_id")
+  trackingNumber    String?   @unique @map("tracking_number")
   carrier           String?
-  status            String   @default("PENDING")
+  status            String    @default("PENDING")
   estimatedDelivery DateTime? @map("estimated_delivery")
   shippedAt         DateTime? @map("shipped_at")
   deliveredAt       DateTime? @map("delivered_at")
   notes             String?
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
 
   order     Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   histories ShipmentHistory[]
@@ -433,7 +468,7 @@ model Coupon {
   name        String
   nameBn      String?  @map("name_bn")
   description String?
-  type        String   // PERCENTAGE, FIXED
+  type        String // PERCENTAGE, FIXED
   value       Float
   minOrder    Float?   @map("min_order")
   maxDiscount Float?   @map("max_discount")
@@ -459,9 +494,9 @@ model CouponUsage {
   orderId   String?  @map("order_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  coupon Coupon  @relation(fields: [couponId], references: [id])
-  user   User    @relation(fields: [userId], references: [id])
-  order  Order?  @relation(fields: [orderId], references: [id])
+  coupon Coupon @relation(fields: [couponId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  order  Order? @relation(fields: [orderId], references: [id])
 
   @@unique([couponId, userId])
   @@index([userId])
@@ -507,34 +542,37 @@ model Service {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  category ServiceCategory @relation(fields: [categoryId], references: [id])
-  bookings ServiceBooking[]
-  cartItems  CartItem[]
-  orderItems OrderItem[]
-  reviews    Review[]
+  category            ServiceCategory             @relation(fields: [categoryId], references: [id])
+  bookings            ServiceBooking[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+  reviews             Review[]
+  marketplaceRequests MarketplaceServiceRequest[]
 
   @@index([categoryId])
   @@map("services")
 }
 
 model ServiceBooking {
-  id             String   @id @default(uuid())
-  userId         String   @map("user_id")
-  serviceId      String   @map("service_id")
-  bookingDate    DateTime @map("booking_date")
-  bookingTime    String   @map("booking_time")
-  status         String   @default("PENDING")
-  notes          String?
-  address        String
-  phone          String
-  totalCost      Float    @map("total_cost")
-  paymentStatus  String   @default("PENDING") @map("payment_status")
-  paymentMethod  String?  @map("payment_method")
-  isDeleted      Boolean  @default(false) @map("is_deleted")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  customerName  String?  @map("customer_name")
+  customerEmail String?  @map("customer_email")
+  serviceId     String   @map("service_id")
+  bookingDate   DateTime @map("booking_date")
+  bookingTime   String   @map("booking_time")
+  status        String   @default("PENDING")
+  notes         String?
+  address       String
+  phone         String
+  totalCost     Float    @map("total_cost")
+  paymentStatus String   @default("PENDING") @map("payment_status")
+  paymentMethod String?  @map("payment_method")
+  isDeleted     Boolean  @default(false) @map("is_deleted")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  user     User      @relation(fields: [userId], references: [id])
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   service  Service   @relation(fields: [serviceId], references: [id])
   payments Payment[]
 
@@ -569,19 +607,19 @@ model Review {
 }
 
 model BlogPost {
-  id         String   @id @default(uuid())
-  title      String
-  titleBn    String?  @map("title_bn")
-  slug       String   @unique
-  content    String
-  excerpt    String?
-  coverImage String?  @map("cover_image")
-  author     String?
-  tags       String   @default("[]") // JSON-stringified array of tags
-  isPublished Boolean @default(false) @map("is_published")
-  isDeleted  Boolean  @default(false) @map("is_deleted")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  title       String
+  titleBn     String?  @map("title_bn")
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  coverImage  String?  @map("cover_image")
+  author      String?
+  tags        String   @default("[]") // JSON-stringified array of tags
+  isPublished Boolean  @default(false) @map("is_published")
+  isDeleted   Boolean  @default(false) @map("is_deleted")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("blog_posts")
 }
@@ -639,25 +677,25 @@ model Newsletter {
 }
 
 model Project {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
-  titleBn     String?  @map("title_bn")
-  slug        String   @unique
+  titleBn     String?   @map("title_bn")
+  slug        String    @unique
   description String
-  coverImage  String?  @map("cover_image")
-  images      String   @default("[]") // JSON-stringified array of URLs
+  coverImage  String?   @map("cover_image")
+  images      String    @default("[]") // JSON-stringified array of URLs
   client      String?
   location    String?
-  status      String   @default("COMPLETED")
+  status      String    @default("COMPLETED")
   // Sellable-project fields. isSellable=false keeps a project as portfolio-only.
-  isSellable  Boolean  @default(false) @map("is_sellable")
+  isSellable  Boolean   @default(false) @map("is_sellable")
   price       Float?
-  salePrice   Float?   @map("sale_price")
-  isDeleted   Boolean  @default(false) @map("is_deleted")
+  salePrice   Float?    @map("sale_price")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
   startDate   DateTime? @map("start_date")
   endDate     DateTime? @map("end_date")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   cartItems  CartItem[]
   orderItems OrderItem[]
@@ -686,7 +724,9 @@ model ProjectKit {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  items       ProjectKitItem[]
+  items      ProjectKitItem[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@index([isActive])
   @@map("project_kits")
@@ -701,8 +741,8 @@ model ProjectKitItem {
   notes      String?
   createdAt  DateTime @default(now()) @map("created_at")
 
-  kit      ProjectKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
-  product  Product    @relation(fields: [productId], references: [id])
+  kit     ProjectKit @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  product Product    @relation(fields: [productId], references: [id])
 
   @@index([kitId])
   @@index([productId])
@@ -710,17 +750,17 @@ model ProjectKitItem {
 }
 
 model FlashSale {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  startDate   DateTime @map("start_date")
-  endDate     DateTime @map("end_date")
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime  @map("end_date")
   discount    Float
-  isActive    Boolean  @default(true) @map("is_active")
-  isDeleted   Boolean  @default(false) @map("is_deleted")
+  isActive    Boolean   @default(true) @map("is_active")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
   products    Product[]
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@map("flash_sales")
 }
@@ -762,82 +802,82 @@ model ProductQuestion {
 // ==================== SITE SETTINGS ====================
 
 model SiteSettings {
-  id    String @id @default("default")
+  id String @id @default("default")
 
   // Brand
-  siteName        String  @default("ePowerFix") @map("site_name")
-  siteTagline     String? @map("site_tagline")
-  logoUrl         String? @map("logo_url")
-  faviconUrl      String? @map("favicon_url")
+  siteName    String  @default("ePowerFix") @map("site_name")
+  siteTagline String? @map("site_tagline")
+  logoUrl     String? @map("logo_url")
+  faviconUrl  String? @map("favicon_url")
 
   // Colors (hex without #)
-  primaryColor    String  @default("0EA5E9") @map("primary_color")
-  secondaryColor  String  @default("0284C7") @map("secondary_color")
-  accentColor     String  @default("4D7300") @map("accent_color")
-  headerBg        String  @default("FFFFFF") @map("header_bg")
-  footerBg        String  @default("111827") @map("footer_bg")
-  bodyBg          String  @default("F8FAFC") @map("body_bg")
+  primaryColor   String @default("0EA5E9") @map("primary_color")
+  secondaryColor String @default("0284C7") @map("secondary_color")
+  accentColor    String @default("4D7300") @map("accent_color")
+  headerBg       String @default("FFFFFF") @map("header_bg")
+  footerBg       String @default("111827") @map("footer_bg")
+  bodyBg         String @default("F8FAFC") @map("body_bg")
 
   // Typography
-  headingFont     String  @default("Geist Sans") @map("heading_font")
-  bodyFont        String  @default("Geist Sans") @map("body_font")
-  fontSize        String  @default("16") @map("font_size")
+  headingFont String @default("Geist Sans") @map("heading_font")
+  bodyFont    String @default("Geist Sans") @map("body_font")
+  fontSize    String @default("16") @map("font_size")
 
   // Layout
-  containerWidth  String  @default("1280") @map("container_width")
+  containerWidth String @default("1280") @map("container_width")
 
   // Social links
-  facebookUrl     String? @map("facebook_url")
-  instagramUrl    String? @map("instagram_url")
-  twitterUrl      String? @map("twitter_url")
-  youtubeUrl      String? @map("youtube_url")
-  linkedinUrl     String? @map("linkedin_url")
+  facebookUrl  String? @map("facebook_url")
+  instagramUrl String? @map("instagram_url")
+  twitterUrl   String? @map("twitter_url")
+  youtubeUrl   String? @map("youtube_url")
+  linkedinUrl  String? @map("linkedin_url")
 
   // Contact
-  phone           String?
-  email           String?
-  address         String?
+  phone   String?
+  email   String?
+  address String?
 
   // Footer
-  copyrightText   String  @default("© 2025 ePowerFix. All rights reserved.") @map("copyright_text")
+  copyrightText String @default("© 2025 ePowerFix. All rights reserved.") @map("copyright_text")
 
   // Meta
   metaTitle       String? @map("meta_title")
   metaDescription String? @map("meta_description")
 
   // Payment Gateways — bKash
-  bkashEnabled       Boolean @default(false) @map("bkash_enabled")
-  bkashPhoneNumber   String? @map("bkash_phone_number")
-  bkashApiKey        String? @map("bkash_api_key")
-  bkashSecretKey     String? @map("bkash_secret_key")
-  bkashSandbox       Boolean @default(true)  @map("bkash_sandbox")
+  bkashEnabled     Boolean @default(false) @map("bkash_enabled")
+  bkashPhoneNumber String? @map("bkash_phone_number")
+  bkashApiKey      String? @map("bkash_api_key")
+  bkashSecretKey   String? @map("bkash_secret_key")
+  bkashSandbox     Boolean @default(true) @map("bkash_sandbox")
 
   // Payment Gateways — Nagad
-  nagadEnabled       Boolean @default(false) @map("nagad_enabled")
-  nagadPhoneNumber   String? @map("nagad_phone_number")
-  nagadApiKey        String? @map("nagad_api_key")
-  nagadSecretKey     String? @map("nagad_secret_key")
-  nagadSandbox       Boolean @default(true)  @map("nagad_sandbox")
+  nagadEnabled     Boolean @default(false) @map("nagad_enabled")
+  nagadPhoneNumber String? @map("nagad_phone_number")
+  nagadApiKey      String? @map("nagad_api_key")
+  nagadSecretKey   String? @map("nagad_secret_key")
+  nagadSandbox     Boolean @default(true) @map("nagad_sandbox")
 
   // Payment Gateways — SSLCommerz
-  sslcommerzEnabled      Boolean @default(false) @map("sslcommerz_enabled")
-  sslcommerzStoreId      String? @map("sslcommerz_store_id")
+  sslcommerzEnabled       Boolean @default(false) @map("sslcommerz_enabled")
+  sslcommerzStoreId       String? @map("sslcommerz_store_id")
   sslcommerzStorePassword String? @map("sslcommerz_store_password")
-  sslcommerzSandbox      Boolean @default(true)  @map("sslcommerz_sandbox")
+  sslcommerzSandbox       Boolean @default(true) @map("sslcommerz_sandbox")
 
   // Payment Gateways — Bank Transfer
-  bankTransferEnabled     Boolean @default(false) @map("bank_transfer_enabled")
+  bankTransferEnabled      Boolean @default(false) @map("bank_transfer_enabled")
   bankTransferInstructions String? @map("bank_transfer_instructions")
 
   // Payment Gateways — Cash on Delivery
-  codEnabled  Boolean @default(true)  @map("cod_enabled")
-  codFee      Float    @default(0)     @map("cod_fee")
+  codEnabled Boolean @default(true) @map("cod_enabled")
+  codFee     Float   @default(0) @map("cod_fee")
 
   // Shipping — flat delivery rates by zone
-  shippingInsideDhaka      Float  @default(60)  @map("shipping_inside_dhaka")
-  shippingOutsideDhaka     Float  @default(120) @map("shipping_outside_dhaka")
-  freeShippingThreshold    Float  @default(5000) @map("free_shipping_threshold")
-  shippingInsideDhakaLabel String @default("Inside Dhaka") @map("shipping_inside_dhaka_label")
+  shippingInsideDhaka       Float  @default(60) @map("shipping_inside_dhaka")
+  shippingOutsideDhaka      Float  @default(120) @map("shipping_outside_dhaka")
+  freeShippingThreshold     Float  @default(5000) @map("free_shipping_threshold")
+  shippingInsideDhakaLabel  String @default("Inside Dhaka") @map("shipping_inside_dhaka_label")
   shippingOutsideDhakaLabel String @default("Outside Dhaka") @map("shipping_outside_dhaka_label")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -851,18 +891,18 @@ model SiteSettings {
 model AiProvider {
   id             String    @id @default(cuid())
   name           String
-  type           String               // OPENAI | ANTHROPIC | GEMINI | OLLAMA | OPENROUTER | OPENCODE | CUSTOM
+  type           String // OPENAI | ANTHROPIC | GEMINI | OLLAMA | OPENROUTER | OPENCODE | CUSTOM
   apiKey         String?
   baseUrl        String
   defaultModel   String
   enabled        Boolean   @default(true)
-  isBuiltIn      Boolean   @default(false)             // pre-configured vs user-created
-  sortOrder      Int       @default(0)                 @map("sort_order")
-  config         String?                               // extra config (headers, endpointPath, etc.) — JSON-stringified
-  lastTestedAt   DateTime?                            @map("last_tested_at")
-  lastTestStatus String?                               @map("last_test_status")  // SUCCESS | FAILED
-  createdAt      DateTime  @default(now())             @map("created_at")
-  updatedAt      DateTime  @updatedAt                  @map("updated_at")
+  isBuiltIn      Boolean   @default(false) // pre-configured vs user-created
+  sortOrder      Int       @default(0) @map("sort_order")
+  config         String? // extra config (headers, endpointPath, etc.) — JSON-stringified
+  lastTestedAt   DateTime? @map("last_tested_at")
+  lastTestStatus String?   @map("last_test_status") // SUCCESS | FAILED
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   @@map("ai_providers")
 }
@@ -877,7 +917,714 @@ model Banner {
   position  Int      @default(0)
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt      @map("updated_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("banners")
+}
+
+// ==================== ELECTRICIAN MARKETPLACE FOUNDATION ====================
+// This domain is additive. It does not replace Service, ServiceBooking, Order, or Payment.
+// Lifecycle values remain uppercase strings so transitions stay server-authoritative.
+
+model ProviderProfile {
+  id                 String    @id @default(uuid())
+  userId             String    @unique @map("user_id")
+  status             String    @default("DRAFT")
+  displayName        String    @map("display_name")
+  displayNameBn      String?   @map("display_name_bn")
+  bio                String?
+  yearsExperience    Int       @default(0) @map("years_experience")
+  rating             Decimal   @default(0) @db.Decimal(3, 2)
+  reviewCount        Int       @default(0) @map("review_count")
+  jobsCompleted      Int       @default(0) @map("jobs_completed")
+  commissionRate     Decimal   @default(15) @map("commission_rate") @db.Decimal(5, 2)
+  emergencyAvailable Boolean   @default(false) @map("emergency_available")
+  isActive           Boolean   @default(true) @map("is_active")
+  submittedAt        DateTime? @map("submitted_at")
+  reviewedAt         DateTime? @map("reviewed_at")
+  reviewedById       String?   @map("reviewed_by_id")
+  rejectionReason    String?   @map("rejection_reason")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  user          User                    @relation("ProviderOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy    User?                   @relation("ProviderReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  documents     ProviderDocument[]
+  skills        ProviderSkill[]
+  serviceZones  ProviderServiceZone[]
+  availability  ProviderAvailability[]
+  timeOff       ProviderTimeOff[]
+  assignments   JobAssignment[]
+  jobs          MarketplaceJob[]
+  quotes        MarketplaceQuote[]
+  payments      MarketplacePayment[]
+  ledgerEntries FinancialLedgerEntry[]
+  payouts       ProviderPayout[]
+  reviews       MarketplaceReview[]
+  locationPings ProviderLocationPing[]
+  auditEvents   MarketplaceAuditEvent[]
+
+  @@index([status, isActive])
+  @@index([reviewedById])
+  @@index([rating])
+  @@map("provider_profiles")
+}
+
+model ProviderDocument {
+  id              String    @id @default(uuid())
+  providerId      String    @map("provider_id")
+  type            String
+  storageKey      String    @map("storage_key")
+  status          String    @default("PENDING")
+  rejectionReason String?   @map("rejection_reason")
+  reviewedById    String?   @map("reviewed_by_id")
+  reviewedAt      DateTime? @map("reviewed_at")
+  expiresAt       DateTime? @map("expires_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  reviewedBy User?           @relation("ProviderDocumentReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([providerId, type])
+  @@index([status])
+  @@index([reviewedById])
+  @@map("provider_documents")
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String
+  nameBn      String?  @map("name_bn")
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  providers ProviderSkill[]
+  requests  MarketplaceServiceRequest[]
+
+  @@index([isActive, sortOrder])
+  @@map("marketplace_skills")
+}
+
+model ProviderSkill {
+  id              String    @id @default(uuid())
+  providerId      String    @map("provider_id")
+  skillId         String    @map("skill_id")
+  yearsExperience Int       @default(0) @map("years_experience")
+  proficiency     String    @default("STANDARD")
+  isVerified      Boolean   @default(false) @map("is_verified")
+  verifiedAt      DateTime? @map("verified_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  skill    Skill           @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@unique([providerId, skillId])
+  @@index([skillId, isVerified])
+  @@map("provider_skills")
+}
+
+model GeoDivision {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  nameBn    String?  @map("name_bn")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  districts GeoDistrict[]
+
+  @@index([isActive])
+  @@map("geo_divisions")
+}
+
+model GeoDistrict {
+  id         String   @id @default(uuid())
+  divisionId String   @map("division_id")
+  code       String   @unique
+  name       String
+  nameBn     String?  @map("name_bn")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  division GeoDivision   @relation(fields: [divisionId], references: [id], onDelete: Restrict)
+  upazilas GeoUpazila[]
+  zones    ServiceZone[]
+
+  @@index([divisionId, isActive])
+  @@map("geo_districts")
+}
+
+model GeoUpazila {
+  id         String   @id @default(uuid())
+  districtId String   @map("district_id")
+  code       String   @unique
+  name       String
+  nameBn     String?  @map("name_bn")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  district GeoDistrict   @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  zones    ServiceZone[]
+
+  @@index([districtId, isActive])
+  @@map("geo_upazilas")
+}
+
+model ServiceZone {
+  id         String   @id @default(uuid())
+  districtId String   @map("district_id")
+  upazilaId  String?  @map("upazila_id")
+  name       String
+  nameBn     String?  @map("name_bn")
+  slug       String   @unique
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  district  GeoDistrict                 @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  upazila   GeoUpazila?                 @relation(fields: [upazilaId], references: [id], onDelete: Restrict)
+  providers ProviderServiceZone[]
+  requests  MarketplaceServiceRequest[]
+
+  @@index([districtId, isActive])
+  @@index([upazilaId])
+  @@map("service_zones")
+}
+
+model ProviderServiceZone {
+  id                 String   @id @default(uuid())
+  providerId         String   @map("provider_id")
+  serviceZoneId      String   @map("service_zone_id")
+  travelRadiusKm     Int      @default(10) @map("travel_radius_km")
+  emergencyAvailable Boolean  @default(false) @map("emergency_available")
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  serviceZone ServiceZone     @relation(fields: [serviceZoneId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, serviceZoneId])
+  @@index([serviceZoneId, isActive])
+  @@map("provider_service_zones")
+}
+
+model ProviderAvailability {
+  id         String   @id @default(uuid())
+  providerId String   @map("provider_id")
+  dayOfWeek  Int      @map("day_of_week")
+  startTime  String   @map("start_time")
+  endTime    String   @map("end_time")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, dayOfWeek, startTime, endTime])
+  @@index([providerId, dayOfWeek, isActive])
+  @@map("provider_availability")
+}
+
+model ProviderTimeOff {
+  id         String   @id @default(uuid())
+  providerId String   @map("provider_id")
+  startsAt   DateTime @map("starts_at")
+  endsAt     DateTime @map("ends_at")
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, startsAt, endsAt])
+  @@map("provider_time_off")
+}
+
+model MarketplaceSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  valueType   String   @default("STRING") @map("value_type")
+  description String?
+  isPublic    Boolean  @default(false) @map("is_public")
+  updatedById String?  @map("updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation("MarketplaceSettingUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([isPublic])
+  @@index([updatedById])
+  @@map("marketplace_settings")
+}
+
+model MarketplaceAuditEvent {
+  id          String   @id @default(uuid())
+  actorUserId String?  @map("actor_user_id")
+  providerId  String?  @map("provider_id")
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id")
+  action      String
+  fromState   String?  @map("from_state")
+  toState     String?  @map("to_state")
+  metadata    String?
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor    User?            @relation("MarketplaceAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  provider ProviderProfile? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([providerId, createdAt])
+  @@map("marketplace_audit_events")
+}
+
+model MarketplaceServiceRequest {
+  id                 String    @id @default(uuid())
+  customerId         String    @map("customer_id")
+  serviceId          String?   @map("service_id")
+  skillId            String?   @map("skill_id")
+  serviceZoneId      String    @map("service_zone_id")
+  idempotencyKey     String?   @unique @map("idempotency_key")
+  status             String    @default("DRAFT")
+  problemSummary     String    @map("problem_summary")
+  description        String?
+  serviceAddress     String    @map("service_address")
+  areaName           String?   @map("area_name")
+  latitude           Decimal?  @db.Decimal(10, 7)
+  longitude          Decimal?  @db.Decimal(10, 7)
+  scheduledFor       DateTime? @map("scheduled_for")
+  isEmergency        Boolean   @default(false) @map("is_emergency")
+  emergencySurcharge Decimal   @default(0) @map("emergency_surcharge") @db.Decimal(12, 2)
+  cancellationReason String?   @map("cancellation_reason")
+  submittedAt        DateTime? @map("submitted_at")
+  completedAt        DateTime? @map("completed_at")
+  cancelledAt        DateTime? @map("cancelled_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  customer    User                       @relation("MarketplaceRequestCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  service     Service?                   @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  skill       Skill?                     @relation(fields: [skillId], references: [id], onDelete: Restrict)
+  serviceZone ServiceZone                @relation(fields: [serviceZoneId], references: [id], onDelete: Restrict)
+  attachments ServiceRequestAttachment[]
+  job         MarketplaceJob?
+
+  @@index([customerId, status, createdAt])
+  @@index([serviceZoneId, status, scheduledFor])
+  @@index([skillId, status])
+  @@index([serviceId])
+  @@map("marketplace_service_requests")
+}
+
+model ServiceRequestAttachment {
+  id         String   @id @default(uuid())
+  requestId  String   @map("request_id")
+  type       String
+  storageKey String   @map("storage_key")
+  caption    String?
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  request MarketplaceServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, sortOrder])
+  @@map("service_request_attachments")
+}
+
+model MarketplaceJob {
+  id                  String    @id @default(uuid())
+  requestId           String    @unique @map("request_id")
+  providerId          String?   @map("provider_id")
+  status              String    @default("ASSIGNED")
+  assignedAt          DateTime? @map("assigned_at")
+  acceptedAt          DateTime? @map("accepted_at")
+  enRouteAt           DateTime? @map("en_route_at")
+  arrivedAt           DateTime? @map("arrived_at")
+  workStartedAt       DateTime? @map("work_started_at")
+  completedAt         DateTime? @map("completed_at")
+  customerConfirmedAt DateTime? @map("customer_confirmed_at")
+  cancelledAt         DateTime? @map("cancelled_at")
+  cancellationReason  String?   @map("cancellation_reason")
+  warrantyEndsAt      DateTime? @map("warranty_ends_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  request        MarketplaceServiceRequest  @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  provider       ProviderProfile?           @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  assignments    JobAssignment[]
+  statusHistory  JobStatusHistory[]
+  quotes         MarketplaceQuote[]
+  payments       MarketplacePayment[]
+  reviews        MarketplaceReview[]
+  warrantyClaims MarketplaceWarrantyClaim[]
+  disputes       MarketplaceDispute[]
+  arrivalOtps    ArrivalOtp[]
+  locationPings  ProviderLocationPing[]
+
+  @@index([providerId, status, createdAt])
+  @@index([status, createdAt])
+  @@map("marketplace_jobs")
+}
+
+model JobAssignment {
+  id           String    @id @default(uuid())
+  jobId        String    @map("job_id")
+  providerId   String    @map("provider_id")
+  assignedById String    @map("assigned_by_id")
+  attempt      Int       @default(1)
+  status       String    @default("OFFERED")
+  score        Decimal?  @db.Decimal(7, 4)
+  scoreDetails String?   @map("score_details")
+  offeredAt    DateTime  @default(now()) @map("offered_at")
+  expiresAt    DateTime? @map("expires_at")
+  respondedAt  DateTime? @map("responded_at")
+  responseNote String?   @map("response_note")
+
+  job        MarketplaceJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  assignedBy User            @relation("AssignmentDispatcher", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@unique([jobId, providerId, attempt])
+  @@index([providerId, status, expiresAt])
+  @@index([assignedById, offeredAt])
+  @@map("job_assignments")
+}
+
+model JobStatusHistory {
+  id          String   @id @default(uuid())
+  jobId       String   @map("job_id")
+  actorUserId String?  @map("actor_user_id")
+  fromStatus  String?  @map("from_status")
+  toStatus    String   @map("to_status")
+  note        String?
+  metadata    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  job   MarketplaceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  actor User?          @relation("JobStatusActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([jobId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("job_status_history")
+}
+
+model MarketplaceQuote {
+  id                   String    @id @default(uuid())
+  jobId                String    @map("job_id")
+  providerId           String    @map("provider_id")
+  version              Int       @default(1)
+  status               String    @default("DRAFT")
+  subtotal             Decimal   @db.Decimal(12, 2)
+  feeTotal             Decimal   @default(0) @map("fee_total") @db.Decimal(12, 2)
+  taxTotal             Decimal   @default(0) @map("tax_total") @db.Decimal(12, 2)
+  total                Decimal   @db.Decimal(12, 2)
+  notes                String?
+  expiresAt            DateTime? @map("expires_at")
+  submittedAt          DateTime? @map("submitted_at")
+  adminReviewedById    String?   @map("admin_reviewed_by_id")
+  adminReviewedAt      DateTime? @map("admin_reviewed_at")
+  customerDecisionById String?   @map("customer_decision_by_id")
+  customerDecisionAt   DateTime? @map("customer_decision_at")
+  customerDecisionNote String?   @map("customer_decision_note")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  job                MarketplaceJob       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  provider           ProviderProfile      @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  adminReviewedBy    User?                @relation("QuoteAdminReviewer", fields: [adminReviewedById], references: [id], onDelete: SetNull)
+  customerDecisionBy User?                @relation("QuoteCustomerDecision", fields: [customerDecisionById], references: [id], onDelete: SetNull)
+  lineItems          QuoteLineItem[]
+  payments           MarketplacePayment[]
+
+  @@unique([jobId, version])
+  @@index([providerId, status, createdAt])
+  @@index([status, expiresAt])
+  @@map("marketplace_quotes")
+}
+
+model QuoteLineItem {
+  id          String   @id @default(uuid())
+  quoteId     String   @map("quote_id")
+  type        String   @default("LABOR")
+  description String
+  quantity    Decimal  @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(12, 2)
+  total       Decimal  @db.Decimal(12, 2)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  quote MarketplaceQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId, sortOrder])
+  @@map("quote_line_items")
+}
+
+model MarketplacePayment {
+  id                    String    @id @default(uuid())
+  jobId                 String    @map("job_id")
+  quoteId               String?   @map("quote_id")
+  customerId            String    @map("customer_id")
+  providerId            String?   @map("provider_id")
+  payoutId              String?   @map("payout_id")
+  idempotencyKey        String    @unique @map("idempotency_key")
+  type                  String
+  method                String
+  status                String    @default("CREATED")
+  currency              String    @default("BDT")
+  amount                Decimal   @db.Decimal(12, 2)
+  commissionRate        Decimal   @default(0) @map("commission_rate") @db.Decimal(5, 2)
+  commissionAmount      Decimal   @default(0) @map("commission_amount") @db.Decimal(12, 2)
+  providerNetAmount     Decimal   @default(0) @map("provider_net_amount") @db.Decimal(12, 2)
+  externalTransactionId String?   @unique @map("external_transaction_id")
+  gatewayReference      String?   @map("gateway_reference")
+  gatewayData           String?   @map("gateway_data")
+  paidAt                DateTime? @map("paid_at")
+  failedAt              DateTime? @map("failed_at")
+  refundedAt            DateTime? @map("refunded_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  job           MarketplaceJob         @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  quote         MarketplaceQuote?      @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  customer      User                   @relation("MarketplacePaymentCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  provider      ProviderProfile?       @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  payout        ProviderPayout?        @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+  payoutItems   ProviderPayoutItem[]
+  ledgerEntries FinancialLedgerEntry[]
+
+  @@index([jobId, status, createdAt])
+  @@index([customerId, createdAt])
+  @@index([providerId, status])
+  @@index([payoutId])
+  @@map("marketplace_payments")
+}
+
+model FinancialLedgerEntry {
+  id             String   @id @default(uuid())
+  providerId     String   @map("provider_id")
+  paymentId      String?  @map("payment_id")
+  payoutId       String?  @map("payout_id")
+  idempotencyKey String   @unique @map("idempotency_key")
+  type           String
+  direction      String
+  currency       String   @default("BDT")
+  amount         Decimal  @db.Decimal(12, 2)
+  referenceType  String?  @map("reference_type")
+  referenceId    String?  @map("reference_id")
+  description    String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  provider ProviderProfile     @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  payment  MarketplacePayment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  payout   ProviderPayout?     @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+
+  @@index([providerId, createdAt])
+  @@index([paymentId])
+  @@index([payoutId])
+  @@index([referenceType, referenceId])
+  @@map("financial_ledger_entries")
+}
+
+model ProviderPayout {
+  id                String    @id @default(uuid())
+  providerId        String    @map("provider_id")
+  createdById       String    @map("created_by_id")
+  approvedById      String?   @map("approved_by_id")
+  idempotencyKey    String    @unique @map("idempotency_key")
+  status            String    @default("DRAFT")
+  currency          String    @default("BDT")
+  grossAmount       Decimal   @map("gross_amount") @db.Decimal(12, 2)
+  commissionAmount  Decimal   @default(0) @map("commission_amount") @db.Decimal(12, 2)
+  adjustmentAmount  Decimal   @default(0) @map("adjustment_amount") @db.Decimal(12, 2)
+  netAmount         Decimal   @map("net_amount") @db.Decimal(12, 2)
+  method            String?
+  destinationMasked String?   @map("destination_masked")
+  externalReference String?   @unique @map("external_reference")
+  periodStart       DateTime? @map("period_start")
+  periodEnd         DateTime? @map("period_end")
+  approvedAt        DateTime? @map("approved_at")
+  paidAt            DateTime? @map("paid_at")
+  failedAt          DateTime? @map("failed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  provider      ProviderProfile        @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  createdBy     User                   @relation("PayoutCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  approvedBy    User?                  @relation("PayoutApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  payments      MarketplacePayment[]
+  items         ProviderPayoutItem[]
+  ledgerEntries FinancialLedgerEntry[]
+
+  @@index([providerId, status, createdAt])
+  @@index([createdById])
+  @@index([approvedById])
+  @@map("provider_payouts")
+}
+
+model ProviderPayoutItem {
+  id               String   @id @default(uuid())
+  payoutId         String   @map("payout_id")
+  paymentId        String   @map("payment_id")
+  grossAmount      Decimal  @map("gross_amount") @db.Decimal(12, 2)
+  commissionAmount Decimal  @map("commission_amount") @db.Decimal(12, 2)
+  netAmount        Decimal  @map("net_amount") @db.Decimal(12, 2)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  payout  ProviderPayout     @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+  payment MarketplacePayment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@unique([payoutId, paymentId])
+  @@index([paymentId])
+  @@map("provider_payout_items")
+}
+
+model MarketplaceReview {
+  id         String   @id @default(uuid())
+  jobId      String   @map("job_id")
+  customerId String   @map("customer_id")
+  providerId String   @map("provider_id")
+  rating     Int
+  comment    String?
+  status     String   @default("PUBLISHED")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  job      MarketplaceJob  @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  customer User            @relation("MarketplaceReviewCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Restrict)
+
+  @@unique([jobId, customerId])
+  @@index([providerId, status, createdAt])
+  @@map("marketplace_reviews")
+}
+
+model MarketplaceWarrantyClaim {
+  id                  String    @id @default(uuid())
+  jobId               String    @map("job_id")
+  customerId          String    @map("customer_id")
+  resolvedById        String?   @map("resolved_by_id")
+  idempotencyKey      String    @unique @map("idempotency_key")
+  status              String    @default("OPEN")
+  issue               String
+  providerResponse    String?   @map("provider_response")
+  providerRespondedAt DateTime? @map("provider_responded_at")
+  resolution          String?
+  resolvedAt          DateTime? @map("resolved_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  job        MarketplaceJob @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  customer   User           @relation("WarrantyClaimCustomer", fields: [customerId], references: [id], onDelete: Restrict)
+  resolvedBy User?          @relation("WarrantyClaimResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@unique([jobId, customerId])
+  @@index([jobId, status])
+  @@index([customerId, createdAt])
+  @@index([resolvedById])
+  @@map("marketplace_warranty_claims")
+}
+
+model MarketplaceDispute {
+  id                  String    @id @default(uuid())
+  jobId               String    @map("job_id")
+  openedById          String    @map("opened_by_id")
+  resolvedById        String?   @map("resolved_by_id")
+  idempotencyKey      String    @unique @map("idempotency_key")
+  status              String    @default("OPEN")
+  category            String
+  description         String
+  providerResponse    String?   @map("provider_response")
+  providerRespondedAt DateTime? @map("provider_responded_at")
+  resolution          String?
+  resolvedAt          DateTime? @map("resolved_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  job        MarketplaceJob @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  openedBy   User           @relation("DisputeOpener", fields: [openedById], references: [id], onDelete: Restrict)
+  resolvedBy User?          @relation("DisputeResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([jobId, status])
+  @@index([openedById, createdAt])
+  @@index([resolvedById])
+  @@map("marketplace_disputes")
+}
+
+model ArrivalOtp {
+  id            String    @id @default(uuid())
+  jobId         String    @map("job_id")
+  codeHash      String    @map("code_hash")
+  purpose       String    @default("ARRIVAL")
+  attempts      Int       @default(0)
+  maxAttempts   Int       @default(5) @map("max_attempts")
+  expiresAt     DateTime  @map("expires_at")
+  verifiedAt    DateTime? @map("verified_at")
+  invalidatedAt DateTime? @map("invalidated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  job MarketplaceJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, purpose, expiresAt])
+  @@map("arrival_otps")
+}
+
+model ProviderLocationPing {
+  id               String   @id @default(uuid())
+  jobId            String   @map("job_id")
+  providerId       String   @map("provider_id")
+  latitude         Decimal  @db.Decimal(10, 7)
+  longitude        Decimal  @db.Decimal(10, 7)
+  accuracyMeters   Decimal? @map("accuracy_meters") @db.Decimal(8, 2)
+  consentGrantedAt DateTime @map("consent_granted_at")
+  capturedAt       DateTime @map("captured_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  job      MarketplaceJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, capturedAt])
+  @@index([providerId, capturedAt])
+  @@map("provider_location_pings")
+}
+
+model NotificationDelivery {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  idempotencyKey    String    @unique @map("idempotency_key")
+  channel           String
+  template          String
+  title             String
+  message           String
+  payload           String?
+  status            String    @default("QUEUED")
+  entityType        String?   @map("entity_type")
+  entityId          String?   @map("entity_id")
+  destinationMasked String?   @map("destination_masked")
+  providerMessageId String?   @map("provider_message_id")
+  failureReason     String?   @map("failure_reason")
+  sentAt            DateTime? @map("sent_at")
+  deliveredAt       DateTime? @map("delivered_at")
+  readAt            DateTime? @map("read_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user User @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([userId, status, createdAt])
+  @@index([entityType, entityId])
+  @@map("notification_deliveries")
 }

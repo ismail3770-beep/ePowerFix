@@ -118,7 +118,7 @@ export default function ProjectKitDetailPage() {
   const price = kit ? displayPrice(kit) : 0;
   const discount = kit && kit.price > price ? Math.round(((kit.price - price) / kit.price) * 100) : 0;
   const title = kit?.titleBn || kit?.title || "";
-  const addToCart = () => { if (!kit || kit.stock <= 0) return; addItem({ itemType: "PROJECT", productId: kit.id, productName: kit.title, productImage: images[0] || "", price: Number(price), quantity }); toast.success("Kit added to cart", { description: `${quantity} × ${kit.title}` }); setCartOpen(true); };
+  const addToCart = () => { if (!kit || kit.stock <= 0) return; addItem({ itemType: "PROJECT_KIT", projectKitId: kit.id, productName: kit.title, productImage: images[0] || "", price: Number(price), quantity }); toast.success("Kit added to cart", { description: `${quantity} × ${kit.title}` }); setCartOpen(true); };
   const handleShare = async () => { await navigator.clipboard?.writeText(window.location.href); toast.success("Link copied"); };
 
   if (loading) return <KitState loading />;

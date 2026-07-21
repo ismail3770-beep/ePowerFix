@@ -43,6 +43,9 @@ interface CacheEntry {
 let redis: Redis | null = null
 
 function getRedis(): Redis | null {
+  // Automated tests must never read, flush, or mutate a configured shared Redis.
+  // This guard intentionally runs before the memoized-client check.
+  if (process.env.NODE_ENV === 'test') {return null}
   if (redis) {return redis}
 
   const url = process.env.UPSTASH_REDIS_REST_URL
@@ -64,14 +67,15 @@ function getRedis(): Redis | null {
 const memoryStore = new Map<string, CacheEntry>()
 
 if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
+  const cleanupTimer = setInterval(() => {
     const now = Date.now()
     for (const [key, entry] of memoryStore) {
-      if (now > entry.expiresAt) {
+      if (now >= entry.expiresAt) {
         memoryStore.delete(key)
       }
     }
   }, 2 * 60 * 1000)
+  cleanupTimer.unref?.()
 }
 
 async function memoryGetOrSet<T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> {
@@ -79,6 +83,7 @@ async function memoryGetOrSet<T>(key: string, ttlSeconds: number, fetcher: () =>
   if (entry && Date.now() < entry.expiresAt) {
     return entry.value as T
   }
+  if (entry) {memoryStore.delete(key)}
   const fresh = await fetcher()
   memoryStore.set(key, { value: fresh, expiresAt: Date.now() + ttlSeconds * 1000 })
   return fresh
@@ -89,6 +94,7 @@ async function memoryGet<T>(key: string): Promise<T | null> {
   if (entry && Date.now() < entry.expiresAt) {
     return entry.value as T
   }
+  if (entry) {memoryStore.delete(key)}
   return null
 }
 
@@ -119,6 +125,19 @@ function isRedisAvailable(): boolean {
   return getRedis() !== null
 }
 
+function registryPrefixForKey(key: string): string | null {
+  const separatorIndex = key.indexOf(':')
+  return separatorIndex < 0 ? null : key.slice(0, separatorIndex + 1)
+}
+
+async function registerRedisKey(client: Redis, key: string): Promise<void> {
+  const prefix = registryPrefixForKey(key)
+  if (!prefix) {return}
+  const registryKey = `cache:registry:${prefix}`
+  await client.sadd(registryKey, key)
+  await client.expire(registryKey, 86400)
+}
+
 export const cache = {
   /**
    * Get a value from cache, or compute and store it.
@@ -133,6 +152,7 @@ export const cache = {
       }
       const fresh = await fetcher()
       await client.set(key, fresh, { ex: ttlSeconds })
+      await registerRedisKey(client, key)
       return fresh
     }
     // Fallback to in-memory (dev only)
@@ -158,6 +178,7 @@ export const cache = {
     const client = getRedis()
     if (client) {
       await client.set(key, value, { ex: ttlSeconds })
+      await registerRedisKey(client, key)
       return
     }
     await memorySet(key, value, ttlSeconds)

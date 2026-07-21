@@ -1,19 +1,15 @@
 // Payment gateway integration helpers for SSLCommerz, bKash, and Nagad.
-// Ported from apps/web/src/lib/payments.ts.
-//
 // Sandbox/test mode is used when API keys are not configured.
 // Production mode makes real API calls when keys are set.
-//
-// ENV VAR MAPPING (differs from web — aligned with apps/api/.env.example):
-//   SSLCommerz: SSLCOMMERZ_STORE_ID, SSLCOMMERZ_STORE_PASSWD
-//   bKash:      BKASH_APP_KEY, BKASH_APP_SECRET, BKASH_USERNAME, BKASH_PASSWORD, BKASH_CALLBACK_URL
-//   Nagad:      NAGAD_MERCHANT_ID, NAGAD_CALLBACK_URL
-//
-// Callback URLs are constructed from env.BKASH_CALLBACK_URL /
-// env.NAGAD_CALLBACK_URL when set, otherwise derived from env.WEB_URL.
+
+import { createHmac, timingSafeEqual } from 'node:crypto'
 
 import { env } from '../config/env.js'
-import { generateTestPaymentToken } from './test-payment.js'
+import {
+  generateTestPaymentToken,
+  isTestPaymentMode,
+  type TestPaymentGateway,
+} from './test-payment.js'
 
 export interface PaymentConfig {
   storeId: string
@@ -31,33 +27,216 @@ export interface PaymentRequest {
   address: string
   productName?: string
   productCategory?: string
+  // Internal route-owned destinations. Callers must never forward arbitrary
+  // client input into these fields.
+  callbackUrl?: string
+  ipnCallbackUrl?: string
+  failureCallbackUrl?: string
 }
+
+export type PaymentFailureKind = 'DEFINITIVE' | 'UNKNOWN'
 
 export interface PaymentResponse {
   success: boolean
   paymentUrl?: string
   transactionId?: string
+  // Present only when the gateway's server-side validation response includes a
+  // parseable amount. Browser query parameters are never used for this value.
+  verifiedAmount?: number
+  // A gateway returned an amount field, but it was not a safe numeric value.
+  // Treat this as manual review instead of treating it like a missing field.
+  verifiedAmountInvalid?: boolean
+  // A production gateway validation response omitted its amount entirely.
+  verifiedAmountMissing?: boolean
   error?: string
+  // DEFINITIVE means the gateway explicitly rejected an attempted payment.
+  // UNKNOWN covers timeouts/network failures where the gateway might still have
+  // accepted it, so the order reservation must remain intact.
+  failureKind?: PaymentFailureKind
+}
+
+const SSL_COMMERZ_FAILURE_TOKEN_DOMAIN = 'epowerfix:sslcommerz-failure-token:v1'
+const SSL_COMMERZ_FAILURE_TOKEN_TTL_MS = 35 * 60 * 1000
+const BASE64_URL_SEGMENT = /^[A-Za-z0-9_-]+$/
+
+type SSLCommerzFailureCallbackTokenPayload = {
+  version: 1
+  purpose: 'FAIL_OR_CANCEL'
+  gateway: 'SSLCOMMERZ'
+  orderId: string
+  transactionId: string
+  issuedAt: number
+  expiresAt: number
+}
+
+function getSSLCommerzFailureTokenSigningKey(): Buffer | null {
+  // Derive a separate HMAC key so this compact callback token cannot be used
+  // interchangeably with an authentication JWT signature.
+  if (!env.JWT_SECRET || env.JWT_SECRET.length < 32) return null
+  return createHmac('sha256', env.JWT_SECRET)
+    .update(SSL_COMMERZ_FAILURE_TOKEN_DOMAIN)
+    .digest()
+}
+
+export function createSSLCommerzFailureCallbackToken(
+  orderId: string,
+  transactionId: string,
+): string | null {
+  const signingKey = getSSLCommerzFailureTokenSigningKey()
+  if (!signingKey) return null
+
+  const issuedAt = Date.now()
+  const payload: SSLCommerzFailureCallbackTokenPayload = {
+    version: 1,
+    purpose: 'FAIL_OR_CANCEL',
+    gateway: 'SSLCOMMERZ',
+    orderId,
+    transactionId,
+    issuedAt,
+    expiresAt: issuedAt + SSL_COMMERZ_FAILURE_TOKEN_TTL_MS,
+  }
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString('base64url')
+  const signature = createHmac('sha256', signingKey)
+    .update(encodedPayload)
+    .digest('base64url')
+
+  return `${encodedPayload}.${signature}`
+}
+
+export function verifySSLCommerzFailureCallbackToken(
+  token: string,
+): Pick<SSLCommerzFailureCallbackTokenPayload, 'orderId' | 'transactionId'> | null {
+  if (!token || token.length > 2048) return null
+
+  const [encodedPayload, suppliedSignature, extraSegment] = token.split('.')
+  if (
+    !encodedPayload ||
+    !suppliedSignature ||
+    extraSegment !== undefined ||
+    !BASE64_URL_SEGMENT.test(encodedPayload) ||
+    !BASE64_URL_SEGMENT.test(suppliedSignature)
+  ) {
+    return null
+  }
+
+  const signingKey = getSSLCommerzFailureTokenSigningKey()
+  if (!signingKey) return null
+
+  const expectedSignature = createHmac('sha256', signingKey)
+    .update(encodedPayload)
+    .digest()
+  const suppliedSignatureBuffer = Buffer.from(suppliedSignature, 'base64url')
+  if (
+    expectedSignature.length !== suppliedSignatureBuffer.length ||
+    !timingSafeEqual(expectedSignature, suppliedSignatureBuffer)
+  ) {
+    return null
+  }
+
+  try {
+    const payload = JSON.parse(
+      Buffer.from(encodedPayload, 'base64url').toString('utf8'),
+    ) as Record<string, unknown>
+    if (
+      payload.version !== 1 ||
+      payload.purpose !== 'FAIL_OR_CANCEL' ||
+      payload.gateway !== 'SSLCOMMERZ' ||
+      typeof payload.orderId !== 'string' ||
+      payload.orderId.length === 0 ||
+      payload.orderId.length > 200 ||
+      typeof payload.transactionId !== 'string' ||
+      payload.transactionId.length === 0 ||
+      payload.transactionId.length > 200 ||
+      typeof payload.issuedAt !== 'number' ||
+      !Number.isSafeInteger(payload.issuedAt) ||
+      typeof payload.expiresAt !== 'number' ||
+      !Number.isSafeInteger(payload.expiresAt) ||
+      payload.expiresAt <= Date.now()
+    ) {
+      return null
+    }
+
+    return {
+      orderId: payload.orderId,
+      transactionId: payload.transactionId,
+    }
+  } catch {
+    return null
+  }
+}
+
+type ParsedVerifiedAmount = {
+  amount?: number
+  invalid: boolean
+  missing: boolean
+}
+
+function parseVerifiedAmount(value: unknown): ParsedVerifiedAmount {
+  if (value === undefined) return { invalid: false, missing: true }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value >= 0
+      ? { amount: value, invalid: false, missing: false }
+      : { invalid: true, missing: false }
+  }
+  if (typeof value !== 'string' || !value.trim()) {
+    return { invalid: true, missing: false }
+  }
+
+  const amount = Number(value)
+  return Number.isFinite(amount) && amount >= 0
+    ? { amount, invalid: false, missing: false }
+    : { invalid: true, missing: false }
 }
 
 // ─── Callback URL helpers ────────────────────────────────────────────────────
 
-function bkashCallbackUrl(): string {
+function bkashCallbackUrl(request: PaymentRequest): string {
+  if (request.callbackUrl) return request.callbackUrl
   if (env.BKASH_CALLBACK_URL) return env.BKASH_CALLBACK_URL
   return `${env.WEB_URL}/api/payments/bkash/callback`
 }
 
-function nagadCallbackUrl(): string {
+function nagadCallbackUrl(request: PaymentRequest): string {
+  if (request.callbackUrl) return request.callbackUrl
   if (env.NAGAD_CALLBACK_URL) return env.NAGAD_CALLBACK_URL
   return `${env.WEB_URL}/api/payments/nagad/callback`
 }
 
-function sslcommerzCallbackUrl(): string {
-  return `${env.WEB_URL}/api/payments/sslcommerz/ipn`
+function sslcommerzCallbackUrl(request: PaymentRequest): string {
+  return request.callbackUrl || `${env.WEB_URL}/api/payments/sslcommerz/ipn`
 }
 
-function sslcommerzFailUrl(): string {
-  return `${env.WEB_URL}/payment/fail`
+function sslcommerzFailUrl(
+  request: PaymentRequest,
+  transactionId: string,
+): string | null {
+  const token = createSSLCommerzFailureCallbackToken(request.orderId, transactionId)
+  if (!token) return null
+  const callbackUrl =
+    request.failureCallbackUrl || `${env.WEB_URL}/api/payments/sslcommerz/fail`
+  return appendPaymentCallbackToken(callbackUrl, token)
+}
+
+export function appendPaymentCallbackToken(callbackUrl: string, token: string): string {
+  const separator = callbackUrl.includes('?') ? '&' : '?'
+  return `${callbackUrl}${separator}token=${encodeURIComponent(token)}`
+}
+
+function simulatedPaymentUrl(
+  gateway: TestPaymentGateway,
+  request: PaymentRequest,
+  transactionId: string,
+): string | null {
+  if (!isTestPaymentMode()) return null
+
+  const token = generateTestPaymentToken(request.orderId, transactionId, gateway)
+  const callbackPath = request.callbackUrl || {
+    SSLCOMMERZ: '/api/payments/sslcommerz/ipn',
+    BKASH: '/api/payments/bkash/callback',
+    NAGAD: '/api/payments/nagad/callback',
+  }[gateway]
+  return appendPaymentCallbackToken(callbackPath, token)
 }
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -100,43 +279,53 @@ function getConfig(type: 'sslcommerz' | 'bkash' | 'nagad'): PaymentConfig {
 }
 
 function isConfigured(type: 'sslcommerz' | 'bkash' | 'nagad'): boolean {
-  const c = getConfig(type)
+  const config = getConfig(type)
   switch (type) {
     case 'sslcommerz':
-      return !!(c.storeId && c.storePassword)
+      return !!(config.storeId && config.storePassword)
     case 'bkash':
       // bKash also requires username/password for the Basic-auth token grant.
-      return !!(c.storeId && c.storePassword && env.BKASH_USERNAME && env.BKASH_PASSWORD)
+      return !!(
+        config.storeId &&
+        config.storePassword &&
+        env.BKASH_USERNAME &&
+        env.BKASH_PASSWORD
+      )
     case 'nagad':
-      return !!c.storeId
+      return !!config.storeId
   }
 }
 
-// ─── SSLCommerz ────────────────────────────────────────────────────────────────
+// ─── SSLCommerz ──────────────────────────────────────────────────────────────
 
 export async function initiateSSLCommerzPayment(
-  req: PaymentRequest
+  request: PaymentRequest,
 ): Promise<PaymentResponse> {
   const config = getConfig('sslcommerz')
   const transactionId = `SSL-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
 
   if (!isConfigured('sslcommerz')) {
-    // Test mode: generate a one-time token and redirect
-    if (env.NODE_ENV !== 'production') {
-      const testToken = generateTestPaymentToken(req.orderId, transactionId)
-      return {
-        success: true,
-        paymentUrl: `/api/payments/sslcommerz/ipn?status=SUCCESS&token=${testToken}`,
-        transactionId,
-      }
+    const paymentUrl = simulatedPaymentUrl('SSLCOMMERZ', request, transactionId)
+    if (paymentUrl) {
+      return { success: true, paymentUrl, transactionId }
     }
     return {
       success: false,
       error: 'SSLCommerz gateway not configured. Set SSLCOMMERZ_STORE_ID and SSLCOMMERZ_STORE_PASSWD env vars.',
+      failureKind: 'DEFINITIVE',
     }
   }
 
-  // ── Real SSLCommerz API call ──
+  const failureUrl = sslcommerzFailUrl(request, transactionId)
+  if (!failureUrl) {
+    return {
+      success: false,
+      error: 'SSLCommerz requires a secure JWT_SECRET for failure and cancellation callbacks',
+      failureKind: 'DEFINITIVE',
+    }
+  }
+  const callbackUrl = sslcommerzCallbackUrl(request)
+
   try {
     const response = await fetch(`${config.baseUrl}/gwprocess/v4/api.php`, {
       method: 'POST',
@@ -144,19 +333,19 @@ export async function initiateSSLCommerzPayment(
       body: JSON.stringify({
         store_id: config.storeId,
         store_passwd: config.storePassword,
-        total_amount: req.amount,
+        total_amount: request.amount,
         currency: 'BDT',
         tran_id: transactionId,
-        success_url: sslcommerzCallbackUrl(),
-        fail_url: sslcommerzFailUrl(),
-        cancel_url: sslcommerzFailUrl(),
-        ipn_url: sslcommerzCallbackUrl(),
-        cus_name: req.customerName,
-        cus_email: req.customerEmail,
-        cus_phone: req.customerPhone,
-        cus_add1: req.address,
-        prod_name: req.productName || 'Order Payment',
-        prod_category: req.productCategory || 'electrical',
+        success_url: callbackUrl,
+        fail_url: failureUrl,
+        cancel_url: failureUrl,
+        ipn_url: request.ipnCallbackUrl || callbackUrl,
+        cus_name: request.customerName,
+        cus_email: request.customerEmail,
+        cus_phone: request.customerPhone,
+        cus_add1: request.address,
+        prod_name: request.productName || 'Order Payment',
+        prod_category: request.productCategory || 'electrical',
         shipping_method: 'NO',
         product_profile: 'general',
       }),
@@ -165,91 +354,151 @@ export async function initiateSSLCommerzPayment(
     if (data.status === 'SUCCESS') {
       return { success: true, paymentUrl: data.GatewayPageURL, transactionId }
     }
-    return { success: false, error: data.failedreason || 'SSLCommerz initiation failed' }
+    return {
+      success: false,
+      error: data.failedreason || 'SSLCommerz initiation failed',
+      failureKind: 'DEFINITIVE',
+    }
   } catch (error) {
     console.error('[SSLCommerz] API error:', error)
-    return { success: false, error: 'Failed to connect to SSLCommerz gateway' }
+    return {
+      success: false,
+      error: 'Failed to connect to SSLCommerz gateway',
+      failureKind: 'UNKNOWN',
+    }
   }
 }
 
 export async function validateSSLCommerzPayment(
-  tranId: string
+  validationId: string,
 ): Promise<PaymentResponse> {
   const config = getConfig('sslcommerz')
 
   if (!isConfigured('sslcommerz')) {
-    // Test mode: accept any validation
-    return { success: true, transactionId: tranId }
+    // Only the route can complete an explicit one-time local test token. A
+    // validator must never convert a caller-supplied transaction ID into a
+    // successful payment when the real gateway is unavailable.
+    return {
+      success: false,
+      error: 'SSLCommerz validation cannot run because the gateway is not configured',
+      failureKind: 'UNKNOWN',
+    }
   }
 
   try {
-    const response = await fetch(
+    const validationUrl = new URL(
       `${config.baseUrl}/validator/api/validationserverAPI.php`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          val_id: tranId,
-          store_id: config.storeId,
-          store_passwd: config.storePassword,
-          format: 'json',
-        }),
-      }
     )
-    const data: any = await response.json()
-    if (data.status === 'VALID') {
-      return { success: true, transactionId: data.tran_id }
+    validationUrl.search = new URLSearchParams({
+      val_id: validationId,
+      store_id: config.storeId,
+      store_passwd: config.storePassword,
+      format: 'json',
+    }).toString()
+    // SSLCommerz v4 mandates GET query parameters, including store_passwd.
+    // Never log this URL, and reject redirects so the credential-bearing query
+    // cannot be forwarded to an unintended host.
+    const response = await fetch(validationUrl, {
+      headers: { Accept: 'application/json' },
+      redirect: 'error',
+      referrerPolicy: 'no-referrer',
+    })
+    if (!response.ok) {
+      console.warn('[SSLCommerz] Validation endpoint returned HTTP', response.status)
+      return {
+        success: false,
+        error: 'SSLCommerz validation could not be confirmed',
+        failureKind: 'UNKNOWN',
+      }
     }
-    return { success: false, error: 'Invalid SSLCommerz payment' }
-  } catch (error) {
-    console.error('[SSLCommerz] Validation error:', error)
-    return { success: false, error: 'SSLCommerz validation failed' }
+
+    const data: any = await response.json()
+    const status = typeof data.status === 'string' ? data.status.trim().toUpperCase() : ''
+    if (status === 'VALID' || status === 'VALIDATED') {
+      const parsedVerifiedAmount = parseVerifiedAmount(data.amount)
+      return {
+        success: true,
+        transactionId: data.tran_id,
+        verifiedAmount: parsedVerifiedAmount.amount,
+        verifiedAmountInvalid: parsedVerifiedAmount.invalid,
+        verifiedAmountMissing: parsedVerifiedAmount.missing,
+      }
+    }
+    if (
+      ['FAILED', 'FAIL', 'CANCELLED', 'CANCELED', 'EXPIRED', 'INVALID', 'INVALID_TRANSACTION', 'DECLINED', 'REJECTED'].includes(
+        status,
+      )
+    ) {
+      return {
+        success: false,
+        error: 'Invalid SSLCommerz payment',
+        failureKind: 'DEFINITIVE',
+      }
+    }
+
+    // Missing, pending, or provider-error statuses do not prove the payment
+    // failed, so POST callbacks must not release stock or coupon reservations.
+    return {
+      success: false,
+      error: 'SSLCommerz validation could not be confirmed',
+      failureKind: 'UNKNOWN',
+    }
+  } catch {
+    // Do not log the error object: some HTTP clients include the request URL,
+    // which contains the provider-required store password query parameter.
+    console.error('[SSLCommerz] Validation request failed')
+    return {
+      success: false,
+      error: 'SSLCommerz validation could not be confirmed',
+      failureKind: 'UNKNOWN',
+    }
   }
 }
 
 // ─── bKash ────────────────────────────────────────────────────────────────────
 
 export async function initiateBkashPayment(
-  req: PaymentRequest
+  request: PaymentRequest,
 ): Promise<PaymentResponse> {
   const config = getConfig('bkash')
   const transactionId = `BK-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
 
   if (!isConfigured('bkash')) {
-    if (env.NODE_ENV !== 'production') {
-      return {
-        success: true,
-        paymentUrl: `/api/payments/bkash/callback?status=success&paymentID=${transactionId}&order_id=${req.orderId}&amount=${req.amount}`,
-        transactionId,
-      }
+    const paymentUrl = simulatedPaymentUrl('BKASH', request, transactionId)
+    if (paymentUrl) {
+      return { success: true, paymentUrl, transactionId }
     }
     return {
       success: false,
       error: 'bKash gateway not configured. Set BKASH_APP_KEY, BKASH_APP_SECRET, BKASH_USERNAME, BKASH_PASSWORD env vars.',
+      failureKind: 'DEFINITIVE',
     }
   }
 
-  // ── Real bKash Tokenized Checkout API ──
   try {
-    // Step 1: Grant token (uses username:password Basic auth + app_key/app_secret in body)
-    const tokenRes = await fetch(`${config.baseUrl}/tokenized/checkout/token/grant`, {
+    // Step 1: Grant token (uses username:password Basic auth + app_key/app_secret in body).
+    const tokenResponse = await fetch(`${config.baseUrl}/tokenized/checkout/token/grant`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Basic ${Buffer.from(
-          `${env.BKASH_USERNAME}:${env.BKASH_PASSWORD}`
+          `${env.BKASH_USERNAME}:${env.BKASH_PASSWORD}`,
         ).toString('base64')}`,
         Accept: 'application/json',
       },
       body: JSON.stringify({ app_key: config.storeId, app_secret: config.storePassword }),
     })
-    const tokenData: any = await tokenRes.json()
+    const tokenData: any = await tokenResponse.json()
     if (!tokenData.id_token) {
-      return { success: false, error: tokenData.statusMessage || 'bKash token generation failed' }
+      return {
+        success: false,
+        error: tokenData.statusMessage || 'bKash token generation failed',
+        failureKind: 'DEFINITIVE',
+      }
     }
 
-    // Step 2: Create payment
-    const paymentRes = await fetch(`${config.baseUrl}/tokenized/checkout/create`, {
+    // Step 2: Create payment.
+    const paymentResponse = await fetch(`${config.baseUrl}/tokenized/checkout/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -257,107 +506,178 @@ export async function initiateBkashPayment(
         'X-App-Key': config.storeId,
       },
       body: JSON.stringify({
-        amount: req.amount,
+        amount: request.amount,
         currency: 'BDT',
         intent: 'sale',
-        merchantInvoiceNumber: req.orderId,
-        callbackURL: bkashCallbackUrl(),
+        merchantInvoiceNumber: request.orderId,
+        callbackURL: bkashCallbackUrl(request),
       }),
     })
-    const paymentData: any = await paymentRes.json()
+    const paymentData: any = await paymentResponse.json()
     if (paymentData.paymentID && paymentData.bkashURL) {
-      return { success: true, paymentUrl: paymentData.bkashURL, transactionId: paymentData.paymentID }
+      return {
+        success: true,
+        paymentUrl: paymentData.bkashURL,
+        transactionId: paymentData.paymentID,
+      }
     }
-    return { success: false, error: paymentData.statusMessage || 'bKash payment creation failed' }
+    return {
+      success: false,
+      error: paymentData.statusMessage || 'bKash payment creation failed',
+      failureKind: 'DEFINITIVE',
+    }
   } catch (error) {
     console.error('[bKash] API error:', error)
-    return { success: false, error: 'Failed to connect to bKash gateway' }
+    return {
+      success: false,
+      error: 'Failed to connect to bKash gateway',
+      failureKind: 'UNKNOWN',
+    }
   }
 }
 
 export async function validateBkashPayment(
-  paymentID: string
+  paymentId: string,
 ): Promise<PaymentResponse> {
   const config = getConfig('bkash')
 
   if (!isConfigured('bkash')) {
-    return { success: true, transactionId: paymentID }
+    return {
+      success: false,
+      error: 'bKash validation cannot run because the gateway is not configured',
+      failureKind: 'UNKNOWN',
+    }
   }
 
   try {
-    const tokenRes = await fetch(`${config.baseUrl}/tokenized/checkout/token/grant`, {
+    const tokenResponse = await fetch(`${config.baseUrl}/tokenized/checkout/token/grant`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Basic ${Buffer.from(
-          `${env.BKASH_USERNAME}:${env.BKASH_PASSWORD}`
+          `${env.BKASH_USERNAME}:${env.BKASH_PASSWORD}`,
         ).toString('base64')}`,
         Accept: 'application/json',
       },
       body: JSON.stringify({ app_key: config.storeId, app_secret: config.storePassword }),
     })
-    const tokenData: any = await tokenRes.json()
-    if (!tokenData.id_token) return { success: false, error: 'bKash token failed' }
+    if (!tokenResponse.ok) {
+      console.warn('[bKash] Validation token endpoint returned HTTP', tokenResponse.status)
+      return {
+        success: false,
+        error: 'bKash validation could not be confirmed',
+        failureKind: 'UNKNOWN',
+      }
+    }
 
-    const executeRes = await fetch(`${config.baseUrl}/tokenized/checkout/execute`, {
+    const tokenData: any = await tokenResponse.json()
+    if (!tokenData.id_token) {
+      return {
+        success: false,
+        error: 'bKash validation could not be confirmed',
+        failureKind: 'UNKNOWN',
+      }
+    }
+
+    const executeResponse = await fetch(`${config.baseUrl}/tokenized/checkout/execute`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${tokenData.id_token}`,
         'X-App-Key': config.storeId,
       },
-      body: JSON.stringify({ paymentID }),
+      body: JSON.stringify({ paymentID: paymentId }),
     })
-    const data: any = await executeRes.json()
-    if (data.transactionStatus === 'completed') {
-      return { success: true, transactionId: data.paymentID }
+    if (!executeResponse.ok) {
+      console.warn('[bKash] Validation execute endpoint returned HTTP', executeResponse.status)
+      return {
+        success: false,
+        error: 'bKash validation could not be confirmed',
+        failureKind: 'UNKNOWN',
+      }
     }
-    return { success: false, error: data.statusMessage || 'bKash payment not completed' }
+
+    const data: any = await executeResponse.json()
+    const transactionStatus =
+      typeof data.transactionStatus === 'string'
+        ? data.transactionStatus.trim().toUpperCase()
+        : ''
+    if (transactionStatus === 'COMPLETED') {
+      const parsedVerifiedAmount = parseVerifiedAmount(data.amount)
+      return {
+        success: true,
+        transactionId: data.paymentID,
+        verifiedAmount: parsedVerifiedAmount.amount,
+        verifiedAmountInvalid: parsedVerifiedAmount.invalid,
+        verifiedAmountMissing: parsedVerifiedAmount.missing,
+      }
+    }
+    if (
+      ['FAILED', 'FAIL', 'CANCELLED', 'CANCELED', 'EXPIRED', 'INVALID', 'DECLINED', 'REJECTED'].includes(
+        transactionStatus,
+      )
+    ) {
+      return {
+        success: false,
+        error: data.statusMessage || 'bKash payment not completed',
+        failureKind: 'DEFINITIVE',
+      }
+    }
+
+    return {
+      success: false,
+      error: 'bKash validation could not be confirmed',
+      failureKind: 'UNKNOWN',
+    }
   } catch (error) {
     console.error('[bKash] Validation error:', error)
-    return { success: false, error: 'bKash validation failed' }
+    return {
+      success: false,
+      error: 'bKash validation could not be confirmed',
+      failureKind: 'UNKNOWN',
+    }
   }
 }
 
 // ─── Nagad ────────────────────────────────────────────────────────────────────
 
 export async function initiateNagadPayment(
-  req: PaymentRequest
+  request: PaymentRequest,
 ): Promise<PaymentResponse> {
   const config = getConfig('nagad')
   const transactionId = `NG-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
 
   if (!isConfigured('nagad')) {
-    if (env.NODE_ENV !== 'production') {
-      return {
-        success: true,
-        paymentUrl: `/api/payments/nagad/callback?status=Success&payment_ref_id=${transactionId}&order_id=${req.orderId}&amount=${req.amount}`,
-        transactionId,
-      }
+    const paymentUrl = simulatedPaymentUrl('NAGAD', request, transactionId)
+    if (paymentUrl) {
+      return { success: true, paymentUrl, transactionId }
     }
     return {
       success: false,
       error: 'Nagad gateway not configured. Set NAGAD_MERCHANT_ID env var.',
+      failureKind: 'DEFINITIVE',
     }
   }
 
-  // ── Real Nagad API ──
   try {
-    // Step 1: Initialize
-    const initRes = await fetch(`${config.baseUrl}/api/v2/cse/initialize`, {
+    const initResponse = await fetch(`${config.baseUrl}/api/v2/cse/initialize`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         merchantId: config.storeId,
-        orderId: req.orderId,
-        amount: req.amount,
+        orderId: request.orderId,
+        amount: request.amount,
         currency: 'BDT',
-        callbackURL: nagadCallbackUrl(),
+        callbackURL: nagadCallbackUrl(request),
       }),
     })
-    const initData: any = await initRes.json()
+    const initData: any = await initResponse.json()
     if (!initData.paymentRefId) {
-      return { success: false, error: initData.message || 'Nagad initialization failed' }
+      return {
+        success: false,
+        error: initData.message || 'Nagad initialization failed',
+        failureKind: 'DEFINITIVE',
+      }
     }
 
     return {
@@ -367,23 +687,29 @@ export async function initiateNagadPayment(
     }
   } catch (error) {
     console.error('[Nagad] API error:', error)
-    return { success: false, error: 'Failed to connect to Nagad gateway' }
+    return {
+      success: false,
+      error: 'Failed to connect to Nagad gateway',
+      failureKind: 'UNKNOWN',
+    }
   }
 }
 
 export async function validateNagadPayment(
-  paymentRefId: string
+  paymentRefId: string,
 ): Promise<PaymentResponse> {
   const config = getConfig('nagad')
 
   if (!isConfigured('nagad')) {
-    // Test mode: accept (only safe because we control the test flow)
-    return { success: true, transactionId: paymentRefId }
+    return {
+      success: false,
+      error: 'Nagad validation cannot run because the gateway is not configured',
+      failureKind: 'UNKNOWN',
+    }
   }
 
-  // Production: verify payment status with Nagad's verify API
   try {
-    const verifyRes = await fetch(
+    const verifyResponse = await fetch(
       `${config.baseUrl}/api/v2/cse/payment/verify/${paymentRefId}`,
       {
         method: 'GET',
@@ -391,22 +717,62 @@ export async function validateNagadPayment(
           'Content-Type': 'application/json',
           'X-Merchant-Id': config.storeId,
         },
-      }
+      },
     )
-    const data: any = await verifyRes.json()
-    if (data.paymentRefId && data.status === 'Payment Success') {
-      return { success: true, transactionId: data.paymentRefId }
+    if (!verifyResponse.ok) {
+      console.warn('[Nagad] Verification endpoint returned HTTP', verifyResponse.status)
+      return {
+        success: false,
+        error: 'Nagad verification could not be confirmed',
+        failureKind: 'UNKNOWN',
+      }
     }
-    return { success: false, error: 'Nagad payment verification failed' }
+
+    const data: any = await verifyResponse.json()
+    const status = typeof data.status === 'string' ? data.status.trim().toUpperCase() : ''
+    if (data.paymentRefId && status === 'PAYMENT SUCCESS') {
+      const parsedVerifiedAmount = parseVerifiedAmount(data.amount)
+      return {
+        success: true,
+        transactionId: data.paymentRefId,
+        verifiedAmount: parsedVerifiedAmount.amount,
+        verifiedAmountInvalid: parsedVerifiedAmount.invalid,
+        verifiedAmountMissing: parsedVerifiedAmount.missing,
+      }
+    }
+    if (
+      ['FAILED', 'FAIL', 'CANCELLED', 'CANCELED', 'EXPIRED', 'INVALID', 'INVALID_TRANSACTION', 'DECLINED', 'REJECTED'].includes(
+        status,
+      )
+    ) {
+      return {
+        success: false,
+        error: 'Nagad payment verification failed',
+        failureKind: 'DEFINITIVE',
+      }
+    }
+
+    return {
+      success: false,
+      error: 'Nagad verification could not be confirmed',
+      failureKind: 'UNKNOWN',
+    }
   } catch (error) {
     console.error('[Nagad] Verification error:', error)
-    return { success: false, error: 'Nagad verification failed' }
+    return {
+      success: false,
+      error: 'Nagad verification could not be confirmed',
+      failureKind: 'UNKNOWN',
+    }
   }
 }
 
-// ─── Unified Payment Interface ─────────────────────────────────────────────────
+// ─── Unified Payment Interface ────────────────────────────────────────────────
 
-const paymentMethods: Record<string, (req: PaymentRequest) => Promise<PaymentResponse>> = {
+const paymentMethods: Record<
+  string,
+  (request: PaymentRequest) => Promise<PaymentResponse>
+> = {
   sslcommerz: initiateSSLCommerzPayment,
   bkash: initiateBkashPayment,
   nagad: initiateNagadPayment,
@@ -414,11 +780,15 @@ const paymentMethods: Record<string, (req: PaymentRequest) => Promise<PaymentRes
 
 export async function initiatePayment(
   method: string,
-  req: PaymentRequest
+  request: PaymentRequest,
 ): Promise<PaymentResponse> {
   const initiator = paymentMethods[method]
   if (!initiator) {
-    return { success: false, error: `Unsupported payment method: ${method}` }
+    return {
+      success: false,
+      error: `Unsupported payment method: ${method}`,
+      failureKind: 'DEFINITIVE',
+    }
   }
-  return initiator(req)
+  return initiator(request)
 }

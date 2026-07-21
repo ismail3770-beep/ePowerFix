@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Facebook, Globe2, LockKeyhole, Mail, Zap } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store";
-import { Checkbox } from "@/components/ui/checkbox";
 import CartDrawer from "@/components/epf/CartDrawer";
 import CheckoutDialog from "@/components/epf/CheckoutDialog";
 import ChatWidget from "@/components/epf/ChatWidget";
@@ -49,12 +48,10 @@ export default function LoginPage() {
       const loggedInUser = response.data.user;
 
       if (loggedInUser.role === "ADMIN") {
-        // The shared login endpoint also accepts admin credentials. Do not
-        // let the customer login establish an admin session or enter /admin.
         try {
           await apiFetch("/api/auth/logout", { method: "POST" });
         } catch {
-          // The login rejection still applies even if session cleanup fails.
+          // ignore
         }
         clearUser();
         queryClient.removeQueries({ queryKey: ["auth-me"], exact: false });
@@ -70,8 +67,6 @@ export default function LoginPage() {
       const redirectTo = new URLSearchParams(window.location.search).get("redirect");
       if (redirectTo?.startsWith("/")) {
         router.push(redirectTo);
-      } else if (loggedInUser.role === "ADMIN") {
-        router.push("/admin");
       } else {
         router.push("/");
       }
@@ -89,59 +84,143 @@ export default function LoginPage() {
   };
 
   return (
-    <main
-      className="auth-page relative isolate flex min-h-screen items-start justify-center overflow-hidden px-5 py-14 text-slate-900 sm:py-20"
-      style={{ backgroundColor: "#f8fbff" }}
-    >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-[-16px] auth-grid opacity-70 blur-[5px]"
-        style={{
-          backgroundImage: "linear-gradient(rgba(210,226,247,.42) 1px, transparent 1px), linear-gradient(90deg, rgba(210,226,247,.42) 1px, transparent 1px), linear-gradient(135deg, rgba(239,249,255,.72), rgba(255,252,245,.82))",
-          backgroundSize: "40px 40px, 40px 40px, 100% 100%",
-        }}
-      />
-      <div aria-hidden="true" className="auth-orb auth-orb-one" />
-      <div aria-hidden="true" className="auth-orb auth-orb-two" />
-      <div aria-hidden="true" className="auth-orb auth-orb-three" />
-      <span aria-hidden="true" className="auth-spark auth-spark-one">+</span>
-      <span aria-hidden="true" className="auth-spark auth-spark-two">+</span>
-      <span aria-hidden="true" className="auth-spark auth-spark-three">+</span>
-      <section className="auth-panel relative z-10 w-full max-w-[430px]">
-        <div className="mb-8 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2.5" aria-label="ePowerFix home">
-            <span className="auth-logo-mark flex h-9 w-9 items-center justify-center rounded-full bg-epf-500 shadow-sm shadow-epf-500/30"><Zap className="h-5 w-5 text-white" fill="currentColor" /></span>
-            <span className="text-[21px] font-semibold tracking-tight text-slate-700">e<span className="text-epf-500">Power</span>Fix</span>
+    <main className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <a href="/" className="inline-flex items-center justify-center gap-2 mb-3">
+            <div className="w-8 h-8 bg-[#0EA5E9] rounded flex items-center justify-center">
+              <Zap className="h-4 w-4 text-white fill-current" />
+            </div>
+            <span className="font-black text-2xl tracking-tight text-gray-900">e<span className="text-[#0EA5E9]">Power</span>Fix</span>
           </a>
-          <label className="flex items-center gap-1.5 text-[11px] text-slate-500"><Globe2 className="h-3.5 w-3.5" /><select defaultValue="EN" className="cursor-pointer appearance-none bg-transparent pr-1 text-[11px] outline-none"><option value="EN">EN</option><option value="BN">বাংলা</option></select><span className="text-slate-400">⌄</span></label>
+          <p className="text-gray-500 text-sm">Your trusted electrical marketplace</p>
         </div>
 
-        <div>
-          <h1 className="text-[30px] font-semibold tracking-tight text-slate-900">Welcome</h1>
-          <p className="mt-2 text-[13px] text-slate-500">Enter your details below to sign in into your account.</p>
+        {/* Card */}
+        <div className="bg-white border border-gray-200 rounded shadow-lg overflow-hidden">
+          {/* Tab bar */}
+          <div className="grid grid-cols-2">
+            <a href="/login" className="py-3.5 text-sm font-bold uppercase tracking-wider text-center bg-[#0EA5E9] text-white">
+              Sign In
+            </a>
+            <a href="/register" className="py-3.5 text-sm font-bold uppercase tracking-wider text-center bg-gray-100 text-gray-500 hover:text-gray-800 transition-colors">
+              Register
+            </a>
+          </div>
+
+          {/* Form body */}
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="email" className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="john@example.com"
+                    required
+                    autoComplete="email"
+                    className="w-full border border-gray-300 rounded px-3 py-2.5 pl-10 text-sm outline-none focus:border-[#0EA5E9] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="password" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => toast.info("Password reset", { description: "Please contact support at info@epowerfix.com to reset your password." })}
+                    className="text-xs text-[#0EA5E9] hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    autoComplete="current-password"
+                    className="w-full border border-gray-300 rounded px-3 py-2.5 pl-10 pr-10 text-sm outline-none focus:border-[#0EA5E9] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="accent-[#0EA5E9]"
+                />
+                <span className="text-xs text-gray-500">Remember me for 30 days</span>
+              </label>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#0EA5E9] text-white font-bold py-3 rounded hover:bg-sky-600 transition-colors uppercase tracking-wider disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? "Signing in…" : "Sign In"}
+              </button>
+            </form>
+
+            <div className="my-5 flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">or continue with</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => showSocialNotice("Google")}
+                className="flex items-center justify-center gap-2 border border-gray-300 rounded py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-base font-bold text-[#4285f4]">G</span>
+                Google
+              </button>
+              <button
+                type="button"
+                onClick={() => showSocialNotice("Facebook")}
+                className="flex items-center justify-center gap-2 border border-gray-300 rounded py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Facebook className="h-4 w-4 fill-[#1877f2] text-[#1877f2]" />
+                Facebook
+              </button>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form-stagger mt-7 space-y-4">
-          <div>
-            <label htmlFor="email" className="mb-2 block text-[13px] font-medium text-slate-700">Email <span className="text-red-500">*</span></label>
-            <div className="auth-field relative"><Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" required autoComplete="email" className="h-11 w-full rounded-md border border-slate-200 bg-white pl-10 pr-3 text-[13px] text-slate-700 outline-none transition focus:border-epf-500 focus:ring-2 focus:ring-epf-500/10" /></div>
-          </div>
-          <div>
-            <label htmlFor="password" className="mb-2 block text-[13px] font-medium text-slate-700">Password <span className="text-red-500">*</span></label>
-            <div className="auth-field relative"><LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••" required autoComplete="current-password" className="h-11 w-full rounded-md border border-slate-200 bg-white pl-10 pr-10 text-[13px] text-slate-700 outline-none transition focus:border-epf-500 focus:ring-2 focus:ring-epf-500/10" /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700" aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
-          </div>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Don&apos;t have an account?{" "}
+          <a href="/register" className="font-semibold text-[#0EA5E9] hover:underline">
+            Sign up
+          </a>
+        </p>
+      </div>
 
-          <div className="flex items-center justify-between pt-0.5"><label htmlFor="remember" className="flex cursor-pointer items-center gap-2 text-[13px] text-slate-500"><Checkbox id="remember" checked={remember} onCheckedChange={(value) => setRemember(value === true)} className="h-[18px] w-[18px] rounded border-slate-300 data-[state=checked]:border-epf-500 data-[state=checked]:bg-epf-500" />Remember me</label><button type="button" onClick={() => toast.info("Password reset", { description: "Please contact support at info@epowerfix.com to reset your password." })} className="text-[13px] font-medium text-epf-500 hover:text-epf-600">Forgot password?</button></div>
-
-          <button type="submit" disabled={loading} className="auth-primary-button h-11 w-full rounded-md bg-epf-500 text-[13px] font-semibold text-white shadow-sm transition hover:bg-epf-600 disabled:cursor-not-allowed disabled:opacity-60">{loading ? "Signing in…" : "Sign In"}</button>
-        </form>
-
-        <div className="my-7 flex items-center gap-4 text-[12px] text-slate-500"><span className="h-px flex-1 bg-slate-200" /><span>Or</span><span className="h-px flex-1 bg-slate-200" /></div>
-
-        <div className="grid grid-cols-2 gap-3"><button type="button" onClick={() => showSocialNotice("Google")} className="auth-social-button flex h-10 min-w-0 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"><span className="text-[17px] font-bold text-[#4285f4]">G</span><span className="truncate">Sign in with Google</span></button><button type="button" onClick={() => showSocialNotice("Facebook")} className="auth-social-button flex h-10 min-w-0 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-[12px] text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"><Facebook className="h-4 w-4 fill-[#1877f2] text-[#1877f2]" /><span className="truncate">Sign in with Facebook</span></button></div>
-
-        <p className="mt-7 text-center text-[13px] text-slate-600">Don&apos;t have an account? <a href="/register" className="font-medium text-epf-500 hover:text-epf-600">Sign up</a></p>
-      </section>
       <CartDrawer /><CheckoutDialog /><ChatWidget /><BackToTopButton />
     </main>
   );

@@ -116,6 +116,7 @@ export default function ServiceBookingDialog() {
     mutation.mutate({
       serviceId: bookingServiceId || "",
       customerName: form.customerName.trim(),
+      customerEmail: form.customerEmail.trim(),
       phone,
       bookingDate: form.preferredDate,
       bookingTime: form.preferredTime,

@@ -139,7 +139,7 @@ const orderStatusColor: Record<string, string> = {
   SHIPPED: "bg-purple-50 text-purple-700 border-purple-200",
   DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200",
-  RETURNED: "bg-slate-100 text-slate-700 border-slate-200",
+  RETURNED: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
 const returnStatusColor: Record<string, { color: string; icon: React.ElementType }> = {
@@ -174,7 +174,7 @@ function formatStatus(status: string) {
 
 /* ------------------------------------------------------------------ */
 /*  Info row (Account Information card)                                */
-/*  icon h-5 w-5 text-slate-400 + label uppercase text-[12px] + value  */
+/*  icon h-5 w-5 text-gray-400 + label uppercase text-[12px] + value  */
 /* ------------------------------------------------------------------ */
 function InfoRow({
   icon: Icon,
@@ -187,12 +187,12 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3 py-3">
-      <Icon className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
+      <Icon className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
       <div className="min-w-0">
-        <p className="text-[12px] text-slate-500 uppercase tracking-wider font-medium">
+        <p className="text-[12px] text-gray-500 uppercase tracking-wider font-medium">
           {label}
         </p>
-        <p className="text-[14px] text-slate-900 mt-0.5 break-words">
+        <p className="text-[14px] text-gray-900 mt-0.5 break-words">
           {value || "—"}
         </p>
       </div>
@@ -269,7 +269,7 @@ function reviewStatusBadge(status: string): { label: string; className: string }
     case "REJECTED":
       return { label: "Rejected", className: "bg-red-50 text-red-700 border-red-200" };
     default:
-      return { label: status, className: "bg-slate-100 text-slate-700 border-slate-200" };
+      return { label: status, className: "bg-gray-100 text-gray-700 border-gray-200" };
   }
 }
 
@@ -549,31 +549,26 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 bg-white">
-          <div className="bg-white border-b border-slate-200">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
-              <nav className="flex items-center gap-1.5 h-[44px] text-[14px]">
-                <a href="/" className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors">
-                  <Home className="h-3.5 w-3.5" />
-                  <span>Home</span>
-                </a>
-                <ChevronRight className="h-3 w-3 text-slate-400" />
-                <span className="text-slate-900 font-medium">My Account</span>
+        <main className="flex-1 bg-gray-50">
+          <div className="bg-white border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8">
+              <nav className="flex items-center gap-1.5 h-[44px] text-xs text-gray-400">
+                <a href="/" className="hover:text-[#0EA5E9] transition-colors">Home</a>
+                <ChevronRight className="h-3 w-3" />
+                <span className="text-gray-700 font-semibold">My Account</span>
               </nav>
             </div>
           </div>
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-270px)]">
-            <div className="bg-white rounded-[4px] border border-slate-200 shadow-none gap-0 py-0 p-8 text-center max-w-sm w-full">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
-                <User className="h-8 w-8 text-slate-400" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-270px)]">
+            <div className="bg-white border border-gray-200 rounded shadow-lg p-8 text-center max-w-sm w-full">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
+                <User className="h-8 w-8 text-gray-400" />
               </div>
-              <h2 className="text-[18px] font-semibold text-slate-900 mb-2">Please Login</h2>
-              <p className="text-[14px] text-slate-500 mb-6">
-                You need to be logged in to view your account.
-              </p>
+              <h2 className="font-black text-xl uppercase tracking-tight text-gray-900 mb-2">Please Login</h2>
+              <p className="text-sm text-gray-500 mb-6">You need to be logged in to view your account.</p>
               <a
                 href="/login?redirect=/profile"
-                className="inline-flex items-center justify-center h-11 px-6 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-[15px] rounded-lg transition-colors"
+                className="inline-flex items-center justify-center h-11 px-6 bg-[#0EA5E9] hover:bg-sky-600 text-white font-bold text-sm rounded uppercase tracking-wider transition-colors"
               >
                 Sign In
               </a>
@@ -599,18 +594,15 @@ export default function ProfilePage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 bg-white">
+      <main className="flex-1 bg-gray-50">
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12">
-            <nav className="flex items-center justify-between gap-4 h-[44px] text-[14px]">
-              <div className="flex items-center gap-1.5">
-                <a href="/" className="flex items-center gap-1 text-slate-500 hover:text-slate-900 transition-colors">
-                  <Home className="h-3.5 w-3.5" />
-                  <span>Home</span>
-                </a>
-                <ChevronRight className="h-3 w-3 text-slate-400" />
-                <span className="text-slate-900 font-medium">My Account</span>
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <nav className="flex items-center justify-between gap-4 h-[44px] text-sm">
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <a href="/" className="hover:text-[#0EA5E9] transition-colors">Home</a>
+                <ChevronRight className="h-3 w-3" />
+                <span className="text-gray-700 font-semibold">My Account</span>
               </div>
               <NotificationBell />
             </nav>
@@ -618,45 +610,55 @@ export default function ProfilePage() {
         </div>
 
         {/* Page Content */}
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-10 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
           {userLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-10">
-              <Skeleton className="h-72 w-full rounded-xl" />
+            <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-8">
+              <Skeleton className="h-72 w-full rounded-lg" />
               <div className="space-y-6">
-                <Skeleton className="h-64 w-full rounded-xl" />
-                <Skeleton className="h-48 w-full rounded-xl" />
+                <Skeleton className="h-64 w-full rounded-lg" />
+                <Skeleton className="h-48 w-full rounded-lg" />
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-8">
               {/* ---------- Sidebar ---------- */}
               <aside className="md:shrink-0">
-                <nav className="bg-transparent border-0 rounded-none shadow-none p-0 md:sticky md:top-4">
-                  <ul className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
-                    {sidebarItems.map((item) => {
-                      const Icon = item.icon;
-                      const isActive = item.type === "section" && activeSection === item.key;
-                      const isLogout = item.type === "logout";
-                      return (
-                        <li key={item.label} className="shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleSidebarClick(item)}
-                            className={`flex items-center gap-2.5 h-9 px-2 text-[12px] font-medium rounded-md whitespace-nowrap transition-colors w-full text-left border-l-[3px] border-transparent ${
-                              isLogout
-                                ? "text-red-500 hover:bg-red-50"
-                                : isActive
-                                ? "text-slate-900 font-semibold border-slate-900 bg-transparent"
-                                : "text-slate-600 hover:bg-slate-50"
-                            }`}
-                          >
-                            <Icon className="h-[18px] w-[18px] shrink-0" />
-                            <span>{item.label}</span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                {/* User card */}
+                {user && (
+                  <div className="bg-white border border-gray-100 rounded-lg p-5 shadow-sm text-center mb-4">
+                    <div className="w-14 h-14 bg-[#0EA5E9] rounded-full flex items-center justify-center mx-auto mb-3 text-white text-xl font-bold">
+                      {user.name?.slice(0, 2).toUpperCase() || "?"}
+                    </div>
+                    <p className="font-semibold text-sm text-gray-900">{user.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
+                    <span className="mt-2 inline-block text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      Member
+                    </span>
+                  </div>
+                )}
+                <nav className="bg-white border border-gray-100 rounded-lg overflow-hidden shadow-sm md:sticky md:top-4">
+                  {sidebarItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = item.type === "section" && activeSection === item.key;
+                    const isLogout = item.type === "logout";
+                    return (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => handleSidebarClick(item)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm border-b border-gray-50 last:border-0 transition-colors ${
+                          isLogout
+                            ? "text-red-500 hover:bg-red-50"
+                            : isActive
+                            ? "bg-[#0EA5E9] text-white font-semibold"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
                 </nav>
               </aside>
 
@@ -665,14 +667,14 @@ export default function ProfilePage() {
 
                 {/* ---- Recent Orders (Dashboard + Orders sections) ---- */}
                 {(activeSection === "dashboard" || activeSection === "orders") && (
-                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
-                      <CardTitle className="text-[14px] font-semibold text-slate-900">
+                  <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-gray-50 border-b border-gray-200 !px-4 !py-3">
+                      <CardTitle className="text-[14px] font-semibold text-gray-900">
                         Recent Orders
                       </CardTitle>
                       <a
                         href="/order-track"
-                        className="text-[13px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
+                        className="text-[13px] font-medium text-[#0EA5E9] hover:text-sky-600 transition-colors"
                       >
                         View All
                       </a>
@@ -686,16 +688,16 @@ export default function ProfilePage() {
                         </div>
                       ) : orders.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <div className="h-14 w-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
-                            <ShoppingBag className="h-6 w-6 text-slate-300" />
+                          <div className="h-14 w-14 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mb-3">
+                            <ShoppingBag className="h-6 w-6 text-gray-300" />
                           </div>
-                          <p className="text-[15px] font-medium text-slate-700">No orders yet</p>
-                          <p className="text-[13px] text-slate-400 mt-1 max-w-xs">
+                          <p className="text-[15px] font-medium text-gray-700">No orders yet</p>
+                          <p className="text-[13px] text-gray-400 mt-1 max-w-xs">
                             When you place orders, they will appear here.
                           </p>
                           <a
                             href="/shop"
-                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-[#0EA5E9] hover:bg-sky-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
                           >
                             Start Shopping
                           </a>
@@ -704,55 +706,55 @@ export default function ProfilePage() {
                         <div className="-mx-2">
                           <Table>
                             <TableHeader>
-                              <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                              <TableRow className="border-gray-200 bg-gray-50 hover:bg-gray-50">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Order ID
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Date
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Status
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3 text-right">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3 text-right">
                                   Total
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Tracking
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3 text-right">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3 text-right">
                                   Action
                                 </TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {orders.map((order) => (
-                                <TableRow key={order.id} className="border-slate-200 hover:bg-slate-50/60">
+                                <TableRow key={order.id} className="border-gray-200 hover:bg-gray-50/60">
                                   <TableCell className="px-4 py-3">
-                                    <span className="text-[13px] font-mono font-medium text-slate-900">
+                                    <span className="text-[13px] font-mono font-medium text-gray-900">
                                       #{order.orderNumber.slice(-8)}
                                     </span>
                                   </TableCell>
-                                  <TableCell className="px-4 py-3 text-[13px] text-slate-600">
+                                  <TableCell className="px-4 py-3 text-[13px] text-gray-600">
                                     {formatDate(order.createdAt)}
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
                                     <span
                                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${
                                         orderStatusColor[order.status] ||
-                                        "bg-slate-100 text-slate-700 border-slate-200"
+                                        "bg-gray-100 text-gray-700 border-gray-200"
                                       }`}
                                     >
                                       {formatStatus(order.status)}
                                     </span>
                                   </TableCell>
-                                  <TableCell className="px-4 py-3 text-right text-[14px] font-semibold text-slate-900">
+                                  <TableCell className="px-4 py-3 text-right text-[14px] font-semibold text-gray-900">
                                     {formatBDT(order.total)}
                                   </TableCell>
                                   <TableCell className="px-4 py-3">
                                     <a
                                       href={`/order-track?order=${encodeURIComponent(order.orderNumber)}`}
-                                      className="text-[13px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
+                                      className="text-[13px] font-medium text-[#0EA5E9] hover:text-sky-600 transition-colors"
                                     >
                                       Track
                                     </a>
@@ -763,7 +765,7 @@ export default function ProfilePage() {
                                         <button
                                           type="button"
                                           onClick={() => openReturnDialog(order.id)}
-                                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-500 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                                          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-gray-500 hover:bg-amber-50 hover:text-amber-600 transition-colors"
                                           title="Request return"
                                         >
                                           <RotateCcw className="h-4 w-4" />
@@ -772,7 +774,7 @@ export default function ProfilePage() {
                                       )}
                                       <a
                                         href={`/order-track?order=${encodeURIComponent(order.orderNumber)}`}
-                                        className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-500 hover:bg-epf-50 hover:text-epf-600 transition-colors"
+                                        className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-gray-500 hover:bg-sky-50 hover:text-sky-600 transition-colors"
                                         title="View order"
                                       >
                                         <Eye className="h-4 w-4" />
@@ -792,15 +794,15 @@ export default function ProfilePage() {
 
                 {/* ---- Account Information (Dashboard only) ---- */}
                 {activeSection === "dashboard" && (
-                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
-                      <CardTitle className="text-[14px] font-semibold text-slate-900">
+                  <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-gray-50 border-b border-gray-200 !px-4 !py-3">
+                      <CardTitle className="text-[14px] font-semibold text-gray-900">
                         Account Information
                       </CardTitle>
                       <button
                         type="button"
                         onClick={() => setActiveSection("profile")}
-                        className="inline-flex items-center gap-1 text-[13px] font-medium text-epf-500 hover:text-epf-600 transition-colors"
+                        className="inline-flex items-center gap-1 text-[13px] font-medium text-[#0EA5E9] hover:text-sky-600 transition-colors"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                         Edit
@@ -825,13 +827,13 @@ export default function ProfilePage() {
                 {(activeSection === "downloads" ||
                   (activeSection === "dashboard" &&
                     (downloadsLoading || downloads.length > 0))) && (
-                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
-                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
-                        <Download className="h-5 w-5 text-slate-500" />
+                  <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-gray-50 border-b border-gray-200 !px-4 !py-3">
+                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-gray-900">
+                        <Download className="h-5 w-5 text-gray-500" />
                         My Downloads
                         {downloads.length > 0 && (
-                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-epf-50 text-epf-600 text-[11px] font-semibold">
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-sky-50 text-sky-600 text-[11px] font-semibold">
                             {downloads.length}
                           </span>
                         )}
@@ -846,13 +848,13 @@ export default function ProfilePage() {
                         </div>
                       ) : downloads.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center">
-                          <div className="h-12 w-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
-                            <Download className="h-5 w-5 text-slate-300" />
+                          <div className="h-12 w-12 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mb-3">
+                            <Download className="h-5 w-5 text-gray-300" />
                           </div>
-                          <p className="text-[14px] font-medium text-slate-700">
+                          <p className="text-[14px] font-medium text-gray-700">
                             No downloads available
                           </p>
-                          <p className="text-[13px] text-slate-400 mt-1 max-w-xs">
+                          <p className="text-[13px] text-gray-400 mt-1 max-w-xs">
                             Digital products you purchase will appear here for download.
                           </p>
                         </div>
@@ -864,13 +866,13 @@ export default function ProfilePage() {
                             return (
                               <div
                                 key={d.orderItemId}
-                                className="border border-slate-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                className="border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                               >
                                 <div className="space-y-1 min-w-0">
-                                  <p className="text-[14px] font-medium text-slate-900 truncate">
+                                  <p className="text-[14px] font-medium text-gray-900 truncate">
                                     {d.productName}
                                   </p>
-                                  <div className="flex items-center gap-2 text-[12px] text-slate-500 flex-wrap">
+                                  <div className="flex items-center gap-2 text-[12px] text-gray-500 flex-wrap">
                                     <span className="font-mono">#{d.orderNumber.slice(-8)}</span>
                                     <span>·</span>
                                     <span>{formatDate(d.purchasedAt)}</span>
@@ -888,7 +890,7 @@ export default function ProfilePage() {
                                   <Button
                                     asChild
                                     size="sm"
-                                    className="h-9 text-[13px] gap-1.5 bg-epf-500 hover:bg-epf-600 text-white rounded-lg shrink-0"
+                                    className="h-9 text-[13px] gap-1.5 bg-[#0EA5E9] hover:bg-sky-600 text-white rounded-lg shrink-0"
                                   >
                                     <a href={`/api/downloads/${d.orderItemId}`}>
                                       <Download className="size-3.5" />
@@ -898,7 +900,7 @@ export default function ProfilePage() {
                                 ) : (
                                   <Badge
                                     variant="outline"
-                                    className="text-[11px] gap-1 text-slate-400 shrink-0 self-start sm:self-auto"
+                                    className="text-[11px] gap-1 text-gray-400 shrink-0 self-start sm:self-auto"
                                   >
                                     <Lock className="size-3" />
                                     {!d.unlocked ? "Awaiting payment" : exhausted ? "Limit reached" : "Unavailable"}
@@ -916,13 +918,13 @@ export default function ProfilePage() {
                 {/* ---- My Returns (Dashboard only, only if returns exist) ---- */}
                 {activeSection === "dashboard" &&
                   (returnsLoading || returns.length > 0) && (
-                    <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
-                      <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
-                        <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
-                          <RotateCcw className="h-5 w-5 text-slate-500" />
+                    <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
+                      <CardHeader className="flex-row items-center justify-between space-y-0 bg-gray-50 border-b border-gray-200 !px-4 !py-3">
+                        <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-gray-900">
+                          <RotateCcw className="h-5 w-5 text-gray-500" />
                           My Returns
                           {returns.length > 0 && (
-                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-epf-50 text-epf-600 text-[11px] font-semibold">
+                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-sky-50 text-sky-600 text-[11px] font-semibold">
                               {returns.length}
                             </span>
                           )}
@@ -939,16 +941,16 @@ export default function ProfilePage() {
                           <div className="space-y-3">
                             {returns.map((r) => {
                               const statusInfo = returnStatusColor[r.status] || {
-                                color: "bg-slate-100 text-slate-700 border-slate-200",
+                                color: "bg-gray-100 text-gray-700 border-gray-200",
                                 icon: Clock,
                               };
                               const StatusIcon = statusInfo.icon;
                               return (
-                                <div key={r.id} className="border border-slate-200 rounded-lg p-4">
+                                <div key={r.id} className="border border-gray-200 rounded-lg p-4">
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div className="space-y-1 min-w-0">
                                       <div className="flex items-center gap-2">
-                                        <span className="text-[13px] font-mono font-medium text-slate-900">
+                                        <span className="text-[13px] font-mono font-medium text-gray-900">
                                           #{r.order.orderNumber.slice(-8)}
                                         </span>
                                         <span
@@ -958,13 +960,13 @@ export default function ProfilePage() {
                                           {r.status}
                                         </span>
                                       </div>
-                                      <p className="text-[12px] text-slate-500 line-clamp-2">{r.reason}</p>
-                                      <div className="flex items-center gap-2 text-[12px] text-slate-400 flex-wrap">
+                                      <p className="text-[12px] text-gray-500 line-clamp-2">{r.reason}</p>
+                                      <div className="flex items-center gap-2 text-[12px] text-gray-400 flex-wrap">
                                         <span>Requested: {formatDate(r.createdAt)}</span>
                                         {r.refundAmount && (
                                           <>
                                             <span>·</span>
-                                            <span className="font-medium text-slate-900">
+                                            <span className="font-medium text-gray-900">
                                               Refund: {formatBDT(r.refundAmount)}
                                             </span>
                                           </>
@@ -972,8 +974,8 @@ export default function ProfilePage() {
                                       </div>
                                     </div>
                                     {r.notes && (
-                                      <div className="text-[12px] text-slate-500 bg-slate-50 rounded-md p-3 max-w-xs">
-                                        <p className="font-medium text-slate-700 mb-1">Admin Note:</p>
+                                      <div className="text-[12px] text-gray-500 bg-gray-50 rounded-md p-3 max-w-xs">
+                                        <p className="font-medium text-gray-700 mb-1">Admin Note:</p>
                                         <p>{r.notes}</p>
                                       </div>
                                     )}
@@ -990,13 +992,13 @@ export default function ProfilePage() {
                 {/* ---- My Addresses (addresses section OR dashboard if any) ---- */}
                 {(activeSection === "addresses" ||
                   (activeSection === "dashboard" && addresses.length > 0)) && (
-                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
-                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
-                        <MapPin className="h-5 w-5 text-slate-500" />
+                  <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-gray-50 border-b border-gray-200 !px-4 !py-3">
+                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-gray-900">
+                        <MapPin className="h-5 w-5 text-gray-500" />
                         My Addresses
                         {addresses.length > 0 && (
-                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-epf-50 text-epf-600 text-[11px] font-semibold">
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-sky-50 text-sky-600 text-[11px] font-semibold">
                             {addresses.length}
                           </span>
                         )}
@@ -1004,7 +1006,7 @@ export default function ProfilePage() {
                       <Button
                         type="button"
                         onClick={openAddAddress}
-                        className="h-9 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg gap-1.5"
+                        className="h-9 bg-[#0EA5E9] hover:bg-sky-600 text-white text-[13px] font-semibold rounded-lg gap-1.5"
                       >
                         <Plus className="h-4 w-4" />
                         Add New Address
@@ -1019,17 +1021,17 @@ export default function ProfilePage() {
                         </div>
                       ) : addresses.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <div className="h-14 w-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
-                            <MapPin className="h-6 w-6 text-slate-300" />
+                          <div className="h-14 w-14 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mb-3">
+                            <MapPin className="h-6 w-6 text-gray-300" />
                           </div>
-                          <p className="text-[15px] font-medium text-slate-700">No saved addresses</p>
-                          <p className="text-[13px] text-slate-400 mt-1 max-w-xs">
+                          <p className="text-[15px] font-medium text-gray-700">No saved addresses</p>
+                          <p className="text-[13px] text-gray-400 mt-1 max-w-xs">
                             Add an address so you don't have to type it every time you checkout.
                           </p>
                           <button
                             type="button"
                             onClick={openAddAddress}
-                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-[#0EA5E9] hover:bg-sky-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
                           >
                             Add Your First Address
                           </button>
@@ -1039,20 +1041,20 @@ export default function ProfilePage() {
                           {addresses.map((addr) => (
                             <div
                               key={addr.id}
-                              className="relative border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow bg-white"
+                              className="relative border border-gray-200 rounded-xl p-4 hover:shadow-sm transition-shadow bg-white"
                             >
                               {addr.isDefault && (
-                                <span className="absolute top-3 right-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-epf-500">
+                                <span className="absolute top-3 right-3 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-[#0EA5E9]">
                                   Default
                                 </span>
                               )}
                               <div className="flex items-start gap-2.5 mb-2">
-                                <User className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                                <p className="text-[14px] font-semibold text-slate-900">{addr.fullName}</p>
+                                <User className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                                <p className="text-[14px] font-semibold text-gray-900">{addr.fullName}</p>
                               </div>
                               <div className="flex items-start gap-2.5 mb-1">
-                                <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                                <p className="text-[13px] text-slate-600 leading-relaxed">
+                                <MapPin className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                                <p className="text-[13px] text-gray-600 leading-relaxed">
                                   {addr.address}
                                   {addr.area && <>, {addr.area}</>}
                                   <br />
@@ -1061,34 +1063,34 @@ export default function ProfilePage() {
                                 </p>
                               </div>
                               <div className="flex items-start gap-2.5 mb-3">
-                                <Phone className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                                <p className="text-[13px] text-slate-600">{addr.phone}</p>
+                                <Phone className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                                <p className="text-[13px] text-gray-600">{addr.phone}</p>
                               </div>
-                              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                                 <button
                                   type="button"
                                   onClick={() => openEditAddress(addr)}
-                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-600 hover:text-epf-600 transition-colors"
+                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-gray-600 hover:text-sky-600 transition-colors"
                                 >
                                   <Pencil className="h-3.5 w-3.5" />
                                   Edit
                                 </button>
-                                <span className="text-slate-300">|</span>
+                                <span className="text-gray-300">|</span>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteAddress(addr.id)}
-                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-600 hover:text-red-600 transition-colors"
+                                  className="inline-flex items-center gap-1 text-[12px] font-medium text-gray-600 hover:text-red-600 transition-colors"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                   Delete
                                 </button>
                                 {!addr.isDefault && (
                                   <>
-                                    <span className="text-slate-300">|</span>
+                                    <span className="text-gray-300">|</span>
                                     <button
                                       type="button"
                                       onClick={() => handleSetDefaultAddress(addr.id)}
-                                      className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-600 hover:text-epf-600 transition-colors"
+                                      className="inline-flex items-center gap-1 text-[12px] font-medium text-gray-600 hover:text-sky-600 transition-colors"
                                     >
                                       <CheckCircle2 className="h-3.5 w-3.5" />
                                       Set Default
@@ -1107,13 +1109,13 @@ export default function ProfilePage() {
                 {/* ---- My Reviews (reviews section OR dashboard if any) ---- */}
                 {(activeSection === "reviews" ||
                   (activeSection === "dashboard" && reviews.length > 0)) && (
-                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
-                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-slate-50 border-b border-slate-200 !px-4 !py-3">
-                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-slate-900">
-                        <Star className="h-5 w-5 text-slate-500" />
+                  <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-gray-50 border-b border-gray-200 !px-4 !py-3">
+                      <CardTitle className="flex items-center gap-2 text-[16px] font-semibold text-gray-900">
+                        <Star className="h-5 w-5 text-gray-500" />
                         My Reviews
                         {reviews.length > 0 && (
-                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-epf-50 text-epf-600 text-[11px] font-semibold">
+                          <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-sky-50 text-sky-600 text-[11px] font-semibold">
                             {reviews.length}
                           </span>
                         )}
@@ -1128,16 +1130,16 @@ export default function ProfilePage() {
                         </div>
                       ) : reviews.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                          <div className="h-14 w-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
-                            <Star className="h-6 w-6 text-slate-300" />
+                          <div className="h-14 w-14 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mb-3">
+                            <Star className="h-6 w-6 text-gray-300" />
                           </div>
-                          <p className="text-[15px] font-medium text-slate-700">No reviews yet</p>
-                          <p className="text-[13px] text-slate-400 mt-1 max-w-xs">
+                          <p className="text-[15px] font-medium text-gray-700">No reviews yet</p>
+                          <p className="text-[13px] text-gray-400 mt-1 max-w-xs">
                             Share your experience with products you've purchased to help other buyers.
                           </p>
                           <a
                             href="/shop"
-                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-epf-500 hover:bg-epf-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
+                            className="inline-flex items-center justify-center h-9 px-5 mt-4 bg-[#0EA5E9] hover:bg-sky-600 text-white text-[13px] font-semibold rounded-lg transition-colors"
                           >
                             Browse Products
                           </a>
@@ -1146,20 +1148,20 @@ export default function ProfilePage() {
                         <div className="-mx-2 overflow-x-auto">
                           <Table>
                             <TableHeader>
-                              <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3 w-[60px]">
+                              <TableRow className="border-gray-200 bg-gray-50 hover:bg-gray-50">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3 w-[60px]">
                                   Image
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Product
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Status
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Date
                                 </TableHead>
-                                <TableHead className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold px-4 py-3">
+                                <TableHead className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold px-4 py-3">
                                   Rating
                                 </TableHead>
                               </TableRow>
@@ -1172,26 +1174,26 @@ export default function ProfilePage() {
                                 const href = rv.product ? `/product/${rv.product.id}` : rv.service ? `/services/${rv.service.slug}` : "#";
                                 const badge = reviewStatusBadge(rv.status);
                                 return (
-                                  <TableRow key={rv.id} className="border-slate-200 hover:bg-slate-50/60">
+                                  <TableRow key={rv.id} className="border-gray-200 hover:bg-gray-50/60">
                                     <TableCell className="px-4 py-3">
-                                      <div className="h-11 w-11 rounded-md overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+                                      <div className="h-11 w-11 rounded-md overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
                                         {img ? (
                                           <img src={img} alt={item?.name || "product"} className="w-full h-full object-cover" />
                                         ) : (
-                                          <Package className="h-5 w-5 text-slate-300" />
+                                          <Package className="h-5 w-5 text-gray-300" />
                                         )}
                                       </div>
                                     </TableCell>
                                     <TableCell className="px-4 py-3">
                                       <a
                                         href={href}
-                                        className="text-[13px] font-medium text-slate-800 hover:text-epf-600 transition-colors line-clamp-2"
+                                        className="text-[13px] font-medium text-gray-800 hover:text-sky-600 transition-colors line-clamp-2"
                                         title={item?.name || "Product"}
                                       >
                                         {item?.name || "Product removed"}
                                       </a>
                                       {rv.title && (
-                                        <p className="text-[12px] text-slate-500 mt-0.5 line-clamp-1">{rv.title}</p>
+                                        <p className="text-[12px] text-gray-500 mt-0.5 line-clamp-1">{rv.title}</p>
                                       )}
                                     </TableCell>
                                     <TableCell className="px-4 py-3">
@@ -1199,7 +1201,7 @@ export default function ProfilePage() {
                                         {badge.label}
                                       </span>
                                     </TableCell>
-                                    <TableCell className="px-4 py-3 text-[13px] text-slate-500 whitespace-nowrap">
+                                    <TableCell className="px-4 py-3 text-[13px] text-gray-500 whitespace-nowrap">
                                       {formatDate(rv.createdAt)}
                                     </TableCell>
                                     <TableCell className="px-4 py-3">
@@ -1227,10 +1229,10 @@ export default function ProfilePage() {
 
                 {/* ---- My Profile (inline edit form — no popup) ---- */}
                 {activeSection === "profile" && (
-                  <Card className="rounded-[4px] border border-slate-200 shadow-none gap-0 py-0">
+                  <Card className="rounded-[4px] border border-gray-200 shadow-none gap-0 py-0">
                     <CardHeader className="pb-4">
-                      <CardTitle className="text-[18px] font-bold text-slate-900">My Profile</CardTitle>
-                      <p className="text-[13px] text-slate-500 mt-1">
+                      <CardTitle className="text-[18px] font-bold text-gray-900">My Profile</CardTitle>
+                      <p className="text-[13px] text-gray-500 mt-1">
                         Update your personal information and address details.
                       </p>
                     </CardHeader>
@@ -1239,7 +1241,7 @@ export default function ProfilePage() {
                         {/* Personal Info row */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">
+                            <Label className="text-[13px] font-medium text-gray-700">
                               Full Name <span className="text-red-500">*</span>
                             </Label>
                             <Input
@@ -1250,7 +1252,7 @@ export default function ProfilePage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">নাম (বাংলা)</Label>
+                            <Label className="text-[13px] font-medium text-gray-700">নাম (বাংলা)</Label>
                             <Input
                               value={editForm.nameBn}
                               onChange={(e) => setEditForm({ ...editForm, nameBn: e.target.value })}
@@ -1263,18 +1265,18 @@ export default function ProfilePage() {
                         {/* Contact row */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">
+                            <Label className="text-[13px] font-medium text-gray-700">
                               Email <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               value={user?.email || ""}
                               disabled
-                              className="h-10 bg-slate-50 text-slate-500"
+                              className="h-10 bg-gray-50 text-gray-500"
                             />
-                            <p className="text-[11px] text-slate-400">Email change requires password verification — contact support.</p>
+                            <p className="text-[11px] text-gray-400">Email change requires password verification — contact support.</p>
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">
+                            <Label className="text-[13px] font-medium text-gray-700">
                               Phone <span className="text-red-500">*</span>
                             </Label>
                             <Input
@@ -1290,7 +1292,7 @@ export default function ProfilePage() {
 
                         {/* Address row */}
                         <div className="space-y-1.5">
-                          <Label className="text-[13px] font-medium text-slate-700">Street Address</Label>
+                          <Label className="text-[13px] font-medium text-gray-700">Street Address</Label>
                           <Input
                             value={editForm.address}
                             onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
@@ -1300,7 +1302,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">Area</Label>
+                            <Label className="text-[13px] font-medium text-gray-700">Area</Label>
                             <Input
                               value={editForm.area}
                               onChange={(e) => setEditForm({ ...editForm, area: e.target.value })}
@@ -1309,7 +1311,7 @@ export default function ProfilePage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">City</Label>
+                            <Label className="text-[13px] font-medium text-gray-700">City</Label>
                             <Input
                               value={editForm.city}
                               onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
@@ -1318,7 +1320,7 @@ export default function ProfilePage() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[13px] font-medium text-slate-700">Postal Code</Label>
+                            <Label className="text-[13px] font-medium text-gray-700">Postal Code</Label>
                             <Input
                               value={editForm.postalCode}
                               onChange={(e) => setEditForm({ ...editForm, postalCode: e.target.value })}
@@ -1381,7 +1383,7 @@ export default function ProfilePage() {
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Full Name <span className="text-red-500">*</span></Label>
+                <Label className="text-[13px] text-gray-700">Full Name <span className="text-red-500">*</span></Label>
                 <Input
                   value={addressForm.fullName}
                   onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
@@ -1390,7 +1392,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Phone <span className="text-red-500">*</span></Label>
+                <Label className="text-[13px] text-gray-700">Phone <span className="text-red-500">*</span></Label>
                 <Input
                   value={addressForm.phone}
                   onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
@@ -1400,7 +1402,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[13px] text-slate-700">Street Address <span className="text-red-500">*</span></Label>
+              <Label className="text-[13px] text-gray-700">Street Address <span className="text-red-500">*</span></Label>
               <Input
                 value={addressForm.address}
                 onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })}
@@ -1410,7 +1412,7 @@ export default function ProfilePage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Area</Label>
+                <Label className="text-[13px] text-gray-700">Area</Label>
                 <Input
                   value={addressForm.area}
                   onChange={(e) => setAddressForm({ ...addressForm, area: e.target.value })}
@@ -1419,7 +1421,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">City <span className="text-red-500">*</span></Label>
+                <Label className="text-[13px] text-gray-700">City <span className="text-red-500">*</span></Label>
                 <Input
                   value={addressForm.city}
                   onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
@@ -1430,7 +1432,7 @@ export default function ProfilePage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Postal Code</Label>
+                <Label className="text-[13px] text-gray-700">Postal Code</Label>
                 <Input
                   value={addressForm.postalCode}
                   onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
@@ -1439,7 +1441,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] text-slate-700">Label (optional)</Label>
+                <Label className="text-[13px] text-gray-700">Label (optional)</Label>
                 <Input
                   value={addressForm.label}
                   onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}
@@ -1453,9 +1455,9 @@ export default function ProfilePage() {
                 type="checkbox"
                 checked={addressForm.isDefault}
                 onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
-                className="h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500"
+                className="h-4 w-4 rounded border-slate-300 text-[#0EA5E9] focus:ring-sky-500"
               />
-              <span className="text-[13px] text-slate-700">Set as default address</span>
+              <span className="text-[13px] text-gray-700">Set as default address</span>
             </label>
           </div>
           <DialogFooter>
@@ -1469,7 +1471,7 @@ export default function ProfilePage() {
             <Button
               onClick={handleSaveAddress}
               disabled={savingAddress}
-              className="bg-epf-500 hover:bg-epf-600 text-white"
+              className="bg-[#0EA5E9] hover:bg-sky-600 text-white"
             >
               {savingAddress ? (
                 <>
@@ -1508,7 +1510,7 @@ export default function ProfilePage() {
                 onChange={(e) => setReturnReason(e.target.value)}
                 rows={4}
               />
-              <p className="text-[12px] text-slate-400">Min 10 characters required</p>
+              <p className="text-[12px] text-gray-400">Min 10 characters required</p>
             </div>
           </div>
           <DialogFooter>
@@ -1522,7 +1524,7 @@ export default function ProfilePage() {
               Cancel
             </Button>
             <Button
-              className="bg-epf-500 hover:bg-epf-600 text-white"
+              className="bg-[#0EA5E9] hover:bg-sky-600 text-white"
               disabled={createReturnMutation.isPending || returnReason.length < 10}
               onClick={() => {
                 if (returnOrderId) {

@@ -21,7 +21,7 @@ export interface ShopCardData {
   badge?: string;
   isFeatured?: boolean;
   isBestDeal?: boolean;
-  itemType?: "PRODUCT" | "PROJECT";
+  itemType?: "PRODUCT" | "PROJECT" | "PROJECT_KIT";
 }
 
 interface ShopCardProps {
@@ -75,7 +75,11 @@ const ShopCardBase = ({ data, onCardClick, className }: ShopCardProps) => {
 
     addItem({
       itemType: data.itemType || "PRODUCT",
-      productId: data.id,
+      ...(data.itemType === "PROJECT_KIT"
+        ? { projectKitId: data.id }
+        : data.itemType === "PROJECT"
+        ? { projectId: data.id }
+        : { productId: data.id }),
       productName: data.name,
       productImage: imageUrl,
       price: Number(displayPrice),

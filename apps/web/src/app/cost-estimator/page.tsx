@@ -454,28 +454,26 @@ export default function CostEstimatorPage() {
   /* ---------- render ---------- */
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
       <main className="flex-1">
-        {/* Page Header */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6 sm:py-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
-              Cost Estimator
-            </h1>
-            <p className="text-sm sm:text-base text-slate-500">
-              Get an instant estimate for your electrical project in 3 easy steps
-            </p>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="mb-6">
+            <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-2">
+              <a href="/" className="hover:text-[#0EA5E9]">Home</a>
+              <ChevronRight className="h-3 w-3" />
+              <span className="text-gray-700 font-semibold">Cost Estimator</span>
+            </div>
+            <h1 className="font-black text-3xl tracking-tight text-gray-900 mb-1">Cost Estimator</h1>
+            <p className="text-sm text-gray-500">Get an instant estimate for your electrical project in 3 easy steps</p>
           </div>
-        </div>
 
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-6 sm:py-8">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* ===================== LEFT: Form Area ===================== */}
             <div className="w-full lg:w-[60%]">
               {/* Step Indicator */}
-              <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-6 mb-6">
                 <div className="flex items-center justify-between">
                   {STEPS.map((s, i) => {
                     const stepNum = i + 1;
@@ -490,10 +488,10 @@ export default function CostEstimatorPage() {
                               h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300
                               ${
                                 isCompleted
-                                  ? "bg-epf-500 text-white"
+                                  ? "bg-[#0EA5E9] text-white"
                                   : isActive
-                                  ? "bg-epf-500 text-white"
-                                  : "border-2 border-slate-300 text-slate-400 bg-white"
+                                  ? "bg-[#0EA5E9] text-white"
+                                  : "border-2 border-gray-300 text-gray-400 bg-white"
                               }
                             `}
                           >
@@ -506,10 +504,10 @@ export default function CostEstimatorPage() {
                           <span
                             className={`mt-2 text-xs font-medium hidden sm:block ${
                               isActive
-                                ? "text-epf-500"
+                                ? "text-[#0EA5E9]"
                                 : isCompleted
-                                ? "text-slate-900"
-                                : "text-slate-400"
+                                ? "text-gray-900"
+                                : "text-gray-400"
                             }`}
                           >
                             {s.label}
@@ -520,7 +518,7 @@ export default function CostEstimatorPage() {
                           <div
                             className={`
                               flex-1 h-0.5 mx-3 sm:mx-4 mt-[-18px] sm:mt-[-24px] transition-colors duration-300
-                              ${step > stepNum ? "bg-epf-500" : "bg-slate-200"}
+                              ${step > stepNum ? "bg-[#0EA5E9]" : "bg-gray-200"}
                             `}
                           />
                         )}
@@ -531,14 +529,14 @@ export default function CostEstimatorPage() {
               </div>
 
               {/* Step Content */}
-              <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 sm:p-6 min-h-[420px]">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-6 min-h-[420px]">
                 {/* ---------- STEP 1: Service Type ---------- */}
                 {step === 1 && (
                   <div className="animate-in fade-in duration-300">
-                    <h2 className="text-lg font-semibold text-slate-900 mb-1">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-1">
                       Select a Service Type
                     </h2>
-                    <p className="text-sm text-slate-500 mb-5">
+                    <p className="text-sm text-gray-500 mb-5">
                       Choose the service you need for your project
                     </p>
 
@@ -554,28 +552,28 @@ export default function CostEstimatorPage() {
                               relative text-left p-4 rounded-lg border-2 transition-all duration-200 cursor-pointer
                               ${
                                 selected
-                                  ? "border-epf-500 ring-2 ring-epf-500/20 bg-epf-50"
-                                  : "border-slate-200 bg-white hover:border-epf-500/40 hover:shadow-sm"
+                                  ? "border-[#0EA5E9] ring-2 ring-[#0EA5E9]/20 bg-sky-50"
+                                  : "border-gray-200 bg-white hover:border-[#0EA5E9]/40 hover:shadow-sm"
                               }
                             `}
                           >
                             {selected && (
-                              <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-epf-500 flex items-center justify-center">
+                              <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-[#0EA5E9] flex items-center justify-center">
                                 <Check className="h-3 w-3 text-white" />
                               </div>
                             )}
                             <div
                               className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 ${
-                                selected ? "bg-epf-500 text-white" : "bg-slate-200 text-slate-500"
+                                selected ? "bg-[#0EA5E9] text-white" : "bg-gray-200 text-gray-500"
                               }`}
                             >
                               {svc.icon}
                             </div>
-                            <h3 className="text-sm font-semibold text-slate-900 mb-0.5">
+                            <h3 className="text-sm font-semibold text-gray-900 mb-0.5">
                               {svc.name}
                             </h3>
-                            <p className="text-xs text-slate-500 mb-2">{svc.description}</p>
-                            <p className="text-sm font-bold text-epf-500">
+                            <p className="text-xs text-gray-500 mb-2">{svc.description}</p>
+                            <p className="text-sm font-bold text-[#0EA5E9]">
                               From {formatBDT(svc.basePrice)}
                             </p>
                           </button>
@@ -588,65 +586,65 @@ export default function CostEstimatorPage() {
                 {/* ---------- STEP 2: Project Details ---------- */}
                 {step === 2 && (
                   <div className="animate-in fade-in duration-300 space-y-5">
-                    <h2 className="text-lg font-semibold text-slate-900 mb-1">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-1">
                       Project Details
                     </h2>
-                    <p className="text-sm text-slate-500 mb-5">
+                    <p className="text-sm text-gray-500 mb-5">
                       Tell us about your project requirements
                     </p>
 
                     {/* Area Size */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Service Area Size (sq ft) <span className="text-red-500">*</span>
                       </label>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => set("areaSize", Math.max(0, form.areaSize - 100))}
-                          className="h-10 w-10 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                          className="h-10 w-10 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                          <Minus className="h-4 w-4 text-slate-500" />
+                          <Minus className="h-4 w-4 text-gray-500" />
                         </button>
                         <input
                           type="number"
                           placeholder="e.g., 1200"
                           value={form.areaSize || ""}
                           onChange={(e) => set("areaSize", Math.max(0, Number(e.target.value)))}
-                          className="flex-1 h-10 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                          className="flex-1 h-10 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors"
                         />
                         <button
                           type="button"
                           onClick={() => set("areaSize", form.areaSize + 100)}
-                          className="h-10 w-10 flex items-center justify-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                          className="h-10 w-10 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                          <Plus className="h-4 w-4 text-slate-500" />
+                          <Plus className="h-4 w-4 text-gray-500" />
                         </button>
                       </div>
                     </div>
 
                     {/* Property Type */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Property Type
                       </label>
                       <div className="relative">
                         <select
                           value={form.propertyType}
                           onChange={(e) => set("propertyType", e.target.value as PropertyType)}
-                          className="w-full h-10 px-3 text-sm border border-slate-200 rounded-lg appearance-none bg-white focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors cursor-pointer"
+                          className="w-full h-10 px-3 text-sm border border-gray-200 rounded-lg appearance-none bg-white focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors cursor-pointer"
                         >
                           <option value="Residential">Residential</option>
                           <option value="Commercial">Commercial</option>
                           <option value="Industrial">Industrial</option>
                         </select>
-                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none rotate-90" />
+                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none rotate-90" />
                       </div>
                     </div>
 
                     {/* Quality / Material Grade */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-2">
+                      <label className="block text-sm font-medium text-gray-900 mb-2">
                         Quality / Material Grade
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -661,25 +659,25 @@ export default function CostEstimatorPage() {
                                 relative text-left p-3 rounded-lg border-2 transition-all duration-200 cursor-pointer
                                 ${
                                   selected
-                                    ? "border-epf-500 ring-2 ring-epf-500/20 bg-epf-50"
-                                    : "border-slate-200 bg-white hover:border-epf-500/40"
+                                    ? "border-[#0EA5E9] ring-2 ring-[#0EA5E9]/20 bg-sky-50"
+                                    : "border-gray-200 bg-white hover:border-[#0EA5E9]/40"
                                 }
                               `}
                             >
                               {opt.recommended && (
-                                <span className="absolute -top-2 left-3 bg-epf-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5">
+                                <span className="absolute -top-2 left-3 bg-[#0EA5E9] text-white text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                                   <Star className="h-2.5 w-2.5" /> Recommended
                                 </span>
                               )}
                               <p
                                 className={`text-sm font-semibold mb-0.5 ${
-                                  selected ? "text-epf-500" : "text-slate-900"
+                                  selected ? "text-[#0EA5E9]" : "text-gray-900"
                                 }`}
                               >
                                 {opt.label}
                               </p>
-                              <p className="text-xs text-slate-500">{opt.desc}</p>
-                              <p className="text-xs font-medium text-slate-400 mt-1">
+                              <p className="text-xs text-gray-500">{opt.desc}</p>
+                              <p className="text-xs font-medium text-gray-400 mt-1">
                                 ×{opt.multiplier} base price
                               </p>
                             </button>
@@ -690,15 +688,15 @@ export default function CostEstimatorPage() {
 
                     {/* Urgency */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
-                        <Clock className="inline h-4 w-4 mr-1 text-slate-500" />
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
+                        <Clock className="inline h-4 w-4 mr-1 text-gray-500" />
                         Urgency
                       </label>
                       <div className="relative">
                         <select
                           value={form.urgency}
                           onChange={(e) => set("urgency", e.target.value as Urgency)}
-                          className="w-full h-10 px-3 text-sm border border-slate-200 rounded-lg appearance-none bg-white focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors cursor-pointer"
+                          className="w-full h-10 px-3 text-sm border border-gray-200 rounded-lg appearance-none bg-white focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors cursor-pointer"
                         >
                           {URGENCY_OPTIONS.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -706,22 +704,22 @@ export default function CostEstimatorPage() {
                             </option>
                           ))}
                         </select>
-                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none rotate-90" />
+                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none rotate-90" />
                       </div>
                     </div>
 
                     {/* Additional Requirements */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Additional Requirements
-                        <span className="text-slate-400 font-normal ml-1">(optional)</span>
+                        <span className="text-gray-400 font-normal ml-1">(optional)</span>
                       </label>
                       <textarea
                         rows={3}
                         placeholder="Describe any special requirements..."
                         value={form.additionalRequirements}
                         onChange={(e) => set("additionalRequirements", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors resize-none"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors resize-none"
                       />
                     </div>
 
@@ -732,9 +730,9 @@ export default function CostEstimatorPage() {
                           type="checkbox"
                           checked={form.includeLabor}
                           onChange={(e) => set("includeLabor", e.target.checked)}
-                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500/20 cursor-pointer accent-epf-500"
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0EA5E9] focus:ring-sky-500/20 cursor-pointer accent-[#0EA5E9]"
                         />
-                        <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                        <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                           Include labor cost
                         </span>
                       </label>
@@ -743,9 +741,9 @@ export default function CostEstimatorPage() {
                           type="checkbox"
                           checked={form.needMaintenance}
                           onChange={(e) => set("needMaintenance", e.target.checked)}
-                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500/20 cursor-pointer accent-epf-500"
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0EA5E9] focus:ring-sky-500/20 cursor-pointer accent-[#0EA5E9]"
                         />
-                        <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                        <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                           Need maintenance plan
                         </span>
                       </label>
@@ -754,9 +752,9 @@ export default function CostEstimatorPage() {
                           type="checkbox"
                           checked={form.needPermit}
                           onChange={(e) => set("needPermit", e.target.checked)}
-                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-epf-500 focus:ring-epf-500/20 cursor-pointer accent-epf-500"
+                          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0EA5E9] focus:ring-sky-500/20 cursor-pointer accent-[#0EA5E9]"
                         />
-                        <span className="text-sm text-slate-700 group-hover:text-slate-900 transition-colors">
+                        <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
                           Government permit assistance
                         </span>
                       </label>
@@ -767,125 +765,125 @@ export default function CostEstimatorPage() {
                 {/* ---------- STEP 3: Your Information ---------- */}
                 {step === 3 && (
                   <div className="animate-in fade-in duration-300 space-y-4">
-                    <h2 className="text-lg font-semibold text-slate-900 mb-1">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-1">
                       Your Information
                     </h2>
-                    <p className="text-sm text-slate-500 mb-5">
+                    <p className="text-sm text-gray-500 mb-5">
                       How can we reach you with the quote?
                     </p>
 
                     {/* Full Name */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Full Name <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="text"
                           placeholder="Enter your full name"
                           value={form.fullName}
                           onChange={(e) => set("fullName", e.target.value)}
-                          className="w-full h-10 pl-10 pr-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                          className="w-full h-10 pl-10 pr-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors"
                         />
                       </div>
                     </div>
 
                     {/* Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Phone Number <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="tel"
                           placeholder="01XXXXXXXXX"
                           value={form.phone}
                           onChange={(e) => set("phone", e.target.value)}
-                          className="w-full h-10 pl-10 pr-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                          className="w-full h-10 pl-10 pr-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors"
                         />
                       </div>
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-gray-400 mt-1">
                         Bangladeshi mobile format: 01XXXXXXXXX
                       </p>
                     </div>
 
                     {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Email Address <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="email"
                           placeholder="you@example.com"
                           value={form.email}
                           onChange={(e) => set("email", e.target.value)}
-                          className="w-full h-10 pl-10 pr-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                          className="w-full h-10 pl-10 pr-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors"
                         />
                       </div>
                     </div>
 
                     {/* Address */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Project Address <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                         <textarea
                           rows={2}
                           placeholder="Enter your project address"
                           value={form.address}
                           onChange={(e) => set("address", e.target.value)}
-                          className="w-full pl-10 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors resize-none"
+                          className="w-full pl-10 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors resize-none"
                         />
                       </div>
                     </div>
 
                     {/* Preferred Date */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
                         Preferred Date
                       </label>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                           type="date"
                           value={form.preferredDate}
                           onChange={(e) => set("preferredDate", e.target.value)}
-                          className="w-full h-10 pl-10 pr-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors"
+                          className="w-full h-10 pl-10 pr-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors"
                         />
                       </div>
                     </div>
 
                     {/* Notes */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-900 mb-1.5">
-                        <FileText className="inline h-4 w-4 mr-1 text-slate-500" />
+                      <label className="block text-sm font-medium text-gray-900 mb-1.5">
+                        <FileText className="inline h-4 w-4 mr-1 text-gray-500" />
                         Additional Notes
-                        <span className="text-slate-400 font-normal ml-1">(optional)</span>
+                        <span className="text-gray-400 font-normal ml-1">(optional)</span>
                       </label>
                       <textarea
                         rows={3}
                         placeholder="Any other information you'd like to share..."
                         value={form.notes}
                         onChange={(e) => set("notes", e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-epf-500 focus:ring-1 focus:ring-epf-500/20 transition-colors resize-none"
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0EA5E9] focus:ring-1 focus:ring-sky-500/20 transition-colors resize-none"
                       />
                     </div>
                   </div>
                 )}
 
                 {/* ---------- Navigation Buttons ---------- */}
-                <div className="flex items-center justify-between mt-6 pt-5 border-t border-slate-200">
+                <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                   {step > 1 ? (
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="inline-flex items-center gap-1.5 h-10 px-5 text-sm font-medium border border-slate-300 text-slate-500 rounded-lg hover:bg-slate-50 transition-colors"
+                      className="inline-flex items-center gap-1.5 h-10 px-5 text-sm font-medium border border-gray-300 text-gray-500 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
                       Previous
@@ -899,7 +897,7 @@ export default function CostEstimatorPage() {
                       type="button"
                       onClick={handleNext}
                       disabled={!canProceed}
-                      className="inline-flex items-center gap-1.5 h-10 px-6 text-sm font-semibold bg-epf-500 hover:bg-epf-600 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 h-10 px-6 text-sm font-semibold bg-[#0EA5E9] hover:bg-sky-600 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Next Step
                       <ArrowRight className="h-4 w-4" />
@@ -912,7 +910,7 @@ export default function CostEstimatorPage() {
                         window.location.href = "/services";
                       }}
                       disabled={!canProceed}
-                      className="inline-flex items-center gap-1.5 h-10 px-6 text-sm font-semibold bg-epf-500 hover:bg-epf-600 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 h-10 px-6 text-sm font-semibold bg-[#0EA5E9] hover:bg-sky-600 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Get Your Quote
                       <ArrowRight className="h-4 w-4" />
@@ -950,20 +948,20 @@ export default function CostEstimatorPage() {
                 <button
                   type="button"
                   onClick={() => setMobileSummaryOpen(!mobileSummaryOpen)}
-                  className="w-full bg-white border border-slate-200 rounded-lg shadow-sm p-3 flex items-center justify-between"
+                  className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-3 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-epf-500" />
-                    <span className="text-sm font-semibold text-slate-900">
+                    <FileText className="h-4 w-4 text-[#0EA5E9]" />
+                    <span className="text-sm font-semibold text-gray-900">
                       Estimated Cost
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-base font-bold text-epf-500">
+                    <span className="text-base font-bold text-[#0EA5E9]">
                       {cost.total > 0 ? formatBDT(cost.total) : "—"}
                     </span>
                     <ChevronRight
-                      className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                      className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
                         mobileSummaryOpen ? "rotate-90" : ""
                       }`}
                     />
@@ -977,35 +975,35 @@ export default function CostEstimatorPage() {
                   mobileSummaryOpen ? "block" : "hidden"
                 } lg:block`}
               >
-                <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-4 sm:p-6 lg:sticky lg:top-[100px]">
-                  <h2 className="text-lg font-bold text-slate-900 mb-4">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-6 lg:sticky lg:top-[100px]">
+                  <h2 className="text-lg font-bold text-gray-900 mb-4">
                     Estimated Cost Range
                   </h2>
 
                   {cost.total > 0 ? (
                     <>
                       {/* Range Display */}
-                      <div className="text-center py-3 px-4 bg-slate-50 rounded-lg mb-4">
-                        <p className="text-xs text-slate-500 mb-1 uppercase tracking-wide font-medium">
+                      <div className="text-center py-3 px-4 bg-gray-50 rounded-lg mb-4">
+                        <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide font-medium">
                           Total Estimated Cost
                         </p>
-                        <p className="text-2xl sm:text-3xl font-bold text-epf-500">
+                        <p className="text-2xl sm:text-3xl font-bold text-[#0EA5E9]">
                           {formatBDT(cost.low)} — {formatBDT(cost.high)}
                         </p>
                       </div>
 
                       {/* Breakdown */}
                       <div className="space-y-2 mb-4">
-                        <p className="text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                        <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                           Breakdown
                         </p>
                         {cost.breakdown.map((item, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between text-sm py-1.5 border-b border-slate-200 last:border-0"
+                            className="flex items-center justify-between text-sm py-1.5 border-b border-gray-200 last:border-0"
                           >
-                            <span className="text-slate-500">{item.label}</span>
-                            <span className="font-medium text-slate-900">
+                            <span className="text-gray-500">{item.label}</span>
+                            <span className="font-medium text-gray-900">
                               {item.value}
                             </span>
                           </div>
@@ -1013,24 +1011,24 @@ export default function CostEstimatorPage() {
                       </div>
 
                       {/* Totals */}
-                      <div className="border-t border-slate-200 pt-3 space-y-1.5">
+                      <div className="border-t border-gray-200 pt-3 space-y-1.5">
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">Subtotal</span>
-                          <span className="font-medium text-slate-900">
+                          <span className="text-gray-500">Subtotal</span>
+                          <span className="font-medium text-gray-900">
                             {formatBDT(cost.subtotal)}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-500">Tax (5%)</span>
-                          <span className="font-medium text-slate-900">
+                          <span className="text-gray-500">Tax (5%)</span>
+                          <span className="font-medium text-gray-900">
                             {formatBDT(cost.tax)}
                           </span>
                         </div>
-                        <div className="flex justify-between pt-2 border-t border-slate-200">
-                          <span className="text-base font-bold text-slate-900">
+                        <div className="flex justify-between pt-2 border-t border-gray-200">
+                          <span className="text-base font-bold text-gray-900">
                             Total Estimated Cost
                           </span>
-                          <span className="text-lg font-bold text-epf-500">
+                          <span className="text-lg font-bold text-[#0EA5E9]">
                             {formatBDT(cost.total)}
                           </span>
                         </div>
@@ -1049,10 +1047,10 @@ export default function CostEstimatorPage() {
                     </>
                   ) : (
                     <div className="text-center py-8">
-                      <div className="h-14 w-14 rounded-full bg-slate-200 flex items-center justify-center mx-auto mb-3">
-                        <FileText className="h-6 w-6 text-slate-300" />
+                      <div className="h-14 w-14 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-3">
+                        <FileText className="h-6 w-6 text-gray-300" />
                       </div>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-gray-500">
                         Select a service to see the cost estimate
                       </p>
                     </div>
@@ -1071,7 +1069,7 @@ export default function CostEstimatorPage() {
                         type="button"
                         onClick={handleSubmitQuote}
                         disabled={submitting || cost.total === 0}
-                        className="w-full h-11 bg-epf-500 hover:bg-epf-600 text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full h-11 bg-[#0EA5E9] hover:bg-sky-600 text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {submitting ? "Submitting..." : "Submit Quote Request"}
                         <ArrowRight className="h-4 w-4" />
@@ -1082,7 +1080,7 @@ export default function CostEstimatorPage() {
                       onClick={() => {
                         window.location.href = "/services";
                       }}
-                      className="w-full h-11 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors"
+                      className="w-full h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors"
                     >
                       Browse Services
                       <ArrowRight className="h-4 w-4" />
@@ -1091,7 +1089,7 @@ export default function CostEstimatorPage() {
                       type="button"
                       onClick={handleDownloadPDF}
                       disabled={cost.total === 0}
-                      className="w-full h-10 border border-epf-500 text-epf-500 hover:bg-epf-500 hover:text-white font-medium text-sm rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-epf-500"
+                      className="w-full h-10 border border-[#0EA5E9] text-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white font-medium text-sm rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#0EA5E9]"
                     >
                       <Download className="h-4 w-4" />
                       Download PDF Estimate
@@ -1102,7 +1100,7 @@ export default function CostEstimatorPage() {
                   <button
                     type="button"
                     onClick={handleStartOver}
-                    className="w-full mt-3 text-sm text-slate-500 hover:text-epf-500 transition-colors text-center"
+                    className="w-full mt-3 text-sm text-gray-500 hover:text-[#0EA5E9] transition-colors text-center"
                   >
                     Start Over
                   </button>

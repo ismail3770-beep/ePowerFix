@@ -23,9 +23,9 @@ function mapBooking(b: any) {
   if (!b) return b
   return {
     ...b,
-    customerName: b.user?.name || '',
+    customerName: b.customerName || b.user?.name || '',
     customerPhone: b.phone || b.user?.phone || '',
-    customerEmail: b.user?.email || '',
+    customerEmail: b.customerEmail || b.user?.email || '',
     preferredDate: b.bookingDate,
     preferredTime: b.bookingTime,
     description: b.notes || '',
@@ -66,6 +66,9 @@ function mapBookingDetail(b: any) {
   if (!b) return b
   return {
     ...b,
+    customerName: b.customerName || b.user?.name || '',
+    customerPhone: b.phone || b.user?.phone || '',
+    customerEmail: b.customerEmail || b.user?.email || '',
     date: b.bookingDate,
     time: b.bookingTime,
     scheduledAt: b.bookingDate,

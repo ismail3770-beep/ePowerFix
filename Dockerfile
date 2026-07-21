@@ -1,45 +1,32 @@
-# ePowerFix API — Docker image for Railway
-# Uses Node.js 22 + pnpm (workspace protocol support + flat node_modules for Prisma)
-
-FROM node:22-slim
-
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+# ePowerFix API — Bun image for Railway
+FROM oven/bun:1.3.14-slim
 
 WORKDIR /app
 
-# Copy Prisma schema first (needed by postinstall scripts)
+# Install from the repository's pinned Bun lockfile. Copy workspace manifests
+# first so dependency installation remains cacheable when source files change.
+COPY package.json bun.lock turbo.json tsconfig.base.json ./
 COPY prisma ./prisma
-
-# Copy workspace configs (pnpm-workspace.yaml needed for workspace:* protocol)
-COPY package.json turbo.json tsconfig.base.json ./
-COPY pnpm-workspace.yaml ./
-COPY .npmrc ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
-COPY packages/types/package.json packages/types/package.json
+COPY apps/mobile/package.json apps/mobile/package.json
 COPY packages/api-client/package.json packages/api-client/package.json
 COPY packages/store/package.json packages/store/package.json
+COPY packages/types/package.json packages/types/package.json
 COPY packages/utils/package.json packages/utils/package.json
 
-# Install dependencies with pnpm
-# .npmrc has node-linker=hoisted for flat node_modules (Prisma compatible)
-RUN pnpm install --no-frozen-lockfile
+RUN bun install --frozen-lockfile
 
-# Generate Prisma client
-RUN npx prisma generate --schema=prisma/schema.prisma
-
-# Install tsx globally for running TypeScript with Node.js
-RUN npm install -g tsx
-
-# Copy API source code
 COPY apps/api ./apps/api
 COPY packages ./packages
 
-# Railway provides PORT env var at runtime
-ENV NODE_ENV=production
+RUN bun x prisma generate --schema=prisma/schema.prisma \
+  && bun run --cwd apps/api typecheck
 
+ENV NODE_ENV=production
 EXPOSE 4000
 
-# Start the Express API server with tsx (TypeScript runner for Node.js)
-WORKDIR /app/apps/api
-CMD ["tsx", "src/server.ts"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD bun -e "const port=process.env.PORT||'4000';const response=await fetch('http://127.0.0.1:'+port+'/api/health');if(!response.ok)process.exit(1)"
+
+CMD ["bun", "run", "--cwd", "apps/api", "start"]

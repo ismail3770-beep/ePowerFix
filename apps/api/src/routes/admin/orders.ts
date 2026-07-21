@@ -1,20 +1,23 @@
 // Admin order routes: list, create, get, update, delete, status update.
-// Migrated from apps/web/src/app/api/admin/orders/route.ts, [id]/route.ts and [id]/status/route.ts.
-//
-// Mounted at /api/admin/orders
+// Mounted at /api/admin/orders. The parent router enforces requireAdmin.
 
 import { Router } from 'express'
 import { z } from 'zod'
 
 import { db } from '../../lib/db.js'
 import { asyncHandler, ApiError, validateBody } from '../../lib/api-handler.js'
-import {
-  getPagination,
-  listResponse,
-} from '../../lib/helpers.js'
+import { getPagination, listResponse } from '../../lib/helpers.js'
 import { getAuthUser } from '../../lib/auth.js'
+import { releaseOrderReservation } from '../../lib/order-reservations.js'
 
 const router = Router()
+
+const ORDER_ITEM_INCLUDE = {
+  include: {
+    project: { select: { id: true, title: true, slug: true, coverImage: true } },
+    projectKit: { select: { id: true, title: true, slug: true, coverImage: true } },
+  },
+}
 
 const createOrderSchema = z
   .object({
@@ -54,7 +57,15 @@ const updateOrderStatusSchema = z
   })
   .passthrough()
 
-// Fire-and-forget notification helper
+function requestParam(value: string | string[] | undefined): string {
+  return Array.isArray(value) ? value[0] || '' : value || ''
+}
+
+function normalizeStatus(value: string | undefined): string | undefined {
+  return value === undefined ? undefined : value.trim().toUpperCase()
+}
+
+// Fire-and-forget notification helper.
 async function notifyUser(
   userId: string,
   title: string,
@@ -73,11 +84,11 @@ async function notifyUser(
       },
     })
   } catch {
-    // Swallow — never break the parent flow
+    // Swallow — never break the parent flow.
   }
 }
 
-// ─── GET /api/admin/orders ────────────────────────────────────────────────────
+// ─── GET /api/admin/orders ──────────────────────────────────────────────────
 
 router.get(
   '/',
@@ -115,17 +126,17 @@ router.get(
         orderBy: { createdAt: 'desc' },
         include: {
           user: { select: { id: true, name: true, email: true, phone: true } },
-          items: true,
+          items: ORDER_ITEM_INCLUDE,
         },
       }),
       db.order.count({ where }),
     ])
 
     res.json(listResponse(orders, total, page, limit))
-  })
+  }),
 )
 
-// ─── POST /api/admin/orders ──────────────────────────────────────────────────
+// ─── POST /api/admin/orders ─────────────────────────────────────────────────
 
 router.post(
   '/',
@@ -151,12 +162,8 @@ router.post(
       notes,
     } = body
 
-    if (!paymentMethod) {
-      throw new ApiError('paymentMethod is required', 400)
-    }
-    if (total === undefined || total === null) {
-      throw new ApiError('total is required', 400)
-    }
+    if (!paymentMethod) throw new ApiError('paymentMethod is required', 400)
+    if (total === undefined || total === null) throw new ApiError('total is required', 400)
     if (!Array.isArray(items) || items.length === 0) {
       throw new ApiError('At least one order item is required', 400)
     }
@@ -168,10 +175,9 @@ router.post(
     const rand = String(Math.floor(1000 + Math.random() * 9000))
     const orderNumber = `EPF-${yy}${mm}${dd}-${rand}`
 
-    const notesValue =
-      notes ?? (shippingAddress ? JSON.stringify(shippingAddress) : null)
+    const notesValue = notes ?? (shippingAddress ? JSON.stringify(shippingAddress) : null)
 
-    const order = await db.$transaction(async (tx: any) => {
+    const order = await (db as any).$transaction(async (tx: any) => {
       const created = await tx.order.create({
         data: {
           orderNumber,
@@ -192,20 +198,31 @@ router.post(
       })
 
       await tx.orderItem.createMany({
-        data: items.map((it: any) => ({
-          orderId: created.id,
-          productId: it.productId || null,
-          productName: it.name || it.productName || 'Item',
-          productImage: it.image || it.productImage || null,
-          price: Number(it.price) || 0,
-          quantity: Number(it.quantity) || 1,
-          total: (Number(it.price) || 0) * (Number(it.quantity) || 1),
-          itemType: it.itemType || 'PRODUCT',
-          variantId: it.variantId || null,
-          serviceId: it.serviceId || null,
-          projectId: it.projectId || null,
-          variantName: it.variantName || null,
-        })),
+        data: items.map((item: any) => {
+          const itemType =
+            item.itemType === 'PROJECT_KIT' || item.projectKitId
+              ? 'PROJECT_KIT'
+              : item.itemType || 'PRODUCT'
+
+          return {
+            orderId: created.id,
+            productId: item.productId || null,
+            productName: item.name || item.productName || 'Item',
+            productImage: item.image || item.productImage || null,
+            price: Number(item.price) || 0,
+            quantity: Number(item.quantity) || 1,
+            total: (Number(item.price) || 0) * (Number(item.quantity) || 1),
+            itemType,
+            variantId: item.variantId || null,
+            serviceId: item.serviceId || null,
+            projectId: itemType === 'PROJECT' ? item.projectId || null : null,
+            projectKitId:
+              itemType === 'PROJECT_KIT'
+                ? item.projectKitId || item.projectId || null
+                : null,
+            variantName: item.variantName || null,
+          }
+        }),
       })
 
       await tx.orderHistory.create({
@@ -221,14 +238,14 @@ router.post(
         where: { id: created.id },
         include: {
           user: { select: { id: true, name: true, email: true, phone: true } },
-          items: true,
+          items: ORDER_ITEM_INCLUDE,
           histories: true,
         },
       })
     })
 
     res.status(201).json({ data: order })
-  })
+  }),
 )
 
 // ─── GET /api/admin/orders/:id ───────────────────────────────────────────────
@@ -236,13 +253,13 @@ router.post(
 router.get(
   '/:id',
   asyncHandler(async (req, res) => {
-    const { id } = req.params
+    const id = requestParam(req.params.id)
 
     const order = await db.order.findUnique({
       where: { id },
       include: {
         user: { select: { id: true, name: true, email: true, phone: true } },
-        items: true,
+        items: ORDER_ITEM_INCLUDE,
         histories: {
           orderBy: { createdAt: 'desc' },
           include: { user: { select: { id: true, name: true, email: true } } },
@@ -252,11 +269,9 @@ router.get(
       },
     })
 
-    if (!order) {
-      throw new ApiError('Order not found', 404)
-    }
+    if (!order) throw new ApiError('Order not found', 404)
     res.json({ data: order })
-  })
+  }),
 )
 
 // ─── PUT /api/admin/orders/:id ───────────────────────────────────────────────
@@ -264,7 +279,7 @@ router.get(
 router.put(
   '/:id',
   asyncHandler(async (req, res) => {
-    const { id } = req.params
+    const id = requestParam(req.params.id)
     const body = validateBody(req, updateOrderSchema)
     const authUser = getAuthUser(req)
 
@@ -272,36 +287,40 @@ router.put(
       where: { id },
       include: { shipment: true },
     })
-    if (!existing) {
-      throw new ApiError('Order not found', 404)
+    if (!existing) throw new ApiError('Order not found', 404)
+
+    const requestedStatus = normalizeStatus(body.status)
+    const requestedPaymentStatus = normalizeStatus(body.paymentStatus)
+    const { internalNotes, notes, trackingNumber, carrier } = body
+
+    const baseData: any = {}
+    if (requestedStatus !== undefined) baseData.status = requestedStatus
+    if (requestedPaymentStatus !== undefined) baseData.paymentStatus = requestedPaymentStatus
+    if (internalNotes !== undefined) baseData.notes = internalNotes
+    else if (notes !== undefined) baseData.notes = notes
+
+    if (requestedStatus === 'DELIVERED' && !existing.deliveredAt) {
+      baseData.deliveredAt = new Date()
     }
 
-    const {
-      status,
-      paymentStatus,
-      internalNotes,
-      notes,
-      trackingNumber,
-      carrier,
-    } = body
+    const order = await (db as any).$transaction(async (tx: any) => {
+      let reservationReleased = false
+      if (requestedStatus === 'CANCELLED' && existing.status !== 'CANCELLED') {
+        const release = await releaseOrderReservation(tx, id, 'ADMIN_CANCELLED')
+        reservationReleased = release.released
+      }
 
-    const data: any = {}
-    if (status !== undefined) data.status = status
-    if (paymentStatus !== undefined) data.paymentStatus = paymentStatus
-    if (internalNotes !== undefined) data.notes = internalNotes
-    else if (notes !== undefined) data.notes = notes
+      const data = { ...baseData }
+      // A successful reservation release sets the canonical cancellation state;
+      // do not allow a simultaneous arbitrary paymentStatus body field to undo it.
+      if (reservationReleased) data.paymentStatus = 'CANCELLED'
 
-    if (status === 'DELIVERED' && !existing.deliveredAt) {
-      data.deliveredAt = new Date()
-    }
-
-    const order = await db.$transaction(async (tx: any) => {
       const updated = await tx.order.update({
         where: { id },
         data,
         include: {
           user: { select: { id: true, name: true, email: true, phone: true } },
-          items: true,
+          items: ORDER_ITEM_INCLUDE,
           histories: {
             orderBy: { createdAt: 'desc' },
             include: { user: { select: { id: true, name: true, email: true } } },
@@ -309,13 +328,13 @@ router.put(
         },
       })
 
-      if (status !== undefined && status !== existing.status) {
+      if (requestedStatus !== undefined && requestedStatus !== existing.status && !reservationReleased) {
         await tx.orderHistory.create({
           data: {
             orderId: id,
             userId: authUser.id,
-            status,
-            note: `Status updated from ${existing.status} to ${status}`,
+            status: requestedStatus,
+            note: `Status updated from ${existing.status} to ${requestedStatus}`,
           },
         })
       }
@@ -327,14 +346,14 @@ router.put(
             orderId: id,
             trackingNumber: trackingNumber || null,
             carrier: carrier || null,
-            status: status === 'SHIPPED' ? 'SHIPPED' : 'PENDING',
-            shippedAt: status === 'SHIPPED' ? new Date() : null,
+            status: requestedStatus === 'SHIPPED' ? 'SHIPPED' : 'PENDING',
+            shippedAt: requestedStatus === 'SHIPPED' ? new Date() : null,
           },
           update: {
             trackingNumber: trackingNumber || null,
             carrier: carrier || existing.shipment?.carrier || null,
-            status: status === 'SHIPPED' ? 'SHIPPED' : undefined,
-            shippedAt: status === 'SHIPPED' ? new Date() : undefined,
+            status: requestedStatus === 'SHIPPED' ? 'SHIPPED' : undefined,
+            shippedAt: requestedStatus === 'SHIPPED' ? new Date() : undefined,
           },
         })
       }
@@ -343,7 +362,7 @@ router.put(
     })
 
     res.json({ data: order })
-  })
+  }),
 )
 
 // ─── DELETE /api/admin/orders/:id ────────────────────────────────────────────
@@ -351,23 +370,25 @@ router.put(
 router.delete(
   '/:id',
   asyncHandler(async (req, res) => {
-    const { id } = req.params
+    const id = requestParam(req.params.id)
 
     const existing = await db.order.findUnique({ where: { id } })
-    if (!existing) {
-      throw new ApiError('Order not found', 404)
-    }
+    if (!existing) throw new ApiError('Order not found', 404)
 
-    await db.$transaction([
-      db.orderItem.deleteMany({ where: { orderId: id } }),
-      db.orderHistory.deleteMany({ where: { orderId: id } }),
-      db.shipment.deleteMany({ where: { orderId: id } }),
-      db.payment.deleteMany({ where: { orderId: id } }),
-      db.order.delete({ where: { id } }),
-    ])
+    await (db as any).$transaction(async (tx: any) => {
+      // Restore only an active online reservation before deleting the record.
+      // The conditional helper makes repeat/delete races harmless.
+      await releaseOrderReservation(tx, id, 'ADMIN_DELETED')
+      await tx.orderItem.deleteMany({ where: { orderId: id } })
+      await tx.orderHistory.deleteMany({ where: { orderId: id } })
+      await tx.couponUsage.deleteMany({ where: { orderId: id } })
+      await tx.shipment.deleteMany({ where: { orderId: id } })
+      await tx.payment.deleteMany({ where: { orderId: id } })
+      await tx.order.delete({ where: { id } })
+    })
 
     res.json({ message: 'Order deleted' })
-  })
+  }),
 )
 
 // ─── PUT /api/admin/orders/:id/status ────────────────────────────────────────
@@ -375,28 +396,32 @@ router.delete(
 router.put(
   '/:id/status',
   asyncHandler(async (req, res) => {
-    const { id } = req.params
+    const id = requestParam(req.params.id)
     const body = validateBody(req, updateOrderStatusSchema)
     const authUser = getAuthUser(req)
 
     const existing = await db.order.findUnique({ where: { id } })
-    if (!existing) {
-      throw new ApiError('Order not found', 404)
-    }
+    if (!existing) throw new ApiError('Order not found', 404)
 
-    const status = body.status.toUpperCase()
-    const data: any = { status }
+    const status = body.status.trim().toUpperCase()
+    const baseData: any = { status }
     if (status === 'DELIVERED' && !existing.deliveredAt) {
-      data.deliveredAt = new Date()
+      baseData.deliveredAt = new Date()
     }
 
-    const order = await db.$transaction(async (tx: any) => {
+    const order = await (db as any).$transaction(async (tx: any) => {
+      let reservationReleased = false
+      if (status === 'CANCELLED' && existing.status !== 'CANCELLED') {
+        const release = await releaseOrderReservation(tx, id, 'ADMIN_CANCELLED')
+        reservationReleased = release.released
+      }
+
       const updated = await tx.order.update({
         where: { id },
-        data,
+        data: baseData,
         include: {
           user: { select: { id: true, name: true, email: true, phone: true } },
-          items: true,
+          items: ORDER_ITEM_INCLUDE,
           histories: {
             orderBy: { createdAt: 'desc' },
             include: { user: { select: { id: true, name: true, email: true } } },
@@ -404,7 +429,7 @@ router.put(
         },
       })
 
-      if (status !== existing.status) {
+      if (status !== existing.status && !reservationReleased) {
         await tx.orderHistory.create({
           data: {
             orderId: id,
@@ -439,7 +464,7 @@ router.put(
     }
 
     res.json({ data: order })
-  })
+  }),
 )
 
 export default router

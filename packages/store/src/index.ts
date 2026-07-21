@@ -3,6 +3,19 @@
 // share the persisted cart implementation.
 
 export { getStorage, setStorage } from './storage';
-export { useCartStore } from './cart';
-export type { CartItem, CartItemType } from './cart';
-export { toOrderItemPayload } from './cart';
+export {
+  getCartItemEntityId,
+  getCartItemKey,
+  getCartItemsSignature,
+  mergeCartItems,
+  normalizeCartItem,
+  reconcileCartItems,
+  toOrderItemPayload,
+  useCartStore,
+} from './cart';
+export type {
+  CartItem,
+  CartItemInput,
+  CartItemType,
+  OrderItemPayload,
+} from './cart';

@@ -46,6 +46,7 @@ export const schemas = {
   serviceBooking: z.object({
     serviceId: z.string().min(1),
     customerName: z.string().max(200).optional(),
+    customerEmail: z.string().email().optional().or(z.literal('')),
     bookingDate: z.string().min(1).refine(
       (d) => !isNaN(Date.parse(d)) && new Date(d) >= new Date(new Date().toDateString()),
       { message: 'Booking date must be a valid present/future date' }

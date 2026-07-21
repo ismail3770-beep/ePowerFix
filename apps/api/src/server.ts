@@ -11,6 +11,7 @@ import rateLimit from 'express-rate-limit'
 
 import { env } from './config/env.js'
 import { errorHandler, notFoundHandler } from './lib/api-handler.js'
+import { startExpiredReservationCleanupWorker } from './lib/order-reservations.js'
 
 // ─── Route imports ────────────────────────────────────────────────────────────
 import healthRoutes from './routes/health.js'
@@ -39,6 +40,7 @@ import couponRoutes from './routes/coupons.js'
 import returnRoutes from './routes/returns.js'
 import downloadRoutes from './routes/downloads.js'
 import aiRoutes from './routes/ai.js'
+import marketplaceRoutes from './routes/marketplace.js'
 import adminRoutes from './routes/admin/index.js'
 
 // ─── App setup ────────────────────────────────────────────────────────────────
@@ -93,11 +95,12 @@ app.use('/api/auth', authLimiter)
 // ─── Health check (before routes, no rate limit) ──────────────────────────────
 
 app.get('/health', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
   res.json({
     status: 'ok',
     service: 'ePowerFix API',
     timestamp: new Date().toISOString(),
-    version: '0.2.0',
+    version: '0.3.0',
     environment: env.NODE_ENV,
   })
 })
@@ -130,19 +133,22 @@ app.use('/api/coupons', couponRoutes)
 app.use('/api/returns', returnRoutes)
 app.use('/api/downloads', downloadRoutes)
 app.use('/api/ai', aiRoutes)
+app.use('/api/marketplace', marketplaceRoutes)
 app.use('/api/admin', adminRoutes)
 
 // API root info
 app.get('/api', (_req, res) => {
   res.json({
     name: 'ePowerFix API',
-    version: '0.2.0',
-    docs: '/api/health',
+    version: '0.3.0',
+    liveness: '/health',
+    readiness: '/api/health',
     endpoints: {
       auth: '/api/auth',
       products: '/api/products',
       orders: '/api/orders',
       services: '/api/services',
+      marketplace: '/api/marketplace',
       projects: '/api/projects',
       blog: '/api/blog',
       admin: '/api/admin',
@@ -157,15 +163,24 @@ app.use(errorHandler)
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 
-// Railway injects PORT env var at runtime; fall back to 4000 for local dev
-const PORT = parseInt(process.env.PORT || '4000', 10)
+// Railway injects PORT at runtime; env validation supplies the local fallback.
+const PORT = env.PORT
 const HOST = env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
 
 app.listen(PORT, HOST, () => {
   console.log(`🚀 ePowerFix API running at http://${HOST}:${PORT}`)
-  console.log(`📋 Health check: http://${HOST}:${PORT}/health`)
+  console.log(`📋 Liveness: http://${HOST}:${PORT}/health`)
+  console.log(`✅ Readiness: http://${HOST}:${PORT}/api/health`)
   console.log(`🌍 Environment: ${env.NODE_ENV}`)
   console.log(`🌐 Web URL: ${env.WEB_URL}`)
+
+  // Railway runs this API as a long-lived service. Start the idempotent
+  // cleanup worker here so abandoned online-payment reservations eventually
+  // release inventory and coupon usage without relying on an external cron.
+  if (env.NODE_ENV !== 'test' && env.DATABASE_URL) {
+    startExpiredReservationCleanupWorker()
+    console.log('⏱️ Payment reservation expiry cleanup worker started')
+  }
 })
 
 export default app
