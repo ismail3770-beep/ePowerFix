@@ -6,6 +6,7 @@
       "name": "epowerfix",
       "dependencies": {
         "@prisma/client": "6.19.3",
+        "hermes-compiler": "^250829098.0.2",
       },
       "devDependencies": {
         "prisma": "6.19.3",
@@ -74,6 +75,7 @@
         "expo-splash-screen": "~31.0.13",
         "expo-status-bar": "~2.2.3",
         "expo-updates": "~57.0.8",
+        "hermes-engine": "^0.11.0",
         "lucide-react-native": "^0.462.0",
         "react": "19.0.0",
         "react-dom": "19.0.0",
@@ -2265,6 +2267,10 @@
     "hastscript": ["hastscript@6.0.0", "", { "dependencies": { "@types/hast": "^2.0.0", "comma-separated-tokens": "^1.0.0", "hast-util-parse-selector": "^2.0.0", "property-information": "^5.0.0", "space-separated-tokens": "^1.0.0" } }, "sha512-nDM6bvd7lIqDUiYEiu5Sl/+6ReP0BMk/2f4U/Rooccxkj0P5nm+acM5PrGJ/t5I8qPGiqZSE6hVAwZEdZIvP4w=="],
 
     "helmet": ["helmet@8.3.0", "", {}, "sha512-Qgpiaws3Sm30Av8Eah6sjMCZZwjlBu+E68rhpCWBshY1lb09HtLwj5GviX0OyQIn+ulUS0iX0AxN5n3tLZzz1w=="],
+
+    "hermes-compiler": ["hermes-compiler@250829098.0.2", "", {}, "sha512-9+la7TeGGZg5Cj0UV5MbqhqyT/Hd/PUlQZ3Uhggy0jiaiG2qxFJbi/uGWALTqa7GwETyQa4A7ngus1A1aXA8QQ=="],
+
+    "hermes-engine": ["hermes-engine@0.11.0", "", {}, "sha512-7aMUlZja2IyLYAcZ69NBnwJAR5ZOYlSllj0oMpx08a8HzxHOys0eKCzfphrf6D0vX1JGO1QQvVsQKe6TkYherw=="],
 
     "hermes-estree": ["hermes-estree@0.36.0", "", {}, "sha512-A1+8zn5oss2CFP7pKsOaxorQG6FNIz1WU1VDqruLPPZl3LVgeE2C5xfFg8Ow6/Ow4mSslLLtYP1J3n38eKyW9w=="],
 
