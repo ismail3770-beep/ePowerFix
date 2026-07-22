@@ -220,7 +220,10 @@ router.post(
           toState: 'UNDER_REVIEW',
         },
       })
-      return tx.providerProfile.findUnique({ where: { id: provider.id } })
+      return tx.providerProfile.findUnique({
+        where: { id: provider.id },
+        include: providerDetailInclude,
+      })
     })
 
     res.json({ data: updated })
@@ -400,7 +403,10 @@ router.post(
             : null,
         },
       })
-      return tx.providerProfile.findUnique({ where: { id: provider.id } })
+      return tx.providerProfile.findUnique({
+        where: { id: provider.id },
+        include: providerDetailInclude,
+      })
     })
 
     res.json({ data: updated })
@@ -441,7 +447,10 @@ router.post(
           metadata: JSON.stringify({ reason }),
         },
       })
-      return tx.providerProfile.findUnique({ where: { id: provider.id } })
+      return tx.providerProfile.findUnique({
+        where: { id: provider.id },
+        include: providerDetailInclude,
+      })
     })
 
     res.json({ data: updated })
@@ -492,7 +501,10 @@ router.post(
           metadata: body.note ? JSON.stringify({ note: body.note }) : null,
         },
       })
-      return tx.providerProfile.findUnique({ where: { id: provider.id } })
+      return tx.providerProfile.findUnique({
+        where: { id: provider.id },
+        include: providerDetailInclude,
+      })
     })
 
     res.json({ data: updated })

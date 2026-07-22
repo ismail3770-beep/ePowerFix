@@ -9,14 +9,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { marketplaceAdminProvidersApi } from "@epowerfix/api-client";
-import type { MarketplaceProviderProfile, ProviderStatus } from "@epowerfix/types";
+import type { MarketplaceAdminProviderDetail, ProviderStatus } from "@epowerfix/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-type ProviderWithUser = MarketplaceProviderProfile & { user: { id: string; name: string; email: string; phone?: string | null } };
+type ProviderWithUser = MarketplaceAdminProviderDetail;
 
 const statusStyle: Record<string, string> = {
   DRAFT: "bg-slate-100 text-slate-600 border-slate-200",

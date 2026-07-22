@@ -457,9 +457,15 @@ export interface MarketplacePublicProvider {
 export interface MarketplaceAdminProviderListItem extends MarketplaceProviderSummary {
   submittedAt?: ISODateString | null
   reviewedAt?: ISODateString | null
+  emergencyAvailable: boolean
   user: { id: ID; name: string; email: string; phone?: string | null }
   _count: { documents: number; skills: number; serviceZones: number }
 }
+
+export interface MarketplaceAdminProviderDetail extends MarketplaceProviderProfile {
+  user: { id: ID; name: string; email: string; phone?: string | null }
+}
+
 
 export interface MarketplaceAdminProviderSummary {
   total: number

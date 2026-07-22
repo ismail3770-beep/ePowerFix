@@ -4,6 +4,7 @@
 
 import type {
   CreateMarketplaceRequestPayload,
+  MarketplaceAdminProviderDetail,
   MarketplaceAdminProviderListItem,
   MarketplaceAdminProviderSummary,
   MarketplaceArrivalOtp,
@@ -465,10 +466,10 @@ export const marketplaceAdminProvidersApi = {
       `/api/admin/marketplace/providers${qs ? `?${qs}` : ""}`,
     );
   },
-  get: (id: string) => api.get<{ data: MarketplaceProviderProfile & { user: { id: string; name: string; email: string; phone?: string | null } } }>(
+  get: (id: string) => api.get<{ data: MarketplaceAdminProviderDetail }>(
     `/api/admin/marketplace/providers/${encodeURIComponent(id)}`,
   ),
-  startReview: (id: string) => api.post<{ data: MarketplaceProviderProfile }>(
+  startReview: (id: string) => api.post<{ data: MarketplaceAdminProviderDetail }>(
     `/api/admin/marketplace/providers/${encodeURIComponent(id)}/start-review`,
   ),
   reviewDocument: (providerId: string, documentId: string, status: "APPROVED" | "REJECTED", reason?: string) =>
@@ -482,15 +483,15 @@ export const marketplaceAdminProvidersApi = {
       { isVerified },
     ),
   decide: (id: string, status: "VERIFIED" | "REJECTED", reason?: string) =>
-    api.post<{ data: MarketplaceProviderProfile }>(
+    api.post<{ data: MarketplaceAdminProviderDetail }>(
       `/api/admin/marketplace/providers/${encodeURIComponent(id)}/decision`,
       { status, reason },
     ),
-  suspend: (id: string, reason: string) => api.post<{ data: MarketplaceProviderProfile }>(
+  suspend: (id: string, reason: string) => api.post<{ data: MarketplaceAdminProviderDetail }>(
     `/api/admin/marketplace/providers/${encodeURIComponent(id)}/suspend`, { reason },
   ),
   recover: (id: string, status: "UNDER_REVIEW" | "VERIFIED", note?: string) =>
-    api.post<{ data: MarketplaceProviderProfile }>(
+    api.post<{ data: MarketplaceAdminProviderDetail }>(
       `/api/admin/marketplace/providers/${encodeURIComponent(id)}/recover`, { status, note },
     ),
   documentUrl: (providerId: string, documentId: string) =>
