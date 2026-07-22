@@ -12,7 +12,6 @@ import ServicesSection from "@/components/epf/ServicesSection";
 import ServicesBanner from "@/components/epf/ServicesBanner";
 import BrandStrip from "@/components/epf/BrandStrip";
 import ProjectsSection from "@/components/epf/ProjectsSection";
-import NewsletterBanner from "@/components/epf/NewsletterBanner";
 import RecentlyViewed from "@/components/epf/RecentlyViewed";
 
 export default function HomePage() {
@@ -32,7 +31,6 @@ export default function HomePage() {
         <BrandStrip />
         <ProjectsSection />
         <RecentlyViewed />
-        <NewsletterBanner />
       </main>
       <Footer />
       <HomeClient />
