@@ -1,6 +1,6 @@
-// Next.js Middleware — proxies all /api/* requests to Express backend (Railway)
-// This middleware runs BEFORE any filesystem route matching.
-// Since the Next.js API routes folder has been removed, this middleware
+// Next.js Proxy — proxies all /api/* requests to Express backend (Railway)
+// This proxy runs BEFORE any filesystem route matching.
+// Since the Next.js API routes folder has been removed, this proxy
 // is the ONLY handler for /api/* requests in the web app.
 
 import { NextResponse } from 'next/server'
@@ -46,6 +46,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Only run middleware on /api/* paths
+  // Only run proxy on /api/* paths
   matcher: '/api/:path*',
 }
