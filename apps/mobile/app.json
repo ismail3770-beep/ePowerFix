@@ -29,9 +29,6 @@
       "expo-font",
       "expo-secure-store"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
       "eas": {
         "projectId": ""
