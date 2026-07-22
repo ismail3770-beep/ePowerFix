@@ -32,9 +32,16 @@
     ],
     "extra": {
       "eas": {
-        "projectId": ""
-      }
+        "projectId": "c19c58d0-fd50-4fe7-afeb-20252f773e5f"
+      },
+      "router": {}
     },
-    "owner": "epowerfix"
+    "owner": "epowerfix",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c19c58d0-fd50-4fe7-afeb-20252f773e5f"
+    }
   }
 }
