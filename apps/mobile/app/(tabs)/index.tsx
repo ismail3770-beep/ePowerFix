@@ -111,7 +111,7 @@ export default function HomeScreen() {
             gap: 12,
           }}>
             {/* Logo — matches web: e[Power]Fix, 26px extrabold */}
-            <Pressable onPress={() => router.push('/')}>
+            <Pressable onPress={() => router.push('/(tabs)')}>
               <View style={{ flexDirection: 'column' }}>
                 <Text style={{ fontSize: 24, fontWeight: Typography.extrabold, color: Colors.slate[900], lineHeight: 24 }}>
                   e<Text style={{ color: Colors.epf[500] }}>Power</Text>Fix

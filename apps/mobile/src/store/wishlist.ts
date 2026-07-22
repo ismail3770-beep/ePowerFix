@@ -70,7 +70,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
       set({ error: message });
       throw new Error(message);
     } finally {
-      set({ loading: false, loaded: true });
+      set({ loading: false });
     }
   },
 
