@@ -8,7 +8,7 @@
     "scheme": "epowerfix",
     "splash": {
       "resizeMode": "contain",
-      "backgroundColor": "#f59e0b"
+      "backgroundColor": "#0EA5E9"
     },
     "ios": {
       "supportsTablet": true,
@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#f59e0b"
+        "backgroundColor": "#0EA5E9"
       },
       "package": "com.epowerfix.app"
     },
