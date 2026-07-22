@@ -3,7 +3,7 @@
 // Other tabs: show header
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, ShoppingBag, Wrench, ShoppingCart, User } from 'lucide-react-native';
+import { Home, ShoppingBag, Wrench, ShoppingCart, User, Zap } from 'lucide-react-native';
 import { Colors, Typography } from '../../src/theme/design-system';
 
 export default function TabsLayout() {
@@ -69,6 +69,15 @@ export default function TabsLayout() {
           title: 'Profile',
           headerShown: false, // Profile screen has its own layout
           tabBarIcon: ({ color }) => <User size={22} color={color} strokeWidth={2} />,
+        }}
+      />
+      {/* Marketplace */}
+      <Tabs.Screen
+        name="marketplace"
+        options={{
+          title: 'Electrician',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <Zap size={22} color={color} strokeWidth={2} />,
         }}
       />
     </Tabs>

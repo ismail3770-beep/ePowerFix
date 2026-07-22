@@ -58,6 +58,11 @@ export default function RootLayout() {
         <Stack.Screen name="addresses" options={{ title: 'Addresses' }} />
         <Stack.Screen name="downloads" options={{ title: 'Downloads' }} />
         <Stack.Screen name="account" options={{ title: 'Account settings' }} />
+        {/* Marketplace screens */}
+        <Stack.Screen name="marketplace/index" options={{ headerShown: false }} />
+        <Stack.Screen name="marketplace/new-request" options={{ headerShown: false }} />
+        <Stack.Screen name="marketplace/request/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="marketplace/job/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="dark" />
     </>
