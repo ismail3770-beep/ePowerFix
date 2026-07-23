@@ -8,21 +8,13 @@
     "scheme": "epowerfix",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.epowerfix.app",
-      "splash": {
-        "resizeMode": "contain",
-        "backgroundColor": "#0EA5E9"
-      }
+      "bundleIdentifier": "com.epowerfix.app"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0EA5E9"
       },
-      "package": "com.epowerfix.app",
-      "splash": {
-        "resizeMode": "contain",
-        "backgroundColor": "#0EA5E9"
-      }
+      "package": "com.epowerfix.app"
     },
     "web": {
       "bundler": "metro",
