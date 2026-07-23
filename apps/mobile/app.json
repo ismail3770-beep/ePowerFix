@@ -6,12 +6,14 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "scheme": "epowerfix",
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.epowerfix.app"
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0EA5E9"
       },
       "package": "com.epowerfix.app"
@@ -28,7 +30,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0EA5E9",
-          "resizeMode": "contain"
+          "resizeMode": "contain",
+          "image": "./assets/favicon.png"
         }
       ]
     ],
