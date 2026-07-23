@@ -1,3 +1,9 @@
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./premium.css";

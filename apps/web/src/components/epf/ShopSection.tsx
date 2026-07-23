@@ -1,172 +1,38 @@
 "use client";
-import type * as React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useCartStore } from "@/store";
-import { apiFetch } from "@/lib/api";
-import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
-import { PremiumCard, PremiumCardSkeleton } from "@/components/epf/PremiumCard";
-import { FadeInStagger, FadeInItem } from "@/components/epf/FadeIn";
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  comparePrice: number | null;
-  salePrice?: number | null;
-  rating: number;
-  reviews: number;
-  images: string[];
-  category?: { name: string; slug: string } | null;
-}
+import Link from "next/link";
+import { ArrowRight, Zap, Lightbulb, Power, Cable, ToggleRight, Sun, Fan, ShieldCheck } from "lucide-react";
+import ProductCard, { type ProductCardData } from "./ProductCard";
 
-interface ProjectKit {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  price: number;
-  salePrice: number | null;
-  coverImage: string | null;
-  images: string[];
-  category: string | null;
-  difficulty: string | null;
-  stock: number;
-  itemCount?: number;
-}
-
-/* Compact section header with a "View All" link (premium text-link style) */
-function RowHeader({ title, subtitle, href }: { title: string; subtitle: string; href: string }) {
-  return (
-    <div className="flex items-end justify-between mb-6 sm:mb-8">
-      <div>
-        <h2 className="text-[20px] sm:text-[24px] font-bold text-slate-900 tracking-tight">{title}</h2>
-        <p className="text-[14px] text-slate-500 mt-1">{subtitle}</p>
-      </div>
-      <a
-        href={href}
-        className="hidden sm:inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-600 hover:text-epf-700 transition-colors group"
-      >
-        View All
-        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-      </a>
-    </div>
-  );
-}
-
-/* Match BestDeals grid so all product/kit cards are the same size */
-const GRID = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5";
+const products: ProductCardData[] = [
+  { id: "p1", name: "Schneider MCB 32A", brand: "Schneider", price: 850, compareAtPrice: 1200, rating: 4.5, reviewCount: 23, inStock: true, badge: "হট", icon: Zap, tile: "from-sky-50 to-blue-100" },
+  { id: "p2", name: "Philips LED 20W", brand: "Philips", price: 320, compareAtPrice: 550, rating: 4.8, reviewCount: 45, inStock: true, icon: Lightbulb, tile: "from-amber-50 to-yellow-100" },
+  { id: "p3", name: "Siemens Contactor", brand: "Siemens", price: 2400, compareAtPrice: 3200, rating: 4.7, reviewCount: 18, inStock: true, icon: Power, tile: "from-emerald-50 to-teal-100" },
+  { id: "p4", name: "Cable 2.5mm (100m)", brand: "BRB", price: 4500, compareAtPrice: 5800, rating: 4.3, reviewCount: 31, inStock: true, icon: Cable, tile: "from-rose-50 to-pink-100" },
+  { id: "p5", name: "Havells Switch Board", brand: "Havells", price: 650, compareAtPrice: 900, rating: 4.6, reviewCount: 12, inStock: true, icon: ToggleRight, tile: "from-violet-50 to-purple-100" },
+  { id: "p6", name: "Solar Panel 100W", brand: "ePowerFix", price: 8500, compareAtPrice: 11000, rating: 4.9, reviewCount: 9, inStock: true, badge: "নতুন", icon: Sun, tile: "from-orange-50 to-amber-100" },
+  { id: "p7", name: "Ceiling Fan 56 inch", brand: "Walton", price: 3200, compareAtPrice: 4200, rating: 4.4, reviewCount: 27, inStock: true, icon: Fan, tile: "from-cyan-50 to-sky-100" },
+  { id: "p8", name: "Safety Gloves (Pair)", brand: "3M", price: 450, compareAtPrice: 700, rating: 4.2, reviewCount: 15, inStock: true, icon: ShieldCheck, tile: "from-slate-100 to-slate-200" },
+];
 
 export default function ShopSection() {
-  const addItem = useCartStore((s) => s.addItem);
-
-  const { data: productsData, isLoading: productsLoading } = useQuery<{ data: { data: Product[] } }>({
-    queryKey: ["products-shop-home"],
-    queryFn: () => apiFetch("/api/products?limit=6"),
-  });
-  const products = (productsData?.data?.data ?? []).slice(0, 6);
-
-  const { data: kitsData, isLoading: projectsLoading } = useQuery<{ data: ProjectKit[] }>({
-    queryKey: ["project-kits-home"],
-    queryFn: () => apiFetch("/api/project-kits"),
-  });
-  const kits = (kitsData?.data ?? []).slice(0, 6);
-
-  const addProduct = (e: React.MouseEvent, p: Product) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem({
-      itemType: "PRODUCT",
-      productId: p.id,
-      productName: p.name,
-      productImage: p.images?.[0] || "",
-      price: Number(p.salePrice || p.price),
-      quantity: 1,
-    });
-    toast.success("Added to cart", { description: p.name });
-  };
-
-  const addKit = (e: React.MouseEvent, k: ProjectKit) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addItem({
-      itemType: "PROJECT_KIT",
-      projectKitId: k.id,
-      productName: k.title,
-      productImage: k.coverImage || k.images?.[0] || "",
-      price: Number(k.salePrice || k.price || 0),
-      quantity: 1,
-    });
-    toast.success("Kit added to cart", { description: k.title });
-  };
-
   return (
-    <section id="shop" className="py-12 sm:py-16 bg-white">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 space-y-14 sm:space-y-16">
-        {/* ── Row 1: Products ── */}
-        <div>
-          <RowHeader
-            title="Featured Products"
-            subtitle="Quality electrical products at best prices"
-            href="/shop"
-          />
-          <FadeInStagger className={GRID}>
-            {productsLoading
-              ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
-              : products.map((product) => (
-                  <FadeInItem key={product.id}>
-                    <PremiumCard
-                      data={{
-                        id: product.id,
-                        name: product.name,
-                        price: product.price,
-                        salePrice: product.salePrice,
-                        comparePrice: product.comparePrice,
-                        images: product.images,
-                        category: product.category?.name,
-                        isFeatured: true,
-                      }}
-                      onCardClick={(id) => { window.location.href = `/shop/${id}`; }}
-                      onAddToCart={(d) => addProduct({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, product)}
-                    />
-                  </FadeInItem>
-                ))}
-          </FadeInStagger>
+    <section className="py-16">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-12">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="text-sky-600 font-semibold text-sm mb-1">জনপ্রিয় সংগ্রহ</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">ফিচার্ড প্রোডাক্ট</h2>
+            <p className="text-slate-400 text-sm mt-1">সেরা দামে মানসম্পন্ন ইলেকট্রিক্যাল প্রোডাক্ট</p>
+          </div>
+          <Link href="/shop" className="flex items-center gap-1 text-sky-600 hover:text-sky-700 text-sm font-semibold transition whitespace-nowrap">
+            সব দেখুন <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
-
-        {/* ── Row 2: Project Kits ── */}
-        <div>
-          <RowHeader
-            title="Project Kits"
-            subtitle="Everything you need to build your project — components, code & guides"
-            href="/project-kits"
-          />
-          <FadeInStagger className={GRID}>
-            {projectsLoading
-              ? Array.from({ length: 6 }).map((_, i) => <PremiumCardSkeleton key={i} />)
-              : kits.map((kit) => (
-                  <FadeInItem key={kit.id}>
-                    <PremiumCard
-                      data={{
-                        id: kit.id,
-                        name: kit.title,
-                        price: kit.price ?? 0,
-                        salePrice: kit.salePrice,
-                        coverImage: kit.coverImage,
-                        images: kit.images,
-                        badge: "KIT",
-                        itemType: "PROJECT_KIT",
-                        category: kit.category,
-                      }}
-                      onCardClick={(id) => { window.location.href = `/project-kits/${(kit as any).slug || id}`; }}
-                      onAddToCart={(d) => addKit({ preventDefault: () => {}, stopPropagation: () => {} } as React.MouseEvent, kit)}
-                    />
-                  </FadeInItem>
-                ))}
-          </FadeInStagger>
-          {!projectsLoading && kits.length === 0 && (
-            <p className="text-[14px] text-slate-400 text-center py-10">No project kits available yet.</p>
-          )}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
         </div>
       </div>
     </section>
