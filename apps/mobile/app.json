@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/adaptive-foreground.png",
         "backgroundColor": "#0EA5E9"
       },
       "package": "com.epowerfix.app"
