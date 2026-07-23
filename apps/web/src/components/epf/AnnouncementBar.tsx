@@ -35,7 +35,7 @@ export default function AnnouncementBar() {
 
   return (
     <div className="bg-[#0F172A] text-white text-xs sm:text-sm relative">
-      <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-center">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-2 flex items-center justify-center gap-2 text-center">
         <Icon className="w-4 h-4 text-[#0EA5E9] shrink-0" />
         <span>
           {item.text}

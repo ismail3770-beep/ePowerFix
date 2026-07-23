@@ -58,7 +58,7 @@ export default function HeroBanner() {
           transition={{ duration: 0.5 }}
           className={`bg-gradient-to-br ${slide.bg} text-white`}
         >
-          <div className="max-w-7xl mx-auto px-4 py-16 md:py-24">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-16 md:py-24">
             <div className="max-w-2xl space-y-5">
               <motion.span
                 initial={{ opacity: 0, y: 20 }}
@@ -130,7 +130,7 @@ export default function HeroBanner() {
 
       {/* Trust Strip */}
       <div className="bg-white border-b border-[#E2E8F0]">
-        <div className="max-w-7xl mx-auto px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-3 grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { icon: Truck, text: "ফ্রি ডেলিভারি", sub: "৫০০৳+ অর্ডারে" },
             { icon: ShieldCheck, text: "অরিজিনাল প্রোডাক্ট", sub: "১০০% গ্যারান্টি" },
