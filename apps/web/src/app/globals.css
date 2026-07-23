@@ -42,10 +42,35 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* Brand Scale */
   --color-epf-50: #F0F9FF;
   --color-epf-100: #E0F2FE;
+  --color-epf-200: #BAE6FD;
+  --color-epf-300: #7DD3FC;
+  --color-epf-400: #38BDF8;
   --color-epf-500: #0EA5E9;
   --color-epf-600: #0284C7;
+  --color-epf-700: #0369A1;
+  --color-epf-800: #075985;
+  --color-epf-900: #0C4A6E;
+
+  /* Accent (CTA) */
+  --color-accent-500: #F97316;
+  --color-accent-600: #EA580C;
+
+  /* Status */
+  --color-success: #4D7300;
+  --color-warning: #F59E0B;
+  --color-danger: #DC2626;
+
+  /* Neutrals */
+  --color-dark: #0F172A;
+  --color-body: #334155;
+  --color-muted: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-surface: #F8FAFC;
+
+  /* Legacy dark scale (kept for backward compat) */
   --color-dark-50: #F9FAFB;
   --color-dark-100: #F3F4F6;
   --color-dark-200: #E5E7EB;
@@ -53,9 +78,6 @@
   --color-dark-500: #6B7280;
   --color-dark-700: #374151;
   --color-dark-900: #111827;
-  --color-success: #4D7300;
-  --color-warning: #F59E0B;
-  --color-danger: #DC2626;
 }
 
 :root {
