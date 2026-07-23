@@ -13,12 +13,17 @@ import BrandStrip from "@/components/epf/BrandStrip";
 import ProjectsSection from "@/components/epf/ProjectsSection";
 import RecentlyViewed from "@/components/epf/RecentlyViewed";
 
+export const metadata = {
+  title: "ePowerFix — বাংলাদেশের #১ ইলেকট্রিক্যাল মার্কেটপ্লেস",
+  description: "১০,০০০+ অরিজিনাল ইলেকট্রিক্যাল প্রোডাক্ট | এক্সপার্ট সার্ভিস | সারাদেশে ফ্রি ডেলিভারি",
+};
+
 export default function HomePage() {
   return (
     <>
       <AnnouncementBar />
       <Header />
-      <main aria-label="Homepage">
+      <main>
         <HeroBanner />
         <CategoryGrid />
         <FlashDeals />
