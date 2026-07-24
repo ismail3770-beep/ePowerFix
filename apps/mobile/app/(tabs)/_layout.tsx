@@ -1,83 +1,80 @@
-// Bottom tab navigation — matches website MobileBottomNav.tsx
-// Home tab: headerShown=false (has custom 2-row header)
-// Other tabs: show header
+// Bottom tab navigation — 5 tabs: Home, Shop, Services, Cart, Profile
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, ShoppingBag, Wrench, ShoppingCart, User, Zap } from 'lucide-react-native';
-import { Colors, Typography } from '../../src/theme/design-system';
+import { Home, ShoppingBag, Wrench, ShoppingCart, User } from 'lucide-react-native';
+import { Colors } from '../../src/theme/design-system';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors.epf[500],
-        tabBarInactiveTintColor: Colors.slate[400],
+        tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
-          backgroundColor: Colors.bg.primary,
+          backgroundColor: '#fff',
           borderTopWidth: 1,
-          borderTopColor: Colors.slate[200],
-          paddingBottom: 4,
-          paddingTop: 4,
-          height: 60,
+          borderTopColor: '#F1F5F9',
+          paddingBottom: 6,
+          paddingTop: 8,
+          height: 64,
+          elevation: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
         },
         tabBarLabelStyle: {
-          fontSize: Typography.sm,
-          fontWeight: Typography.medium,
+          fontSize: 11,
+          fontWeight: '600',
         },
       }}
     >
-      {/* Home — NO header (has custom 2-row header in screen) */}
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
           headerShown: false,
-          tabBarIcon: ({ color }) => <Home size={22} color={color} strokeWidth={2} />,
+          tabBarIcon: ({ color, focused }) => <Home size={22} color={color} strokeWidth={focused ? 2.5 : 2} />,
         }}
       />
-      {/* Shop — show header */}
       <Tabs.Screen
         name="shop"
         options={{
           title: 'Shop',
-          headerShown: false, // Shop screen has its own header
-          tabBarIcon: ({ color }) => <ShoppingBag size={22} color={color} strokeWidth={2} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => <ShoppingBag size={22} color={color} strokeWidth={focused ? 2.5 : 2} />,
         }}
       />
-      {/* Services — show header */}
       <Tabs.Screen
         name="services"
         options={{
           title: 'Services',
-          headerShown: false, // Services screen has its own header
-          tabBarIcon: ({ color }) => <Wrench size={22} color={color} strokeWidth={2} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => <Wrench size={26} color={color} strokeWidth={focused ? 2.5 : 2} />,
         }}
       />
-      {/* Cart — show header */}
       <Tabs.Screen
         name="cart"
         options={{
           title: 'Cart',
-          headerShown: false, // Cart screen has its own layout
-          tabBarIcon: ({ color }) => <ShoppingCart size={22} color={color} strokeWidth={2} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => <ShoppingCart size={22} color={color} strokeWidth={focused ? 2.5 : 2} />,
         }}
       />
-      {/* Profile — show header */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          headerShown: false, // Profile screen has its own layout
-          tabBarIcon: ({ color }) => <User size={22} color={color} strokeWidth={2} />,
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => <User size={22} color={color} strokeWidth={focused ? 2.5 : 2} />,
         }}
       />
-      {/* Marketplace */}
+      {/* Marketplace hidden from tab bar — accessible via Home/Services */}
       <Tabs.Screen
         name="marketplace"
         options={{
-          title: 'Electrician',
+          href: null,
           headerShown: false,
-          tabBarIcon: ({ color }) => <Zap size={22} color={color} strokeWidth={2} />,
         }}
       />
     </Tabs>

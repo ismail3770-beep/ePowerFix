@@ -348,6 +348,35 @@ export function PremiumCard({ data, onAddToCart }: PremiumCardProps) {
             </Text>
           )}
         </View>
+
+        {/* Add to Cart button — Website exact (sky-500, full width) */}
+        <Pressable
+          onPress={handleAddToCart}
+          disabled={!inStock}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            backgroundColor: inStock ? (added ? '#10B981' : '#0EA5E9') : '#F1F5F9',
+            borderRadius: 12,
+            paddingVertical: 10,
+            marginTop: 8,
+          }}
+        >
+          {added ? (
+            <Check size={16} color="#fff" strokeWidth={2.5} />
+          ) : (
+            <ShoppingCart size={16} color={inStock ? '#fff' : '#94A3B8'} />
+          )}
+          <Text style={{
+            color: inStock ? '#fff' : '#94A3B8',
+            fontSize: 13,
+            fontWeight: '600',
+          }}>
+            {added ? 'যোগ হয়েছে!' : 'কার্টে যোগ করুন'}
+          </Text>
+        </Pressable>
       </View>
     </Pressable>
   );

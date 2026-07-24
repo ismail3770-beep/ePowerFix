@@ -1,488 +1,274 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Home Screen — EXACT match with website
-// Web: Header + HeroBanner + TrustBar + CategoryGrid + FlashDeals +
-//      ShopSection + BestDeals + ServicesSection + ServicesBanner +
-//      BrandStrip + ProjectsSection + RecentlyViewed + Footer
+// Home Screen — Amazon/Flipkart Style (Clean, Professional)
+// White bg, prominent search, category grid, product cards, deals
 // ═══════════════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, Pressable, ActivityIndicator,
-  RefreshControl, TextInput, Image,
+  View, Text, ScrollView, Pressable, RefreshControl, Dimensions, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
-  Search, ShoppingCart, Heart, User, ChevronDown, Menu,
-  Truck, RotateCcw, Shield, Headphones, BadgeCheck,
-  ArrowRight, Zap, Cpu, Star, Tag,
+  Search, ShoppingCart, Bell, ChevronRight, MapPin,
+  Zap, Star, Flame, Truck, Shield, Headphones,
 } from 'lucide-react-native';
-import { PremiumCard, PremiumCardData, PremiumCardSkeleton } from '../../src/components/PremiumCard';
-import { Footer } from '../../src/components/Footer';
-import { getCategoryIcon } from '../../src/components/icons/CategoryIcons';
 import { productsApi, servicesApi } from '@epowerfix/api-client';
 import { useCartStore } from '@epowerfix/store';
-import { useAuthStore } from '../../src/store/auth';
-import { Colors, Typography, Radius, Layout } from '../../src/theme/design-system';
+import { Colors } from '../../src/theme/design-system';
 
-// ─── Countdown Timer (matches FlashDeals.tsx) ─────────────────────────────
-function CountdownTimer() {
-  const [time, setTime] = useState({ d: 2, h: 10, m: 28, s: 39 });
-  useEffect(() => {
-    const id = setInterval(() => {
-      setTime((prev) => {
-        let { d, h, m, s } = prev;
-        s -= 1;
-        if (s < 0) { s = 59; m -= 1; }
-        if (m < 0) { m = 59; h -= 1; }
-        if (h < 0) { h = 23; d = Math.max(0, d - 1); }
-        return { d, h, m, s };
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const cells = [pad(time.d), pad(time.h), pad(time.m), pad(time.s)];
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      {cells.map((v, i) => (
-        <React.Fragment key={i}>
-          <View style={{ backgroundColor: '#5B21B6', borderRadius: 4, paddingHorizontal: 7, paddingVertical: 4, minWidth: 30, alignItems: 'center' }}>
-            <Text style={{ color: '#fff', fontSize: 13, fontWeight: Typography.bold, fontVariant: ['tabular-nums'] }}>{v}</Text>
-          </View>
-          {i < 3 && <Text style={{ color: Colors.slate[900], fontWeight: Typography.bold, fontSize: 13 }}>:</Text>}
-        </React.Fragment>
-      ))}
-    </View>
-  );
-}
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = (SCREEN_WIDTH - 32) / 2;
 
-// ─── Section Header ────────────────────────────────────────────────────────
-function SectionHeader({ title, subtitle, onViewAll }: { title: string; subtitle: string; onViewAll?: () => void }) {
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: 16, marginBottom: 14 }}>
-      <View>
-        <Text style={{ fontSize: 20, fontWeight: Typography.bold, color: Colors.slate[900] }}>{title}</Text>
-        <Text style={{ fontSize: 13, color: Colors.slate[500], marginTop: 3 }}>{subtitle}</Text>
-      </View>
-      {onViewAll && (
-        <Pressable onPress={onViewAll} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-          <Text style={{ color: Colors.epf[600], fontSize: 13, fontWeight: Typography.medium }}>View All</Text>
-          <ArrowRight size={14} color={Colors.epf[600]} />
-        </Pressable>
-      )}
-    </View>
-  );
-}
+// ─── Categories (Amazon-style grid) ────────────────────────────────────────
+const CATEGORIES = [
+  { name: 'Cables', icon: '🔌', color: '#DBEAFE' },
+  { name: 'Breakers', icon: '⚡', color: '#FEF3C7' },
+  { name: 'Switches', icon: '🔘', color: '#D1FAE5' },
+  { name: 'Lighting', icon: '💡', color: '#FEF9C3' },
+  { name: 'Solar', icon: '☀️', color: '#FFEDD5' },
+  { name: 'Safety', icon: '🛡️', color: '#FEE2E2' },
+  { name: 'Tools', icon: '🔧', color: '#F3E8FF' },
+  { name: 'Fans', icon: '🌀', color: '#CFFAFE' },
+];
+
+// ─── Promo Banners ─────────────────────────────────────────────────────────
+const BANNERS = [
+  { id: 1, title: 'Mega Sale', subtitle: 'Up to 50% OFF', bg: '#0EA5E9', textColor: '#fff' },
+  { id: 2, title: 'Free Delivery', subtitle: 'Orders ৳500+', bg: '#F59E0B', textColor: '#0F172A' },
+  { id: 3, title: 'New Arrivals', subtitle: 'Latest Products', bg: '#10B981', textColor: '#fff' },
+];
 
 export default function HomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const cartItems = useCartStore((state) => state.items);
-  const user = useAuthStore((state) => state.user);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [products, setProducts] = useState<any[]>([]);
-  const [bestDeals, setBestDeals] = useState<any[]>([]);
-  const [flashDeals, setFlashDeals] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [deals, setDeals] = useState<any[]>([]);
 
   const loadAll = async () => {
     try {
-      const [productsRes, bestRes, flashRes, servicesRes] = await Promise.allSettled([
-        productsApi.list({ limit: 10 }),
-        productsApi.list({ limit: 10 }),
+      const [productsRes, dealsRes] = await Promise.allSettled([
+        productsApi.list({ limit: 12 }),
         productsApi.list({ limit: 8 }),
-        servicesApi.list(),
       ]);
       if (productsRes.status === 'fulfilled') setProducts(productsRes.value.data?.data || []);
-      if (bestRes.status === 'fulfilled') setBestDeals(bestRes.value.data?.data || []);
-      if (flashRes.status === 'fulfilled') setFlashDeals(flashRes.value.data?.data || []);
-      if (servicesRes.status === 'fulfilled') setServices(Array.isArray(servicesRes.value.data?.services) ? servicesRes.value.data.services.slice(0, 4) : []);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+      if (dealsRes.status === 'fulfilled') setDeals(dealsRes.value.data?.data || []);
+    } catch { /* silent */ }
+    finally { setLoading(false); setRefreshing(false); }
   };
 
   useEffect(() => { void loadAll(); }, []);
-  const onRefresh = () => { setRefreshing(true); void loadAll(); };
 
-  const categories = [
-    { name: 'কেবল ও ওয়্যার', subtitle: 'সেরা দামে', slug: 'cable' },
-    { name: 'সার্কিট ব্রেকার', subtitle: 'জরুরি সুরক্ষা', slug: 'breaker' },
-    { name: 'সুইচ ও সকেট', subtitle: '১০০% আসল', slug: 'switch' },
-    { name: 'লাইটিং', subtitle: 'LED ও সোলার', slug: 'lighting' },
-    { name: 'সোলার প্যানেল', subtitle: 'আপটু ৩০% ছাড়', slug: 'solar' },
-    { name: 'সেফটি সরঞ্জাম', subtitle: 'শ্রমিক সুরক্ষা', slug: 'safety' },
-    { name: 'ইন্ডাস্ট্রিয়াল', subtitle: 'অটোমেশন', slug: 'industrial' },
-    { name: 'টুলস ও মিটার', subtitle: 'ডিজিটাল', slug: 'tools' },
-  ];
-
-  const trustFeatures = [
-    { icon: Truck, label: 'Free Delivery', desc: 'Orders over ৳5,000' },
-    { icon: RotateCcw, label: 'Easy Returns', desc: '7-day return policy' },
-    { icon: Shield, label: 'Secure Payment', desc: '100% secure checkout' },
-    { icon: Headphones, label: '24/7 Support', desc: 'Expert help anytime' },
-    { icon: BadgeCheck, label: 'Authentic', desc: 'Official warranty' },
-  ];
-
-  const brands = ['Siemens', 'Schneider', 'ABB', 'Legrand', 'Havells', 'Philips', 'Osram', 'Bosch', 'Fluke', 'Eaton'];
-  const navLinks = ['Home', 'Services', 'Shop', 'Projects', 'Project Kits', 'Blog'];
-
-  const toCard = (product: any): PremiumCardData => ({
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    salePrice: product.salePrice,
-    comparePrice: product.comparePrice ?? product.price,
-    images: product.images,
-    isFeatured: product.isFeatured,
-    stock: product.stock,
-    category: product.category?.name,
-    rating: product.rating,
-    reviewCount: product.reviewCount,
-  });
+  const formatPrice = (price: number) => `৳${Number(price).toLocaleString()}`;
+  const getDiscount = (p: any) => {
+    const compare = p.comparePrice ?? p.price;
+    const current = p.salePrice ?? p.price;
+    if (compare > current) return Math.round(((compare - current) / compare) * 100);
+    return 0;
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.epf[500]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadAll(); }} tintColor="#0EA5E9" />}
       >
-        {/* ═══ HEADER ROW 1 — White ═══════════════════════════════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, borderBottomWidth: 1, borderBottomColor: Colors.slate[200] }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', height: Layout.headerHeight, paddingHorizontal: 16, gap: 10 }}>
-            {/* Logo */}
-            <Pressable onPress={() => router.push('/(tabs)')}>
-              <View>
-                <Text style={{ fontSize: 22, fontWeight: Typography.extrabold, color: Colors.slate[900], lineHeight: 22 }}>
-                  e<Text style={{ color: Colors.epf[500] }}>Power</Text>Fix
-                </Text>
-                <Text style={{ fontSize: 8, color: Colors.slate[500], fontWeight: Typography.semibold, letterSpacing: 2, marginTop: 2 }}>
-                  ELECTRICAL MARKETPLACE
-                </Text>
-              </View>
-            </Pressable>
-            {/* Search */}
-            <View style={{ flex: 1, flexDirection: 'row', height: 40, borderRadius: Radius.base, borderWidth: 1, borderColor: Colors.slate[200], overflow: 'hidden', backgroundColor: Colors.bg.primary }}>
-              <View style={{ paddingLeft: 10, justifyContent: 'center' }}>
-                <Search size={16} color={Colors.slate[400]} />
-              </View>
-              <TextInput
-                placeholder="Search products..."
-                placeholderTextColor={Colors.slate[400]}
-                value={search}
-                onChangeText={setSearch}
-                style={{ flex: 1, paddingHorizontal: 8, fontSize: 14, color: Colors.slate[900] }}
-                onSubmitEditing={() => router.push('/(tabs)/shop')}
-              />
-              <Pressable style={{ backgroundColor: Colors.epf[500], paddingHorizontal: 14, justifyContent: 'center' }} onPress={() => router.push('/(tabs)/shop')}>
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: Typography.semibold }}>Search</Text>
-              </Pressable>
-            </View>
-            {/* Icons */}
-            <Pressable onPress={() => router.push(user ? '/(tabs)/profile' : '/login')} style={{ padding: 4 }}>
-              <User size={21} color={Colors.slate[700]} />
-            </Pressable>
-            <Pressable onPress={() => router.push('/wishlist' as never)} style={{ padding: 4 }}>
-              <Heart size={21} color={Colors.slate[700]} />
-            </Pressable>
-            <Pressable onPress={() => router.push('/(tabs)/cart')} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 7, borderRadius: Radius.base, borderWidth: 1, borderColor: Colors.slate[200] }}>
-              <View style={{ position: 'relative' }}>
-                <ShoppingCart size={21} color={Colors.slate[700]} />
-                <View style={{ position: 'absolute', top: -6, right: -8, minWidth: 15, height: 15, borderRadius: 8, backgroundColor: Colors.epf[500], alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 }}>
-                  <Text style={{ color: '#fff', fontSize: 9, fontWeight: Typography.bold }}>{cartCount}</Text>
-                </View>
-              </View>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* ═══ HEADER ROW 2 — Dark Nav ════════════════════════════════════ */}
-        <View style={{ backgroundColor: Colors.slate[900], flexDirection: 'row', alignItems: 'center', height: Layout.navHeight, paddingHorizontal: 16 }}>
-          <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginRight: 14 }}>
-            <Menu size={17} color='#fff' />
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: Typography.bold }}>Categories</Text>
-            <ChevronDown size={13} color={Colors.epf[400]} />
-          </Pressable>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
-            {navLinks.map((link, idx) => (
-              <Pressable key={idx} style={{ paddingHorizontal: 10, paddingVertical: 6 }}>
-                <Text style={{ color: idx === 0 ? Colors.epf[400] : Colors.slate[100], fontSize: 14, fontWeight: Typography.medium }}>{link}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-          <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={() => router.push('/order-track' as never)}>
-            <Truck size={14} color={Colors.epf[400]} />
-            <Text style={{ color: Colors.epf[400], fontSize: 13, fontWeight: Typography.medium }}>Track</Text>
-          </Pressable>
-        </View>
-
-        {/* ═══ HERO BANNER ════════════════════════════════════════════════ */}
-        <View style={{ backgroundColor: Colors.epf[50], paddingVertical: 28, paddingHorizontal: 20 }}>
-          <View style={{ backgroundColor: Colors.epf[900], borderRadius: Radius['2xl'], padding: 24, minHeight: 190, justifyContent: 'center', overflow: 'hidden' }}>
-            {/* Decorative circle */}
-            <View style={{ position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: Colors.epf[700], opacity: 0.3, right: -40, top: -40 }} />
-            <View style={{ position: 'absolute', width: 100, height: 100, borderRadius: 50, backgroundColor: Colors.epf[500], opacity: 0.2, right: 20, bottom: -20 }} />
-            {/* Badge */}
-            <View style={{ alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: Radius.full, backgroundColor: 'rgba(14,165,233,0.15)', marginBottom: 10 }}>
-              <Text style={{ color: Colors.epf[300], fontSize: 11, fontWeight: Typography.semibold }}>Premium Electrical Marketplace</Text>
-            </View>
-            <Text style={{ fontSize: 26, fontWeight: Typography.bold, color: '#fff', lineHeight: 32, marginBottom: 8 }}>
-              বাংলাদেশের বিশ্বস্ত{'\n'}ইলেকট্রিক্যাল মার্কেটপ্লেস
-            </Text>
-            <Text style={{ color: Colors.slate[300], fontSize: 13, lineHeight: 20, marginBottom: 16 }}>
-              Quality products · Professional services · Expert solutions
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 16, paddingVertical: 10 }} onPress={() => router.push('/(tabs)/shop')}>
-                <Text style={{ color: '#fff', fontWeight: Typography.semibold, fontSize: 13 }}>Shop Now</Text>
-                <ArrowRight size={14} color='#fff' />
-              </Pressable>
-              <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: Radius.base, paddingHorizontal: 16, paddingVertical: 10 }} onPress={() => router.push('/(tabs)/marketplace' as never)}>
-                <Zap size={14} color={Colors.epf[400]} />
-                <Text style={{ color: '#fff', fontWeight: Typography.semibold, fontSize: 13 }}>Book Electrician</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-
-        {/* ═══ TRUST BAR ══════════════════════════════════════════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.slate[200] }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 20 }}>
-            {trustFeatures.map((feat, idx) => {
-              const Icon = feat.icon;
-              return (
-                <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.epf[50], alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={18} color={Colors.epf[500]} strokeWidth={1.75} />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 12, fontWeight: Typography.semibold, color: Colors.slate[800] }}>{feat.label}</Text>
-                    <Text style={{ fontSize: 11, color: Colors.slate[500], marginTop: 1 }}>{feat.desc}</Text>
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </View>
-
-        {/* ═══ CATEGORY GRID ══════════════════════════════════════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, padding: 16 }}>
-          <SectionHeader title="ক্যাটাগরি" subtitle="সব ধরনের ইলেকট্রিক্যাল পণ্য" onViewAll={() => router.push('/(tabs)/shop')} />
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-            {categories.map((cat) => {
-              const IconComp = getCategoryIcon(cat.slug);
-              return (
-                <Pressable key={cat.slug} onPress={() => router.push('/(tabs)/shop')}
-                  style={{ width: '23.5%', alignItems: 'center', paddingVertical: 14, backgroundColor: Colors.bg.primary, borderRadius: Radius.lg, marginBottom: 8, borderWidth: 1, borderColor: Colors.slate[100] }}>
-                  <View style={{ width: 50, height: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.epf[50], borderRadius: 14, marginBottom: 6 }}>
-                    <IconComp size={24} color={Colors.epf[600]} />
-                  </View>
-                  <Text style={{ fontSize: 11, fontWeight: Typography.medium, color: Colors.slate[800], textAlign: 'center' }} numberOfLines={2}>{cat.name}</Text>
-                  <Text style={{ fontSize: 10, color: Colors.epf[500], marginTop: 2 }} numberOfLines={1}>{cat.subtitle}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* ═══ FLASH DEALS — matches FlashDeals.tsx ══════════════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, paddingVertical: 16, borderTopWidth: 1, borderTopColor: Colors.slate[100] }}>
-          {/* Flash header */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 14 }}>
+        {/* ═══ HEADER — Amazon style (white, search prominent) ══════════ */}
+        <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+          {/* Top row: Logo + Icons */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ backgroundColor: '#7C3AED', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Zap size={13} color='#fff' strokeWidth={2.5} />
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: Typography.bold }}>Flash Deals</Text>
-              </View>
-              <CountdownTimer />
+              <Text style={{ fontSize: 24, fontWeight: '800', color: '#0F172A' }}>
+                e<Text style={{ color: '#0EA5E9' }}>Power</Text>Fix
+              </Text>
             </View>
-            <Pressable onPress={() => router.push('/(tabs)/shop')} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Text style={{ color: Colors.epf[600], fontSize: 12, fontWeight: Typography.medium }}>View All</Text>
-              <ArrowRight size={13} color={Colors.epf[600]} />
-            </Pressable>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-            {loading
-              ? Array.from({ length: 4 }).map((_, i) => <View key={i} style={{ width: Layout.cardWidth }}><PremiumCardSkeleton /></View>)
-              : flashDeals.map((p) => <View key={p.id} style={{ width: Layout.cardWidth }}><PremiumCard data={toCard(p)} /></View>)
-            }
-          </ScrollView>
-        </View>
-
-        {/* ═══ FEATURED PRODUCTS — matches ShopSection.tsx ═══════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, paddingVertical: 16, borderTopWidth: 1, borderTopColor: Colors.slate[100] }}>
-          <SectionHeader title="Featured Products" subtitle="Top picks for you" onViewAll={() => router.push('/(tabs)/shop')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-            {loading
-              ? Array.from({ length: 4 }).map((_, i) => <View key={i} style={{ width: Layout.cardWidth }}><PremiumCardSkeleton /></View>)
-              : products.map((p) => <View key={p.id} style={{ width: Layout.cardWidth }}><PremiumCard data={toCard(p)} /></View>)
-            }
-          </ScrollView>
-        </View>
-
-        {/* ═══ BEST DEALS — matches BestDeals.tsx ════════════════════════ */}
-        <View style={{ backgroundColor: Colors.slate[50], paddingVertical: 16, borderTopWidth: 1, borderTopColor: Colors.slate[200] }}>
-          <SectionHeader title="Best Deals" subtitle="Don't miss — limited stock!" onViewAll={() => router.push('/(tabs)/shop')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12 }}>
-            {loading
-              ? Array.from({ length: 4 }).map((_, i) => <View key={i} style={{ width: Layout.cardWidth }}><PremiumCardSkeleton /></View>)
-              : bestDeals.map((p) => <View key={p.id} style={{ width: Layout.cardWidth }}><PremiumCard data={{ ...toCard(p), isBestDeal: true }} /></View>)
-            }
-          </ScrollView>
-        </View>
-
-        {/* ═══ SERVICES SECTION — matches ServicesSection.tsx ════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, paddingVertical: 16, borderTopWidth: 1, borderTopColor: Colors.slate[200] }}>
-          <SectionHeader title="Our Services" subtitle="Expert electrical solutions at your doorstep" onViewAll={() => router.push('/(tabs)/services')} />
-          <View style={{ paddingHorizontal: 16, gap: 10 }}>
-            {services.length === 0 && !loading ? (
-              <Pressable onPress={() => router.push('/(tabs)/services')} style={{ backgroundColor: Colors.slate[900], borderRadius: Radius.xl, padding: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <Zap size={18} color={Colors.epf[400]} />
-                    <Text style={{ fontSize: 15, fontWeight: Typography.bold, color: '#fff' }}>Need Electrical Services?</Text>
-                  </View>
-                  <Text style={{ color: Colors.slate[400], fontSize: 12 }}>Book professional electricians at your doorstep</Text>
-                </View>
-                <View style={{ backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 12, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <Text style={{ color: '#fff', fontWeight: Typography.semibold, fontSize: 13 }}>Book</Text>
-                  <ArrowRight size={13} color='#fff' />
-                </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <Pressable onPress={() => router.push('/notifications' as never)}>
+                <Bell size={24} color="#475569" />
               </Pressable>
-            ) : services.map((svc) => (
-              <Pressable key={svc.id} onPress={() => router.push({ pathname: '/service-booking', params: { serviceId: svc.id, serviceName: svc.name, basePrice: svc.basePrice ?? '' } } as never)}
-                style={{ backgroundColor: Colors.bg.primary, borderWidth: 1, borderColor: Colors.slate[200], borderRadius: Radius.xl, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View style={{ width: 48, height: 48, borderRadius: Radius.xl, backgroundColor: Colors.epf[50], alignItems: 'center', justifyContent: 'center' }}>
-                  <Zap size={22} color={Colors.epf[500]} />
+              <Pressable onPress={() => router.push('/(tabs)/cart')} style={{ position: 'relative' }}>
+                <ShoppingCart size={24} color="#475569" />
+                {cartCount > 0 && (
+                  <View style={{ position: 'absolute', top: -6, right: -8, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#0EA5E9', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
+                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>{cartCount}</Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
+          </View>
+          {/* Search bar — Amazon style (rounded, gray bg) */}
+          <Pressable onPress={() => router.push('/(tabs)/shop')} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 24, paddingHorizontal: 16, height: 44 }}>
+            <Search size={20} color="#64748B" />
+            <Text style={{ color: '#94A3B8', fontSize: 15, marginLeft: 10, flex: 1 }}>Search products, brands...</Text>
+          </Pressable>
+        </View>
+
+        {/* ═══ PROMO BANNERS — Horizontal scroll ════════════════════════ */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, gap: 12 }}>
+          {BANNERS.map((banner) => (
+            <Pressable key={banner.id} onPress={() => router.push('/deals' as never)} style={{ width: SCREEN_WIDTH - 64, backgroundColor: banner.bg, borderRadius: 16, padding: 20, justifyContent: 'center' }}>
+              <Text style={{ color: banner.textColor, fontSize: 22, fontWeight: '800', marginBottom: 4 }}>{banner.title}</Text>
+              <Text style={{ color: banner.textColor, fontSize: 14, opacity: 0.9 }}>{banner.subtitle}</Text>
+              <View style={{ position: 'absolute', right: 16, top: 16, bottom: 16, width: 60, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)' }} />
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {/* ═══ CATEGORIES — Amazon style (2 rows, 4 cols) ═══════════════ */}
+        <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            {CATEGORIES.map((cat) => (
+              <Pressable key={cat.name} onPress={() => router.push('/(tabs)/shop')} style={{ width: '22%', alignItems: 'center' }}>
+                <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: cat.color, alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 26 }}>{cat.icon}</Text>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: Typography.bold, color: Colors.slate[900] }}>{svc.name}</Text>
-                  <Text style={{ color: Colors.slate[500], fontSize: 12, marginTop: 2 }} numberOfLines={1}>{svc.shortDesc || svc.description || 'Professional service'}</Text>
-                  <Text style={{ color: Colors.epf[600], fontSize: 13, fontWeight: Typography.bold, marginTop: 4 }}>
-                    {svc.basePrice ? `Starting ৳${Number(svc.basePrice).toLocaleString()}` : 'Contact for price'}
-                  </Text>
-                </View>
-                <View style={{ backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 10, paddingVertical: 7 }}>
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: Typography.semibold }}>Book</Text>
-                </View>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#475569', textAlign: 'center' }}>{cat.name}</Text>
               </Pressable>
             ))}
           </View>
         </View>
 
-        {/* ═══ ELECTRICIAN CTA BANNER — matches ServicesBanner.tsx ═══════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, paddingHorizontal: 16, paddingVertical: 20, borderTopWidth: 1, borderTopColor: Colors.slate[100] }}>
-          <Pressable onPress={() => router.push('/(tabs)/marketplace' as never)}
-            style={{ backgroundColor: Colors.epf[900], borderRadius: Radius['2xl'], overflow: 'hidden', padding: 20 }}>
-            <View style={{ position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: Colors.epf[500], opacity: 0.15, right: -20, top: -20 }} />
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: Colors.epf[500], alignItems: 'center', justifyContent: 'center' }}>
-                <Zap size={18} color='#fff' strokeWidth={2.5} />
-              </View>
-              <Text style={{ color: '#fff', fontSize: 17, fontWeight: Typography.bold }}>ePowerFix Marketplace</Text>
+        {/* ═══ DEALS SECTION — Amazon style (horizontal cards) ══════════ */}
+        <View style={{ backgroundColor: '#F8FAFC', paddingVertical: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Flame size={20} color="#EF4444" />
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>Today's Deals</Text>
             </View>
-            <Text style={{ color: Colors.slate[300], fontSize: 13, lineHeight: 20, marginBottom: 14 }}>
-              Certified electricians at your doorstep. Fast dispatch, transparent pricing, warranty guaranteed.
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 16, marginBottom: 14 }}>
-              {[{ label: '৫০০+', sub: 'Verified Pros' }, { label: '৪.৮★', sub: 'Average Rating' }, { label: '১০০%', sub: 'Insured Work' }].map((stat, i) => (
-                <View key={i}>
-                  <Text style={{ color: Colors.epf[400], fontSize: 16, fontWeight: Typography.bold }}>{stat.label}</Text>
-                  <Text style={{ color: Colors.slate[400], fontSize: 11 }}>{stat.sub}</Text>
-                </View>
+            <Pressable onPress={() => router.push('/deals' as never)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ color: '#0EA5E9', fontSize: 14, fontWeight: '600' }}>See All</Text>
+              <ChevronRight size={16} color="#0EA5E9" />
+            </Pressable>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <View key={i} style={{ width: 140, height: 200, backgroundColor: '#E2E8F0', borderRadius: 12 }} />
+              ))
+            ) : (
+              deals.slice(0, 8).map((p) => {
+                const discount = getDiscount(p);
+                return (
+                  <Pressable key={p.id} onPress={() => router.push(`/product/${p.id}`)} style={{ width: 140, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E2E8F0' }}>
+                    <View style={{ height: 120, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' }}>
+                      {p.images?.[0] ? (
+                        <Image source={{ uri: p.images[0] }} style={{ width: '100%', height: '100%', resizeMode: 'contain' }} />
+                      ) : (
+                        <Zap size={40} color="#CBD5E1" />
+                      )}
+                      {discount > 0 && (
+                        <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: '#EF4444', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                          <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>-{discount}%</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={{ padding: 10 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '500', color: '#0F172A', marginBottom: 4 }} numberOfLines={2}>{p.name}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                        <Star size={12} color="#F59E0B" fill="#F59E0B" />
+                        <Text style={{ fontSize: 12, color: '#64748B' }}>{p.rating?.toFixed(1) || '4.5'}</Text>
+                      </View>
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#0F172A' }}>{formatPrice(p.salePrice ?? p.price)}</Text>
+                    </View>
+                  </Pressable>
+                );
+              })
+            )}
+          </ScrollView>
+        </View>
+
+        {/* ═══ TRUST BADGES — Amazon style (horizontal) ═════════════════ */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+          {[
+            { icon: Truck, label: 'Free Delivery' },
+            { icon: Shield, label: 'Secure Payment' },
+            { icon: Headphones, label: '24/7 Support' },
+          ].map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <View key={i} style={{ alignItems: 'center', gap: 6 }}>
+                <Icon size={24} color="#0EA5E9" />
+                <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '500' }}>{item.label}</Text>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* ═══ PRODUCTS GRID — Amazon style (2 columns) ═════════════════ */}
+        <View style={{ padding: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#0F172A' }}>Recommended for You</Text>
+            <Pressable onPress={() => router.push('/(tabs)/shop')} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ color: '#0EA5E9', fontSize: 14, fontWeight: '600' }}>See All</Text>
+              <ChevronRight size={16} color="#0EA5E9" />
+            </Pressable>
+          </View>
+          {loading ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <View key={i} style={{ width: CARD_WIDTH, height: 240, backgroundColor: '#F1F5F9', borderRadius: 12 }} />
               ))}
             </View>
-            <Pressable onPress={() => router.push('/(tabs)/marketplace' as never)}
-              style={{ alignSelf: 'flex-start', backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 18, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={{ color: '#fff', fontWeight: Typography.bold, fontSize: 14 }}>Book an Electrician</Text>
-              <ArrowRight size={15} color='#fff' />
-            </Pressable>
-          </Pressable>
-        </View>
-
-        {/* ═══ BRAND STRIP — matches BrandStrip.tsx ══════════════════════ */}
-        <View style={{ backgroundColor: Colors.slate[50], paddingVertical: 18, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.slate[200] }}>
-          <Text style={{ textAlign: 'center', fontSize: 11, fontWeight: Typography.semibold, color: Colors.slate[400], textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12 }}>
-            Trusted brands across Bangladesh
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 28, alignItems: 'center' }}>
-            {[...brands, ...brands].map((brand, i) => (
-              <Text key={i} style={{ fontSize: 15, fontWeight: Typography.bold, color: Colors.slate[300] }}>{brand}</Text>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* ═══ PROJECTS SECTION — matches ProjectsSection.tsx ════════════ */}
-        <View style={{ backgroundColor: Colors.slate[50], paddingVertical: 16 }}>
-          <SectionHeader title="Projects" subtitle="Real-world installations across Bangladesh" />
-          <View style={{ paddingHorizontal: 16 }}>
-            {projects.length === 0 ? (
-              <View style={{ backgroundColor: Colors.bg.primary, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.slate[200], paddingVertical: 40, alignItems: 'center' }}>
-                <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.slate[50], borderWidth: 1, borderColor: Colors.slate[200], alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                  <Cpu size={26} color={Colors.slate[300]} strokeWidth={1.5} />
-                </View>
-                <Text style={{ color: Colors.slate[700], fontSize: 15, fontWeight: Typography.medium }}>No projects yet</Text>
-                <Text style={{ color: Colors.slate[400], fontSize: 13, marginTop: 4 }}>Case studies coming soon</Text>
-              </View>
-            ) : (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                {projects.slice(0, 4).map((proj: any) => {
-                  const cover = proj.coverImage || proj.images?.[0];
-                  return (
-                    <View key={proj.id} style={{ width: '48%', backgroundColor: Colors.bg.primary, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.slate[200], overflow: 'hidden' }}>
-                      <View style={{ height: 110, backgroundColor: Colors.slate[100], alignItems: 'center', justifyContent: 'center' }}>
-                        {cover ? <Image source={{ uri: cover }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} /> : <Cpu size={30} color={Colors.slate[300]} />}
+          ) : (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {products.slice(0, 10).map((p) => {
+                const discount = getDiscount(p);
+                return (
+                  <Pressable key={p.id} onPress={() => router.push(`/product/${p.id}`)} style={{ width: CARD_WIDTH, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E2E8F0' }}>
+                    <View style={{ height: CARD_WIDTH - 20, backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center' }}>
+                      {p.images?.[0] ? (
+                        <Image source={{ uri: p.images[0] }} style={{ width: '100%', height: '100%', resizeMode: 'contain' }} />
+                      ) : (
+                        <Zap size={48} color="#CBD5E1" />
+                      )}
+                      {discount > 0 && (
+                        <View style={{ position: 'absolute', top: 8, left: 8, backgroundColor: '#EF4444', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>-{discount}%</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={{ padding: 12 }}>
+                      {p.category?.name && (
+                        <Text style={{ fontSize: 11, color: '#0EA5E9', fontWeight: '600', textTransform: 'uppercase', marginBottom: 4 }}>{p.category.name}</Text>
+                      )}
+                      <Text style={{ fontSize: 14, fontWeight: '500', color: '#0F172A', marginBottom: 6, lineHeight: 18 }} numberOfLines={2}>{p.name}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 }}>
+                        <View style={{ flexDirection: 'row' }}>
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star key={s} size={12} color={s <= Math.round(p.rating || 0) ? '#F59E0B' : '#E2E8F0'} fill={s <= Math.round(p.rating || 0) ? '#F59E0B' : '#E2E8F0'} />
+                          ))}
+                        </View>
+                        <Text style={{ fontSize: 11, color: '#94A3B8' }}>({p.reviewCount || 0})</Text>
                       </View>
-                      <View style={{ padding: 10 }}>
-                        <Text style={{ color: Colors.slate[900], fontWeight: Typography.semibold, fontSize: 13 }} numberOfLines={2}>{proj.title}</Text>
-                        {proj.location && <Text style={{ color: Colors.slate[500], fontSize: 11, marginTop: 3 }}>{proj.location}</Text>}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>{formatPrice(p.salePrice ?? p.price)}</Text>
+                        {discount > 0 && (
+                          <Text style={{ fontSize: 13, color: '#94A3B8', textDecorationLine: 'line-through' }}>{formatPrice(p.comparePrice ?? p.price)}</Text>
+                        )}
                       </View>
                     </View>
-                  );
-                })}
-              </View>
-            )}
-          </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </View>
 
-        {/* ═══ TRUST SECTION — Social proof ══════════════════════════════ */}
-        <View style={{ backgroundColor: Colors.bg.primary, paddingVertical: 20, paddingHorizontal: 16, borderTopWidth: 1, borderTopColor: Colors.slate[200] }}>
-          <Text style={{ fontSize: 18, fontWeight: Typography.bold, color: Colors.slate[900], textAlign: 'center', marginBottom: 4 }}>
-            Why Choose ePowerFix?
-          </Text>
-          <Text style={{ color: Colors.slate[500], fontSize: 13, textAlign: 'center', marginBottom: 16 }}>
-            বাংলাদেশের ১০,০০০+ গ্রাহকের বিশ্বাস
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {[
-              { icon: BadgeCheck, title: 'Verified Electricians', desc: 'NID + document verified' },
-              { icon: Shield, title: 'Money-back Guarantee', desc: 'সন্তুষ্ট না হলে টাকা ফেরত' },
-              { icon: Zap, title: 'Fast Dispatch', desc: 'Same day service available' },
-              { icon: Truck, title: 'Warranty on Work', desc: 'Service warranty included' },
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <View key={i} style={{ width: '48%', backgroundColor: Colors.slate[50], borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.slate[200], padding: 14 }}>
-                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.epf[50], alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                    <Icon size={18} color={Colors.epf[600]} />
-                  </View>
-                  <Text style={{ color: Colors.slate[900], fontWeight: Typography.semibold, fontSize: 13 }}>{item.title}</Text>
-                  <Text style={{ color: Colors.slate[500], fontSize: 11, marginTop: 3, lineHeight: 16 }}>{item.desc}</Text>
-                </View>
-              );
-            })}
-          </View>
+        {/* ═══ SERVICES CTA — Clean banner ══════════════════════════════ */}
+        <View style={{ padding: 16, paddingBottom: 24 }}>
+          <Pressable onPress={() => router.push('/(tabs)/services')} style={{ backgroundColor: '#0F172A', borderRadius: 16, padding: 20, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Need an Electrician?</Text>
+              <Text style={{ color: '#94A3B8', fontSize: 14 }}>Book verified experts now</Text>
+            </View>
+            <View style={{ backgroundColor: '#0EA5E9', borderRadius: 12, paddingHorizontal: 20, paddingVertical: 12 }}>
+              <Text style={{ color: '#fff', fontWeight: '700' }}>Book Now</Text>
+            </View>
+          </Pressable>
         </View>
-
-        {/* ═══ FOOTER ══════════════════════════════════════════════════════ */}
-        <Footer />
       </ScrollView>
     </SafeAreaView>
   );
