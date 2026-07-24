@@ -30,22 +30,30 @@ function createExtendedClient() {
     globalForPrisma.prisma = basePrisma
   }
 
+  // Prisma's $extends generics don't support dynamically-constructed model maps.
+  // The `as any` on Object.fromEntries is unavoidable for dynamic extensions.
+  // See: https://github.com/prisma/prisma/issues/18629
   return basePrisma.$extends({
     query: Object.fromEntries(
       [...SOFT_DELETE_MODELS].map((model) => [
         model,
         {
-          $allOperations({ operation, args, query }: { operation: any; args: any; query: any }) {
+          $allOperations({ operation, args, query }: {
+            operation: string
+            args: { where?: Record<string, unknown> }
+            query: (args: unknown) => Promise<unknown>
+          }) {
             if (FILTERED_OPERATIONS.has(operation)) {
-              const where = (args as any).where
+              const where = args.where
               if (where === undefined || where?.isDeleted === undefined) {
-                (args as any).where = { ...(where ?? {}), isDeleted: false }
+                args.where = { ...(where ?? {}), isDeleted: false }
               }
             }
             return query(args)
           },
         },
       ]),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ) as any,
   })
 }

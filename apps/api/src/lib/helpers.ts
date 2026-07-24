@@ -1,5 +1,25 @@
 // Shared helpers for API routes
-// Pagination, JSON field parsing, list responses, etc.
+// Pagination, JSON field parsing, Decimal utilities, list responses, etc.
+
+import { Prisma } from '@prisma/client'
+
+/**
+ * Converts a Prisma Decimal (or number/string) to a plain JS number.
+ * Use when building API responses or doing arithmetic with monetary fields.
+ */
+export function toNumber(value: Prisma.Decimal | number | string | null | undefined): number {
+  if (value === null || value === undefined) return 0
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') return parseFloat(value) || 0
+  return value.toNumber()
+}
+
+/**
+ * Converts a Prisma Decimal to a fixed-precision string for display (e.g. "1250.00").
+ */
+export function toFixedString(value: Prisma.Decimal | number | string | null | undefined, dp = 2): string {
+  return toNumber(value).toFixed(dp)
+}
 
 /**
  * Parses JSON string fields (images, tags) into arrays for API responses.

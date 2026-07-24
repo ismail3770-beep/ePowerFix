@@ -1,11 +1,19 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ChevronRight, Package, Truck } from 'lucide-react-native';
 import { ordersApi } from '@epowerfix/api-client';
 import { useAuthStore } from '../src/store/auth';
 import { Colors, Typography, Radius } from '../src/theme/design-system';
+
+const STATUS_FILTERS = [
+  { value: 'ALL', label: 'All' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'PROCESSING', label: 'Processing' },
+  { value: 'DELIVERED', label: 'Delivered' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+] as const;
 
 export default function OrdersScreen() {
   const router = useRouter();
@@ -14,6 +22,12 @@ export default function OrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'ALL') return orders;
+    return orders.filter((o) => String(o.status || 'PENDING') === statusFilter);
+  }, [orders, statusFilter]);
 
   const loadOrders = useCallback(async () => {
     if (!user) {
@@ -64,22 +78,44 @@ export default function OrdersScreen() {
         </View>
       </View>
 
+      {/* Status filter tabs */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 10, gap: 8 }}>
+        {STATUS_FILTERS.map((filter) => (
+          <Pressable
+            key={filter.value}
+            onPress={() => setStatusFilter(filter.value)}
+            style={{
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              borderRadius: Radius.full,
+              borderWidth: 1,
+              borderColor: statusFilter === filter.value ? Colors.epf[500] : Colors.slate[200],
+              backgroundColor: statusFilter === filter.value ? Colors.epf[50] : Colors.bg.primary,
+            }}
+          >
+            <Text style={{ color: statusFilter === filter.value ? Colors.epf[700] : Colors.slate[600], fontSize: 13, fontWeight: Typography.medium }}>{filter.label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
       {loading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator size="large" color={Colors.epf[500]} /></View>
       ) : (
         <FlatList
-          data={orders}
+          data={filteredOrders}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 14, flexGrow: orders.length === 0 ? 1 : undefined }}
+          contentContainerStyle={{ padding: 14, flexGrow: filteredOrders.length === 0 ? 1 : undefined }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void loadOrders(); }} tintColor={Colors.epf[500]} />}
           ListEmptyComponent={
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
               <Package size={40} color={Colors.slate[300]} />
-              <Text style={{ color: Colors.slate[800], fontSize: 17, fontWeight: Typography.semibold, marginTop: 13 }}>No orders yet</Text>
-              <Text style={{ color: Colors.slate[500], fontSize: 13, textAlign: 'center', marginTop: 6 }}>Your completed purchases will appear here.</Text>
-              <Pressable style={{ backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 20, paddingVertical: 11, marginTop: 17 }} onPress={() => router.replace('/(tabs)/shop')}>
-                <Text style={{ color: Colors.text.inverse, fontWeight: Typography.semibold }}>Browse products</Text>
-              </Pressable>
+              <Text style={{ color: Colors.slate[800], fontSize: 17, fontWeight: Typography.semibold, marginTop: 13 }}>{statusFilter === 'ALL' ? 'No orders yet' : `No ${statusFilter.toLowerCase()} orders`}</Text>
+              <Text style={{ color: Colors.slate[500], fontSize: 13, textAlign: 'center', marginTop: 6 }}>{statusFilter === 'ALL' ? 'Your completed purchases will appear here.' : 'Try a different filter or browse products.'}</Text>
+              {statusFilter === 'ALL' && (
+                <Pressable style={{ backgroundColor: Colors.epf[500], borderRadius: Radius.base, paddingHorizontal: 20, paddingVertical: 11, marginTop: 17 }} onPress={() => router.replace('/(tabs)/shop')}>
+                  <Text style={{ color: Colors.text.inverse, fontWeight: Typography.semibold }}>Browse products</Text>
+                </Pressable>
+              )}
             </View>
           }
           renderItem={({ item }) => {

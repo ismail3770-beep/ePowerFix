@@ -1,0 +1,57 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: main
+nodes_managed: true
+exported_at: "2026-07-24T00:10:21Z"
+modules:
+    "":
+        dir_name: ePowerFix Monorepo Orchestrator
+        title: ePowerFix Monorepo Orchestrator
+        scope:
+            - .gitignore
+            - .npmrc
+            - tsconfig.base.json
+            - turbo.json
+            - pnpm-workspace.yaml
+            - package.json
+            - bun.lock
+            - Dockerfile
+            - .nixpacks.toml
+            - railway.json
+            - .dockerignore
+            - Caddyfile
+        source_files: []
+        children:
+            - database_schema
+            - docs
+            - shared_packages
+        depends_on: []
+        related_to: []
+    database_schema:
+        dir_name: ePowerFix Database Schema & Migrations (Prisma)
+        title: ePowerFix Database Schema & Migrations (Prisma)
+        scope:
+            - prisma/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    docs:
+        dir_name: Project Documentation & Audit Artifacts
+        title: Project Documentation & Audit Artifacts
+        scope:
+            - docs/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    shared_packages:
+        dir_name: Shared Packages Monorepo Workspace
+        title: Shared Packages Monorepo Workspace
+        scope:
+            - packages/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

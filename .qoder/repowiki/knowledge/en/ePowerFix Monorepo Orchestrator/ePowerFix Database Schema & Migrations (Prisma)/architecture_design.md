@@ -1,0 +1,9 @@
+Single Prisma project rooted at `prisma/schema.prisma` targeting PostgreSQL (`provider = "postgresql"`, `DATABASE_URL` env var) with the `prisma-client-js` generator. The schema is organized into four logical layers:
+- Core commerce: `User`, `Brand`, `ProductCategory`, `Product`, `ProductVariant`, `CartItem`, `Wishlist`, `Order`, `OrderItem`, `Shipment`, `Coupon`, `Tax`, `Review`, `BlogPost`, `Project`, `ProjectKit`, `FlashSale`, `SiteSettings`, `AiProvider`, `Banner`.
+- Service booking (legacy): `ServiceCategory`, `Service`, `ServiceBooking`.
+- Electrician Marketplace (additive, does not replace legacy models): `Skill`, `GeoDivision/District/Upazila`, `ServiceZone`, `ProviderProfile`, `ProviderDocument`, `ProviderSkill`, `ProviderAvailability`, `ProviderTimeOff`, `MarketplaceServiceRequest`, `MarketplaceJob`, `JobAssignment`, `JobStatusHistory`, `MarketplaceQuote`, `QuoteLineItem`, `MarketplacePayment`, `FinancialLedgerEntry`, `ProviderPayout`, `ProviderPayoutItem`, `MarketplaceReview`, `MarketplaceWarrantyClaim`, `MarketplaceDispute`, `ArrivalOtp`, `ProviderLocationPing`, `MarketplaceAuditEvent`, `MarketplaceSetting`, `NotificationDelivery`.
+- Cross-cutting: `Contact`, `Newsletter`, `QuoteRequest`, `OrderHistory`, `ReturnRequest`, `Payment`.
+
+Migration history lives under `migrations/<timestamp>_<phase>/migration.sql` with a `migration_lock.toml` pinning the provider to PostgreSQL; phases are named descriptively (e.g. `phase_0a_project_kit_guest_booking_integrity`, `electrician_marketplace_foundation`).
+
+Operational scripts: `seed.ts` bootstraps admin user, default tax, site settings, AI provider, marketplace catalog (skills + Dhaka zones), and demo storefront data via idempotent upserts; `seed-marketplace.ts` supplies the skill/zones catalog; `verify.ts` asserts row counts and admin password validity after seeding. All scripts import the shared `db` client from `src/lib/db` rather than instantiating Prisma directly.

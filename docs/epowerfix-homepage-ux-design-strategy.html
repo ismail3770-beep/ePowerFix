@@ -1,0 +1,246 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ePowerFix UX Strategy</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; background: #f7f8fa; color: #1f2328; padding: 24px; }
+  .container { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; color: #1f2328; margin-bottom: 4px; }
+  h2 { font-size: 16px; font-weight: 700; color: #1f2328; margin-bottom: 10px; }
+  h3 { font-size: 13px; font-weight: 700; color: #1f2328; margin-bottom: 6px; }
+  .subtitle { color: #57606a; font-size: 13px; margin-bottom: 24px; }
+  .section { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid #e5e7eb; background: #f7f8fa; }
+  .section-body { padding: 16px 18px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-left: 8px; vertical-align: middle; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-orange { background: #ffedd5; color: #c2410c; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+  .layout-row { display: flex; gap: 12px; margin-bottom: 8px; }
+  .block { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; font-size: 13px; }
+  .block-primary { background: #0EA5E9; color: #fff; border-color: #0EA5E9; font-weight: 700; text-align: center; padding: 16px; }
+  .block-dark { background: #0f172a; color: #fff; border-color: #0f172a; }
+  .block-light { background: #f0f9ff; border-color: #bae6fd; }
+  .block-green { background: #f0fdf4; border-color: #a7f3d0; }
+  .block-warm { background: #fff7ed; border-color: #fed7aa; }
+  .block-title { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; opacity: 0.7; }
+  .block-label { font-weight: 600; font-size: 13px; }
+  .tip { background: #f0f9ff; border-left: 3px solid #0EA5E9; padding: 10px 14px; margin-bottom: 10px; border-radius: 0 6px 6px 0; font-size: 13px; }
+  .tip-orange { background: #fff7ed; border-left-color: #f97316; }
+  .tip-green { background: #f0fdf4; border-left-color: #22c55e; }
+  .tip-purple { background: #faf5ff; border-left-color: #a855f7; }
+  .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .do { background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px; }
+  .dont { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; }
+  .do-title { color: #166534; font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+  .dont-title { color: #991b1b; font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+  li { margin-left: 16px; margin-bottom: 4px; font-size: 13px; }
+  p { font-size: 13px; margin-bottom: 8px; color: #374151; }
+  .num { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #0EA5E9; color: #fff; font-size: 11px; font-weight: 700; text-align: center; line-height: 22px; margin-right: 6px; flex-shrink: 0; }
+  .step { display: flex; align-items: flex-start; margin-bottom: 10px; }
+  .step-text { flex: 1; font-size: 13px; }
+  .divider { height: 1px; background: #e5e7eb; margin: 12px 0; }
+  .footer { text-align: center; font-size: 12px; color: #57606a; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+  .tag { display: inline-block; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 7px; font-size: 11px; color: #475569; margin: 2px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ePowerFix — Homepage UX Strategy</h1>
+  <p class="subtitle">Trust building + conversion optimization for Website &amp; Mobile App</p>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <h2>📐 Homepage Section Order (Above the Fold সবচেয়ে Important)</h2>
+    </div>
+    <div class="section-body">
+      <p>নিচের order follow করো — প্রতিটা section এর একটা specific কাজ আছে:</p>
+
+      <div class="layout-row">
+        <div class="block block-dark" style="flex:2">
+          <div class="block-title">① HERO SECTION</div>
+          <div class="block-label">মূল value proposition + CTA</div>
+          <div style="font-size:11px;margin-top:4px;opacity:0.8">"বাংলাদেশের বিশ্বস্ত ইলেকট্রিক্যাল মার্কেটপ্লেস" + Shop Now + Book Electrician</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block block-green">
+          <div class="block-title">② TRUST BAR</div>
+          <div class="block-label">Free Delivery · Authentic · 24/7 Support</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block block-primary" style="flex:1.5">
+          <div class="block-title" style="opacity:0.8">③ SERVICES CTA</div>
+          <div class="block-label">⚡ Electrician Booking — BIG &amp; Prominent</div>
+        </div>
+        <div class="block block-light" style="flex:1">
+          <div class="block-title">④ FLASH DEALS</div>
+          <div class="block-label">Limited time offers</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block" style="background:#fff8f1;border-color:#fed7aa">
+          <div class="block-title">⑤ SOCIAL PROOF</div>
+          <div class="block-label">★ Reviews · Completed Jobs · Happy Customers</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block block-light">
+          <div class="block-title">⑥ FEATURED PRODUCTS</div>
+          <div class="block-label">Best sellers + New arrivals</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block" style="background:#f5f3ff;border-color:#ddd6fe">
+          <div class="block-title">⑦ HOW IT WORKS</div>
+          <div class="block-label">3 steps — Request → Match → Done</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block" style="background:#f0fdf4;border-color:#a7f3d0">
+          <div class="block-title">⑧ CATEGORIES</div>
+          <div class="block-label">Cable · Breaker · Switch · LED · Solar</div>
+        </div>
+      </div>
+
+      <div class="layout-row">
+        <div class="block block-dark">
+          <div class="block-title">⑨ FOOTER</div>
+          <div class="block-label">Contact · Links · Newsletter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <h2>🛡️ Trust Build করার সবচেয়ে কার্যকর উপায়</h2>
+    </div>
+    <div class="section-body">
+      <div class="tip tip-green">
+        <strong>① Real Numbers দেখাও</strong> — "১০,০০০+ গ্রাহক", "৫০০+ সম্পন্ন কাজ", "৪.৮★ রেটিং" — fake মনে হলে চলবে না, real data use করো।
+      </div>
+      <div class="tip tip-green">
+        <strong>② Customer Reviews</strong> — Product এর নিচে real reviews দেখাও। Star rating + ছোট comment। এটা সবচেয়ে বেশি trust তৈরি করে।
+      </div>
+      <div class="tip tip-green">
+        <strong>③ Verified Badge</strong> — Electrician দের profile এ "✓ Verified" badge দেখাও। Document check হয়েছে বোঝায়।
+      </div>
+      <div class="tip tip-green">
+        <strong>④ Live Job Counter</strong> — "আজকে ১২টি কাজ সম্পন্ন হয়েছে" — এটা urgency আর trust দুটোই তৈরি করে।
+      </div>
+      <div class="tip tip-green">
+        <strong>⑤ Money-back Guarantee</strong> — "সন্তুষ্ট না হলে টাকা ফেরত" — এই একটা লাইন conversion অনেক বাড়ায়।
+      </div>
+      <div class="tip tip-green">
+        <strong>⑥ WhatsApp Button</strong> — Homepage এ floating WhatsApp button রাখো। মানুষ directly কথা বলতে পারলে বেশি বিশ্বাস করে।
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <h2>✅ Do's &amp; ❌ Don'ts — AI Design থেকে আলাদা থাকতে</h2>
+    </div>
+    <div class="section-body">
+      <div class="do-dont">
+        <div class="do">
+          <div class="do-title">✅ করো</div>
+          <ul>
+            <li>বাংলা + English মিক্স করো (local feel)</li>
+            <li>Real product photo ব্যবহার করো</li>
+            <li>Specific price দেখাও (৳১,২৫০)</li>
+            <li>Simple, clean layout</li>
+            <li>মোবাইলে thumb-friendly button</li>
+            <li>Fast loading (lazy load images)</li>
+            <li>Local address/phone দেখাও</li>
+          </ul>
+        </div>
+        <div class="dont">
+          <div class="dont-title">❌ করো না</div>
+          <ul>
+            <li>Stock photo ব্যবহার করো না</li>
+            <li>অনেক animation/gradient</li>
+            <li>Popup এর উপর popup</li>
+            <li>Tiny font size</li>
+            <li>Generic tagline ("Best quality")</li>
+            <li>Too many colors</li>
+            <li>Fake review/rating</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <h2>📱 Mobile App — Extra Tips</h2>
+    </div>
+    <div class="section-body">
+      <div class="tip tip-orange">
+        <strong>Bottom Tab সাজাও এভাবে:</strong> Home · Shop · ⚡Electrician · Cart · Profile — Electrician tab কে middle এ রাখো, সবচেয়ে বেশি চোখে পড়বে।
+      </div>
+      <div class="tip tip-orange">
+        <strong>Home screen এ সবার আগে দেখাও:</strong> "কাছের Electrician খুঁজুন" button — বড়, bright color এ।
+      </div>
+      <div class="tip tip-orange">
+        <strong>Push Notification:</strong> Job status update, quote ready — এগুলো notification পাঠালে user engagement বাড়ে।
+      </div>
+      <div class="tip tip-orange">
+        <strong>Skeleton Loading:</strong> Data load হওয়ার সময় blank screen না দেখিয়ে skeleton দেখাও — professional মনে হয়।
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="section">
+    <div class="section-header">
+      <h2>🎨 Figma Design করার সময় এগুলো মাথায় রাখো</h2>
+    </div>
+    <div class="section-body">
+      <div class="step">
+        <span class="num">1</span>
+        <div class="step-text"><strong>Brand Colors শুধু এগুলো:</strong> <span class="tag">Primary #0EA5E9</span> <span class="tag">Dark #0F172A</span> <span class="tag">White #FFFFFF</span> <span class="tag">Success #16A34A</span> <span class="tag">Danger #DC2626</span></div>
+      </div>
+      <div class="step">
+        <span class="num">2</span>
+        <div class="step-text"><strong>Font Size:</strong> Body 14px · Subtitle 16px · Title 20-24px · Hero 28-32px — এর বাইরে যাবে না।</div>
+      </div>
+      <div class="step">
+        <span class="num">3</span>
+        <div class="step-text"><strong>Spacing:</strong> সব জায়গায় 8px এর multiple ব্যবহার করো — 8, 16, 24, 32, 48px।</div>
+      </div>
+      <div class="step">
+        <span class="num">4</span>
+        <div class="step-text"><strong>Card Design:</strong> White background · 1px border #E2E8F0 · 8px border radius · subtle shadow। Simple এ রাখো।</div>
+      </div>
+      <div class="step">
+        <span class="num">5</span>
+        <div class="step-text"><strong>CTA Button:</strong> Primary = Solid Blue (#0EA5E9) · Secondary = Outline · Danger = Red। Height সবসময় 48px (mobile friendly)।</div>
+      </div>
+      <div class="step">
+        <span class="num">6</span>
+        <div class="step-text"><strong>Mobile First Design:</strong> আগে 390px width এ design করো, তারপর desktop এ adapt করো।</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Made with IBM Bob</div>
+</div>
+</body>
+</html>

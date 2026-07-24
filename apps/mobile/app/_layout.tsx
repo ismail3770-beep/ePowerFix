@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setStorage, useCartStore } from '@epowerfix/store';
 import { CartSyncProvider } from '../src/components/CartSyncProvider';
+import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { useAuthStore } from '../src/store/auth';
 import { useWishlistStore } from '../src/store/wishlist';
 
@@ -33,22 +34,13 @@ export default function RootLayout() {
   }, [authHydrated, loadWishlist, user?.id]);
 
   return (
-    <>
+    <ErrorBoundary>
       <CartSyncProvider />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="product/[id]"
-          options={{ title: 'Product' }}
-        />
-        <Stack.Screen
-          name="login"
-          options={{ title: 'Login', presentation: 'card' }}
-        />
-        <Stack.Screen
-          name="register"
-          options={{ title: 'Create account', presentation: 'card' }}
-        />
+        <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ title: 'Login', presentation: 'card' }} />
+        <Stack.Screen name="register" options={{ title: 'Create account', presentation: 'card' }} />
         <Stack.Screen name="checkout" options={{ title: 'Checkout' }} />
         <Stack.Screen name="orders" options={{ title: 'My orders' }} />
         <Stack.Screen name="notifications" options={{ headerShown: false }} />
@@ -58,13 +50,20 @@ export default function RootLayout() {
         <Stack.Screen name="addresses" options={{ title: 'Addresses' }} />
         <Stack.Screen name="downloads" options={{ title: 'Downloads' }} />
         <Stack.Screen name="account" options={{ title: 'Account settings' }} />
+        <Stack.Screen name="categories" options={{ headerShown: false }} />
+        <Stack.Screen name="deals" options={{ headerShown: false }} />
+        <Stack.Screen name="order-success" options={{ headerShown: false, gestureEnabled: false }} />
         {/* Marketplace screens */}
         <Stack.Screen name="marketplace/index" options={{ headerShown: false }} />
         <Stack.Screen name="marketplace/new-request" options={{ headerShown: false }} />
         <Stack.Screen name="marketplace/request/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="marketplace/job/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="marketplace/electricians" options={{ headerShown: false }} />
+        <Stack.Screen name="marketplace/electrician/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="support" options={{ headerShown: false }} />
+        <Stack.Screen name="cost-estimator" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </ErrorBoundary>
   );
 }

@@ -8,12 +8,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Zap, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus } from 'lucide-react-native';
+import { Zap, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, KeyRound } from 'lucide-react-native';
 import { Colors, Typography, Radius } from '../src/theme/design-system';
 import { useAuthStore } from '../src/store/auth';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,6 +38,14 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     if (!email.trim() || !password) {
       setError('Please fill in your email and password.');
+      return;
+    }
+    if (!EMAIL_REGEX.test(email.trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -196,10 +207,19 @@ export default function LoginScreen() {
             </Pressable>
 
             <Pressable
+              style={{ marginTop: 16, alignItems: 'center' }}
+              onPress={() => void Linking.openURL('https://epowerfix.com/forgot-password')}
+            >
+              <Text style={{ color: Colors.epf[600], fontSize: 13, fontWeight: Typography.medium }}>
+                Forgot password?
+              </Text>
+            </Pressable>
+
+            <Pressable
               style={{
                 marginTop: 20,
                 padding: 14,
-                borderRadius: Radius.base,
+                borderRadius: Radius.lg,
                 borderWidth: 1,
                 borderColor: Colors.epf[200],
                 backgroundColor: Colors.epf[50],

@@ -7,11 +7,9 @@ const isDev = process.env.NODE_ENV !== "production";
 // eval for Turbopack HMR) and locked down in production.
 const scriptSrc = isDev
   ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+  : "script-src 'self' 'unsafe-inline'";
 
-const styleSrc = isDev
-  ? "style-src 'self' 'unsafe-inline'"
-  : "style-src 'self' 'unsafe-inline'";
+const styleSrc = "style-src 'self' 'unsafe-inline'";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },

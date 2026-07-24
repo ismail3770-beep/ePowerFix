@@ -1,4 +1,7 @@
-// Product detail screen — matches website ProductDetailDialog.tsx
+// ═══════════════════════════════════════════════════════════════════════════
+// Product Detail — Enhanced with gallery, related products, share, stock
+// ═══════════════════════════════════════════════════════════════════════════
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -7,6 +10,8 @@ import {
   Pressable,
   ActivityIndicator,
   Image,
+  Share,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,19 +19,16 @@ import { productsApi } from '@epowerfix/api-client';
 import { useCartStore } from '@epowerfix/store';
 import { useAuthStore } from '../../src/store/auth';
 import { useWishlistStore } from '../../src/store/wishlist';
+import { QuantitySelector } from '../../src/components/ui/QuantitySelector';
+import { PremiumCard, PremiumCardData } from '../../src/components/PremiumCard';
+import { ErrorState } from '../../src/components/ui/ErrorState';
 import {
-  Star,
-  ShoppingCart,
-  Heart,
-  Share2,
-  Minus,
-  Plus,
-  ArrowLeft,
-  Truck,
-  Shield,
-  RotateCcw,
+  Star, ShoppingCart, Heart, Share2, ArrowLeft,
+  Truck, Shield, RotateCcw, Package, CheckCircle2,
 } from 'lucide-react-native';
 import { Colors, Typography, Radius } from '../../src/theme/design-system';
+
+const { width: SCREEN_W } = Dimensions.get('window');
 
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,28 +38,32 @@ export default function ProductDetailScreen() {
   const wishlistItems = useWishlistStore((state) => state.items);
   const toggleWishlist = useWishlistStore((state) => state.toggle);
   const [product, setProduct] = useState<any>(null);
+  const [related, setRelated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [added, setAdded] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
 
   const wished = wishlistItems.some((item) => item.productId === id);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        if (!id) return;
-        const response = await productsApi.getById(id);
-        setProduct(response.data?.product);
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load');
-      } finally {
-        setLoading(false);
-      }
-    };
-    void load();
-  }, [id]);
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      if (!id) return;
+      const response = await productsApi.getById(id);
+      setProduct(response.data?.product);
+      setRelated(response.data?.related || []);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to load product');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void load(); }, [id]);
 
   if (loading) {
     return (
@@ -69,8 +75,13 @@ export default function ProductDetailScreen() {
 
   if (error || !product) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: Colors.slate[500], fontSize: 16 }}>{error || 'Product not found'}</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.secondary }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.slate[200] }}>
+          <Pressable onPress={() => router.back()} style={{ padding: 4 }}>
+            <ArrowLeft size={22} color={Colors.slate[900]} />
+          </Pressable>
+        </View>
+        <ErrorState message={error || 'Product not found'} onRetry={load} />
       </SafeAreaView>
     );
   }
@@ -80,35 +91,32 @@ export default function ProductDetailScreen() {
   const discountPct = hasDiscount
     ? Math.round(((Number(product.price) - Number(product.salePrice)) / Number(product.price)) * 100)
     : 0;
-  const productImages = Array.isArray(product.images)
+  const productImages: string[] = Array.isArray(product.images)
     ? product.images
     : typeof product.images === 'string'
-      ? (() => {
-          try {
-            const parsed = JSON.parse(product.images);
-            return Array.isArray(parsed) ? parsed : [product.images];
-          } catch {
-            return [product.images];
-          }
-        })()
+      ? (() => { try { const p = JSON.parse(product.images); return Array.isArray(p) ? p : [product.images]; } catch { return [product.images]; } })()
       : [];
-  const imageUrl = product.coverImage || productImages[0] || '';
+  const images = product.coverImage ? [product.coverImage, ...productImages.filter((i: string) => i !== product.coverImage)] : productImages;
+  const imageUrl = images[0] || '';
   const maxStock = typeof product.stock === 'number' && product.stock > 0 ? product.stock : 99;
+  const inStock = typeof product.stock !== 'number' || product.stock > 0;
+  const lowStock = typeof product.stock === 'number' && product.stock > 0 && product.stock <= 5;
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        title: product.name,
+        message: `${product.name} — ৳${displayPrice.toLocaleString()}\nCheck it out on ePowerFix!`,
+      });
+    } catch { /* user cancelled */ }
+  };
 
   const handleWishlist = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+    if (!user) { router.push('/login'); return; }
     if (wishlistBusy) return;
     setWishlistBusy(true);
-    try {
-      await toggleWishlist(product.id);
-    } catch {
-      // Keep the last server-confirmed state if the request fails.
-    } finally {
-      setWishlistBusy(false);
-    }
+    try { await toggleWishlist(product.id); } catch { /* silent */ }
+    finally { setWishlistBusy(false); }
   };
 
   const addToCart = (buyNow = false) => {
@@ -128,169 +136,160 @@ export default function ProductDetailScreen() {
     }
   };
 
+  const toCard = (item: any): PremiumCardData => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    salePrice: item.salePrice,
+    comparePrice: item.comparePrice ?? item.price,
+    images: item.images,
+    isFeatured: item.isFeatured,
+    stock: item.stock,
+    category: item.category?.name,
+    rating: item.rating,
+    reviewCount: item.reviewCount,
+  });
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.bg.primary }}>
-      {/* Header — back, share, wishlist */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.slate[200],
-      }}>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderBottomColor: Colors.slate[200] }}>
         <Pressable onPress={() => router.back()} style={{ padding: 4 }}>
           <ArrowLeft size={22} color={Colors.slate[900]} />
         </Pressable>
-        <View style={{ flex: 1 }} />
-        <Pressable style={{ padding: 8, marginRight: 4 }}>
-          <Share2 size={20} color={Colors.slate[900]} />
+        <Text style={{ flex: 1, fontSize: 16, fontWeight: Typography.semibold, color: Colors.slate[900], marginLeft: 12 }} numberOfLines={1}>
+          {product.name}
+        </Text>
+        <Pressable onPress={handleShare} style={{ padding: 8, marginRight: 4 }}>
+          <Share2 size={20} color={Colors.slate[700]} />
         </Pressable>
         <Pressable onPress={handleWishlist} style={{ padding: 8 }} disabled={wishlistBusy}>
-          <Heart size={20} color={wished ? Colors.danger : Colors.slate[900]} fill={wished ? Colors.danger : 'none'} />
+          <Heart size={20} color={wished ? Colors.danger : Colors.slate[700]} fill={wished ? Colors.danger : 'none'} />
         </Pressable>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Image — bg-slate-50 */}
-        <View style={{
-          backgroundColor: Colors.slate[50],
-          height: 320,
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}>
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
-            />
-          ) : (
-            <Text style={{ fontSize: 80 }}>📦</Text>
+        {/* Image Gallery */}
+        <View style={{ backgroundColor: Colors.slate[50], position: 'relative' }}>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
+              setActiveImage(idx);
+            }}
+          >
+            {images.length > 0 ? images.map((img: string, idx: number) => (
+              <View key={idx} style={{ width: SCREEN_W, height: 320, alignItems: 'center', justifyContent: 'center' }}>
+                <Image source={{ uri: img }} style={{ width: '100%', height: '100%', resizeMode: 'contain' }} />
+              </View>
+            )) : (
+              <View style={{ width: SCREEN_W, height: 320, alignItems: 'center', justifyContent: 'center' }}>
+                <Package size={64} color={Colors.slate[300]} />
+              </View>
+            )}
+          </ScrollView>
+          {/* Image dots */}
+          {images.length > 1 && (
+            <View style={{ position: 'absolute', bottom: 12, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+              {images.map((_: string, idx: number) => (
+                <View key={idx} style={{ width: idx === activeImage ? 18 : 7, height: 7, borderRadius: 4, backgroundColor: idx === activeImage ? Colors.epf[500] : Colors.slate[300] }} />
+              ))}
+            </View>
           )}
+          {/* Discount badge */}
           {hasDiscount && (
-            <View style={{
-              position: 'absolute',
-              top: 16,
-              left: 16,
-              backgroundColor: Colors.badge.discount,
-              borderRadius: Radius.base,
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-            }}>
-              <Text style={{ color: Colors.text.inverse, fontSize: 12, fontWeight: Typography.bold }}>
-                -{discountPct}% OFF
-              </Text>
+            <View style={{ position: 'absolute', top: 16, left: 16, backgroundColor: Colors.badge.discount, borderRadius: Radius.base, paddingHorizontal: 10, paddingVertical: 4 }}>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: Typography.bold }}>-{discountPct}% OFF</Text>
             </View>
           )}
         </View>
 
         <View style={{ padding: 20 }}>
-          {/* Category — epf-500, uppercase */}
+          {/* Breadcrumb */}
           {product.category?.name && (
-            <Text style={{ color: Colors.epf[500], fontSize: 13, fontWeight: Typography.semibold, marginBottom: 6, textTransform: 'uppercase' }}>
+            <Text style={{ color: Colors.epf[600], fontSize: 12, fontWeight: Typography.semibold, marginBottom: 6, textTransform: 'uppercase' }}>
               {product.category.name}
             </Text>
           )}
 
-          {/* Name — slate-900, bold */}
+          {/* Name */}
           <Text style={{ fontSize: 22, fontWeight: Typography.bold, color: Colors.slate[900], lineHeight: 30 }}>
             {product.name}
           </Text>
 
-          {/* Rating — amber-400 stars */}
+          {/* Rating */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
             <View style={{ flexDirection: 'row' }}>
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star
-                  key={i}
-                  size={16}
-                  color={i <= Math.round(product.rating || 0) ? Colors.badge.rating : Colors.slate[200]}
-                  fill={i <= Math.round(product.rating || 0) ? Colors.badge.rating : Colors.slate[200]}
-                />
+                <Star key={i} size={15} color={i <= Math.round(product.rating || 0) ? Colors.badge.rating : Colors.slate[200]} fill={i <= Math.round(product.rating || 0) ? Colors.badge.rating : Colors.slate[200]} />
               ))}
             </View>
             <Text style={{ color: Colors.slate[500], fontSize: 13, marginLeft: 8 }}>
-              {product.rating ? product.rating.toFixed(1) : '0.0'} ({product.reviewCount || 0} reviews)
+              {product.rating ? Number(product.rating).toFixed(1) : '0.0'} ({product.reviewCount || 0} reviews)
             </Text>
           </View>
 
-          {/* Price — slate-900 bold + strikethrough */}
+          {/* Price */}
           <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16 }}>
             <Text style={{ fontSize: 28, fontWeight: Typography.bold, color: Colors.slate[900] }}>
-              ৳{Number(product.salePrice ?? product.price).toLocaleString()}
+              ৳{displayPrice.toLocaleString()}
             </Text>
             {hasDiscount && (
-              <Text style={{
-                color: Colors.slate[400],
-                fontSize: 16,
-                textDecorationLine: 'line-through',
-                marginLeft: 12,
-              }}>
+              <Text style={{ color: Colors.slate[400], fontSize: 16, textDecorationLine: 'line-through', marginLeft: 12 }}>
                 ৳{Number(product.price).toLocaleString()}
               </Text>
             )}
           </View>
 
+          {/* Stock indicator */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 6 }}>
+            {inStock ? (
+              <>
+                <CheckCircle2 size={15} color={lowStock ? Colors.warning : Colors.success} />
+                <Text style={{ fontSize: 13, color: lowStock ? Colors.warning : Colors.success, fontWeight: Typography.medium }}>
+                  {lowStock ? `Only ${product.stock} left in stock` : 'In Stock'}
+                </Text>
+              </>
+            ) : (
+              <Text style={{ fontSize: 13, color: Colors.danger, fontWeight: Typography.medium }}>Out of Stock</Text>
+            )}
+          </View>
+
           {/* Description */}
-          {product.shortDesc || product.description ? (
+          {(product.shortDesc || product.description) ? (
             <View style={{ marginTop: 20 }}>
-              <Text style={{ fontSize: 16, fontWeight: Typography.bold, color: Colors.slate[900], marginBottom: 8 }}>
-                Description
-              </Text>
-              <Text style={{ color: Colors.slate[700], fontSize: 14, lineHeight: 22 }}>
+              <Text style={{ fontSize: 16, fontWeight: Typography.bold, color: Colors.slate[900], marginBottom: 8 }}>Description</Text>
+              <Text style={{ color: Colors.slate[600], fontSize: 14, lineHeight: 22 }}>
                 {product.shortDesc || product.description}
               </Text>
             </View>
           ) : null}
 
-          {/* Quantity */}
-          <View style={{ marginTop: 20 }}>
-            <Text style={{ fontSize: 14, fontWeight: Typography.semibold, color: Colors.slate[800], marginBottom: 10 }}>
-              Quantity
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Pressable
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: Radius.base,
-                  backgroundColor: Colors.slate[100],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onPress={() => setQuantity(Math.max(1, quantity - 1))}
-              >
-                <Minus size={18} color={Colors.slate[900]} />
-              </Pressable>
-              <Text style={{ marginHorizontal: 20, fontSize: 18, fontWeight: Typography.bold, color: Colors.slate[900] }}>
-                {quantity}
-              </Text>
-              <Pressable
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: Radius.base,
-                  backgroundColor: Colors.slate[100],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onPress={() => setQuantity(Math.min(maxStock, quantity + 1))}
-              >
-                <Plus size={18} color={Colors.slate[900]} />
-              </Pressable>
+          {/* Specifications */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <View style={{ marginTop: 20 }}>
+              <Text style={{ fontSize: 16, fontWeight: Typography.bold, color: Colors.slate[900], marginBottom: 10 }}>Specifications</Text>
+              <View style={{ borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.slate[200], overflow: 'hidden' }}>
+                {Object.entries(product.specifications).map(([key, val], idx) => (
+                  <View key={key} style={{ flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 14, backgroundColor: idx % 2 === 0 ? Colors.slate[50] : Colors.bg.primary }}>
+                    <Text style={{ flex: 1, fontSize: 13, color: Colors.slate[500], textTransform: 'capitalize' }}>{key}</Text>
+                    <Text style={{ flex: 1.5, fontSize: 13, color: Colors.slate[800], fontWeight: Typography.medium }}>{String(val)}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
+          )}
+
+          {/* Quantity */}
+          <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 14, fontWeight: Typography.semibold, color: Colors.slate[800] }}>Quantity</Text>
+            <QuantitySelector value={quantity} onChange={setQuantity} min={1} max={maxStock} />
           </View>
 
-          {/* Trust badges — matches website TrustBar */}
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 24,
-            paddingVertical: 16,
-            borderTopWidth: 1,
-            borderBottomWidth: 1,
-            borderColor: Colors.slate[200],
-          }}>
+          {/* Trust badges */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24, paddingVertical: 16, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.slate[200] }}>
             <View style={{ alignItems: 'center', flex: 1 }}>
               <Truck size={20} color={Colors.epf[500]} />
               <Text style={{ fontSize: 11, color: Colors.slate[500], marginTop: 4 }}>Free Delivery</Text>
@@ -305,46 +304,42 @@ export default function ProductDetailScreen() {
             </View>
           </View>
         </View>
+
+        {/* Related Products */}
+        {related.length > 0 && (
+          <View style={{ marginTop: 8, marginBottom: 16 }}>
+            <Text style={{ fontSize: 18, fontWeight: Typography.bold, color: Colors.slate[900], paddingHorizontal: 16, marginBottom: 12 }}>
+              Related Products
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}>
+              {related.slice(0, 8).map((item: any) => (
+                <View key={item.id} style={{ width: 170 }}>
+                  <PremiumCard data={toCard(item)} />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View style={{
-        backgroundColor: Colors.bg.primary,
-        borderTopWidth: 1,
-        borderTopColor: Colors.slate[200],
-        padding: 16,
-        flexDirection: 'row',
-      }}>
+      <View style={{ backgroundColor: Colors.bg.primary, borderTopWidth: 1, borderTopColor: Colors.slate[200], padding: 16, flexDirection: 'row' }}>
         <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: Colors.epf[500],
-            borderRadius: Radius.base,
-            paddingVertical: 14,
-            alignItems: 'center',
-            marginRight: 8,
-            flexDirection: 'row',
-            justifyContent: 'center',
-          }}
+          style={{ flex: 1, backgroundColor: inStock ? Colors.epf[500] : Colors.slate[300], borderRadius: Radius.lg, paddingVertical: 14, alignItems: 'center', marginRight: 8, flexDirection: 'row', justifyContent: 'center' }}
           onPress={() => addToCart(false)}
+          disabled={!inStock}
         >
-          <ShoppingCart size={18} color={Colors.text.inverse} style={{ marginRight: 6 }} />
-          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>
-            {added ? 'Added to Cart' : 'Add to Cart'}
+          <ShoppingCart size={18} color="#fff" style={{ marginRight: 6 }} />
+          <Text style={{ color: '#fff', fontWeight: Typography.bold, fontSize: 15 }}>
+            {added ? 'Added ✓' : 'Add to Cart'}
           </Text>
         </Pressable>
         <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: Colors.slate[900],
-            borderRadius: Radius.base,
-            paddingVertical: 14,
-            alignItems: 'center',
-            marginLeft: 8,
-          }}
+          style={{ flex: 1, backgroundColor: inStock ? Colors.slate[900] : Colors.slate[300], borderRadius: Radius.lg, paddingVertical: 14, alignItems: 'center', marginLeft: 8 }}
           onPress={() => addToCart(true)}
+          disabled={!inStock}
         >
-          <Text style={{ color: Colors.text.inverse, fontWeight: Typography.bold }}>Buy Now</Text>
+          <Text style={{ color: '#fff', fontWeight: Typography.bold, fontSize: 15 }}>Buy Now</Text>
         </Pressable>
       </View>
     </SafeAreaView>

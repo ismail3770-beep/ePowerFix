@@ -132,7 +132,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   if (!user) {
     return res.status(401).json({ error: 'Authentication required' })
   }
-  ;(req as any).user = user
+  req.user = user
   next()
 }
 
@@ -147,7 +147,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   if (user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Admin access required' })
   }
-  ;(req as any).user = user
+  req.user = user
   next()
 }
 
@@ -157,7 +157,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
 export async function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   const user = await getSession(req)
   if (user) {
-    ;(req as any).user = user
+    req.user = user
   }
   next()
 }
@@ -166,5 +166,5 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
  * Helper to get the authenticated user from request.
  */
 export function getAuthUser(req: Request): SessionUser {
-  return (req as any).user
+  return req.user!
 }

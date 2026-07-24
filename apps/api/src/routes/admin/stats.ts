@@ -7,6 +7,7 @@ import { Router } from 'express'
 
 import { db } from '../../lib/db.js'
 import { asyncHandler } from '../../lib/api-handler.js'
+import { toNumber } from '../../lib/helpers.js'
 
 const router = Router()
 
@@ -85,7 +86,7 @@ router.get(
       revenueByMonth.push({
         month: start.toLocaleString('default', { month: 'short' }),
         year: start.getFullYear(),
-        revenue: agg._sum.total || 0,
+        revenue: toNumber(agg._sum.total),
         orders: agg._count._all || 0,
       })
     }
@@ -95,14 +96,14 @@ router.get(
     for (const g of statusGroups) {
       salesByStatus[g.status] = {
         count: g._count._all,
-        revenue: g._sum.total || 0,
+        revenue: toNumber(g._sum.total),
       }
     }
 
     res.json({
       data: {
         totalOrders,
-        totalRevenue: revenueAgg._sum.total || 0,
+        totalRevenue: toNumber(revenueAgg._sum.total),
         totalProducts,
         totalUsers,
         pendingOrders,

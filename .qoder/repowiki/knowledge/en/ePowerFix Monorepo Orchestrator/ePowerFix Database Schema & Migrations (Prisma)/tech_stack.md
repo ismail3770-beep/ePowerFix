@@ -1,0 +1,1 @@
+Prisma ORM with `prisma-client-js` against PostgreSQL; migration lock pins the provider. Monetary values use `Decimal(12,2)` for marketplace payments/ledger/payouts and `Float` for legacy product/service prices. Geospatial coordinates stored as `Decimal(10,7)` latitude/longitude.

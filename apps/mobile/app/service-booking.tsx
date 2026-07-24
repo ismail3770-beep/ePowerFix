@@ -18,6 +18,19 @@ function dateAfterDays(days: number): string {
   return `${year}-${month}-${day}`;
 }
 
+function formatDateLabel(days: number): string {
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+}
+
+const QUICK_DATES = [0, 1, 2, 3, 4].map((days) => ({
+  value: dateAfterDays(days),
+  label: formatDateLabel(days),
+}));
+
 function firstParam(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] || '' : value || '';
 }
@@ -127,8 +140,14 @@ export default function ServiceBookingScreen() {
 
             <View style={cardStyle}>
               <View style={sectionTitle}><View style={iconBox}><CalendarDays size={17} color={Colors.epf[600]} /></View><Text style={titleStyle}>Appointment details</Text></View>
-              <Text style={labelStyle}>Date (YYYY-MM-DD)</Text>
-              <View style={inputWrap}><CalendarDays size={16} color={Colors.slate[400]} /><TextInput value={bookingDate} onChangeText={setBookingDate} placeholder="2026-07-16" placeholderTextColor={Colors.slate[400]} keyboardType="numbers-and-punctuation" style={inputStyle} /></View>
+              <Text style={labelStyle}>Select date</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+                {QUICK_DATES.map((d) => (
+                  <Pressable key={d.value} onPress={() => setBookingDate(d.value)} style={{ borderWidth: 1, borderColor: bookingDate === d.value ? Colors.epf[500] : Colors.slate[200], backgroundColor: bookingDate === d.value ? Colors.epf[50] : Colors.bg.primary, borderRadius: Radius.base, paddingHorizontal: 14, paddingVertical: 10 }}>
+                    <Text style={{ color: bookingDate === d.value ? Colors.epf[700] : Colors.slate[600], fontSize: 13, fontWeight: Typography.medium }}>{d.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
               <Text style={labelStyle}>Preferred time</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 3 }}>
                 {TIME_SLOTS.map((time) => <Pressable key={time} onPress={() => setBookingTime(time)} style={{ borderWidth: 1, borderColor: bookingTime === time ? Colors.epf[500] : Colors.slate[200], backgroundColor: bookingTime === time ? Colors.epf[50] : Colors.bg.primary, borderRadius: Radius.base, paddingHorizontal: 11, paddingVertical: 9, flexDirection: 'row', alignItems: 'center' }}><Clock3 size={14} color={bookingTime === time ? Colors.epf[600] : Colors.slate[500]} /><Text style={{ color: bookingTime === time ? Colors.epf[700] : Colors.slate[600], fontSize: 12, fontWeight: Typography.medium, marginLeft: 5 }}>{time}</Text></Pressable>)}

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react-native';
 import { PremiumCard, PremiumCardData, PremiumCardSkeleton } from '../../src/components/PremiumCard';
 import { Footer } from '../../src/components/Footer';
+import { getCategoryIcon } from '../../src/components/icons/CategoryIcons';
 import { productsApi, servicesApi } from '@epowerfix/api-client';
 import { useCartStore } from '@epowerfix/store';
 import { useAuthStore } from '../../src/store/auth';
@@ -112,14 +113,14 @@ export default function HomeScreen() {
   const onRefresh = () => { setRefreshing(true); void loadAll(); };
 
   const categories = [
-    { name: 'কেবল ও ওয়্যার', subtitle: 'সেরা দামে', icon: '🔌', slug: 'cable' },
-    { name: 'সার্কিট ব্রেকার', subtitle: 'জরুরি সুরক্ষা', icon: '🛡️', slug: 'breaker' },
-    { name: 'সুইচ ও সকেট', subtitle: '১০০% আসল', icon: '⚡', slug: 'switch' },
-    { name: 'লাইটিং', subtitle: 'LED ও সোলার', icon: '💡', slug: 'lighting' },
-    { name: 'সোলার প্যানেল', subtitle: 'আপটু ৩০% ছাড়', icon: '☀️', slug: 'solar' },
-    { name: 'সেফটি সরঞ্জাম', subtitle: 'শ্রমিক সুরক্ষা', icon: '👷', slug: 'safety' },
-    { name: 'ইন্ডাস্ট্রিয়াল', subtitle: 'অটোমেশন', icon: '🏭', slug: 'industrial' },
-    { name: 'টুলস ও মিটার', subtitle: 'ডিজিটাল', icon: '📐', slug: 'tools' },
+    { name: 'কেবল ও ওয়্যার', subtitle: 'সেরা দামে', slug: 'cable' },
+    { name: 'সার্কিট ব্রেকার', subtitle: 'জরুরি সুরক্ষা', slug: 'breaker' },
+    { name: 'সুইচ ও সকেট', subtitle: '১০০% আসল', slug: 'switch' },
+    { name: 'লাইটিং', subtitle: 'LED ও সোলার', slug: 'lighting' },
+    { name: 'সোলার প্যানেল', subtitle: 'আপটু ৩০% ছাড়', slug: 'solar' },
+    { name: 'সেফটি সরঞ্জাম', subtitle: 'শ্রমিক সুরক্ষা', slug: 'safety' },
+    { name: 'ইন্ডাস্ট্রিয়াল', subtitle: 'অটোমেশন', slug: 'industrial' },
+    { name: 'টুলস ও মিটার', subtitle: 'ডিজিটাল', slug: 'tools' },
   ];
 
   const trustFeatures = [
@@ -275,16 +276,19 @@ export default function HomeScreen() {
         <View style={{ backgroundColor: Colors.bg.primary, padding: 16 }}>
           <SectionHeader title="ক্যাটাগরি" subtitle="সব ধরনের ইলেকট্রিক্যাল পণ্য" onViewAll={() => router.push('/(tabs)/shop')} />
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-            {categories.map((cat) => (
-              <Pressable key={cat.slug} onPress={() => router.push('/(tabs)/shop')}
-                style={{ width: '23.5%', alignItems: 'center', paddingVertical: 14, backgroundColor: Colors.bg.primary, borderRadius: Radius.base, marginBottom: 8, elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 2 }}>
-                <View style={{ width: 50, height: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.slate[50], borderRadius: Radius.lg, marginBottom: 6 }}>
-                  <Text style={{ fontSize: 24 }}>{cat.icon}</Text>
-                </View>
-                <Text style={{ fontSize: 11, fontWeight: Typography.medium, color: Colors.slate[800], textAlign: 'center' }} numberOfLines={2}>{cat.name}</Text>
-                <Text style={{ fontSize: 10, color: Colors.epf[500], marginTop: 2 }} numberOfLines={1}>{cat.subtitle}</Text>
-              </Pressable>
-            ))}
+            {categories.map((cat) => {
+              const IconComp = getCategoryIcon(cat.slug);
+              return (
+                <Pressable key={cat.slug} onPress={() => router.push('/(tabs)/shop')}
+                  style={{ width: '23.5%', alignItems: 'center', paddingVertical: 14, backgroundColor: Colors.bg.primary, borderRadius: Radius.lg, marginBottom: 8, borderWidth: 1, borderColor: Colors.slate[100] }}>
+                  <View style={{ width: 50, height: 50, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.epf[50], borderRadius: 14, marginBottom: 6 }}>
+                    <IconComp size={24} color={Colors.epf[600]} />
+                  </View>
+                  <Text style={{ fontSize: 11, fontWeight: Typography.medium, color: Colors.slate[800], textAlign: 'center' }} numberOfLines={2}>{cat.name}</Text>
+                  <Text style={{ fontSize: 10, color: Colors.epf[500], marginTop: 2 }} numberOfLines={1}>{cat.subtitle}</Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -458,17 +462,22 @@ export default function HomeScreen() {
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {[
-              { icon: '✅', title: 'Verified Electricians', desc: 'NID + document verified' },
-              { icon: '💰', title: 'Money-back Guarantee', desc: 'সন্তুষ্ট না হলে টাকা ফেরত' },
-              { icon: '⚡', title: 'Fast Dispatch', desc: 'Same day service available' },
-              { icon: '🛡️', title: 'Warranty on Work', desc: 'Service warranty included' },
-            ].map((item, i) => (
-              <View key={i} style={{ width: '48%', backgroundColor: Colors.slate[50], borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.slate[200], padding: 14 }}>
-                <Text style={{ fontSize: 22, marginBottom: 6 }}>{item.icon}</Text>
-                <Text style={{ color: Colors.slate[900], fontWeight: Typography.semibold, fontSize: 13 }}>{item.title}</Text>
-                <Text style={{ color: Colors.slate[500], fontSize: 11, marginTop: 3, lineHeight: 16 }}>{item.desc}</Text>
-              </View>
-            ))}
+              { icon: BadgeCheck, title: 'Verified Electricians', desc: 'NID + document verified' },
+              { icon: Shield, title: 'Money-back Guarantee', desc: 'সন্তুষ্ট না হলে টাকা ফেরত' },
+              { icon: Zap, title: 'Fast Dispatch', desc: 'Same day service available' },
+              { icon: Truck, title: 'Warranty on Work', desc: 'Service warranty included' },
+            ].map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <View key={i} style={{ width: '48%', backgroundColor: Colors.slate[50], borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.slate[200], padding: 14 }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.epf[50], alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                    <Icon size={18} color={Colors.epf[600]} />
+                  </View>
+                  <Text style={{ color: Colors.slate[900], fontWeight: Typography.semibold, fontSize: 13 }}>{item.title}</Text>
+                  <Text style={{ color: Colors.slate[500], fontSize: 11, marginTop: 3, lineHeight: 16 }}>{item.desc}</Text>
+                </View>
+              );
+            })}
           </View>
         </View>
 

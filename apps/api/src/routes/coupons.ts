@@ -10,6 +10,7 @@ import { Router } from 'express'
 
 import { db } from '../lib/db.js'
 import { asyncHandler, ApiError } from '../lib/api-handler.js'
+import { toNumber } from '../lib/helpers.js'
 
 const router = Router()
 
@@ -50,22 +51,22 @@ router.get(
     if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
       throw new ApiError('Coupon usage limit reached', 400)
     }
-    if (coupon.minOrder !== null && orderTotal < coupon.minOrder) {
+    if (coupon.minOrder !== null && orderTotal < toNumber(coupon.minOrder)) {
       throw new ApiError(
-        `Minimum order amount ৳${coupon.minOrder} required for this coupon`,
+        `Minimum order amount ৳${toNumber(coupon.minOrder)} required for this coupon`,
         400
       )
     }
 
     let discount = 0
     if (coupon.type === 'PERCENTAGE') {
-      discount = (orderTotal * coupon.value) / 100
+      discount = (orderTotal * toNumber(coupon.value)) / 100
       if (coupon.maxDiscount !== null) {
-        discount = Math.min(discount, coupon.maxDiscount)
+        discount = Math.min(discount, toNumber(coupon.maxDiscount))
       }
     } else {
       // FIXED amount off
-      discount = coupon.value
+      discount = toNumber(coupon.value)
     }
     discount = Math.min(discount, orderTotal)
     discount = Math.round(discount)

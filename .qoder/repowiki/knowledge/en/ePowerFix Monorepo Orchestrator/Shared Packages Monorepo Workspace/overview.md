@@ -1,0 +1,1 @@
+Workspace root for the project's shared npm packages — api-client, store, types, and utils — consumed by other workspace projects.

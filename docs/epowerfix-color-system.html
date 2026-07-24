@@ -1,0 +1,250 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ePowerFix Color System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; background: #f7f8fa; color: #1f2328; font-size: 14px; line-height: 1.6; padding: 24px; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #57606a; font-size: 13px; margin-bottom: 28px; }
+  .section { max-width: 760px; margin: 0 auto 32px; }
+  .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #57606a; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+  .swatch { border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; background: #fff; }
+  .swatch-color { height: 64px; width: 100%; }
+  .swatch-info { padding: 8px 10px; }
+  .swatch-name { font-size: 12px; font-weight: 600; color: #1f2328; }
+  .swatch-hex { font-size: 11px; color: #57606a; font-family: monospace; }
+  .swatch-use { font-size: 10px; color: #3b82d4; margin-top: 2px; }
+  .header-wrap { max-width: 760px; margin: 0 auto 28px; }
+  .tag { display: inline-block; background: #0EA5E9; color: #fff; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+  footer { max-width: 760px; margin: 40px auto 0; text-align: center; font-size: 12px; color: #57606a; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+</style>
+</head>
+<body>
+
+<div class="header-wrap">
+  <h1>ePowerFix Color System <span class="tag">globals.css</span></h1>
+  <p class="subtitle">Website এ ব্যবহৃত সব color — Tailwind CSS v4 + CSS Variables</p>
+</div>
+
+
+<div class="section">
+  <div class="section-title">🎨 Brand Colors (ePowerFix)</div>
+  <div class="grid">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0EA5E9"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">epf-500 / Primary</div>
+        <div class="swatch-hex">#0EA5E9</div>
+        <div class="swatch-use">Main brand, buttons, links</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0284C7"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">epf-600 / Brand Dark</div>
+        <div class="swatch-hex">#0284C7</div>
+        <div class="swatch-use">Hover state</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#E0F2FE;border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">epf-100</div>
+        <div class="swatch-hex">#E0F2FE</div>
+        <div class="swatch-use">Light bg, badges</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#F0F9FF;border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">epf-50</div>
+        <div class="swatch-hex">#F0F9FF</div>
+        <div class="swatch-use">Very light bg</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="section">
+  <div class="section-title">☀️ UI Colors — Light Mode (HSL Variables)</div>
+  <div class="grid">
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(220, 14%, 96%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">background</div>
+        <div class="swatch-hex">hsl(220 14% 96%)</div>
+        <div class="swatch-use">Page background</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#ffffff;border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">card</div>
+        <div class="swatch-hex">#ffffff</div>
+        <div class="swatch-use">Cards, panels</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(222, 47%, 11%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">foreground</div>
+        <div class="swatch-hex">hsl(222 47% 11%)</div>
+        <div class="swatch-use">Main text</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(199, 89%, 48%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">primary</div>
+        <div class="swatch-hex">hsl(199 89% 48%)</div>
+        <div class="swatch-use">Primary button, ring</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(270, 30%, 93%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">secondary</div>
+        <div class="swatch-hex">hsl(270 30% 93%)</div>
+        <div class="swatch-use">Secondary button</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(270, 50%, 96%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">accent</div>
+        <div class="swatch-hex">hsl(270 50% 96%)</div>
+        <div class="swatch-use">Accent/highlight</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(220, 13%, 91%);border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">border / input</div>
+        <div class="swatch-hex">hsl(220 13% 91%)</div>
+        <div class="swatch-use">Borders, inputs</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(0, 84%, 60%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">destructive</div>
+        <div class="swatch-hex">hsl(0 84% 60%)</div>
+        <div class="swatch-use">Error, delete</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="section">
+  <div class="section-title">📌 Sidebar Colors (Admin Dashboard)</div>
+  <div class="grid">
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(210, 60%, 14%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">sidebar bg</div>
+        <div class="swatch-hex">hsl(210 60% 14%)</div>
+        <div class="swatch-use">Dark navy sidebar</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(199, 89%, 48%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">sidebar-primary</div>
+        <div class="swatch-hex">hsl(199 89% 48%)</div>
+        <div class="swatch-use">Active nav item</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(210, 50%, 22%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">sidebar-accent</div>
+        <div class="swatch-hex">hsl(210 50% 22%)</div>
+        <div class="swatch-use">Hover nav item</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:hsl(240, 10%, 90%)"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">sidebar-foreground</div>
+        <div class="swatch-hex">hsl(240 10% 90%)</div>
+        <div class="swatch-use">Nav text</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="section">
+  <div class="section-title">🚦 Status Colors</div>
+  <div class="grid">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#4D7300"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">success</div>
+        <div class="swatch-hex">#4D7300</div>
+        <div class="swatch-use">Success, in-stock</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#F59E0B"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">warning</div>
+        <div class="swatch-hex">#F59E0B</div>
+        <div class="swatch-use">Warning, pending</div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#DC2626"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">danger</div>
+        <div class="swatch-hex">#DC2626</div>
+        <div class="swatch-use">Error, out-of-stock</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="section">
+  <div class="section-title">⬜ Gray Scale (dark-*)</div>
+  <div class="grid">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#F9FAFB;border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-50</div><div class="swatch-hex">#F9FAFB</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#F3F4F6;border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-100</div><div class="swatch-hex">#F3F4F6</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#E5E7EB;border-bottom:1px solid #e5e7eb"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-200</div><div class="swatch-hex">#E5E7EB</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#9CA3AF"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-400</div><div class="swatch-hex">#9CA3AF</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#6B7280"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-500</div><div class="swatch-hex">#6B7280</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#374151"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-700</div><div class="swatch-hex">#374151</div></div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#111827"></div>
+      <div class="swatch-info"><div class="swatch-name">dark-900</div><div class="swatch-hex">#111827</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>Made with IBM Bob</footer>
+</body>
+</html>

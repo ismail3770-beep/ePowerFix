@@ -13,8 +13,9 @@ function getRedis(): Redis | null {
 
   if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
     if (env.NODE_ENV === 'production') {
-      console.warn(
-        '[rate-limit] UPSTASH_REDIS_REST_URL/TOKEN not set - rate limiting disabled in production!'
+      console.error(
+        '[rate-limit] FATAL: UPSTASH_REDIS_REST_URL/TOKEN not set — rate limiting is DISABLED in production. ' +
+        'Set both env vars to enable Redis-backed rate limiting.'
       )
     }
     return null

@@ -3,6 +3,10 @@ import create from 'zustand';
 import { authApi, setApiToken } from '@epowerfix/api-client';
 
 const TOKEN_KEY = 'epowerfix.mobile.session.token';
+const TOKEN_EXPIRY_KEY = 'epowerfix.mobile.session.expiry';
+
+// Session timeout: 7 days (match API JWT expiry)
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface AuthUser {
   id: string;
@@ -65,8 +69,19 @@ async function removeStoredToken(): Promise<void> {
   setApiToken(null);
   try {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(TOKEN_EXPIRY_KEY);
   } catch {
     // A failed local cleanup should not leave the in-memory session active.
+  }
+}
+
+async function isTokenExpired(): Promise<boolean> {
+  try {
+    const expiry = await SecureStore.getItemAsync(TOKEN_EXPIRY_KEY);
+    if (!expiry) return false;
+    return Date.now() > Number(expiry);
+  } catch {
+    return false;
   }
 }
 
@@ -82,6 +97,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ loading: true, error: null });
     try {
+      // Check if token has expired locally
+      if (await isTokenExpired()) {
+        await removeStoredToken();
+        set({ user: null, token: null });
+        return;
+      }
+
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       if (!token) {
         set({ user: null, token: null });
@@ -115,6 +137,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       await SecureStore.setItemAsync(TOKEN_KEY, token);
+      await SecureStore.setItemAsync(TOKEN_EXPIRY_KEY, String(Date.now() + SESSION_DURATION_MS));
       setApiToken(token);
       set({ user, token, hydrated: true, error: null });
       return user;
