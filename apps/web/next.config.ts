@@ -30,7 +30,7 @@ const securityHeaders = [
       "default-src 'self'",
       scriptSrc,
       styleSrc,
-      "img-src 'self' data: blob: https://res.cloudinary.com https://sfile.chatglm.cn https://images.unsplash.com",
+      "img-src 'self' data: blob: https://res.cloudinary.com https://sfile.chatglm.cn https://images.unsplash.com https://placehold.co",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://api.ipify.org https://ws-ipify.org",
       "frame-ancestors 'none'",
@@ -60,6 +60,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.epowerfix.com" },
       { protocol: "https", hostname: "sfile.chatglm.cn" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "placehold.co" },
     ],
     minimumCacheTTL: 86400, // 24 hours
   },

@@ -27,23 +27,21 @@ export default function ProjectsSection() {
   const projects = (projectsData?.data ?? []).slice(0, 4);
 
   return (
-    <section id="projects" className="bg-slate-50 py-12 sm:py-16">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="projects" className="ff bg-white mt-[50px]">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
         {/* ── Section Header ── */}
-        <div className="flex items-end justify-between mb-8 sm:mb-10">
+        <div className="flex items-end justify-between border-b border-[#e5e5e5] pb-4 mb-6">
           <div>
-            <h2 className="text-[20px] sm:text-[24px] font-bold text-slate-900 tracking-tight">
-              Projects
-            </h2>
-            <p className="text-[14px] text-slate-500 mt-1">
-              Real-world installations delivered across Bangladesh
+            <h3 className="ff-section-title !text-[20px] !pb-0">Our Projects</h3>
+            <p className="text-[14px] text-[#6e6e6e] mt-2">
+              সারাদেশে সম্পন্ন করা বাস্তব ইলেকট্রিক্যাল ইনস্টলেশন
             </p>
           </div>
           <a
             href="/projects"
-            className="hidden sm:inline-flex items-center gap-1.5 text-[14px] font-medium text-epf-600 hover:text-epf-700 transition-colors group"
+            className="hidden sm:inline-flex items-center gap-1 text-[14px] text-[#0068e1] hover:underline group"
           >
-            View All
+            সব দেখুন
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
           </a>
         </div>

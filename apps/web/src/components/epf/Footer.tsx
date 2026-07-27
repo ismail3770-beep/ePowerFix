@@ -116,7 +116,10 @@ export default function Footer() {
             {/* Brand Column */}
             <div className="mb-8 lg:mb-0 lg:col-span-1">
               <Link href="/" className="flex flex-col shrink-0 mb-4">
-                <span className="text-[30px] font-extrabold tracking-tight text-white leading-none">
+                <span
+                  className="text-[30px] font-extrabold tracking-tight text-white leading-none"
+                  style={{ fontFamily: "var(--font-poppins)" }}
+                >
                   e<span className="text-epf-500">Power</span>Fix
                 </span>
                 <span className="text-[11px] text-white/40 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>

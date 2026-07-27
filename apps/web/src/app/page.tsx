@@ -3,14 +3,13 @@ import Footer from "@/components/epf/Footer";
 import HomeClient from "@/components/epf/HomeClient";
 import AnnouncementBar from "@/components/epf/AnnouncementBar";
 import HeroBanner from "@/components/epf/HeroBanner";
-import CategoryGrid from "@/components/epf/CategoryGrid";
-import FlashDeals from "@/components/epf/FlashDeals";
-import ShopSection from "@/components/epf/ShopSection";
+import HomeFeatures from "@/components/epf/HomeFeatures";
+import FeaturedCategories from "@/components/epf/FeaturedCategories";
+import TopBrands from "@/components/epf/TopBrands";
 import ServicesSection from "@/components/epf/ServicesSection";
-import WhyChooseUs from "@/components/epf/WhyChooseUs";
-import Testimonials from "@/components/epf/Testimonials";
-import BrandStrip from "@/components/epf/BrandStrip";
-import CtaBand from "@/components/epf/CtaBand";
+import ProjectsSection from "@/components/epf/ProjectsSection";
+import { ThreeColumnBanners, TwoColumnBanners, OneColumnBanner } from "@/components/epf/HomeBanners";
+import HomeBlog from "@/components/epf/HomeBlog";
 
 export const metadata = {
   title: "ePowerFix — বাংলাদেশের #১ ইলেকট্রিক্যাল মার্কেটপ্লেস",
@@ -23,18 +22,25 @@ export default function HomePage() {
     <>
       <AnnouncementBar />
       <Header />
-      <main className="bg-[#F8FAFC]">
+      {/*
+        Home body flow — designed to build trust then convert:
+        1. Hero (impact)  2. Features (trust)  3. Categories (browse)
+        4. Promo banner   5. Flash sale (urgency)  6. Services (what we do)
+        7. Product tabs   8. Brands (credibility)  9. Promo banners
+        10. Projects (proof)  11. Project kits (bundles)  12. Blog (engage) — last.
+        Header & Footer intentionally untouched.
+      */}
+      <main className="bg-white pb-2">
         <HeroBanner />
-        <CategoryGrid />
-        <FlashDeals />
-        <ShopSection />
+        <HomeFeatures />
+        <FeaturedCategories />
+        <ThreeColumnBanners />
         <ServicesSection />
-        <WhyChooseUs />
-        <Testimonials />
-        <div className="bg-white border-y border-slate-200/70">
-          <BrandStrip />
-        </div>
-        <CtaBand />
+        <TopBrands />
+        <OneColumnBanner />
+        <ProjectsSection />
+        <TwoColumnBanners />
+        <HomeBlog />
       </main>
       <Footer />
       <HomeClient />

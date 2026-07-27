@@ -238,7 +238,10 @@ export default function Header() {
           <div className="flex items-center h-[70px] gap-6">
             {/* Logo - first focusable element */}
             <Link href="/" className="flex flex-col shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-epf-500 rounded" tabIndex={0}>
-              <span className="text-[26px] font-extrabold tracking-tight text-slate-900 leading-none group-hover:text-epf-500 transition-colors">
+              <span
+                className="text-[26px] font-extrabold tracking-tight text-slate-900 leading-none group-hover:text-epf-500 transition-colors"
+                style={{ fontFamily: "var(--font-poppins)" }}
+              >
                 e<span className="text-epf-500">Power</span>Fix
               </span>
               <span className="text-[12px] text-slate-500 font-semibold tracking-[0.2em] uppercase leading-none mt-1">ELECTRICAL MARKETPLACE</span>

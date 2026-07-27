@@ -86,6 +86,158 @@ html {
   --color-dark-900: #111827;
 }
 
+/* ============================================================
+   FleetCart design tokens — exact replication of the FleetCart
+   storefront (v4.7.2). Sourced from its variables.blade.php +
+   SASS. Used by .ff-scoped storefront components so ePowerFix
+   matches FleetCart's look precisely.
+   ============================================================ */
+:root {
+  --ff-font: var(--font-poppins), "Poppins", var(--font-bn), sans-serif;
+
+  /* Primary (FleetCart demo theme color) */
+  --ff-primary: #0068e1;
+  --ff-primary-hover: #0057bd;
+  --ff-primary-a10: rgba(0, 104, 225, 0.10);
+  --ff-primary-a12: rgba(0, 104, 225, 0.12);
+  --ff-primary-a15: rgba(0, 104, 225, 0.15);
+  --ff-primary-a30: rgba(0, 104, 225, 0.30);
+  --ff-primary-a80: rgba(0, 104, 225, 0.80);
+
+  /* Font weights */
+  --ff-light: 300;
+  --ff-normal: 400;
+  --ff-medium: 500;
+  --ff-semibold: 600;
+  --ff-bold: 700;
+  --ff-extrabold: 800;
+
+  /* Palette */
+  --ff-white: #ffffff;
+  --ff-white-lite: #f2f4f5;
+  --ff-white-dark: #f9f9f9;
+  --ff-black: #191919;
+  --ff-gray: #6e6e6e;
+  --ff-gray-lite: #ebebeb;
+  --ff-gray-dark: #a6a6a6;
+  --ff-red: #fb2c36;
+  --ff-green: #00bc43;
+  --ff-info: #0068e1;
+  --ff-yellow: #ffb136;
+
+  /* Borders */
+  --ff-border: #e8e7eb;
+  --ff-border-lite: #e5e5e5;
+  --ff-border-5: #d4d4d4;
+
+  /* Radius */
+  --ff-radius: 8px;
+  --ff-radius-full: 50%;
+
+  /* Transitions */
+  --ff-t-100: 100ms ease-in-out;
+  --ff-t-150: 150ms ease-in-out;
+  --ff-t-200: 200ms ease-in-out;
+  --ff-t-250: 250ms ease-in-out;
+}
+
+/* FleetCart scope — apply to storefront sections to inherit its
+   typography baseline (Poppins, 15px body like FleetCart). */
+.ff {
+  font-family: var(--ff-font);
+  color: var(--ff-black);
+}
+
+.ff h1 {
+  font-size: 36px;
+  line-height: 44px;
+}
+
+.ff h2 {
+  font-size: 28px;
+  line-height: 36px;
+}
+
+.ff h3 {
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.ff h4 {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.ff h5 {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.ff h6 {
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.ff p {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+/* FleetCart badges */
+.ff-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: var(--ff-semibold);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.ff-badge-danger {
+  background: var(--ff-red);
+}
+
+.ff-badge-info {
+  background: var(--ff-info);
+}
+
+.ff-badge-success {
+  background: var(--ff-green);
+}
+
+/* FleetCart section title underline (from _common.scss .section-title) */
+.ff-section-title {
+  position: relative;
+  font-size: 18px;
+  line-height: 24px;
+  padding-bottom: 13px;
+  font-weight: var(--ff-semibold);
+  color: var(--ff-black);
+}
+
+.ff-section-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 50px;
+  border-bottom: 2px solid var(--ff-primary);
+}
+
+/* FleetCart tab item (featured categories / product tabs) */
+.ff-tab-item {
+  cursor: pointer;
+  transition: var(--ff-t-150);
+  border: 1px solid var(--ff-gray-lite);
+  border-radius: var(--ff-radius);
+}
+
+.ff-tab-item:hover,
+.ff-tab-item.active {
+  border-color: var(--ff-primary-a80);
+}
+
 :root {
   --radius: 0.5rem;
   --background: 220 14% 96%;
@@ -126,7 +278,10 @@ html {
 }
 
 @layer base {
-  * { @apply border-border outline-ring/50; }
+  * {
+    @apply border-border outline-ring/50;
+  }
+
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
@@ -134,56 +289,130 @@ html {
   }
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 120px; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 120px;
+}
 
-section[id] { scroll-margin-top: 120px; }
+section[id] {
+  scroll-margin-top: 120px;
+}
 
-::selection { background: #0EA5E9; color: #ffffff; }
+::selection {
+  background: #0EA5E9;
+  color: #ffffff;
+}
 
 /* Custom scrollbar — minimal like Martfury */
-.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 0; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748B; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
+}
 
 /* Hide number input spinners */
 input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 
 /* Product card hover actions — subtle slide-up */
 .product-actions {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 46px; background: white;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  opacity: 0; transform: translateY(100%);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 46px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(100%);
   transition: all 0.25s ease;
   border-top: 1px solid #E2E8F0;
 }
-.product-card:hover .product-actions { opacity: 1; transform: translateY(0); }
+
+.product-card:hover .product-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .product-card:hover .product-thumb img,
-.product-card:hover .product-thumb svg { transform: scale(1.03); }
-.product-thumb img, .product-thumb svg { transition: transform 0.3s ease; }
+.product-card:hover .product-thumb svg {
+  transform: scale(1.03);
+}
+
+.product-thumb img,
+.product-thumb svg {
+  transition: transform 0.3s ease;
+}
 
 /* Discount badge — clean, minimal */
 .discount-badge {
-  background: #DC2626; color: white; font-size: 12px; font-weight: 700;
-  padding: 2px 8px; position: absolute; top: 0; left: 0; z-index: 2;
+  background: #DC2626;
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
 }
 
 /* Line clamp */
-.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* Announcement bar marquee */
-.announce-bar { animation: marquee 35s linear infinite; }
-@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+.announce-bar {
+  animation: marquee 35s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
 
 /* Scrollbar for search dropdown */
-.search-dropdown::-webkit-scrollbar { width: 4px; }
-.search-dropdown::-webkit-scrollbar-thumb { background: #CBD5E1; }
+.search-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+}
 
 /* Performance: Content visibility for off-screen sections */
-main > section {
+main>section {
   content-visibility: auto;
   contain-intrinsic-size: 0 500px;
 }
@@ -199,8 +428,14 @@ img {
 }
 
 /* Hide scrollbar utility for horizontal scroll */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 /* Auth pages — lightweight ePowerFix motion system */
 .auth-page {
@@ -259,26 +494,65 @@ img {
   animation: auth-spark-twinkle 4s ease-in-out infinite;
 }
 
-.auth-spark-one { top: 24%; left: 23%; animation-delay: -1.4s; }
-.auth-spark-two { right: 19%; top: 31%; font-size: 12px; animation-delay: -2.6s; }
-.auth-spark-three { bottom: 20%; left: 20%; font-size: 14px; animation-delay: -0.5s; }
+.auth-spark-one {
+  top: 24%;
+  left: 23%;
+  animation-delay: -1.4s;
+}
+
+.auth-spark-two {
+  right: 19%;
+  top: 31%;
+  font-size: 12px;
+  animation-delay: -2.6s;
+}
+
+.auth-spark-three {
+  bottom: 20%;
+  left: 20%;
+  font-size: 14px;
+  animation-delay: -0.5s;
+}
 
 .auth-panel {
   animation: auth-panel-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.auth-form-stagger > * {
+.auth-form-stagger>* {
   animation: auth-item-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.auth-form-stagger > *:nth-child(1) { animation-delay: 90ms; }
-.auth-form-stagger > *:nth-child(2) { animation-delay: 135ms; }
-.auth-form-stagger > *:nth-child(3) { animation-delay: 180ms; }
-.auth-form-stagger > *:nth-child(4) { animation-delay: 225ms; }
-.auth-form-stagger > *:nth-child(5) { animation-delay: 270ms; }
-.auth-form-stagger > *:nth-child(6) { animation-delay: 315ms; }
-.auth-form-stagger > *:nth-child(7) { animation-delay: 360ms; }
-.auth-form-stagger > *:nth-child(8) { animation-delay: 405ms; }
+.auth-form-stagger>*:nth-child(1) {
+  animation-delay: 90ms;
+}
+
+.auth-form-stagger>*:nth-child(2) {
+  animation-delay: 135ms;
+}
+
+.auth-form-stagger>*:nth-child(3) {
+  animation-delay: 180ms;
+}
+
+.auth-form-stagger>*:nth-child(4) {
+  animation-delay: 225ms;
+}
+
+.auth-form-stagger>*:nth-child(5) {
+  animation-delay: 270ms;
+}
+
+.auth-form-stagger>*:nth-child(6) {
+  animation-delay: 315ms;
+}
+
+.auth-form-stagger>*:nth-child(7) {
+  animation-delay: 360ms;
+}
+
+.auth-form-stagger>*:nth-child(8) {
+  animation-delay: 405ms;
+}
 
 .auth-logo-mark {
   animation: auth-logo-pulse 3.8s ease-in-out infinite;
@@ -338,46 +612,105 @@ img {
 }
 
 @keyframes auth-grid-drift {
-  0% { transform: scale(1.04) translate3d(-0.5%, -0.5%, 0); }
-  100% { transform: scale(1.08) translate3d(0.5%, 0.5%, 0); }
+  0% {
+    transform: scale(1.04) translate3d(-0.5%, -0.5%, 0);
+  }
+
+  100% {
+    transform: scale(1.08) translate3d(0.5%, 0.5%, 0);
+  }
 }
 
 @keyframes auth-orb-float-one {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(28px, 18px, 0) scale(1.1); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(28px, 18px, 0) scale(1.1);
+  }
 }
 
 @keyframes auth-orb-float-two {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-24px, -20px, 0) scale(0.92); }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(-24px, -20px, 0) scale(0.92);
+  }
 }
 
 @keyframes auth-orb-float-three {
-  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.35; }
-  50% { transform: translate3d(-18px, 24px, 0); opacity: 0.7; }
+
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: translate3d(-18px, 24px, 0);
+    opacity: 0.7;
+  }
 }
 
 @keyframes auth-spark-twinkle {
-  0%, 100% { opacity: 0.18; transform: scale(0.8) rotate(0deg); }
-  50% { opacity: 0.85; transform: scale(1.2) rotate(45deg); }
+
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(0.8) rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.2) rotate(45deg);
+  }
 }
 
 @keyframes auth-panel-enter {
-  from { opacity: 0; transform: translateY(18px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes auth-item-enter {
-  from { opacity: 0; transform: translateY(9px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes auth-logo-pulse {
-  0%, 100% { box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
-  50% { box-shadow: 0 8px 22px rgba(14, 165, 233, 0.34); }
+
+  0%,
+  100% {
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 8px 22px rgba(14, 165, 233, 0.34);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .auth-page *,
   .auth-page *::before,
   .auth-page *::after {
@@ -408,11 +741,9 @@ body:has(header[data-customer-shell="page"]) main,
   font-family: var(--font-body, var(--font-en)), var(--font-bn), system-ui, sans-serif;
 }
 
-:is(
-  body:has(header[data-customer-shell="page"]) main,
+:is(body:has(header[data-customer-shell="page"]) main,
   .auth-page,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where(p, li, dt, dd, blockquote, label) {
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where(p, li, dt, dd, blockquote, label) {
   line-height: 1.55;
 }
 
@@ -446,83 +777,64 @@ body:has(header[data-customer-shell="page"]) [role="dialog"] :where(p, span, sma
 }
 
 /* Forms stay 16px on touch screens (no mobile zoom), then match home at 14px. */
-:is(
-  body:has(header[data-customer-shell="page"]) main,
+:is(body:has(header[data-customer-shell="page"]) main,
   .auth-page,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where(
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
   textarea,
   select,
-  [data-slot="select-trigger"]
-) {
+  [data-slot="select-trigger"]) {
   font-family: inherit;
   font-size: 1rem;
   line-height: 1.5;
 }
 
-:is(
-  body:has(header[data-customer-shell="page"]) main,
+:is(body:has(header[data-customer-shell="page"]) main,
   .auth-page,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where(label) {
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where(label) {
   font-size: 0.875rem;
 }
 
 /* Shared tables/cards keep their layout but use a legible customer scale. */
-:is(
-  body:has(header[data-customer-shell="page"]) main,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where([data-slot="table"]) {
+:is(body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where([data-slot="table"]) {
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
-:is(
-  body:has(header[data-customer-shell="page"]) main,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where([data-slot="table-head"]) {
+:is(body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where([data-slot="table-head"]) {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1.4;
 }
 
-:is(
-  body:has(header[data-customer-shell="page"]) main,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where([data-slot="table-cell"]) {
+:is(body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where([data-slot="table-cell"]) {
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
-:is(
-  body:has(header[data-customer-shell="page"]) main,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where([data-slot="card-title"][class*="text-[14px]"]) {
+:is(body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where([data-slot="card-title"][class*="text-[14px]"]) {
   font-size: 1rem;
   line-height: 1.35;
 }
 
-:is(
-  body:has(header[data-customer-shell="page"]) main,
-  body:has(header[data-customer-shell="page"]) [role="dialog"]
-) :where([data-slot="card-description"]) {
+:is(body:has(header[data-customer-shell="page"]) main,
+  body:has(header[data-customer-shell="page"]) [role="dialog"]) :where([data-slot="card-description"]) {
   font-size: 0.875rem;
   line-height: 1.55;
 }
 
 @media (min-width: 768px) {
-  :is(
-    body:has(header[data-customer-shell="page"]) main,
+
+  :is(body:has(header[data-customer-shell="page"]) main,
     .auth-page,
-    body:has(header[data-customer-shell="page"]) [role="dialog"]
-  ) :where(
-    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
+    body:has(header[data-customer-shell="page"]) [role="dialog"]) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),
     textarea,
     select,
-    [data-slot="select-trigger"]
-  ) {
+    [data-slot="select-trigger"]) {
     font-size: 0.875rem;
   }
 }
@@ -611,12 +923,13 @@ body:has(header[data-customer-shell="page"]) [role="dialog"] :where(p, span, sma
     align-items: flex-start;
   }
 
-  .epf-reference-section-heading > a {
+  .epf-reference-section-heading>a {
     padding-top: 0.25rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .epf-reference-category-card,
   .epf-reference-product-card,
   .epf-reference-project-card,

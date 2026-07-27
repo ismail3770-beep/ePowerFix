@@ -1,22 +1,10 @@
 "use client";
 
-import { type MouseEvent, Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Grid2X2,
-  Heart,
-  List,
-  Loader2,
-  Package,
-  ShoppingCart,
-  SlidersHorizontal,
-  Star,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Grid2X2, List, Loader2, Package, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
@@ -69,173 +57,149 @@ const sortOptions = [
   { value: "rating", label: "Top Rated" },
 ];
 
-function getCardData(product: Product) {
-  const salePrice = product.salePrice != null && product.salePrice < product.price
-    ? product.salePrice
-    : null;
+const perPageOptions = [12, 24, 48];
 
-  return {
-    id: product.id,
-    name: product.name,
-    slug: product.slug,
-    price: salePrice ?? product.price,
-    comparePrice: salePrice != null ? product.price : null,
-    images: product.images,
-    stock: product.stock,
-    rating: product.rating,
-    reviewCount: product.reviewCount,
-    category: product.category?.name,
-    sku: product.sku ?? undefined,
-  };
+function formatBdt(value: number) {
+  return `৳${Number(value).toLocaleString()}`;
 }
 
-function StoreProductCard({ product }: { product: Product }) {
-  const addItem = useCartStore((state) => state.addItem);
-  const setCartOpen = useUIStore((state) => state.setCartOpen);
-  const [imageError, setImageError] = useState(false);
-  const card = getCardData(product);
-  const displayPrice = card.price;
-  const originalPrice = card.comparePrice;
-  const discount = originalPrice ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
-  const image = card.images?.[0];
-  const inStock = product.stock > 0;
+function prices(product: Product) {
+  const sale =
+    product.salePrice != null && product.salePrice < product.price ? product.salePrice : null;
+  return { price: sale ?? product.price, compareAtPrice: sale != null ? product.price : null };
+}
+
+/** Sidebar latest-products row (FleetCart vertical product card). */
+function VerticalProduct({ product }: { product: Product }) {
+  const { price } = prices(product);
+  const image = product.images?.[0];
   const href = `/shop/${product.slug || product.id}`;
-
-  const handleAdd = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!inStock) return;
-    addItem({
-      itemType: "PRODUCT",
-      productId: product.id,
-      productName: product.name,
-      productImage: image || "",
-      price: Number(displayPrice),
-      quantity: 1,
-    });
-    toast.success("Added to cart", { description: product.name });
-    setCartOpen(true);
-  };
-
   return (
-    <article className="group relative bg-white border border-gray-100 rounded overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
-      <div className="relative aspect-square bg-gray-50 overflow-hidden">
-        {image && !imageError ? (
-          <img src={image} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={() => setImageError(true)} />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gray-100"><Package className="h-8 w-8 text-gray-300" /></div>
-        )}
-        {discount > 0 && <span className="absolute left-2 top-2 bg-[#0EA5E9] px-2 py-0.5 text-[10px] font-bold text-white rounded-full">-{discount}%</span>}
-        {!inStock && <span className="absolute left-2 top-2 bg-gray-700 px-2 py-0.5 text-[10px] font-bold text-white rounded-full">Out of stock</span>}
-        {/* Hover overlay — slide up */}
-        <div className="absolute bottom-0 left-0 right-0 flex gap-2 p-2.5 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={!inStock}
-            className="flex-1 bg-[#0EA5E9] text-white text-xs font-semibold py-2 rounded hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-            {inStock ? "Add to Cart" : "Out of Stock"}
-          </button>
-          <button
-            type="button"
-            aria-label="Add to wishlist"
-            className="p-2 rounded bg-white/80 border border-white/30 text-gray-700 hover:bg-white transition-colors"
-            onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
-          >
-            <Heart className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-      <Link href={href} className="block p-3">
-        {product.category?.name && <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1 font-medium">{product.category.name}</p>}
-        <h3 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 leading-snug group-hover:text-[#0EA5E9] transition-colors">{product.name}</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-[#0EA5E9]">৳{Number(displayPrice).toLocaleString()}</span>
-          {originalPrice && <del className="text-xs text-gray-400">৳{Number(originalPrice).toLocaleString()}</del>}
-        </div>
-        {(product.rating || 0) > 0 && (
-          <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-gray-400">
-            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-            {Number(product.rating).toFixed(1)} ({product.reviewCount || 0})
-          </span>
-        )}
-      </Link>
-    </article>
-  );
-}
-
-function RatingStars({ rating, count }: { rating: number; count: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <span className="flex items-center gap-0.5" aria-label={`${rating.toFixed(1)} out of 5 stars`}>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Star key={index} className={cn("h-3.5 w-3.5", index < Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200")} />
-        ))}
-      </span>
-      <span className="text-xs text-gray-400">({count})</span>
-    </div>
-  );
-}
-
-function LatestProduct({ product }: { product: Product }) {
-  const card = getCardData(product);
-  const image = card.images?.[0];
-
-  return (
-    <Link href={`/shop/${product.slug || product.id}`} className="group flex gap-2.5 cursor-pointer">
-      <div className="w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
+    <Link href={href} className="group flex gap-3">
+      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-[#f9f9f9] flex items-center justify-center">
         {image ? (
-          <img src={image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+          <img src={image} alt={product.name} loading="lazy" className="w-full h-full object-contain" />
         ) : (
-          <Package className="m-3 h-5 w-5 text-gray-300" />
+          <Package className="h-5 w-5 text-[#c8c8c8]" />
         )}
       </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-gray-700 line-clamp-2 group-hover:text-[#0EA5E9] transition-colors leading-snug">{product.name}</p>
-        <p className="text-xs font-bold text-[#0EA5E9] mt-0.5">৳{Number(card.price).toLocaleString()}</p>
+      <div className="min-w-0 flex flex-col justify-center">
+        <span className="text-[13px] leading-[18px] text-[#191919] line-clamp-2 group-hover:text-[#0068e1] transition-colors">
+          {product.name}
+        </span>
+        <span className="text-[14px] font-medium text-[#0068e1] mt-1">{formatBdt(price)}</span>
       </div>
     </Link>
   );
 }
 
-function ListProductRow({ product, onAddToCart }: { product: Product; onAddToCart: (product: Product) => void }) {
-  const card = getCardData(product);
-  const image = card.images?.[0];
+/** FleetCart list-view product row. */
+function ListProductCard({ product, onAdd }: { product: Product; onAdd: (product: Product) => void }) {
+  const { price, compareAtPrice } = prices(product);
+  const image = product.images?.[0];
   const inStock = product.stock > 0;
-
+  const href = `/shop/${product.slug || product.id}`;
   return (
-    <article className="flex gap-4 border border-gray-100 rounded bg-white p-4 hover:shadow-md transition-shadow cursor-pointer group">
-      <Link href={`/shop/${product.slug || product.id}`} className="h-24 w-24 shrink-0 overflow-hidden rounded bg-gray-50 sm:h-32 sm:w-32">
-        {image ? (
-          <img src={image} alt={product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        ) : (
-          <Package className="m-8 h-8 w-8 text-gray-300" />
-        )}
-      </Link>
-      <div className="flex min-w-0 flex-1 flex-col justify-center">
-        {product.category?.name && (
-          <p className="mb-1 text-[10px] text-gray-400 font-medium uppercase tracking-widest">{product.category.name}</p>
-        )}
-        <Link href={`/shop/${product.slug || product.id}`}>
-          <h3 className="font-medium text-sm text-gray-800 group-hover:text-[#0EA5E9] line-clamp-2 mb-1 leading-snug">{product.name}</h3>
+    <div className="flex flex-col sm:flex-row gap-4 border border-[#e8e7eb] rounded-[10px] p-3 transition-shadow hover:shadow-[rgba(0,0,0,0.04)_0px_3px_5px]">
+      <div className="relative shrink-0">
+        <Link
+          href={href}
+          className="block w-full sm:w-[170px] h-[170px] rounded-lg overflow-hidden bg-[#f9f9f9] flex items-center justify-center"
+        >
+          {image ? (
+            <img src={image} alt={product.name} loading="lazy" className="w-full h-full object-contain" />
+          ) : (
+            <Package className="h-10 w-10 text-[#c8c8c8]" />
+          )}
         </Link>
-        <RatingStars rating={product.rating || 0} count={product.reviewCount || 0} />
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-base font-bold text-[#0EA5E9]">৳{Number(card.price).toLocaleString()}</span>
-          {card.comparePrice != null && <del className="text-sm text-gray-400">৳{Number(card.comparePrice).toLocaleString()}</del>}
+        {!inStock && (
+          <span className="ff-badge ff-badge-danger absolute top-2 left-2 z-[1]">স্টক নেই</span>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col">
+        <Link href={href} className="group">
+          <span className="block text-[16px] font-medium leading-[22px] text-[#191919] line-clamp-2 group-hover:text-[#0068e1] transition-colors mb-4">
+            {product.name}
+          </span>
+        </Link>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-[18px] font-medium text-[#0068e1]">{formatBdt(price)}</span>
+          {compareAtPrice != null && (
+            <span className="text-[14px] text-[#6e6e6e] line-through">{formatBdt(compareAtPrice)}</span>
+          )}
         </div>
         <button
           type="button"
-          onClick={() => onAddToCart(product)}
+          onClick={() => onAdd(product)}
           disabled={!inStock}
-          className="mt-3 w-fit bg-[#0EA5E9] text-white text-xs font-semibold px-4 py-2 rounded hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-fit h-[35px] px-5 rounded-[8px] bg-[#0068e1] text-white text-[14px] hover:bg-[#0057bd] disabled:bg-[#efeef1] disabled:text-[#cac7d1] disabled:cursor-not-allowed transition-colors"
         >
           {inStock ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
-    </article>
+    </div>
+  );
+}
+
+/**
+ * Active eCommerce product card — matches the reference screenshot exactly:
+ * a thin-bordered rounded card, square light-grey image area with a small
+ * circular store icon top-right, centered grey product name (2 lines) and a
+ * centered bold blue price.
+ */
+function GridProduct({ product }: { product: Product }) {
+  const { price } = prices(product);
+  const image = product.images?.[0];
+  const inStock = product.stock > 0;
+  const href = `/shop/${product.slug || product.id}`;
+  return (
+    <Link
+      href={href}
+      className="group mx-auto flex w-[231px] h-[364px] flex-col rounded-lg border border-[#ededed] bg-white p-3 transition-shadow duration-200 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
+    >
+      {/* Image — square, very light grey background, rounded */}
+      <div className="relative aspect-square shrink-0 overflow-hidden rounded-md bg-[#f7f7f9]">
+        {image ? (
+          <img
+            src={image}
+            alt={product.name}
+            loading="lazy"
+            className="h-full w-full object-contain p-5 transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center">
+            <Package className="h-10 w-10 text-[#c8c8c8]" />
+          </span>
+        )}
+        {/* small circular store icon — top right */}
+        <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/5 text-slate-400">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 9L4 4H20L21 9M3 9V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V9M3 9H21M8 13H16"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        {!inStock && (
+          <span className="absolute left-2 top-2 rounded bg-slate-500 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+            স্টক নেই
+          </span>
+        )}
+      </div>
+
+      {/* Name — centered, grey, 2 lines */}
+      <h3 className="mt-4 line-clamp-2 min-h-[40px] text-center text-[14px] leading-[1.4] text-[#3f4254] transition-colors group-hover:text-[#0068e1]">
+        {product.name}
+      </h3>
+
+      {/* Price — centered, bold blue */}
+      <div className="mt-2 mb-1 text-center text-[17px] font-bold text-[#0068e1]">
+        {formatBdt(price)}
+      </div>
+    </Link>
   );
 }
 
@@ -243,14 +207,13 @@ function ShopPageContent() {
   const searchParams = useSearchParams();
   const addItem = useCartStore((state) => state.addItem);
   const setCartOpen = useUIStore((state) => state.setCartOpen);
-  const initialCategory = searchParams.get("category") || "";
   const search = searchParams.get("search") || "";
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(24);
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [sort, setSort] = useState(searchParams.get("sort") || "featured");
-  const [category, setCategory] = useState(initialCategory);
+  const [sort, setSort] = useState(searchParams.get("sort") || "latest");
+  const [category, setCategory] = useState(searchParams.get("category") || "");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -275,7 +238,7 @@ function ShopPageContent() {
 
   const latestQuery = useQuery<ProductListResponse>({
     queryKey: ["shop-latest-products"],
-    queryFn: () => apiFetch<ProductListResponse>("/api/products?limit=4&sort=latest"),
+    queryFn: () => apiFetch<ProductListResponse>("/api/products?limit=5&sort=latest"),
     staleTime: 60 * 1000,
   });
 
@@ -283,221 +246,314 @@ function ShopPageContent() {
   const total = productQuery.data?.data.total ?? 0;
   const totalPages = productQuery.data?.data.totalPages ?? 1;
   const categories = categoriesQuery.data?.categories ?? [];
+  const latestProducts = latestQuery.data?.data.data ?? [];
   const firstResult = total === 0 ? 0 : (page - 1) * limit + 1;
   const lastResult = Math.min(page * limit, total);
   const selectedCategoryName = categories.find((item) => item.slug === category)?.name;
+  const emptyProducts = !productQuery.isLoading && products.length === 0;
 
   const activeFilterCount = useMemo(
     () => [category, minPrice, maxPrice].filter(Boolean).length,
     [category, minPrice, maxPrice],
   );
 
-  const clearFilters = () => {
-    setCategory("");
-    setMinPrice("");
-    setMaxPrice("");
+  const resetPageAnd = (action: () => void) => {
+    action();
     setPage(1);
   };
 
-  const addProductToCart = (product: Product) => {
-    const card = getCardData(product);
+  const clearFilters = () =>
+    resetPageAnd(() => {
+      setCategory("");
+      setMinPrice("");
+      setMaxPrice("");
+    });
+
+  const addToCart = (product: Product) => {
+    const { price } = prices(product);
     addItem({
       itemType: "PRODUCT",
       productId: product.id,
       productName: product.name,
-      productImage: card.images?.[0] || "",
-      price: card.price,
+      productImage: product.images?.[0] || "",
+      price,
       quantity: 1,
     });
     toast.success("Added to cart", { description: product.name });
     setCartOpen(true);
   };
 
-  const resetPageAnd = (action: () => void) => {
-    action();
-    setPage(1);
-  };
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <h4 className="relative text-[18px] leading-6 font-semibold text-[#191919] pb-3 mb-6 after:content-[''] after:absolute after:left-0 after:bottom-[-1px] after:w-[50px] after:border-b-2 after:border-[#0068e1]">
+      {children}
+    </h4>
+  );
 
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-6 flex items-center gap-2 text-xs text-gray-500">
-            <Link href="/" className="hover:text-gray-900">Home</Link>
-            <ChevronRight className="h-3 w-3 text-gray-300" />
-            <span className="text-gray-900 font-medium">{selectedCategoryName || "All Products"}</span>
-          </div>
-
-          <div className="mt-6 flex gap-8">
-            {/* Sidebar — desktop only */}
-            <aside className={cn("w-56 shrink-0 space-y-5 md:block", filtersOpen ? "block" : "hidden")}>
+      <main className="ff min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-6 lg:py-10">
+          <div className="flex flex-col-reverse lg:flex-row gap-8">
+            {/* Sidebar */}
+            <aside
+              className={cn(
+                "w-full lg:w-[263px] lg:min-w-[263px] shrink-0",
+                filtersOpen ? "block" : "hidden lg:block",
+              )}
+            >
               {/* Mobile close */}
-              <div className="flex items-center justify-between md:hidden">
-                <h3 className="font-semibold text-sm uppercase tracking-wider">Filters</h3>
-                <button type="button" onClick={() => setFiltersOpen(false)} className="text-gray-400" aria-label="Close filters">
-                  <X className="h-4 w-4" />
+              <div className="flex items-center justify-between mb-4 lg:hidden">
+                <h4 className="text-[18px] font-semibold text-[#191919]">Filters</h4>
+                <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Close filters">
+                  <X className="h-5 w-5 text-[#191919]" />
                 </button>
               </div>
 
-              {/* Categories */}
-              <div>
-                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Categories</h3>
-                <div className="space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => resetPageAnd(() => setCategory(""))}
-                    className={cn("w-full flex items-center justify-between py-1.5 text-sm", !category ? "text-[#0EA5E9] font-semibold" : "text-gray-500 hover:text-gray-900")}
-                  >
-                    <span>All Products</span>
-                    <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{total}</span>
-                  </button>
-                  {categoriesQuery.isLoading ? (
-                    <div className="space-y-2 py-1">
-                      {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-4 animate-pulse rounded bg-gray-100" />)}
-                    </div>
-                  ) : (
-                    categories.map((item) => (
+              {/* Browse categories */}
+              {categories.length > 0 && (
+                <div className="mb-8">
+                  <SectionTitle>Browse Categories</SectionTitle>
+                  <ul className="space-y-3">
+                    <li>
                       <button
                         type="button"
-                        key={item.id}
-                        onClick={() => resetPageAnd(() => setCategory(item.slug))}
-                        className={cn("w-full flex items-center justify-between py-1.5 text-sm", category === item.slug ? "text-[#0EA5E9] font-semibold" : "text-gray-500 hover:text-gray-900")}
+                        onClick={() => resetPageAnd(() => setCategory(""))}
+                        className={cn(
+                          "text-[15px] transition-colors",
+                          !category ? "text-[#0068e1] font-medium" : "text-[#191919] hover:text-[#0068e1]",
+                        )}
                       >
-                        <span>{item.name}</span>
-                        {item._count?.products != null && <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{item._count.products}</span>}
+                        All Products
                       </button>
-                    ))
-                  )}
+                    </li>
+                    {categories.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          onClick={() => resetPageAnd(() => setCategory(item.slug))}
+                          className={cn(
+                            "text-[15px] transition-colors text-left",
+                            category === item.slug
+                              ? "text-[#0068e1] font-medium"
+                              : "text-[#191919] hover:text-[#0068e1]",
+                          )}
+                        >
+                          {item.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              )}
 
-              {/* Price Range */}
-              <div className="border-t border-gray-200 pt-5">
-                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Price Range</h3>
-                <div className="flex items-center gap-2">
+              {/* Price filter */}
+              <div className="mb-8">
+                <h6 className="text-[16px] font-medium text-[#191919] mb-4">Price</h6>
+                <div className="flex items-center gap-4">
                   <input
-                    value={minPrice}
-                    onChange={(event) => resetPageAnd(() => setMinPrice(event.target.value.replace(/\D/g, "")))}
-                    inputMode="numeric"
-                    placeholder="Min"
+                    type="number"
+                    placeholder="From"
                     aria-label="Minimum price"
-                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs outline-none focus:border-[#0EA5E9] transition-colors"
+                    value={minPrice}
+                    onChange={(e) => resetPageAnd(() => setMinPrice(e.target.value.replace(/\D/g, "")))}
+                    className="h-10 w-full rounded-lg border border-[#e8e7eb] px-3 text-sm outline-none focus:border-[#0068e1] transition-colors"
                   />
-                  <span className="text-gray-400 text-xs">—</span>
+                  <span className="text-[#6e6e6e]">-</span>
                   <input
-                    value={maxPrice}
-                    onChange={(event) => resetPageAnd(() => setMaxPrice(event.target.value.replace(/\D/g, "")))}
-                    inputMode="numeric"
-                    placeholder="Max"
+                    type="number"
+                    placeholder="To"
                     aria-label="Maximum price"
-                    className="h-8 w-full rounded border border-gray-300 px-2 text-xs outline-none focus:border-[#0EA5E9] transition-colors"
+                    value={maxPrice}
+                    onChange={(e) => resetPageAnd(() => setMaxPrice(e.target.value.replace(/\D/g, "")))}
+                    className="h-10 w-full rounded-lg border border-[#e8e7eb] px-3 text-sm outline-none focus:border-[#0068e1] transition-colors"
                   />
                 </div>
               </div>
 
-              {/* Latest Products */}
-              <div className="border-t border-gray-200 pt-5">
-                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Latest Products</h3>
-                <div className="space-y-3">
-                  {latestQuery.isLoading ? (
-                    Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded bg-gray-100" />)
-                  ) : (
-                    latestQuery.data?.data.data.slice(0, 4).map((product) => <LatestProduct key={product.id} product={product} />)
-                  )}
-                </div>
-              </div>
-
-              {/* Clear filters */}
               {(category || minPrice || maxPrice) && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="w-full border border-gray-200 rounded py-2 text-xs font-medium text-gray-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9] transition-colors"
+                  className="w-full border border-[#e8e7eb] rounded-lg py-2 text-sm text-[#6e6e6e] hover:text-[#0068e1] hover:border-[#0068e1] transition-colors mb-8"
                 >
                   Clear All Filters
                 </button>
               )}
+
+              {/* Latest products */}
+              {latestProducts.length > 0 && (
+                <div>
+                  <SectionTitle>Latest Products</SectionTitle>
+                  <div className="space-y-4">
+                    {latestProducts.slice(0, 5).map((product) => (
+                      <VerticalProduct key={product.id} product={product} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </aside>
 
+            {/* Results */}
             <section className="flex-1 min-w-0">
-              {/* Toolbar */}
-              <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-                <div className="flex items-center gap-3">
+              {/* Top bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+                <h1 className="text-[22px] text-[#6e6e6e] font-normal">
+                  {search ? (
+                    <>
+                      Search results for <span className="text-[#191919] font-medium">{search}</span>
+                    </>
+                  ) : (
+                    <span className="text-[#191919] font-medium">{selectedCategoryName || "Shop"}</span>
+                  )}
+                </h1>
+
+                <div className="flex items-center gap-4 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => setFiltersOpen((open) => !open)}
-                    className="md:hidden flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-xs font-medium"
+                    onClick={() => setFiltersOpen((v) => !v)}
+                    className="lg:hidden flex items-center gap-1.5 text-[#6e6e6e] hover:text-[#0068e1] transition-colors text-sm"
                   >
-                    <SlidersHorizontal className="h-3 w-3" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
                   </button>
-                  <p className="text-xs text-gray-500"><span className="font-semibold text-gray-900">{total}</span> products found</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <select
-                    id="shop-sort"
-                    value={sort}
-                    onChange={(event) => resetPageAnd(() => setSort(event.target.value))}
-                    className="text-xs border border-gray-200 rounded px-3 py-1.5 outline-none bg-white"
-                  >
-                    {sortOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                  </select>
-                  <div className="flex border border-gray-200 rounded overflow-hidden">
-                    <button type="button" onClick={() => setView("grid")} className={cn("p-1.5", view === "grid" ? "bg-[#0EA5E9] text-white" : "text-gray-500 hover:bg-gray-100")} aria-label="Grid view">
-                      <Grid2X2 className="h-3.5 w-3.5" />
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setView("grid")}
+                      className={cn("transition-colors", view === "grid" ? "text-[#0068e1]" : "text-[#a6a6a6] hover:text-[#0068e1]")}
+                      aria-label="Grid view"
+                    >
+                      <Grid2X2 className="h-[22px] w-[22px]" />
                     </button>
-                    <button type="button" onClick={() => setView("list")} className={cn("p-1.5", view === "list" ? "bg-[#0EA5E9] text-white" : "text-gray-500 hover:bg-gray-100")} aria-label="List view">
-                      <List className="h-3.5 w-3.5" />
+                    <button
+                      type="button"
+                      onClick={() => setView("list")}
+                      className={cn("transition-colors", view === "list" ? "text-[#0068e1]" : "text-[#a6a6a6] hover:text-[#0068e1]")}
+                      aria-label="List view"
+                    >
+                      <List className="h-[22px] w-[22px]" />
                     </button>
                   </div>
+
+                  <select
+                    aria-label="Sort"
+                    value={sort}
+                    onChange={(e) => resetPageAnd(() => setSort(e.target.value))}
+                    className="h-10 rounded-lg border border-[#e8e7eb] px-3 text-sm bg-white text-[#191919] outline-none focus:border-[#0068e1] cursor-pointer transition-colors"
+                  >
+                    {sortOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    aria-label="Per page"
+                    value={limit}
+                    onChange={(e) => resetPageAnd(() => setLimit(Number(e.target.value)))}
+                    className="h-10 rounded-lg border border-[#e8e7eb] px-3 text-sm bg-white text-[#191919] outline-none focus:border-[#0068e1] cursor-pointer transition-colors"
+                  >
+                    {perPageOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
+              {/* Body */}
               {productQuery.isError ? (
-                <div className="rounded border border-red-100 bg-white px-5 py-16 text-center">
-                  <p className="font-semibold text-gray-800">We couldn&apos;t load the products.</p>
-                  <p className="mt-1 text-sm text-gray-500">Please check your connection and try again.</p>
-                  <button type="button" onClick={() => productQuery.refetch()} className="mt-4 rounded bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">Try again</button>
+                <div className="rounded-lg border border-red-100 bg-white px-5 py-16 text-center">
+                  <p className="font-semibold text-[#191919]">We couldn&apos;t load the products.</p>
+                  <p className="mt-1 text-sm text-[#6e6e6e]">Please check your connection and try again.</p>
+                  <button
+                    type="button"
+                    onClick={() => productQuery.refetch()}
+                    className="mt-4 rounded-lg bg-[#0068e1] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0057bd]"
+                  >
+                    Try again
+                  </button>
                 </div>
               ) : productQuery.isLoading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {Array.from({ length: 12 }).map((_, index) => <div key={index} className="aspect-square animate-pulse border border-gray-100 bg-white rounded" />)}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {Array.from({ length: 15 }).map((_, index) => (
+                    <div key={index} className="h-[280px] animate-pulse rounded-lg bg-[#f2f2f2]" />
+                  ))}
                 </div>
-              ) : products.length === 0 ? (
+              ) : emptyProducts ? (
                 <div className="text-center py-20">
-                  <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                  <h2 className="text-lg font-semibold text-gray-800 mb-2">No products found</h2>
-                  <p className="text-gray-500 text-sm">Try a different category or clear your filters.</p>
-                  <button type="button" onClick={clearFilters} className="mt-4 rounded bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">Clear all filters</button>
+                  <Package className="mx-auto h-12 w-12 text-[#d4d4d4] mb-4" />
+                  <h2 className="text-lg font-semibold text-[#191919] mb-2">No products found</h2>
+                  <p className="text-[#6e6e6e] text-sm">Try a different category or clear your filters.</p>
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="mt-4 rounded-lg bg-[#0068e1] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0057bd]"
+                  >
+                    Clear all filters
+                  </button>
                 </div>
               ) : view === "grid" ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {products.map((product) => (
-                    <StoreProductCard key={product.id} product={product} />
+                    <GridProduct key={product.id} product={product} />
                   ))}
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {products.map((product) => <ListProductRow key={product.id} product={product} onAddToCart={addProductToCart} />)}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {products.map((product) => (
+                    <ListProductCard key={product.id} product={product} onAdd={addToCart} />
+                  ))}
                 </div>
               )}
 
-              {!productQuery.isLoading && products.length > 0 && (
-                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-5">
-                  <p className="text-sm text-gray-500">Showing <span className="font-semibold text-gray-700">{firstResult}–{lastResult}</span> of <span className="font-semibold text-gray-700">{total}</span> products</p>
-                  <div className="flex items-center gap-3">
-                    <label htmlFor="shop-limit" className="hidden text-sm text-gray-500 sm:inline">Show:</label>
-                    <select id="shop-limit" value={limit} onChange={(event) => resetPageAnd(() => setLimit(Number(event.target.value)))} className="h-9 rounded border border-gray-300 bg-white px-2 text-sm text-gray-700 outline-none focus:border-[#0EA5E9]">
-                      {[12, 24, 48].map((value) => <option key={value} value={value}>{value}</option>)}
-                    </select>
+              {/* Bottom */}
+              {!emptyProducts && !productQuery.isLoading && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
+                  <span className="text-sm text-[#6e6e6e]">
+                    Showing {firstResult}–{lastResult} of {total} results
+                  </span>
+                  {totalPages > 1 && (
                     <div className="flex items-center gap-1.5">
-                      <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white" aria-label="Previous page"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                      <button
+                        type="button"
+                        disabled={page <= 1}
+                        onClick={() => setPage((v) => v - 1)}
+                        className="w-9 h-9 border border-[#e8e7eb] rounded-lg flex items-center justify-center text-[#6e6e6e] hover:border-[#0068e1] hover:text-[#0068e1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((n) => (
-                        <button key={n} type="button" onClick={() => setPage(n)} className={`w-8 h-8 border rounded text-sm font-medium transition-colors ${page === n ? "bg-[#0EA5E9] text-white border-[#0EA5E9]" : "border-gray-300 text-gray-600 hover:border-[#0EA5E9] hover:text-[#0EA5E9] bg-white"}`}>{n}</button>
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setPage(n)}
+                          className={cn(
+                            "w-9 h-9 border rounded-lg text-sm font-medium transition-colors",
+                            page === n
+                              ? "bg-[#0068e1] text-white border-[#0068e1]"
+                              : "border-[#e8e7eb] text-[#191919] hover:border-[#0068e1] hover:text-[#0068e1]",
+                          )}
+                        >
+                          {n}
+                        </button>
                       ))}
-                      <button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white" aria-label="Next page"><ChevronRight className="h-3.5 w-3.5" /></button>
+                      <button
+                        type="button"
+                        disabled={page >= totalPages}
+                        onClick={() => setPage((v) => v + 1)}
+                        className="w-9 h-9 border border-[#e8e7eb] rounded-lg flex items-center justify-center text-[#6e6e6e] hover:border-[#0068e1] hover:text-[#0068e1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </section>
@@ -520,8 +576,8 @@ function ShopPageContent() {
 
 function ShopPageFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <Loader2 className="h-6 w-6 animate-spin text-[#0EA5E9]" />
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <Loader2 className="h-6 w-6 animate-spin text-[#0068e1]" />
     </div>
   );
 }

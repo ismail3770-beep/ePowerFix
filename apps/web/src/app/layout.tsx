@@ -2,6 +2,7 @@ import type * as React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Noto_Sans_Bengali } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
@@ -21,6 +22,14 @@ const notoBengali = Noto_Sans_Bengali({
   variable: "--font-bn",
   subsets: ["bengali"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// FleetCart display font — used across the storefront to match its exact look.
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -63,7 +72,7 @@ export default function RootLayout({
     <html lang="bn" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${notoBengali.variable} ${inter.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${notoBengali.variable} ${inter.variable} ${poppins.variable} font-sans antialiased bg-background text-foreground`}
       >
         <ThemeProvider
           attribute="class"
