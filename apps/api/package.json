@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot src/server.ts",
-    "build": "tsc --noEmit --pretty false",
+    "build": "tsc",
     "typecheck": "tsc --noEmit --pretty false",
     "start": "bun src/server.ts",
     "lint": "tsc --noEmit --pretty false"
