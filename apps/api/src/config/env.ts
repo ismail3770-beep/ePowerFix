@@ -150,7 +150,9 @@ export function loadEnv(source: EnvironmentSource = process.env): EnvShape {
   if (NODE_ENV === 'production') {
     if (!DATABASE_URL) errors.push('DATABASE_URL is required in production')
     if (JWT_SECRET.length < 32) errors.push('JWT_SECRET must be at least 32 characters in production')
-    if (WEB_URL.includes('localhost')) errors.push('WEB_URL must not use localhost in production')
+    if (WEB_URL.includes('localhost') && !source.VERCEL && !process.env.VERCEL) {
+      errors.push('WEB_URL must not use localhost in production')
+    }
     if (source.PAYMENT_TEST_MODE === 'true') errors.push('PAYMENT_TEST_MODE must not be enabled in production')
     const paymentGatewayConfigured = Boolean(
       SSLCOMMERZ_STORE_ID || BKASH_APP_KEY || NAGAD_MERCHANT_ID
