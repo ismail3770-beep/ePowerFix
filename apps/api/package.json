@@ -2,6 +2,7 @@
   "name": "@epowerfix/api",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "bun --hot src/server.ts",
     "build": "tsc --noEmit --pretty false",
