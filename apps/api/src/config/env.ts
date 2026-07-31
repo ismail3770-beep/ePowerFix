@@ -88,7 +88,8 @@ export function loadEnv(source: EnvironmentSource = process.env): EnvShape {
 
   const DATABASE_URL = optional(source, 'DATABASE_URL') || ''
   const JWT_SECRET = optional(source, 'JWT_SECRET') || ''
-  const WEB_URL = optional(source, 'WEB_URL') || 'http://localhost:3000'
+  const defaultWebUrl = source.VERCEL ? 'https://e-power-fix-web-smile9.vercel.app' : 'http://localhost:3000'
+  const WEB_URL = optional(source, 'WEB_URL') || defaultWebUrl
   const PRIVATE_UPLOAD_DIR = optional(source, 'PRIVATE_UPLOAD_DIR') || '.private-uploads'
   const UPSTASH_REDIS_REST_URL = optional(source, 'UPSTASH_REDIS_REST_URL')
   const UPSTASH_REDIS_REST_TOKEN = optional(source, 'UPSTASH_REDIS_REST_TOKEN')
