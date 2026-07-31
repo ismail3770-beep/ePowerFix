@@ -164,24 +164,22 @@ app.use(errorHandler)
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 
-// Railway injects PORT at runtime; env validation supplies the local fallback.
-const PORT = env.PORT
-const HOST = env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
+if (process.env.VERCEL !== '1') {
+  const PORT = env.PORT
+  const HOST = env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost'
 
-app.listen(PORT, HOST, () => {
-  console.log(`🚀 ePowerFix API running at http://${HOST}:${PORT}`)
-  console.log(`📋 Liveness: http://${HOST}:${PORT}/health`)
-  console.log(`✅ Readiness: http://${HOST}:${PORT}/api/health`)
-  console.log(`🌍 Environment: ${env.NODE_ENV}`)
-  console.log(`🌐 Web URL: ${env.WEB_URL}`)
+  app.listen(PORT, HOST, () => {
+    console.log(`🚀 ePowerFix API running at http://${HOST}:${PORT}`)
+    console.log(`📋 Liveness: http://${HOST}:${PORT}/health`)
+    console.log(`✅ Readiness: http://${HOST}:${PORT}/api/health`)
+    console.log(`🌍 Environment: ${env.NODE_ENV}`)
+    console.log(`🌐 Web URL: ${env.WEB_URL}`)
 
-  // Railway runs this API as a long-lived service. Start the idempotent
-  // cleanup worker here so abandoned online-payment reservations eventually
-  // release inventory and coupon usage without relying on an external cron.
-  if (env.NODE_ENV !== 'test' && env.DATABASE_URL) {
-    startExpiredReservationCleanupWorker()
-    console.log('⏱️ Payment reservation expiry cleanup worker started')
-  }
-})
+    if (env.NODE_ENV !== 'test' && env.DATABASE_URL) {
+      startExpiredReservationCleanupWorker()
+      console.log('⏱️ Payment reservation expiry cleanup worker started')
+    }
+  })
+}
 
 export default app
