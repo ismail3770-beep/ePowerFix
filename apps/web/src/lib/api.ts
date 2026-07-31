@@ -1,11 +1,13 @@
-// All API calls go through the Next.js rewrite proxy (same-origin).
-// This avoids CORS issues and ensures httpOnly cookies work correctly.
-// The proxy is configured in next.config.ts → rewrites → /api/:path* → Express API.
+// All API calls use same-origin relative URLs.
+// Requests to /api/* are proxied to the Express backend by src/proxy.ts
+// (and next.config.ts rewrites as a fallback). The backend target is chosen
+// server-side via NEXT_PUBLIC_API_BASE_URL — nothing is baked into the
+// client bundle. This avoids CORS issues and keeps httpOnly cookies working.
 
 export async function apiFetch<T>(endpoint: string, options?: globalThis.RequestInit): Promise<T> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://e-power-fix-api.vercel.app'
-  const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`
-  const res = await fetch(url, {
+  // `endpoint` is normally a same-origin path like "/api/auth/login".
+  // Absolute URLs are still supported if a caller passes one explicitly.
+  const res = await fetch(endpoint, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     credentials: 'include', // for httpOnly cookies

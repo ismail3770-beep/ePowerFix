@@ -46,10 +46,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // TypeScript errors will be caught by CI/lint; keep builds strict
-  typescript: {
-    ignoreBuildErrors: false,
-  },
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],

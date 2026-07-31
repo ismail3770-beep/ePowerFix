@@ -112,3 +112,6 @@ apps/mobile/android/
 
 # Local browser/dev-tool output
 .playwright-mcp/
+
+# WorkBuddy AI internal data
+.workbuddy-ai/
