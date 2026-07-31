@@ -32,7 +32,7 @@ const securityHeaders = [
       styleSrc,
       "img-src 'self' data: blob: https://res.cloudinary.com https://sfile.chatglm.cn https://images.unsplash.com https://placehold.co",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://api.ipify.org https://ws-ipify.org",
+      "connect-src 'self' https://e-power-fix-api.vercel.app https://*.vercel.app https://api.ipify.org https://ws-ipify.org",
       "frame-ancestors 'none'",
       "form-action 'self'",
       "base-uri 'self'",
