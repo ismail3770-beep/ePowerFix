@@ -1,1 +1,0 @@
-- Each sub-directory under `packages/` is treated as a standalone npm package with its own entry point and dependencies.

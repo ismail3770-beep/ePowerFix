@@ -1,17 +1,16 @@
 "use client";
 
-import { type MouseEvent, Suspense, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
   Grid2X2,
-  Heart,
   List,
   Loader2,
   Package,
-  ShoppingCart,
   SlidersHorizontal,
   X,
 } from "lucide-react";
@@ -25,6 +24,7 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import ProductGridCard, { formatBdt } from "@/components/epf/ProductGridCard";
 
 interface ProjectKit {
   id: string;
@@ -50,6 +50,8 @@ const sortOptions = [
   { value: "price-desc", label: "Price: High to Low" },
 ];
 
+const perPageOptions = [12, 24, 48];
+
 function getKitPrice(kit: ProjectKit) {
   return kit.salePrice != null && kit.salePrice < kit.price ? kit.salePrice : kit.price;
 }
@@ -58,185 +60,91 @@ function getKitImage(kit: ProjectKit) {
   return kit.coverImage || kit.images?.[0] || "";
 }
 
-function KitCard({ kit, onOpen }: { kit: ProjectKit; onOpen: (slug: string) => void }) {
-  const addItem = useCartStore((state) => state.addItem);
-  const setCartOpen = useUIStore((state) => state.setCartOpen);
-  const [imageError, setImageError] = useState(false);
-  const displayPrice = getKitPrice(kit);
-  const originalPrice = displayPrice < kit.price ? kit.price : null;
-  const discount = originalPrice ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100) : 0;
+/** Sidebar latest-kits row — matches the shop page VerticalProduct card. */
+function VerticalKit({ kit }: { kit: ProjectKit }) {
   const image = getKitImage(kit);
-  const inStock = kit.stock > 0;
-
-  const handleAdd = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!inStock) return;
-    addItem({
-      itemType: "PROJECT_KIT",
-      projectKitId: kit.id,
-      productName: kit.title,
-      productImage: image,
-      price: Number(displayPrice),
-      quantity: 1,
-    });
-    toast.success("Kit added to cart", { description: kit.title });
-    setCartOpen(true);
-  };
-
+  const price = getKitPrice(kit);
+  const href = `/project-kits/${kit.slug}`;
   return (
-    <article
-      className="group relative bg-white border border-gray-100 rounded overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpen(kit.slug)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpen(kit.slug);
-        }
-      }}
-    >
-      <div className="relative aspect-square bg-gray-50 overflow-hidden">
-        {image && !imageError ? (
-          <img
-            src={image}
-            alt={kit.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            onError={() => setImageError(true)}
-          />
+    <Link href={href} className="group flex gap-3">
+      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-[#f9f9f9] flex items-center justify-center">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt={kit.title} loading="lazy" className="w-full h-full object-contain" />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gray-100">
-            <Package className="h-8 w-8 text-gray-300" />
-          </div>
-        )}
-        {discount > 0 && <span className="absolute left-2 top-2 bg-[#0EA5E9] px-2 py-0.5 text-[10px] font-bold text-white rounded-full">-{discount}%</span>}
-        {!inStock && <span className="absolute left-2 top-2 bg-gray-700 px-2 py-0.5 text-[10px] font-bold text-white rounded-full">Out of stock</span>}
-        {/* Hover overlay */}
-        <div className="absolute bottom-0 left-0 right-0 flex gap-2 p-2.5 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-          <button
-            type="button"
-            aria-label="Add kit to cart"
-            onClick={(e) => { e.stopPropagation(); handleAdd(e as any); }}
-            disabled={!inStock}
-            className="flex-1 bg-[#0EA5E9] text-white text-xs font-semibold py-2 rounded hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-            {inStock ? "Add to Cart" : "Out of Stock"}
-          </button>
-          <button
-            type="button"
-            aria-label="Add kit to wishlist"
-            className="p-2 rounded bg-white/80 border border-white/30 text-gray-700 hover:bg-white transition-colors"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          >
-            <Heart className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-      <div className="p-3">
-        {kit.category && <p className="text-[10px] text-gray-400 uppercase tracking-widest mb-1 font-medium">{kit.category}</p>}
-        <h2 className="text-sm font-medium text-gray-800 line-clamp-2 mb-2 leading-snug group-hover:text-[#0EA5E9] transition-colors">{kit.titleBn || kit.title}</h2>
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold text-[#0EA5E9]">{displayPrice > 0 ? `৳${Number(displayPrice).toLocaleString()}` : "Free"}</span>
-          {originalPrice && <del className="text-xs text-gray-400">৳{Number(originalPrice).toLocaleString()}</del>}
-        </div>
-        {(kit.difficulty || kit.itemCount != null) && (
-          <p className="text-[11px] text-gray-400 mt-1">
-            {[kit.difficulty, kit.itemCount != null ? `${kit.itemCount} items` : null].filter(Boolean).join(" · ")}
-          </p>
+          <Package className="h-5 w-5 text-[#c8c8c8]" />
         )}
       </div>
-    </article>
+      <div className="min-w-0 flex flex-col justify-center">
+        <span className="text-[13px] leading-[18px] text-[#191919] line-clamp-2 group-hover:text-[#0068e1] transition-colors">
+          {kit.titleBn || kit.title}
+        </span>
+        <span className="text-[14px] font-medium text-[#0068e1] mt-1">{formatBdt(price)}</span>
+      </div>
+    </Link>
   );
 }
 
-function KitListRow({ kit, onOpen }: { kit: ProjectKit; onOpen: (slug: string) => void }) {
-  const addItem = useCartStore((state) => state.addItem);
-  const setCartOpen = useUIStore((state) => state.setCartOpen);
+/** List-view kit row — matches the shop page ListProductCard. */
+function KitListCard({ kit, onAdd }: { kit: ProjectKit; onAdd: (kit: ProjectKit) => void }) {
   const image = getKitImage(kit);
-  const displayPrice = getKitPrice(kit);
+  const price = getKitPrice(kit);
+  const compareAtPrice = price < kit.price ? kit.price : null;
   const inStock = kit.stock > 0;
-
-  const handleAdd = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!inStock) return;
-    addItem({
-      itemType: "PROJECT_KIT",
-      projectKitId: kit.id,
-      productName: kit.title,
-      productImage: image,
-      price: Number(displayPrice),
-      quantity: 1,
-    });
-    toast.success("Kit added to cart", { description: kit.title });
-    setCartOpen(true);
-  };
-
+  const href = `/project-kits/${kit.slug}`;
   return (
-    <article
-      className="flex gap-4 border border-gray-100 rounded bg-white p-4 hover:shadow-md transition-shadow cursor-pointer group"
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpen(kit.slug)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpen(kit.slug);
-        }
-      }}
-    >
-      <div className="h-24 w-24 shrink-0 overflow-hidden rounded bg-gray-50 sm:h-32 sm:w-32">
-        {image
-          ? <img src={image} alt={kit.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-          : <Package className="m-8 h-8 w-8 text-gray-300" />}
+    <div className="flex flex-col sm:flex-row gap-4 border border-[#e8e7eb] rounded-[10px] p-3 transition-shadow hover:shadow-[rgba(0,0,0,0.04)_0px_3px_5px]">
+      <div className="relative shrink-0">
+        <Link
+          href={href}
+          className="block w-full sm:w-[170px] h-[170px] rounded-lg overflow-hidden bg-[#f9f9f9] flex items-center justify-center"
+        >
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={image} alt={kit.title} loading="lazy" className="w-full h-full object-contain" />
+          ) : (
+            <Package className="h-10 w-10 text-[#c8c8c8]" />
+          )}
+        </Link>
+        {!inStock && (
+          <span className="ff-badge ff-badge-danger absolute top-2 left-2 z-[1]">স্টক নেই</span>
+        )}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col justify-center">
-        {kit.category && <p className="mb-1 text-[10px] text-gray-400 font-medium uppercase tracking-widest">{kit.category}</p>}
-        <h2 className="font-medium text-sm text-gray-800 line-clamp-2 mb-1 leading-snug group-hover:text-[#0EA5E9] transition-colors">{kit.titleBn || kit.title}</h2>
-        <p className="line-clamp-2 text-xs leading-5 text-gray-500">{kit.description}</p>
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-base font-bold text-[#0EA5E9]">{displayPrice > 0 ? `৳${Number(displayPrice).toLocaleString()}` : "Free"}</span>
-          {kit.salePrice != null && kit.salePrice < kit.price && <del className="text-sm text-gray-400">৳{Number(kit.price).toLocaleString()}</del>}
+      <div className="flex flex-1 flex-col">
+        <Link href={href} className="group">
+          <span className="block text-[16px] font-medium leading-[22px] text-[#191919] line-clamp-2 group-hover:text-[#0068e1] transition-colors mb-4">
+            {kit.titleBn || kit.title}
+          </span>
+        </Link>
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-[18px] font-medium text-[#0068e1]">{formatBdt(price)}</span>
+          {compareAtPrice != null && (
+            <span className="text-[14px] text-[#6e6e6e] line-through">{formatBdt(compareAtPrice)}</span>
+          )}
         </div>
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); handleAdd(e); }}
+          onClick={() => onAdd(kit)}
           disabled={!inStock}
-          className="mt-3 w-fit bg-[#0EA5E9] text-white text-xs font-semibold px-4 py-2 rounded hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-fit h-[35px] px-5 rounded-[8px] bg-[#0068e1] text-white text-[14px] hover:bg-[#0057bd] disabled:bg-[#efeef1] disabled:text-[#cac7d1] disabled:cursor-not-allowed transition-colors"
         >
           {inStock ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
-    </article>
-  );
-}
-
-function LatestKit({ kit, onOpen }: { kit: ProjectKit; onOpen: (id: string) => void }) {
-  const image = getKitImage(kit);
-  return (
-    <button type="button" onClick={() => onOpen(kit.slug)} className="group flex w-full gap-2.5 text-left">
-      <div className="w-12 h-12 rounded bg-gray-100 overflow-hidden shrink-0">
-        {image ? <img src={image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" /> : <Package className="m-3 h-5 w-5 text-gray-300" />}
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-gray-700 line-clamp-2 group-hover:text-[#0EA5E9] transition-colors leading-snug">{kit.title}</p>
-        <p className="text-xs font-bold text-[#0EA5E9] mt-0.5">{getKitPrice(kit) > 0 ? `৳${Number(getKitPrice(kit)).toLocaleString()}` : "Free"}</p>
-      </div>
-    </button>
+    </div>
   );
 }
 
 function ProjectKitsPageContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const addItem = useCartStore((state) => state.addItem);
+  const setCartOpen = useUIStore((state) => state.setCartOpen);
   const initialCategory = searchParams.get("category") || "";
+
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12);
+  const [limit, setLimit] = useState(24);
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [sort, setSort] = useState(searchParams.get("sort") || "featured");
+  const [sort, setSort] = useState(searchParams.get("sort") || "latest");
   const [category, setCategory] = useState(initialCategory);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -250,9 +158,11 @@ function ProjectKitsPageContent() {
 
   const allKits = kitsQuery.data?.data ?? [];
   const categories = useMemo(
-    () => Array.from(new Set(allKits.map((kit) => kit.category).filter((value): value is string => Boolean(value)))),
+    () =>
+      Array.from(new Set(allKits.map((kit) => kit.category).filter((value): value is string => Boolean(value)))),
     [allKits],
   );
+
   const filteredKits = useMemo(() => {
     const min = minPrice ? Number(minPrice) : 0;
     const max = maxPrice ? Number(maxPrice) : Number.POSITIVE_INFINITY;
@@ -264,182 +174,341 @@ function ProjectKitsPageContent() {
     return result.sort((first, second) => {
       if (sort === "price-asc") return getKitPrice(first) - getKitPrice(second);
       if (sort === "price-desc") return getKitPrice(second) - getKitPrice(first);
-      if (sort === "latest") return new Date(second.createdAt || 0).getTime() - new Date(first.createdAt || 0).getTime();
+      if (sort === "latest")
+        return new Date(second.createdAt || 0).getTime() - new Date(first.createdAt || 0).getTime();
       return 0;
     });
   }, [allKits, category, maxPrice, minPrice, sort]);
+
   const total = filteredKits.length;
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const visibleKits = filteredKits.slice((page - 1) * limit, page * limit);
   const firstResult = total === 0 ? 0 : (page - 1) * limit + 1;
   const lastResult = Math.min(page * limit, total);
   const selectedCategoryName = category || "";
-  const activeFilterCount = [category, minPrice, maxPrice].filter(Boolean).length;
+  const emptyKits = !kitsQuery.isLoading && total === 0;
 
-  const openKit = (slug: string) => {
-    router.push(`/project-kits/${slug}`);
-  };
+  const activeFilterCount = useMemo(
+    () => [category, minPrice, maxPrice].filter(Boolean).length,
+    [category, minPrice, maxPrice],
+  );
 
   const resetPageAnd = (action: () => void) => {
     action();
     setPage(1);
   };
 
-  const clearFilters = () => {
-    setCategory("");
-    setMinPrice("");
-    setMaxPrice("");
-    setPage(1);
+  const clearFilters = () =>
+    resetPageAnd(() => {
+      setCategory("");
+      setMinPrice("");
+      setMaxPrice("");
+    });
+
+  const addToCart = (kit: ProjectKit) => {
+    const displayPrice = getKitPrice(kit);
+    addItem({
+      itemType: "PROJECT_KIT",
+      projectKitId: kit.id,
+      productName: kit.title,
+      productImage: getKitImage(kit),
+      price: Number(displayPrice),
+      quantity: 1,
+    });
+    toast.success("Kit added to cart", { description: kit.title });
+    setCartOpen(true);
   };
+
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <h4 className="relative text-[18px] leading-6 font-semibold text-[#191919] pb-3 mb-6 after:content-[''] after:absolute after:left-0 after:bottom-[-1px] after:w-[50px] after:border-b-2 after:border-[#0068e1]">
+      {children}
+    </h4>
+  );
 
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-6 flex items-center gap-2 text-xs text-gray-500">
-            <a href="/" className="hover:text-gray-900">Home</a>
-            <ChevronRight className="h-3 w-3 text-gray-300" />
-            <span className="text-gray-900 font-medium">{selectedCategoryName || "Project Kits"}</span>
-          </div>
-
-          <div className="flex gap-8">
-            {/* Sidebar — desktop only */}
-            <aside className={cn("w-56 shrink-0 space-y-5 md:block", filtersOpen ? "block" : "hidden")}>
+      <main className="ff min-h-screen bg-white">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-6 lg:py-10">
+          <div className="flex flex-col-reverse lg:flex-row gap-8">
+            {/* Sidebar */}
+            <aside
+              className={cn(
+                "w-full lg:w-[263px] lg:min-w-[263px] shrink-0",
+                filtersOpen ? "block" : "hidden lg:block",
+              )}
+            >
               {/* Mobile close */}
-              <div className="flex items-center justify-between md:hidden">
-                <h3 className="font-semibold text-sm uppercase tracking-wider">Filters</h3>
-                <button type="button" onClick={() => setFiltersOpen(false)} className="text-gray-400" aria-label="Close filters">
-                  <X className="h-4 w-4" />
+              <div className="flex items-center justify-between mb-4 lg:hidden">
+                <h4 className="text-[18px] font-semibold text-[#191919]">Filters</h4>
+                <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Close filters">
+                  <X className="h-5 w-5 text-[#191919]" />
                 </button>
               </div>
 
-              {/* Kit Category */}
-              <div>
-                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Kit Category</h3>
-                <div className="space-y-1">
-                  <button
-                    type="button"
-                    onClick={() => resetPageAnd(() => setCategory(""))}
-                    className={cn("w-full flex items-center justify-between py-1.5 text-sm", !category ? "text-[#0EA5E9] font-semibold" : "text-gray-500 hover:text-gray-900")}
-                  >
-                    <span>All Kits</span>
-                    <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{allKits.length}</span>
-                  </button>
-                  {kitsQuery.isLoading ? (
-                    <div className="space-y-2 py-1">{Array.from({ length: 5 }).map((_, index) => <div key={index} className="h-4 animate-pulse rounded bg-gray-100" />)}</div>
-                  ) : categories.length > 0 ? (
-                    categories.map((item) => {
-                      const count = allKits.filter((k) => k.category === item).length;
-                      return (
+              {/* Browse categories */}
+              <div className="mb-8">
+                <SectionTitle>Browse Categories</SectionTitle>
+                {kitsQuery.isLoading ? (
+                  <div className="space-y-2 py-1">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <div key={index} className="h-4 animate-pulse rounded bg-[#f2f2f2]" />
+                    ))}
+                  </div>
+                ) : (
+                  <ul className="space-y-3">
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => resetPageAnd(() => setCategory(""))}
+                        className={cn(
+                          "text-[15px] transition-colors",
+                          !category ? "text-[#0068e1] font-medium" : "text-[#191919] hover:text-[#0068e1]",
+                        )}
+                      >
+                        All Kits
+                      </button>
+                    </li>
+                    {categories.map((item) => (
+                      <li key={item}>
                         <button
                           type="button"
-                          key={item}
                           onClick={() => resetPageAnd(() => setCategory(item))}
-                          className={cn("w-full flex items-center justify-between py-1.5 text-sm", category === item ? "text-[#0EA5E9] font-semibold" : "text-gray-500 hover:text-gray-900")}
+                          className={cn(
+                            "text-[15px] transition-colors text-left",
+                            category === item
+                              ? "text-[#0068e1] font-medium"
+                              : "text-[#191919] hover:text-[#0068e1]",
+                          )}
                         >
-                          <span>{item}</span>
-                          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{count}</span>
+                          {item}
                         </button>
-                      );
-                    })
-                  ) : <p className="py-2 text-sm text-gray-400">No categories yet.</p>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Price filter */}
+              <div className="mb-8">
+                <h6 className="text-[16px] font-medium text-[#191919] mb-4">Price</h6>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    placeholder="From"
+                    aria-label="Minimum price"
+                    value={minPrice}
+                    onChange={(e) => resetPageAnd(() => setMinPrice(e.target.value.replace(/\D/g, "")))}
+                    className="h-10 w-full rounded-lg border border-[#e8e7eb] px-3 text-sm outline-none focus:border-[#0068e1] transition-colors"
+                  />
+                  <span className="text-[#6e6e6e]">-</span>
+                  <input
+                    type="number"
+                    placeholder="To"
+                    aria-label="Maximum price"
+                    value={maxPrice}
+                    onChange={(e) => resetPageAnd(() => setMaxPrice(e.target.value.replace(/\D/g, "")))}
+                    className="h-10 w-full rounded-lg border border-[#e8e7eb] px-3 text-sm outline-none focus:border-[#0068e1] transition-colors"
+                  />
                 </div>
               </div>
 
-              {/* Price Range */}
-              <div className="border-t border-gray-200 pt-5">
-                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Price Range</h3>
-                <div className="flex items-center gap-2">
-                  <input value={minPrice} onChange={(event) => resetPageAnd(() => setMinPrice(event.target.value.replace(/\D/g, "")))} inputMode="numeric" placeholder="Min" aria-label="Minimum kit price" className="h-8 w-full rounded border border-gray-300 px-2 text-xs outline-none focus:border-[#0EA5E9] transition-colors" />
-                  <span className="text-gray-400 text-xs">—</span>
-                  <input value={maxPrice} onChange={(event) => resetPageAnd(() => setMaxPrice(event.target.value.replace(/\D/g, "")))} inputMode="numeric" placeholder="Max" aria-label="Maximum kit price" className="h-8 w-full rounded border border-gray-300 px-2 text-xs outline-none focus:border-[#0EA5E9] transition-colors" />
-                </div>
-              </div>
-
-              {/* Latest Project Kits */}
-              <div className="border-t border-gray-200 pt-5">
-                <h3 className="font-semibold text-sm mb-3 uppercase tracking-wider">Latest Products</h3>
-                <div className="space-y-3">
-                  {kitsQuery.isLoading
-                    ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-14 animate-pulse rounded bg-gray-100" />)
-                    : allKits.slice(0, 4).map((kit) => <LatestKit key={kit.id} kit={kit} onOpen={openKit} />)}
-                </div>
-              </div>
-
-              {/* Clear filters */}
               {(category || minPrice || maxPrice) && (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="w-full border border-gray-200 rounded py-2 text-xs font-medium text-gray-500 hover:text-[#0EA5E9] hover:border-[#0EA5E9] transition-colors"
+                  className="w-full border border-[#e8e7eb] rounded-lg py-2 text-sm text-[#6e6e6e] hover:text-[#0068e1] hover:border-[#0068e1] transition-colors mb-8"
                 >
                   Clear All Filters
                 </button>
               )}
+
+              {/* Latest kits */}
+              {allKits.length > 0 && (
+                <div>
+                  <SectionTitle>Latest Kits</SectionTitle>
+                  <div className="space-y-4">
+                    {allKits.slice(0, 5).map((kit) => (
+                      <VerticalKit key={kit.id} kit={kit} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </aside>
 
+            {/* Results */}
             <section className="flex-1 min-w-0">
-              {/* Toolbar */}
-              <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-                <div className="flex items-center gap-3">
+              {/* Top bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+                <h1 className="text-[22px] text-[#6e6e6e] font-normal">
+                  <span className="text-[#191919] font-medium">{selectedCategoryName || "Project Kits"}</span>
+                </h1>
+
+                <div className="flex items-center gap-4 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => setFiltersOpen((open) => !open)}
-                    className="md:hidden flex items-center gap-1.5 border border-gray-200 rounded px-3 py-1.5 text-xs font-medium"
+                    onClick={() => setFiltersOpen((v) => !v)}
+                    className="lg:hidden flex items-center gap-1.5 text-[#6e6e6e] hover:text-[#0068e1] transition-colors text-sm"
                   >
-                    <SlidersHorizontal className="h-3 w-3" /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
                   </button>
-                  <p className="text-xs text-gray-500"><span className="font-semibold text-gray-900">{total}</span> kits found</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <select id="kit-sort" value={sort} onChange={(event) => resetPageAnd(() => setSort(event.target.value))} className="text-xs border border-gray-200 rounded px-3 py-1.5 outline-none bg-white">
-                    {sortOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                  </select>
-                  <div className="flex border border-gray-200 rounded overflow-hidden">
-                    <button type="button" onClick={() => setView("grid")} className={cn("p-1.5", view === "grid" ? "bg-[#0EA5E9] text-white" : "text-gray-500 hover:bg-gray-100")} aria-label="Grid view"><Grid2X2 className="h-3.5 w-3.5" /></button>
-                    <button type="button" onClick={() => setView("list")} className={cn("p-1.5", view === "list" ? "bg-[#0EA5E9] text-white" : "text-gray-500 hover:bg-gray-100")} aria-label="List view"><List className="h-3.5 w-3.5" /></button>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setView("grid")}
+                      className={cn(
+                        "transition-colors",
+                        view === "grid" ? "text-[#0068e1]" : "text-[#a6a6a6] hover:text-[#0068e1]",
+                      )}
+                      aria-label="Grid view"
+                    >
+                      <Grid2X2 className="h-[22px] w-[22px]" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setView("list")}
+                      className={cn(
+                        "transition-colors",
+                        view === "list" ? "text-[#0068e1]" : "text-[#a6a6a6] hover:text-[#0068e1]",
+                      )}
+                      aria-label="List view"
+                    >
+                      <List className="h-[22px] w-[22px]" />
+                    </button>
                   </div>
+
+                  <select
+                    aria-label="Sort"
+                    value={sort}
+                    onChange={(e) => resetPageAnd(() => setSort(e.target.value))}
+                    className="h-10 rounded-lg border border-[#e8e7eb] px-3 text-sm bg-white text-[#191919] outline-none focus:border-[#0068e1] cursor-pointer transition-colors"
+                  >
+                    {sortOptions.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    aria-label="Per page"
+                    value={limit}
+                    onChange={(e) => resetPageAnd(() => setLimit(Number(e.target.value)))}
+                    className="h-10 rounded-lg border border-[#e8e7eb] px-3 text-sm bg-white text-[#191919] outline-none focus:border-[#0068e1] cursor-pointer transition-colors"
+                  >
+                    {perPageOptions.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
+              {/* Body */}
               {kitsQuery.isError ? (
-                <div className="rounded border border-red-100 bg-white px-5 py-16 text-center">
-                  <p className="font-semibold text-gray-800">We couldn&apos;t load the project kits.</p>
-                  <p className="mt-1 text-sm text-gray-500">Please check your connection and try again.</p>
-                  <button type="button" onClick={() => kitsQuery.refetch()} className="mt-4 rounded bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">Try again</button>
+                <div className="rounded-lg border border-red-100 bg-white px-5 py-16 text-center">
+                  <p className="font-semibold text-[#191919]">We couldn&apos;t load the project kits.</p>
+                  <p className="mt-1 text-sm text-[#6e6e6e]">Please check your connection and try again.</p>
+                  <button
+                    type="button"
+                    onClick={() => kitsQuery.refetch()}
+                    className="mt-4 rounded-lg bg-[#0068e1] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0057bd]"
+                  >
+                    Try again
+                  </button>
                 </div>
               ) : kitsQuery.isLoading ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{Array.from({ length: 10 }).map((_, index) => <div key={index} className="aspect-square animate-pulse border border-gray-100 bg-white rounded" />)}</div>
-              ) : total === 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                  {Array.from({ length: 15 }).map((_, index) => (
+                    <div key={index} className="mx-auto h-[364px] w-full max-w-[231px] animate-pulse rounded-lg bg-[#f2f2f2]" />
+                  ))}
+                </div>
+              ) : emptyKits ? (
                 <div className="text-center py-20">
-                  <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                  <h2 className="text-lg font-semibold text-gray-800 mb-2">No project kits found</h2>
-                  <p className="text-gray-500 text-sm">Try another category or clear your filters.</p>
-                  <button type="button" onClick={clearFilters} className="mt-4 rounded bg-[#0EA5E9] px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600">Clear all filters</button>
+                  <Package className="mx-auto h-12 w-12 text-[#d4d4d4] mb-4" />
+                  <h2 className="text-lg font-semibold text-[#191919] mb-2">No project kits found</h2>
+                  <p className="text-[#6e6e6e] text-sm">Try a different category or clear your filters.</p>
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="mt-4 rounded-lg bg-[#0068e1] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0057bd]"
+                  >
+                    Clear all filters
+                  </button>
                 </div>
               ) : view === "grid" ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">{visibleKits.map((kit) => <KitCard key={kit.id} kit={kit} onOpen={openKit} />)}</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                  {visibleKits.map((kit) => {
+                    const displayPrice = getKitPrice(kit);
+                    const originalPrice = displayPrice < kit.price ? kit.price : null;
+                    return (
+                      <ProductGridCard
+                        key={kit.id}
+                        href={`/project-kits/${kit.slug}`}
+                        name={kit.titleBn || kit.title}
+                        price={Number(displayPrice)}
+                        comparePrice={originalPrice != null ? Number(originalPrice) : null}
+                        image={getKitImage(kit)}
+                        inStock={kit.stock > 0}
+                        onAddToCart={() => addToCart(kit)}
+                      />
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="space-y-3">{visibleKits.map((kit) => <KitListRow key={kit.id} kit={kit} onOpen={openKit} />)}</div>
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {visibleKits.map((kit) => (
+                    <KitListCard key={kit.id} kit={kit} onAdd={addToCart} />
+                  ))}
+                </div>
               )}
 
-              {!kitsQuery.isLoading && total > 0 && (
-                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-5">
-                  <p className="text-sm text-gray-500">Showing <span className="font-semibold text-gray-700">{firstResult}–{lastResult}</span> of <span className="font-semibold text-gray-700">{total}</span> kits</p>
-                  <div className="flex items-center gap-3">
-                    <label htmlFor="kit-limit" className="hidden text-sm text-gray-500 sm:inline">Show:</label>
-                    <select id="kit-limit" value={limit} onChange={(event) => resetPageAnd(() => setLimit(Number(event.target.value)))} className="h-9 rounded border border-gray-300 bg-white px-2 text-sm text-gray-700 outline-none focus:border-[#0EA5E9]">
-                      {[6, 12, 24].map((value) => <option key={value} value={value}>{value}</option>)}
-                    </select>
+              {/* Bottom */}
+              {!emptyKits && !kitsQuery.isLoading && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
+                  <span className="text-sm text-[#6e6e6e]">
+                    Showing {firstResult}–{lastResult} of {total} results
+                  </span>
+                  {totalPages > 1 && (
                     <div className="flex items-center gap-1.5">
-                      <button type="button" disabled={page <= 1} onClick={() => setPage((value) => value - 1)} className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white" aria-label="Previous page"><ChevronLeft className="h-3.5 w-3.5" /></button>
+                      <button
+                        type="button"
+                        disabled={page <= 1}
+                        onClick={() => setPage((v) => v - 1)}
+                        className="w-9 h-9 border border-[#e8e7eb] rounded-lg flex items-center justify-center text-[#6e6e6e] hover:border-[#0068e1] hover:text-[#0068e1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Previous page"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
                       {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((n) => (
-                        <button key={n} type="button" onClick={() => setPage(n)} className={`w-8 h-8 border rounded text-sm font-medium transition-colors ${page === n ? "bg-[#0EA5E9] text-white border-[#0EA5E9]" : "border-gray-300 text-gray-600 hover:border-[#0EA5E9] hover:text-[#0EA5E9] bg-white"}`}>{n}</button>
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setPage(n)}
+                          className={cn(
+                            "w-9 h-9 border rounded-lg text-sm font-medium transition-colors",
+                            page === n
+                              ? "bg-[#0068e1] text-white border-[#0068e1]"
+                              : "border-[#e8e7eb] text-[#191919] hover:border-[#0068e1] hover:text-[#0068e1]",
+                          )}
+                        >
+                          {n}
+                        </button>
                       ))}
-                      <button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => value + 1)} className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-400 hover:border-[#0EA5E9] hover:text-[#0EA5E9] disabled:opacity-30 transition-colors bg-white" aria-label="Next page"><ChevronRight className="h-3.5 w-3.5" /></button>
+                      <button
+                        type="button"
+                        disabled={page >= totalPages}
+                        onClick={() => setPage((v) => v + 1)}
+                        className="w-9 h-9 border border-[#e8e7eb] rounded-lg flex items-center justify-center text-[#6e6e6e] hover:border-[#0068e1] hover:text-[#0068e1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Next page"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </section>
@@ -451,15 +520,27 @@ function ProjectKitsPageContent() {
       <CheckoutDialog />
       <ChatWidget />
       <BackToTopButton />
-      {kitsQuery.isFetching && !kitsQuery.isLoading && <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#0d1a2d] px-3 py-2 text-xs text-white shadow-lg"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating project kits</div>}
+      {kitsQuery.isFetching && !kitsQuery.isLoading && (
+        <div className="fixed bottom-5 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#0d1a2d] px-3 py-2 text-xs text-white shadow-lg">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Updating project kits
+        </div>
+      )}
     </>
   );
 }
 
 function ProjectKitsPageFallback() {
-  return <div className="flex min-h-screen items-center justify-center bg-gray-50"><Loader2 className="h-6 w-6 animate-spin text-[#0EA5E9]" /></div>;
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <Loader2 className="h-6 w-6 animate-spin text-[#0068e1]" />
+    </div>
+  );
 }
 
 export default function ProjectKitsPage() {
-  return <Suspense fallback={<ProjectKitsPageFallback />}><ProjectKitsPageContent /></Suspense>;
+  return (
+    <Suspense fallback={<ProjectKitsPageFallback />}>
+      <ProjectKitsPageContent />
+    </Suspense>
+  );
 }

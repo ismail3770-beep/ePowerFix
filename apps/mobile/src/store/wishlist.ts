@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import { getApiToken, wishlistApi } from '@epowerfix/api-client';
 
 export interface WishlistItem {

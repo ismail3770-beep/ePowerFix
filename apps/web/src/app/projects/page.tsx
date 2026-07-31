@@ -83,7 +83,7 @@ function ProjectsContent() {
     <>
       <Header />
       <main className="bg-gray-50 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-8">
 
           {/* Top bar */}
           <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">

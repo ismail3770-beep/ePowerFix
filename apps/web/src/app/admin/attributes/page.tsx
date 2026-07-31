@@ -1,26 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import {
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Search, Settings2 } from "lucide-react";
-import { useAdminHeaderStore } from "@/store/admin-header-store";
+import { Home, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface Attribute {
   id: string;
@@ -30,127 +16,219 @@ interface Attribute {
   createdAt: string;
 }
 
-function toSlug(s: string) { return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-
 export default function AttributesPage() {
-  const [attrs, setAttrs] = useState<Attribute[]>([]);
+  const router = useRouter();
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [dialog, setDialog] = useState(false);
-  const [editing, setEditing] = useState<Attribute | null>(null);
-  const [form, setForm] = useState({ name: "", slug: "", values: "" });
-  const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Attribute | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  
+  const [perPage, setPerPage] = useState("20");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = async () => {
     try {
-      const res = await apiFetch<{ data: Attribute[] | { data: Attribute[] } }>("/api/admin/attributes");
-      const list: Attribute[] = (res.data as any)?.data ?? (Array.isArray(res.data) ? res.data : []);
-      setAttrs(list);
-    } catch { toast.error("Failed to load attributes"); } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const openAdd = useCallback(() => { setEditing(null); setForm({ name: "", slug: "", values: "" }); setDialog(true); }, []);
-  const openEdit = (a: Attribute) => { setEditing(a); setForm({ name: a.name, slug: a.slug, values: (a.values || []).join(", ") }); setDialog(true); };
-
-  const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
-  useEffect(() => { setAddNew("Add Attribute", openAdd); return () => setAddNew("", null); }, [setAddNew, openAdd]);
-
-  const save = async () => {
-    if (!form.name.trim()) { toast.error("Name is required"); return; }
-    setSaving(true);
-    const payload = { name: form.name, slug: form.slug || toSlug(form.name), values: form.values.split(",").map(v => v.trim()).filter(Boolean) };
-    try {
-      if (editing) {
-        await apiFetch(`/api/admin/attributes/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) });
-        toast.success("Attribute updated");
-      } else {
-        await apiFetch("/api/admin/attributes", { method: "POST", body: JSON.stringify(payload) });
-        toast.success("Attribute created");
-      }
-      setDialog(false); load();
-    } catch (e: any) { toast.error(e?.message || "Save failed"); } finally { setSaving(false); }
+      const res = await apiFetch<{ data: Attribute[] }>("/api/admin/attributes");
+      setAttributes(res.data || []);
+    } catch { 
+      toast.error("Failed to load attributes"); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  const doDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await apiFetch(`/api/admin/attributes/${deleteTarget.id}`, { method: "DELETE" });
-      toast.success("Attribute deleted"); setDeleteTarget(null); load();
-    } catch { toast.error("Delete failed"); }
+  useEffect(() => { load(); }, []);
+
+  const remove = async (id: string) => {
+    try { 
+      await apiFetch(`/api/admin/attributes/${id}`, { method: "DELETE" }); 
+      toast.success("Attribute deleted"); 
+      load(); 
+    } catch { 
+      toast.error("Failed to delete"); 
+    } finally { 
+      setDeleteTarget(null); 
+    }
   };
 
-  const filtered = attrs.filter(a => !search || a.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = attributes.filter((a) => a.name.toLowerCase().includes(search.toLowerCase()));
+
+  const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(filtered.map(a => a.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   return (
-    <div className="space-y-5">
-      <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-        <Input placeholder="Search attributes..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 text-sm border-slate-200" />
+    <div className="font-poppins bg-[#f3f4f6] min-h-screen -m-6 p-6 text-slate-700">
+      
+      {/* Header section */}
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-[22px] font-normal text-slate-800">Attributes</h1>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2 text-[13px] text-slate-500">
+            <Home className="w-3.5 h-3.5 cursor-pointer hover:text-blue-600" onClick={() => router.push("/admin/dashboard")} />
+            <span className="text-slate-300">&gt;</span>
+            <span>Attributes</span>
+          </div>
+          <button 
+            onClick={() => router.push("/admin/attributes/create")}
+            className="bg-[#0052cc] hover:bg-[#0047b3] text-white px-4 py-1.5 rounded-sm text-[13px] font-medium transition-colors"
+          >
+            Create Attribute
+          </button>
+        </div>
       </div>
 
-      <Card className="rounded-xl border-slate-200 shadow-sm py-0 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50 border-b border-slate-100 hover:bg-slate-50">
-              {["Name","Slug","Values","Created",""].map(h => (
-                <TableHead key={h} className="text-[11px] font-semibold uppercase text-slate-500 px-4 py-3">{h}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? Array.from({length:5}).map((_,i) => (
-              <TableRow key={i}><TableCell colSpan={5} className="px-4 py-3"><Skeleton className="h-5 w-full" /></TableCell></TableRow>
-            )) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={5} className="text-center py-16 text-slate-400">
-                <Settings2 className="mx-auto h-8 w-8 mb-2 opacity-30" />
-                No attributes yet. Attributes define filterable product specs.
-              </TableCell></TableRow>
-            ) : filtered.map((a) => (
-              <TableRow key={a.id} className="border-b border-slate-100 hover:bg-slate-50">
-                <TableCell className="px-4 py-3 font-semibold text-[13px] text-slate-900">{a.name}</TableCell>
-                <TableCell className="px-4 py-3"><code className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{a.slug}</code></TableCell>
-                <TableCell className="px-4 py-3 text-[12px] text-slate-600 max-w-xs truncate">{(a.values || []).join(" · ") || "—"}</TableCell>
-                <TableCell className="px-4 py-3 text-[12px] text-slate-500">{new Date(a.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="px-4 py-3">
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => openEdit(a)}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:bg-red-50" onClick={() => setDeleteTarget(a)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-
-      <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{editing ? "Edit Attribute" : "Add Attribute"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5"><Label>Name <span className="text-red-500">*</span></Label>
-              <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value, slug: f.slug || toSlug(e.target.value) }))} placeholder="e.g. Material, Wattage" /></div>
-            <div className="space-y-1.5"><Label>Slug</Label>
-              <Input value={form.slug} onChange={(e) => setForm(f => ({...f, slug: toSlug(e.target.value)}))} /></div>
-            <div className="space-y-1.5"><Label>Values <span className="text-[11px] text-slate-400">(comma separated)</span></Label>
-              <Input value={form.values} onChange={(e) => setForm(f => ({...f, values: e.target.value}))} placeholder="Copper, Aluminum, Steel" /></div>
+      {/* Main Card */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-sm">
+        
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-2 text-[13px] text-slate-600">
+            Show
+            <select 
+              value={perPage} 
+              onChange={e => setPerPage(e.target.value)}
+              className="border border-slate-300 rounded px-2 py-1.5 bg-white outline-none focus:border-blue-400"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            entries
+            <button 
+              className={`flex items-center gap-1 border border-slate-300 rounded px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 ml-2 transition-colors ${selectedIds.size === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={selectedIds.size === 0}
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialog(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving} className="bg-epf-500 hover:bg-epf-600 text-white">{saving ? "Saving…" : editing ? "Update" : "Create"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder="Search here..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-slate-300 rounded-full pl-9 pr-4 py-1.5 text-[13px] w-[260px] outline-none focus:border-blue-400 transition-colors" 
+            />
+          </div>
+        </div>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#f9fafb] text-[13px] text-slate-600 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 w-10 font-medium">
+                  <input 
+                    type="checkbox" 
+                    className="rounded-sm border-slate-300"
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
+                <th className="px-4 py-3 font-medium">
+                  <div className="flex items-center gap-1 cursor-pointer group">
+                    ID <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+                <th className="px-4 py-3 font-medium">Name</th>
+                <th className="px-4 py-3 font-medium">Attribute Set</th>
+                <th className="px-4 py-3 font-medium">Filterable</th>
+                <th className="px-4 py-3 font-medium text-right">
+                  <div className="flex items-center justify-end gap-1 cursor-pointer group">
+                    Created <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="text-center py-8 text-slate-500 text-[13px]">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-8 text-slate-500 text-[13px]">No attributes found.</td></tr>
+              ) : (
+                filtered.map((a, i) => (
+                  <tr 
+                    key={a.id} 
+                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors text-[13px] text-slate-700"
+                    onClick={() => router.push(`/admin/attributes/${a.id}/edit`)}
+                  >
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="rounded-sm border-slate-300"
+                        checked={selectedIds.has(a.id)}
+                        onChange={() => toggleSelect(a.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">{filtered.length - i}</td>
+                    <td className="px-4 py-3 font-medium">{a.name}</td>
+                    <td className="px-4 py-3 text-slate-500">Unassigned</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-600 border border-rose-100">
+                        No
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-slate-500">
+                      {a.createdAt ? formatDistanceToNow(new Date(a.createdAt), { addSuffix: true }) : 'Unknown'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer / Pagination */}
+        <div className="flex justify-between items-center p-4 border-t border-slate-100 text-[13px] text-slate-500">
+          <div>
+            Showing 1 to {filtered.length} of {filtered.length} entries
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-[#0052cc] rounded-sm bg-[#0052cc] text-white">
+              1
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Delete Attribute</AlertDialogTitle>
-            <AlertDialogDescription>Delete <strong>"{deleteTarget?.name}"</strong>?</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={doDelete} className="bg-red-500 hover:bg-red-600 text-white">Delete</AlertDialogAction></AlertDialogFooter>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => remove(deleteTarget!)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

@@ -36,7 +36,7 @@ const ALLOWED_MIME_TYPES = new Set([
  * Returns { buffer, filename, mimeType } or throws if no file is found.
  * Uses raw Node stream/boundary parsing — no external dependency needed.
  */
-async function parseMultipartFile(
+export async function parseMultipartFile(
   req: any,
 ): Promise<{ buffer: Buffer; filename: string; mimeType: string }> {
   const contentType: string = req.headers['content-type'] || ''
@@ -96,9 +96,10 @@ async function parseMultipartFile(
     const fileBuffer = body.slice(pos, fileEnd)
     pos = fileEnd
 
-    // Parse Content-Disposition
+    // Parse Content-Disposition. Require a space/semicolon before `name=` so the
+    // greedy match cannot latch onto the `name=` substring inside `filename=`.
     const dispositionMatch = headerSection.match(
-      /Content-Disposition:[^\r\n]*name="([^"]*)"(?:[^\r\n]*filename="([^"]*)")?/i,
+      /Content-Disposition:[^\r\n]*?[\s;]name="([^"]*)"(?:[^\r\n]*?[\s;]filename="([^"]*)")?/i,
     )
     if (!dispositionMatch) continue
 

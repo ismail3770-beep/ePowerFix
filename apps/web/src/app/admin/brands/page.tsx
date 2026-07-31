@@ -4,30 +4,32 @@ import { useEffect, useState } from "react";
 import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SingleImageUploader } from "@/components/ImageUploader";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useAdminHeaderStore } from "@/store/admin-header-store";
+import { formatDistanceToNow } from "date-fns";
+import { Home, Trash2, Search, ArrowUpDown, Image as ImageIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
-interface Brand { id: string; name: string; slug: string; logo: string | null; description: string | null; _count: { products: number }; }
+interface Brand { 
+  id: string; 
+  name: string; 
+  slug: string; 
+  logo: string | null; 
+  description: string | null; 
+  _count: { products: number };
+  createdAt: string;
+  isActive: boolean;
+}
 
 export default function BrandsPage() {
+  const router = useRouter();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [dialog, setDialog] = useState(false);
-  const [editing, setEditing] = useState<Brand | null>(null);
-  const defaultBrandForm = { name: "", slug: "", logo: "", description: "" };
-  const [form, setForm] = useState(() => loadFormDraft("admin-brand-add", defaultBrandForm));
-  const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  
+  const [perPage, setPerPage] = useState("20");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const load = async () => {
     try {
@@ -39,38 +41,12 @@ export default function BrandsPage() {
 
   useEffect(() => { load(); }, []);
 
-  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
-  useFormDraft("admin-brand-add", !editing ? form : defaultBrandForm);
-
   const openAdd = () => {
-    setEditing(null);
-    setForm(loadFormDraft("admin-brand-add", defaultBrandForm));
-    setDialog(true);
+    router.push("/admin/brands/create");
   };
 
   const openEdit = (b: Brand) => {
-    setEditing(b);
-    setForm({ name: b.name, slug: b.slug, logo: b.logo || "", description: b.description || "" });
-    setDialog(true);
-  };
-
-  const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
-  useEffect(() => { setAddNew('Add Brand', openAdd); return () => setAddNew('', null); }, [setAddNew]);
-
-  const generateSlug = (name: string) => name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-
-  const save = async () => {
-    if (!form.name) { toast.error("Name is required"); return; }
-    setSaving(true);
-    try {
-      const payload = { ...form, slug: form.slug || generateSlug(form.name), logo: form.logo || null, description: form.description || null };
-      if (editing) { await apiFetch(`/api/admin/brands/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Brand updated"); }
-      else { await apiFetch("/api/admin/brands", { method: "POST", body: JSON.stringify(payload) }); toast.success("Brand created"); }
-      setDialog(false);
-      if (!editing) {clearFormDraft("admin-brand-add");}
-      load();
-    } catch { toast.error("Failed to save brand"); }
-    finally { setSaving(false); }
+    router.push(`/admin/brands/${b.id}/edit`);
   };
 
   const remove = async (id: string) => {
@@ -81,48 +57,180 @@ export default function BrandsPage() {
 
   const filtered = brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()));
 
-  if (loading) {return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;}
+  const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(filtered.map(b => b.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div><h1 className="text-3xl font-bold">Brands</h1><p className="text-gray-500 text-sm">Manage product brands</p></div>
-        <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Brand</Button>
+    <div className="font-poppins bg-[#f3f4f6] min-h-screen -m-6 p-6 text-slate-700">
+      
+      {/* Header section */}
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-[22px] font-normal text-slate-800">Brands</h1>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2 text-[13px] text-slate-500">
+            <Home className="w-3.5 h-3.5" />
+            <span className="text-slate-300">&gt;</span>
+            <span>Brands</span>
+          </div>
+          <button 
+            onClick={openAdd}
+            className="bg-[#0052cc] hover:bg-[#0047b3] text-white px-4 py-1.5 rounded-sm text-[13px] font-medium transition-colors"
+          >
+            Create Brand
+          </button>
+        </div>
       </div>
 
-      <div className="relative w-72"><Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" /><Input placeholder="Search brands..." value={search} onChange={e=>setSearch(e.target.value)} className="pl-9" /></div>
-
-      <Card><CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table><TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Slug</TableHead><TableHead>Products</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>
-            {filtered.length===0?<TableRow><TableCell colSpan={4} className="text-center py-8 text-gray-500">No brands found</TableCell></TableRow>:
-            filtered.map(b=><TableRow key={b.id}>
-              <TableCell className="font-medium">{b.name}</TableCell>
-              <TableCell className="text-gray-500">{b.slug}</TableCell>
-              <TableCell>{b._count?.products ?? 0}</TableCell>
-              <TableCell><div className="flex gap-2"><Button variant="outline" size="icon" onClick={()=>openEdit(b)}><Pencil className="h-4 w-4" /></Button><Button variant="destructive" size="icon" onClick={()=>setDeleteTarget(b.id)}><Trash2 className="h-4 w-4" /></Button></div></TableCell>
-            </TableRow>)}
-          </TableBody></Table>
-        </div>
-      </CardContent></Card>
-
-      <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent><DialogHeader><DialogTitle>{editing?"Edit Brand":"Add Brand"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-            <div><Label>Name</Label><Input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} /></div>
-            <div><Label>Slug</Label><Input value={form.slug} onChange={e=>setForm({...form,slug:e.target.value})} placeholder="Auto-generated from name" /></div>
-            <div className="space-y-2">
-              <SingleImageUploader
-                value={form.logo}
-                onChange={(url) => setForm({ ...form, logo: url })}
-                label="Brand Logo"
-              />
-            </div>
-            <div><Label>Description</Label><textarea className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} /></div>
+      {/* Main Card */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-sm">
+        
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-2 text-[13px] text-slate-600">
+            Show
+            <select 
+              value={perPage} 
+              onChange={e => setPerPage(e.target.value)}
+              className="border border-slate-300 rounded px-2 py-1.5 bg-white outline-none focus:border-blue-400"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            entries
+            <button 
+              className={`flex items-center gap-1 border border-slate-300 rounded px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 ml-2 transition-colors ${selectedIds.size === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={selectedIds.size === 0}
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
           </div>
-          <DialogFooter><Button variant="outline" onClick={()=>setDialog(false)}>Cancel</Button><Button onClick={save} disabled={saving}>{saving?"Saving...":"Save"}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder="Search here..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-slate-300 rounded-full pl-9 pr-4 py-1.5 text-[13px] w-[260px] outline-none focus:border-blue-400 transition-colors" 
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#f9fafb] text-[13px] text-slate-600 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 w-10 font-medium">
+                  <input 
+                    type="checkbox" 
+                    className="rounded-sm border-slate-300"
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
+                <th className="px-4 py-3 font-medium">
+                  <div className="flex items-center justify-between cursor-pointer group">
+                    ID <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+                <th className="px-4 py-3 font-medium">Logo</th>
+                <th className="px-4 py-3 font-medium">Name</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">
+                  <div className="flex items-center justify-between cursor-pointer group">
+                    Created <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="text-center py-8 text-slate-500 text-[13px]">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-8 text-slate-500 text-[13px]">No brands found.</td></tr>
+              ) : (
+                filtered.map((b, i) => (
+                  <tr 
+                    key={b.id} 
+                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors text-[13px] text-slate-700"
+                    onClick={() => openEdit(b)}
+                  >
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="rounded-sm border-slate-300"
+                        checked={selectedIds.has(b.id)}
+                        onChange={() => toggleSelect(b.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-3">{i + 1}</td>
+                    <td className="px-4 py-3">
+                      <div className="w-10 h-10 border border-slate-200 rounded-md flex items-center justify-center bg-white overflow-hidden">
+                        {b.logo ? (
+                          <img src={b.logo} alt={b.name} className="w-full h-full object-contain p-1" />
+                        ) : (
+                          <ImageIcon className="w-4 h-4 text-slate-300" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-medium">{b.name}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium border ${b.isActive !== false ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                        {b.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-500">
+                      {b.createdAt ? formatDistanceToNow(new Date(b.createdAt), { addSuffix: true }) : 'Unknown'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer / Pagination */}
+        <div className="flex justify-between items-center p-4 border-t border-slate-100 text-[13px] text-slate-500">
+          <div>
+            Showing 1 to {filtered.length} of {filtered.length} entries
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-[#0052cc] rounded-sm bg-[#0052cc] text-white">
+              1
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+      </div>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
@@ -132,7 +240,7 @@ export default function BrandsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => remove(deleteTarget!)}>Delete</AlertDialogAction>
+            <AlertDialogAction onClick={() => remove(deleteTarget!)} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

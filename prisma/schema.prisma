@@ -175,6 +175,21 @@ model Product {
   tags          String   @default("[]") // JSON-stringified array of tags
   rating        Float    @default(0)
   reviewCount   Int      @default(0) @map("review_count")
+  metaTitle           String?   @map("meta_title")
+  metaDescription     String?   @map("meta_description")
+  specialPriceType    String?   @map("special_price_type") // PERCENT or FIXED
+  specialPriceStart   DateTime? @map("special_price_start")
+  specialPriceEnd     DateTime? @map("special_price_end")
+  newFrom             DateTime? @map("new_from")
+  newTo               DateTime? @map("new_to")
+  inventoryManagement String?   @map("inventory_management") // TRACK or DONT_TRACK
+  stockAvailability   String?   @map("stock_availability") // IN_STOCK or OUT_OF_STOCK
+  upSells             String    @default("[]") @map("up_sells")
+  crossSells          String    @default("[]") @map("cross_sells")
+  relatedProducts     String    @default("[]") @map("related_products")
+  productAttributes   String    @default("[]") @map("product_attributes") // JSON string of attributes
+  productOptions      String    @default("[]") @map("product_options") // JSON string of options
+
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
@@ -1627,4 +1642,157 @@ model NotificationDelivery {
   @@index([userId, status, createdAt])
   @@index([entityType, entityId])
   @@map("notification_deliveries")
+}
+
+// ==================== SITE CONTENT & CONFIGURATION ====================
+// Standalone dictionary / CMS tables managed from the admin panel.
+// Products reference tags / attributes / options via JSON string fields
+// (see Product.tags, productAttributes, productOptions), so these tables
+// intentionally have no foreign-key relation to Product.
+
+model Language {
+  id         String   @id @default(uuid())
+  name       String
+  code       String   @unique
+  nativeName String   @map("native_name")
+  direction  String   @default("ltr") // ltr | rtl
+  isDefault  Boolean  @default(false) @map("is_default")
+  isActive   Boolean  @default(true) @map("is_active")
+  isDeleted  Boolean  @default(false) @map("is_deleted")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("languages")
+}
+
+model Currency {
+  id           String   @id @default(uuid())
+  name         String
+  code         String   @unique
+  symbol       String
+  exchangeRate Decimal  @default(1) @map("exchange_rate") @db.Decimal(18, 8)
+  isDefault    Boolean  @default(false) @map("is_default")
+  isActive     Boolean  @default(true) @map("is_active")
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("currencies")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tags")
+}
+
+model Attribute {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  values    String[]
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("attributes")
+}
+
+model AttributeSet {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  description  String?
+  attributeIds String[] @map("attribute_ids")
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("attribute_sets")
+}
+
+model Variation {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   @default("TEXT") // COLOR | TEXT
+  values    String[]
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("variations")
+}
+
+model Option {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   @default("SELECT") // SELECT | RADIO | CHECKBOX | TEXT
+  required  Boolean  @default(false)
+  choices   String[]
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("options")
+}
+
+model Menu {
+  id        String     @id @default(uuid())
+  name      String
+  slug      String     @unique
+  isActive  Boolean    @default(true) @map("is_active")
+  isDeleted Boolean    @default(false) @map("is_deleted")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  items MenuItem[]
+
+  @@map("menus")
+}
+
+model MenuItem {
+  id        String   @id @default(uuid())
+  menuId    String   @map("menu_id")
+  label     String
+  url       String
+  target    String   @default("_self")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  menu Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([menuId])
+  @@map("menu_items")
+}
+
+model Page {
+  id              String   @id @default(uuid())
+  title           String
+  slug            String   @unique
+  content         String
+  isActive        Boolean  @default(true) @map("is_active")
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+  metaTitle       String?  @map("meta_title")
+  metaDescription String?  @map("meta_description")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("pages")
+}
+
+model Setting {
+  key       String   @id
+  value     String   
+  group     String?  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
 }

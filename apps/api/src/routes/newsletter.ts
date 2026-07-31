@@ -4,6 +4,7 @@ import { Router } from 'express'
 import { db } from '../lib/db.js'
 import { asyncHandler, ApiError, validateBody } from '../lib/api-handler.js'
 import { schemas } from '../lib/schemas.js'
+import { checkRateLimit } from '../lib/rate-limit.js'
 
 const router = Router()
 
@@ -12,6 +13,13 @@ const router = Router()
 router.post(
   '/',
   asyncHandler(async (req, res) => {
+    // Rate limit: 10 subscriptions per 15 min per IP
+    const ip = typeof req.ip === 'string' && req.ip.trim() ? req.ip : 'unknown'
+    const rateLimit = await checkRateLimit(`newsletter:${ip}`, 10, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      throw new ApiError('Too many subscription attempts. Please try again later.', 429)
+    }
+
     const { email } = validateBody(req, schemas.newsletter)
     const normalizedEmail = email.trim().toLowerCase()
 

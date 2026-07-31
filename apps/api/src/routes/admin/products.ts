@@ -54,6 +54,21 @@ const createProductSchema = z.object({
   digitalFile: z.string().optional(),
   downloadLimit: z.number().int().optional(),
   isActive: z.boolean().optional().default(true),
+  
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  specialPriceType: z.string().optional(),
+  specialPriceStart: z.string().nullable().optional(),
+  specialPriceEnd: z.string().nullable().optional(),
+  newFrom: z.string().nullable().optional(),
+  newTo: z.string().nullable().optional(),
+  inventoryManagement: z.string().optional(),
+  stockAvailability: z.string().optional(),
+  upSells: z.array(z.string()).optional().default([]),
+  crossSells: z.array(z.string()).optional().default([]),
+  relatedProducts: z.array(z.string()).optional().default([]),
+  productAttributes: z.array(z.any()).optional().default([]),
+  productOptions: z.array(z.any()).optional().default([]),
 })
 
 const updateProductSchema = z
@@ -82,6 +97,21 @@ const updateProductSchema = z
     digitalFile: z.string().optional(),
     downloadLimit: z.number().int().optional(),
     isActive: z.boolean().optional(),
+
+    metaTitle: z.string().optional(),
+    metaDescription: z.string().optional(),
+    specialPriceType: z.string().optional(),
+    specialPriceStart: z.string().nullable().optional(),
+    specialPriceEnd: z.string().nullable().optional(),
+    newFrom: z.string().nullable().optional(),
+    newTo: z.string().nullable().optional(),
+    inventoryManagement: z.string().optional(),
+    stockAvailability: z.string().optional(),
+    upSells: z.array(z.string()).optional(),
+    crossSells: z.array(z.string()).optional(),
+    relatedProducts: z.array(z.string()).optional(),
+    productAttributes: z.array(z.any()).optional(),
+    productOptions: z.array(z.any()).optional(),
   })
   .passthrough()
 
@@ -148,6 +178,9 @@ router.post(
       comparePrice, salePrice, costPrice, sku, stock, minStock,
       categoryId, brandId, images, tags, specs,
       isFeatured, isBestDeal, hasVariant, isDigital, digitalFile, downloadLimit, isActive,
+      metaTitle, metaDescription, specialPriceType, specialPriceStart, specialPriceEnd,
+      newFrom, newTo, inventoryManagement, stockAvailability,
+      upSells, crossSells, relatedProducts, productAttributes, productOptions,
     } = body
 
     // Auto-generate slug if not provided; ensure uniqueness.
@@ -216,6 +249,21 @@ router.post(
         digitalFile: digitalFile || null,
         downloadLimit: downloadLimit !== undefined ? Number(downloadLimit) : null,
         isActive: isActive !== undefined ? !!isActive : true,
+
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
+        specialPriceType: specialPriceType || null,
+        specialPriceStart: specialPriceStart ? new Date(specialPriceStart) : null,
+        specialPriceEnd: specialPriceEnd ? new Date(specialPriceEnd) : null,
+        newFrom: newFrom ? new Date(newFrom) : null,
+        newTo: newTo ? new Date(newTo) : null,
+        inventoryManagement: inventoryManagement || null,
+        stockAvailability: stockAvailability || null,
+        upSells: stringifyJsonField(upSells),
+        crossSells: stringifyJsonField(crossSells),
+        relatedProducts: stringifyJsonField(relatedProducts),
+        productAttributes: stringifyJsonField(productAttributes),
+        productOptions: stringifyJsonField(productOptions),
       },
       include: { category: true, brand: true },
     })
@@ -352,6 +400,21 @@ router.put(
     if (digitalFile !== undefined) data.digitalFile = digitalFile || null
     if (downloadLimit !== undefined) data.downloadLimit = downloadLimit === null ? null : Number(downloadLimit)
     if (isActive !== undefined) data.isActive = !!isActive
+
+    if (body.metaTitle !== undefined) data.metaTitle = body.metaTitle || null
+    if (body.metaDescription !== undefined) data.metaDescription = body.metaDescription || null
+    if (body.specialPriceType !== undefined) data.specialPriceType = body.specialPriceType || null
+    if (body.specialPriceStart !== undefined) data.specialPriceStart = body.specialPriceStart ? new Date(body.specialPriceStart) : null
+    if (body.specialPriceEnd !== undefined) data.specialPriceEnd = body.specialPriceEnd ? new Date(body.specialPriceEnd) : null
+    if (body.newFrom !== undefined) data.newFrom = body.newFrom ? new Date(body.newFrom) : null
+    if (body.newTo !== undefined) data.newTo = body.newTo ? new Date(body.newTo) : null
+    if (body.inventoryManagement !== undefined) data.inventoryManagement = body.inventoryManagement || null
+    if (body.stockAvailability !== undefined) data.stockAvailability = body.stockAvailability || null
+    if (body.upSells !== undefined) data.upSells = stringifyJsonField(body.upSells)
+    if (body.crossSells !== undefined) data.crossSells = stringifyJsonField(body.crossSells)
+    if (body.relatedProducts !== undefined) data.relatedProducts = stringifyJsonField(body.relatedProducts)
+    if (body.productAttributes !== undefined) data.productAttributes = stringifyJsonField(body.productAttributes)
+    if (body.productOptions !== undefined) data.productOptions = stringifyJsonField(body.productOptions)
 
     const product = await db.product.update({
       where: { id },

@@ -115,7 +115,7 @@ export default function WishlistPage() {
         <CartDrawer />
         <CheckoutDialog />
         <main className="flex-1">
-          <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-8">
             <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
             <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mb-8" />
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -165,7 +165,7 @@ export default function WishlistPage() {
       <CheckoutDialog />
 
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-8">
           {/* Breadcrumb */}
           <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
             <Link href="/" className="hover:text-[#0EA5E9]">Home</Link>

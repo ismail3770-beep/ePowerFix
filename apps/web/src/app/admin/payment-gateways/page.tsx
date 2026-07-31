@@ -8,26 +8,20 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Check, Eye, EyeOff } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
 
 interface PaymentSettings {
   bkashEnabled: boolean;
   bkashPhoneNumber: string | null;
-  bkashApiKey: string | null;
-  bkashSecretKey: string | null;
   bkashSandbox: boolean;
 
   nagadEnabled: boolean;
   nagadPhoneNumber: string | null;
-  nagadApiKey: string | null;
-  nagadSecretKey: string | null;
   nagadSandbox: boolean;
 
   sslcommerzEnabled: boolean;
-  sslcommerzStoreId: string | null;
-  sslcommerzStorePassword: string | null;
   sslcommerzSandbox: boolean;
 
   bankTransferEnabled: boolean;
@@ -40,17 +34,11 @@ interface PaymentSettings {
 const DEFAULTS: PaymentSettings = {
   bkashEnabled: false,
   bkashPhoneNumber: "",
-  bkashApiKey: "",
-  bkashSecretKey: "",
   bkashSandbox: true,
   nagadEnabled: false,
   nagadPhoneNumber: "",
-  nagadApiKey: "",
-  nagadSecretKey: "",
   nagadSandbox: true,
   sslcommerzEnabled: false,
-  sslcommerzStoreId: "",
-  sslcommerzStorePassword: "",
   sslcommerzSandbox: true,
   bankTransferEnabled: false,
   bankTransferInstructions: "",
@@ -96,41 +84,6 @@ function GatewayCard({
   );
 }
 
-function SecretInput({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  const [show, setShow] = useState(false);
-  return (
-    <div>
-      <Label className="text-xs text-[#6B7280]">{label}</Label>
-      <div className="relative">
-        <Input
-          type={show ? "text" : "password"}
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="pr-10"
-        />
-        <button
-          type="button"
-          onClick={() => setShow(!show)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827]"
-        >
-          {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminPaymentGatewaysPage() {
   const [settings, setSettings] = useState<PaymentSettings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
@@ -143,17 +96,11 @@ export default function AdminPaymentGatewaysPage() {
         setSettings({
           bkashEnabled: s.bkashEnabled ?? false,
           bkashPhoneNumber: s.bkashPhoneNumber ?? "",
-          bkashApiKey: s.bkashApiKey ?? "",
-          bkashSecretKey: s.bkashSecretKey ?? "",
           bkashSandbox: s.bkashSandbox ?? true,
           nagadEnabled: s.nagadEnabled ?? false,
           nagadPhoneNumber: s.nagadPhoneNumber ?? "",
-          nagadApiKey: s.nagadApiKey ?? "",
-          nagadSecretKey: s.nagadSecretKey ?? "",
           nagadSandbox: s.nagadSandbox ?? true,
           sslcommerzEnabled: s.sslcommerzEnabled ?? false,
-          sslcommerzStoreId: s.sslcommerzStoreId ?? "",
-          sslcommerzStorePassword: s.sslcommerzStorePassword ?? "",
           sslcommerzSandbox: s.sslcommerzSandbox ?? true,
           bankTransferEnabled: s.bankTransferEnabled ?? false,
           bankTransferInstructions: s.bankTransferInstructions ?? "",
@@ -222,18 +169,7 @@ export default function AdminPaymentGatewaysPage() {
               placeholder="01XXXXXXXXX"
             />
           </div>
-          <SecretInput
-            label="API Key"
-            value={settings.bkashApiKey || ""}
-            onChange={(v) => update("bkashApiKey", v)}
-            placeholder="bkash API key"
-          />
-          <SecretInput
-            label="Secret Key"
-            value={settings.bkashSecretKey || ""}
-            onChange={(v) => update("bkashSecretKey", v)}
-            placeholder="bkash secret key"
-          />
+          <p className="text-xs text-[#6B7280]">Gateway credentials are managed through server environment variables.</p>
           <div className="flex items-center justify-between pt-1">
             <Label className="text-xs text-[#6B7280]">Sandbox / Test Mode</Label>
             <Switch checked={settings.bkashSandbox} onCheckedChange={(v) => update("bkashSandbox", v)} />
@@ -256,18 +192,7 @@ export default function AdminPaymentGatewaysPage() {
               placeholder="01XXXXXXXXX"
             />
           </div>
-          <SecretInput
-            label="API Key"
-            value={settings.nagadApiKey || ""}
-            onChange={(v) => update("nagadApiKey", v)}
-            placeholder="Nagad API key"
-          />
-          <SecretInput
-            label="Secret Key"
-            value={settings.nagadSecretKey || ""}
-            onChange={(v) => update("nagadSecretKey", v)}
-            placeholder="Nagad secret key"
-          />
+          <p className="text-xs text-[#6B7280]">Gateway credentials are managed through server environment variables.</p>
           <div className="flex items-center justify-between pt-1">
             <Label className="text-xs text-[#6B7280]">Sandbox / Test Mode</Label>
             <Switch checked={settings.nagadSandbox} onCheckedChange={(v) => update("nagadSandbox", v)} />
@@ -282,20 +207,7 @@ export default function AdminPaymentGatewaysPage() {
           enabled={settings.sslcommerzEnabled}
           onToggle={(v) => update("sslcommerzEnabled", v)}
         >
-          <div>
-            <Label className="text-xs text-[#6B7280]">Store ID</Label>
-            <Input
-              value={settings.sslcommerzStoreId || ""}
-              onChange={(e) => update("sslcommerzStoreId", e.target.value)}
-              placeholder="your_store_id"
-            />
-          </div>
-          <SecretInput
-            label="Store Password"
-            value={settings.sslcommerzStorePassword || ""}
-            onChange={(v) => update("sslcommerzStorePassword", v)}
-            placeholder="store password"
-          />
+          <p className="text-xs text-[#6B7280]">Store credentials are managed through server environment variables.</p>
           <div className="flex items-center justify-between pt-1">
             <Label className="text-xs text-[#6B7280]">Sandbox / Test Mode</Label>
             <Switch checked={settings.sslcommerzSandbox} onCheckedChange={(v) => update("sslcommerzSandbox", v)} />

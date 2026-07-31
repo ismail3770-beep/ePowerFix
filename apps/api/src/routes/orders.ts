@@ -19,6 +19,7 @@ import {
   releaseOrderReservation,
 } from '../lib/order-reservations.js'
 import { sendOrderConfirmation } from '../lib/email.js'
+import { calculateCouponDiscount, formatPaisa, toPaisa } from '../lib/money.js'
 
 const router = Router()
 
@@ -406,11 +407,11 @@ router.post(
         // Prices and inventory are resolved inside the same transaction as the
         // order write. Client cart prices are display-only and never trusted.
         const lineItems: any[] = []
-        let subtotal = 0
+        let subtotalPaisa = 0
 
         for (const item of items) {
           const qty = Math.max(1, item.quantity)
-          let unitPrice = 0
+          let unitPrice: any = 0
           let productName = ''
           let productImage: string | null = null
           let variantName: string | null = null
@@ -434,21 +435,12 @@ router.post(
             serviceId = service.id
           } else if (item.itemType === 'PROJECT_KIT') {
             const kit = await tx.projectKit.findFirst({
-              where: {
-                id: item.projectKitId,
-                isActive: true,
-                isDeleted: false,
-              },
+              where: { id: item.projectKitId, isActive: true, isDeleted: false },
             })
             if (!kit) throw new ApiError('Project kit is not available', 400)
 
             const reservation = await tx.projectKit.updateMany({
-              where: {
-                id: kit.id,
-                isActive: true,
-                isDeleted: false,
-                stock: { gte: qty },
-              },
+              where: { id: kit.id, isActive: true, isDeleted: false, stock: { gte: qty } },
               data: { stock: { decrement: qty } },
             })
             if (reservation.count !== 1) {
@@ -466,19 +458,12 @@ router.post(
             // the canonical PROJECT_KIT itemType and projectKitId relation.
             const legacyKitId = item.projectKitId ?? item.projectId
             const kit = legacyKitId
-              ? await tx.projectKit.findFirst({
-                  where: { id: legacyKitId, isActive: true, isDeleted: false },
-                })
+              ? await tx.projectKit.findFirst({ where: { id: legacyKitId, isActive: true, isDeleted: false } })
               : null
 
             if (kit) {
               const reservation = await tx.projectKit.updateMany({
-                where: {
-                  id: kit.id,
-                  isActive: true,
-                  isDeleted: false,
-                  stock: { gte: qty },
-                },
+                where: { id: kit.id, isActive: true, isDeleted: false, stock: { gte: qty } },
                 data: { stock: { decrement: qty } },
               })
               if (reservation.count !== 1) {
@@ -519,17 +504,10 @@ router.post(
 
               if (!product.isDigital) {
                 const reservation = await tx.productVariant.updateMany({
-                  where: {
-                    id: variant.id,
-                    productId: product.id,
-                    isActive: true,
-                    stock: { gte: qty },
-                  },
+                  where: { id: variant.id, productId: product.id, isActive: true, stock: { gte: qty } },
                   data: { stock: { decrement: qty } },
                 })
-                if (reservation.count !== 1) {
-                  throw new ApiError('Product variant is out of stock', 409)
-                }
+                if (reservation.count !== 1) throw new ApiError('Product variant is out of stock', 409)
                 inventoryReserved = isOnlinePayment
               }
 
@@ -539,13 +517,7 @@ router.post(
             } else {
               if (!product.isDigital) {
                 const reservation = await tx.product.updateMany({
-                  where: {
-                    id: product.id,
-                    isActive: true,
-                    isDeleted: false,
-                    isDigital: false,
-                    stock: { gte: qty },
-                  },
+                  where: { id: product.id, isActive: true, isDeleted: false, isDigital: false, stock: { gte: qty } },
                   data: { stock: { decrement: qty } },
                 })
                 if (reservation.count !== 1) {
@@ -562,8 +534,9 @@ router.post(
             productId = product.id
           }
 
-          const lineTotal = unitPrice * qty
-          subtotal += lineTotal
+          const unitPricePaisa = toPaisa(unitPrice)
+          const lineTotalPaisa = unitPricePaisa * qty
+          subtotalPaisa += lineTotalPaisa
           lineItems.push({
             itemType,
             productId,
@@ -574,9 +547,9 @@ router.post(
             productName,
             productImage,
             variantName,
-            price: unitPrice,
+            price: Number(formatPaisa(unitPricePaisa)),
             quantity: qty,
-            total: lineTotal,
+            total: Number(formatPaisa(lineTotalPaisa)),
             inventoryReserved,
           })
         }
@@ -588,19 +561,18 @@ router.post(
         } catch {
           // Ignore a missing settings record and retain current checkout defaults.
         }
-        const insideDhakaRate = siteSettings?.shippingInsideDhaka ?? 60
-        const outsideDhakaRate = siteSettings?.shippingOutsideDhaka ?? 120
-        const freeShippingThreshold = siteSettings?.freeShippingThreshold ?? 0
+        const insideDhakaRatePaisa = toPaisa(siteSettings?.shippingInsideDhaka ?? 60)
+        const outsideDhakaRatePaisa = toPaisa(siteSettings?.shippingOutsideDhaka ?? 120)
+        const freeShippingThresholdPaisa = toPaisa(siteSettings?.freeShippingThreshold ?? 0)
 
         const isInsideDhaka = !!(area && /dhaka|ঢাকা/i.test(area))
-        let deliveryCharge = isInsideDhaka ? insideDhakaRate : outsideDhakaRate
-        if (freeShippingThreshold > 0 && subtotal >= freeShippingThreshold) {
-          deliveryCharge = 0
+        let deliveryChargePaisa = isInsideDhaka ? insideDhakaRatePaisa : outsideDhakaRatePaisa
+        if (freeShippingThresholdPaisa > 0 && subtotalPaisa >= freeShippingThresholdPaisa) {
+          deliveryChargePaisa = 0
         }
 
-        // Coupon values are calculated from the authoritative transaction
-        // subtotal. A later conditional increment reserves limited coupons.
-        let discount = 0
+        // Coupon values are calculated from the authoritative transaction subtotal.
+        let discountPaisa = 0
         let couponId: string | null = null
         let couponUsageLimit: number | null = null
         if (couponCode) {
@@ -614,33 +586,29 @@ router.post(
               endDate: { gte: now },
             },
           })
-          const meetsMinimum =
-            coupon?.minOrder === null ||
-            coupon?.minOrder === undefined ||
-            subtotal >= coupon.minOrder
-          const hasUsageRemaining =
-            coupon?.usageLimit === null ||
-            coupon?.usageLimit === undefined ||
-            coupon.usedCount < coupon.usageLimit
+          const minimumPaisa = coupon?.minOrder === null || coupon?.minOrder === undefined
+            ? null
+            : toPaisa(coupon.minOrder)
+          const meetsMinimum = minimumPaisa === null || subtotalPaisa >= minimumPaisa
+          const hasUsageRemaining = coupon?.usageLimit === null || coupon?.usageLimit === undefined || coupon.usedCount < coupon.usageLimit
 
           if (coupon && meetsMinimum && hasUsageRemaining) {
-            if (coupon.type === 'PERCENTAGE') {
-              discount = (subtotal * coupon.value) / 100
-              if (coupon.maxDiscount !== null) {
-                discount = Math.min(discount, coupon.maxDiscount)
-              }
-            } else {
-              discount = coupon.value
-            }
-            // Discount cannot exceed the subtotal (delivery is never discounted).
-            discount = Math.min(discount, subtotal)
+            discountPaisa = calculateCouponDiscount({
+              subtotalPaisa,
+              type: coupon.type,
+              value: coupon.value,
+              maxDiscount: coupon.maxDiscount,
+            })
             couponId = coupon.id
             couponUsageLimit = coupon.usageLimit
           }
         }
 
-        // Total cannot go negative even if discount somehow exceeds subtotal + delivery.
-        const total = Math.max(0, subtotal + deliveryCharge - discount)
+        const totalPaisa = Math.max(0, subtotalPaisa + deliveryChargePaisa - discountPaisa)
+        const subtotal = Number(formatPaisa(subtotalPaisa))
+        const deliveryCharge = Number(formatPaisa(deliveryChargePaisa))
+        const discount = Number(formatPaisa(discountPaisa))
+        const total = Number(formatPaisa(totalPaisa))
 
         // Generate a unique order number. Pure count-based numbers can collide
         // under concurrent inserts; the random suffix preserves the existing

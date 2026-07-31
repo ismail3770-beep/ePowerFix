@@ -937,3 +937,61 @@ body:has(header[data-customer-shell="page"]) [role="dialog"] :where(p, span, sma
     transition: none;
   }
 }
+
+/*
+ * Border-draw hover effect (Active eCommerce style).
+ * Two 2px brand-blue lines start at the card's TOP-LEFT corner and run around
+ * the card — one via the top + right edges, the other via the left + bottom
+ * edges — meeting at the BOTTOM-RIGHT corner on hover / focus-within.
+ */
+.epf-card-border::before,
+.epf-card-border::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Path 1: top edge (left → right) then right edge (top → bottom). */
+/* Base (unhover) transition reverses the draw: right edge retreats bottom → top, then top edge retreats right → left. */
+.epf-card-border::before {
+  border-top: 2px solid #0068e1;
+  border-right: 2px solid #0068e1;
+  transition: height 0.25s ease-out, width 0.25s ease-out 0.25s;
+}
+
+/* Path 2: left edge (top → bottom) then bottom edge (left → right). */
+/* Base (unhover) transition reverses the draw: bottom edge retreats right → left, then left edge retreats bottom → top. */
+.epf-card-border::after {
+  border-left: 2px solid #0068e1;
+  border-bottom: 2px solid #0068e1;
+  transition: width 0.25s ease-out, height 0.25s ease-out 0.25s;
+}
+
+/* Hover / focus: draw forward. The transition here (forward order) governs the draw-in;
+   the base transition above governs the retreat-out, so both directions animate smoothly. */
+.epf-card-border:hover::before,
+.epf-card-border:focus-within::before {
+  width: 100%;
+  height: 100%;
+  transition: width 0.25s ease-out, height 0.25s ease-out 0.25s;
+}
+
+.epf-card-border:hover::after,
+.epf-card-border:focus-within::after {
+  width: 100%;
+  height: 100%;
+  transition: height 0.25s ease-out, width 0.25s ease-out 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .epf-card-border::before,
+  .epf-card-border::after {
+    transition: none;
+  }
+}

@@ -13,7 +13,6 @@ type EnvShape = {
   // Required
   DATABASE_URL: string
   JWT_SECRET: string
-  NEXTAUTH_SECRET: string
   // Optional but recommended
   NEXT_PUBLIC_BASE_URL: string
   UPSTASH_REDIS_REST_URL: string | undefined
@@ -24,7 +23,6 @@ type EnvShape = {
 const REQUIRED_VARS: (keyof EnvShape)[] = [
   'DATABASE_URL',
   'JWT_SECRET',
-  'NEXTAUTH_SECRET',
 ]
 
 // In production, these are also required
@@ -82,19 +80,9 @@ function validateEnv(): EnvShape {
     )
   }
 
-  // Validate NextAuth secret
-  const nextAuthSecret = process.env.NEXTAUTH_SECRET || ''
-  if (nextAuthSecret && nextAuthSecret.length < 32) {
-    console.warn(
-      '⚠️  NEXTAUTH_SECRET is shorter than 32 characters. ' +
-        'Run: openssl rand -base64 32',
-    )
-  }
-
   return {
     DATABASE_URL: process.env.DATABASE_URL || '',
     JWT_SECRET: process.env.JWT_SECRET || '',
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
     NEXT_PUBLIC_BASE_URL:
       process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,

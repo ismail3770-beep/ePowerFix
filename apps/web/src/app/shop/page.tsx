@@ -15,6 +15,7 @@ import BackToTopButton from "@/components/epf/BackToTopButton";
 import { useCartStore, useUIStore } from "@/store";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import ProductGridCard, { formatBdt } from "@/components/epf/ProductGridCard";
 
 interface Product {
   id: string;
@@ -58,10 +59,6 @@ const sortOptions = [
 ];
 
 const perPageOptions = [12, 24, 48];
-
-function formatBdt(value: number) {
-  return `৳${Number(value).toLocaleString()}`;
-}
 
 function prices(product: Product) {
   const sale =
@@ -138,68 +135,6 @@ function ListProductCard({ product, onAdd }: { product: Product; onAdd: (product
         </button>
       </div>
     </div>
-  );
-}
-
-/**
- * Active eCommerce product card — matches the reference screenshot exactly:
- * a thin-bordered rounded card, square light-grey image area with a small
- * circular store icon top-right, centered grey product name (2 lines) and a
- * centered bold blue price.
- */
-function GridProduct({ product }: { product: Product }) {
-  const { price } = prices(product);
-  const image = product.images?.[0];
-  const inStock = product.stock > 0;
-  const href = `/shop/${product.slug || product.id}`;
-  return (
-    <Link
-      href={href}
-      className="group mx-auto flex w-[231px] h-[364px] flex-col rounded-lg border border-[#ededed] bg-white p-3 transition-shadow duration-200 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
-    >
-      {/* Image — square, very light grey background, rounded */}
-      <div className="relative aspect-square shrink-0 overflow-hidden rounded-md bg-[#f7f7f9]">
-        {image ? (
-          <img
-            src={image}
-            alt={product.name}
-            loading="lazy"
-            className="h-full w-full object-contain p-5 transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center">
-            <Package className="h-10 w-10 text-[#c8c8c8]" />
-          </span>
-        )}
-        {/* small circular store icon — top right */}
-        <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/5 text-slate-400">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M3 9L4 4H20L21 9M3 9V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V9M3 9H21M8 13H16"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </span>
-        {!inStock && (
-          <span className="absolute left-2 top-2 rounded bg-slate-500 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
-            স্টক নেই
-          </span>
-        )}
-      </div>
-
-      {/* Name — centered, grey, 2 lines */}
-      <h3 className="mt-4 line-clamp-2 min-h-[40px] text-center text-[14px] leading-[1.4] text-[#3f4254] transition-colors group-hover:text-[#0068e1]">
-        {product.name}
-      </h3>
-
-      {/* Price — centered, bold blue */}
-      <div className="mt-2 mb-1 text-center text-[17px] font-bold text-[#0068e1]">
-        {formatBdt(price)}
-      </div>
-    </Link>
   );
 }
 
@@ -293,7 +228,7 @@ function ShopPageContent() {
     <>
       <Header />
       <main className="ff min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-6 lg:py-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-6 lg:py-10">
           <div className="flex flex-col-reverse lg:flex-row gap-8">
             {/* Sidebar */}
             <aside
@@ -479,9 +414,9 @@ function ShopPageContent() {
                   </button>
                 </div>
               ) : productQuery.isLoading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
                   {Array.from({ length: 15 }).map((_, index) => (
-                    <div key={index} className="h-[280px] animate-pulse rounded-lg bg-[#f2f2f2]" />
+                    <div key={index} className="mx-auto h-[364px] w-full max-w-[231px] animate-pulse rounded-lg bg-[#f2f2f2]" />
                   ))}
                 </div>
               ) : emptyProducts ? (
@@ -498,10 +433,22 @@ function ShopPageContent() {
                   </button>
                 </div>
               ) : view === "grid" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {products.map((product) => (
-                    <GridProduct key={product.id} product={product} />
-                  ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
+                  {products.map((product) => {
+                    const { price, compareAtPrice } = prices(product);
+                    return (
+                      <ProductGridCard
+                        key={product.id}
+                        href={`/shop/${product.slug || product.id}`}
+                        name={product.name}
+                        price={price}
+                        comparePrice={compareAtPrice}
+                        image={product.images?.[0]}
+                        inStock={product.stock > 0}
+                        onAddToCart={() => addToCart(product)}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">

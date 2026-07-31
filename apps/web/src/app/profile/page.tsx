@@ -551,7 +551,7 @@ export default function ProfilePage() {
         <Header />
         <main className="flex-1 bg-gray-50">
           <div className="bg-white border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-8">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-12">
               <nav className="flex items-center gap-1.5 h-[44px] text-xs text-gray-400">
                 <a href="/" className="hover:text-[#0EA5E9] transition-colors">Home</a>
                 <ChevronRight className="h-3 w-3" />
@@ -559,7 +559,7 @@ export default function ProfilePage() {
               </nav>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-270px)]">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-20 flex flex-col items-center justify-center min-h-[calc(100vh-270px)]">
             <div className="bg-white border border-gray-200 rounded shadow-lg p-8 text-center max-w-sm w-full">
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
                 <User className="h-8 w-8 text-gray-400" />
@@ -597,7 +597,7 @@ export default function ProfilePage() {
       <main className="flex-1 bg-gray-50">
         {/* Breadcrumb */}
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-8">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-12">
             <nav className="flex items-center justify-between gap-4 h-[44px] text-sm">
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
                 <a href="/" className="hover:text-[#0EA5E9] transition-colors">Home</a>
@@ -610,7 +610,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Page Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-8">
           {userLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-8">
               <Skeleton className="h-72 w-full rounded-lg" />

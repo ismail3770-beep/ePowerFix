@@ -98,21 +98,15 @@ const updateSettingsSchema = z
     // Payment Gateways — bKash
     bkashEnabled: z.boolean().optional(),
     bkashPhoneNumber: z.string().optional(),
-    bkashApiKey: z.string().optional(),
-    bkashSecretKey: z.string().optional(),
     bkashSandbox: z.boolean().optional(),
 
     // Payment Gateways — Nagad
     nagadEnabled: z.boolean().optional(),
     nagadPhoneNumber: z.string().optional(),
-    nagadApiKey: z.string().optional(),
-    nagadSecretKey: z.string().optional(),
     nagadSandbox: z.boolean().optional(),
 
     // Payment Gateways — SSLCommerz
     sslcommerzEnabled: z.boolean().optional(),
-    sslcommerzStoreId: z.string().optional(),
-    sslcommerzStorePassword: z.string().optional(),
     sslcommerzSandbox: z.boolean().optional(),
 
     // Payment Gateways — Bank Transfer
@@ -137,8 +131,6 @@ const updateSettingsSchema = z
           .object({
             enabled: z.boolean().optional(),
             phoneNumber: z.string().optional(),
-            apiKey: z.string().optional(),
-            secretKey: z.string().optional(),
             sandbox: z.boolean().optional(),
           })
           .optional(),
@@ -146,16 +138,12 @@ const updateSettingsSchema = z
           .object({
             enabled: z.boolean().optional(),
             phoneNumber: z.string().optional(),
-            apiKey: z.string().optional(),
-            secretKey: z.string().optional(),
             sandbox: z.boolean().optional(),
           })
           .optional(),
         sslcommerz: z
           .object({
             enabled: z.boolean().optional(),
-            storeId: z.string().optional(),
-            storePassword: z.string().optional(),
             sandbox: z.boolean().optional(),
           })
           .optional(),
@@ -176,6 +164,38 @@ const updateSettingsSchema = z
   })
   .passthrough()
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Masks sensitive payment gateway credentials before returning settings.
+ * Secret keys are replaced with a masked placeholder to prevent exposure
+ * in API responses while still indicating that a value is configured.
+ */
+function maskSensitiveSettings(settings: any): any {
+  if (!settings) return settings
+  const masked = { ...settings }
+
+  // Mask payment gateway secrets — show only that they're configured
+  const maskValue = (value: string | null | undefined): string | null => {
+    if (!value) return null
+    return '••••••••' + value.slice(-4)
+  }
+
+  // bKash
+  if (masked.bkashApiKey) masked.bkashApiKey = maskValue(masked.bkashApiKey)
+  if (masked.bkashSecretKey) masked.bkashSecretKey = maskValue(masked.bkashSecretKey)
+
+  // Nagad
+  if (masked.nagadApiKey) masked.nagadApiKey = maskValue(masked.nagadApiKey)
+  if (masked.nagadSecretKey) masked.nagadSecretKey = maskValue(masked.nagadSecretKey)
+
+  // SSLCommerz
+  if (masked.sslcommerzStoreId) masked.sslcommerzStoreId = maskValue(masked.sslcommerzStoreId)
+  if (masked.sslcommerzStorePassword) masked.sslcommerzStorePassword = maskValue(masked.sslcommerzStorePassword)
+
+  return masked
+}
+
 // ─── GET /api/admin/settings ─────────────────────────────────────────────────
 
 router.get(
@@ -185,7 +205,8 @@ router.get(
     if (!settings) {
       settings = await db.siteSettings.create({ data: { id: SETTINGS_ID } })
     }
-    res.json({ data: settings })
+    // Mask sensitive payment gateway credentials before returning
+    res.json({ data: maskSensitiveSettings(settings) })
   })
 )
 
@@ -271,24 +292,18 @@ router.put(
     }
 
     // Payment Gateways — bKash
-    if (body.bkashEnabled !== undefined) data.bkashEnabled = !!body.bkashEnabled
+    if (body.bkashEnabled !== undefined) data.bkashEnabled = body.bkashEnabled
     if (body.bkashPhoneNumber !== undefined) data.bkashPhoneNumber = body.bkashPhoneNumber || null
-    if (body.bkashApiKey !== undefined) data.bkashApiKey = body.bkashApiKey || null
-    if (body.bkashSecretKey !== undefined) data.bkashSecretKey = body.bkashSecretKey || null
-    if (body.bkashSandbox !== undefined) data.bkashSandbox = !!body.bkashSandbox
+    if (body.bkashSandbox !== undefined) data.bkashSandbox = body.bkashSandbox
 
     // Payment Gateways — Nagad
-    if (body.nagadEnabled !== undefined) data.nagadEnabled = !!body.nagadEnabled
+    if (body.nagadEnabled !== undefined) data.nagadEnabled = body.nagadEnabled
     if (body.nagadPhoneNumber !== undefined) data.nagadPhoneNumber = body.nagadPhoneNumber || null
-    if (body.nagadApiKey !== undefined) data.nagadApiKey = body.nagadApiKey || null
-    if (body.nagadSecretKey !== undefined) data.nagadSecretKey = body.nagadSecretKey || null
-    if (body.nagadSandbox !== undefined) data.nagadSandbox = !!body.nagadSandbox
+    if (body.nagadSandbox !== undefined) data.nagadSandbox = body.nagadSandbox
 
     // Payment Gateways — SSLCommerz
-    if (body.sslcommerzEnabled !== undefined) data.sslcommerzEnabled = !!body.sslcommerzEnabled
-    if (body.sslcommerzStoreId !== undefined) data.sslcommerzStoreId = body.sslcommerzStoreId || null
-    if (body.sslcommerzStorePassword !== undefined) data.sslcommerzStorePassword = body.sslcommerzStorePassword || null
-    if (body.sslcommerzSandbox !== undefined) data.sslcommerzSandbox = !!body.sslcommerzSandbox
+    if (body.sslcommerzEnabled !== undefined) data.sslcommerzEnabled = body.sslcommerzEnabled
+    if (body.sslcommerzSandbox !== undefined) data.sslcommerzSandbox = body.sslcommerzSandbox
 
     // Payment Gateways — Bank Transfer
     if (body.bankTransferEnabled !== undefined) data.bankTransferEnabled = !!body.bankTransferEnabled
@@ -311,21 +326,15 @@ router.put(
       if (pg.bkash) {
         if (pg.bkash.enabled !== undefined) data.bkashEnabled = !!pg.bkash.enabled
         if (pg.bkash.phoneNumber !== undefined) data.bkashPhoneNumber = pg.bkash.phoneNumber
-        if (pg.bkash.apiKey !== undefined) data.bkashApiKey = pg.bkash.apiKey
-        if (pg.bkash.secretKey !== undefined) data.bkashSecretKey = pg.bkash.secretKey
         if (pg.bkash.sandbox !== undefined) data.bkashSandbox = !!pg.bkash.sandbox
       }
       if (pg.nagad) {
         if (pg.nagad.enabled !== undefined) data.nagadEnabled = !!pg.nagad.enabled
         if (pg.nagad.phoneNumber !== undefined) data.nagadPhoneNumber = pg.nagad.phoneNumber
-        if (pg.nagad.apiKey !== undefined) data.nagadApiKey = pg.nagad.apiKey
-        if (pg.nagad.secretKey !== undefined) data.nagadSecretKey = pg.nagad.secretKey
         if (pg.nagad.sandbox !== undefined) data.nagadSandbox = !!pg.nagad.sandbox
       }
       if (pg.sslcommerz) {
         if (pg.sslcommerz.enabled !== undefined) data.sslcommerzEnabled = !!pg.sslcommerz.enabled
-        if (pg.sslcommerz.storeId !== undefined) data.sslcommerzStoreId = pg.sslcommerz.storeId
-        if (pg.sslcommerz.storePassword !== undefined) data.sslcommerzStorePassword = pg.sslcommerz.storePassword
         if (pg.sslcommerz.sandbox !== undefined) data.sslcommerzSandbox = !!pg.sslcommerz.sandbox
       }
       if (pg.bankTransfer) {

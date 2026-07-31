@@ -62,6 +62,7 @@ app.use(
       'http://localhost:3001',
       'capacitor://localhost', // mobile app
       'http://localhost',
+      'null', // allow file:// protocol (local HTML files)
     ],
     credentials: true,
   })

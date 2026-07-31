@@ -91,7 +91,7 @@ export default function Footer() {
       <FadeIn>
         {/* Newsletter strip — real e-commerce feel */}
         <div className="border-b border-white/5 bg-gradient-to-r from-slate-900 via-slate-900 to-epf-600/20">
-          <div className="mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-4 px-4 py-6 sm:px-8 lg:flex-row lg:items-center lg:px-12">
+          <div className="mx-auto flex max-w-[1400px] flex-col items-start justify-between gap-4 px-4 sm:px-12 py-6 lg:flex-row lg:items-center">
             <div>
               <h3 className="text-[17px] font-bold text-white">Stay charged with ePowerFix</h3>
               <p className="mt-1 text-[13px] text-white/50">Get the latest deals, guides and product drops in your inbox.</p>
@@ -111,7 +111,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-10 lg:py-12">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-10 lg:py-12">
           <div className="lg:grid lg:grid-cols-5 lg:gap-6">
             {/* Brand Column */}
             <div className="mb-8 lg:mb-0 lg:col-span-1">
@@ -191,7 +191,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/5">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-8 lg:px-12 py-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-12 py-4 flex flex-wrap items-center justify-between gap-2">
             <p className="text-[13px] text-white/30">{settings.copyrightText || `© ${new Date().getFullYear()} ${settings.siteName || "ePowerFix"}. All rights reserved.`}</p>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-[13px] text-white/30">Safe Payments:</span>

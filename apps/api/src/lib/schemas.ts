@@ -8,18 +8,18 @@ export const schemas = {
   login: z.object({
     email: z.string().email(),
     password: z.string().min(1),
-  }),
+  }).strict(),
   register: z.object({
     name: z.string().min(2),
     nameBn: z.string().optional(),
     email: z.string().email(),
     phone: z.string().min(6),
     password: z.string().min(6),
-  }),
+  }).strict(),
   changePassword: z.object({
     currentPassword: z.string().min(1),
     newPassword: z.string().min(8),
-  }),
+  }).strict(),
 
   // Contact / Newsletter / Quote
   contact: z.object({

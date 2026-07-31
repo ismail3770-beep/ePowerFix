@@ -32,7 +32,12 @@
   },
   "overrides": {
     "react": "19.2.3",
-    "react-native-screens": "~4.26.0"
+    "react-native-screens": "~4.26.0",
+    "brace-expansion": "^5.0.8",
+    "fast-uri": "^3.1.4",
+    "js-yaml": "^4.3.0",
+    "postcss": "^8.5.12",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "prisma": "6.19.3",

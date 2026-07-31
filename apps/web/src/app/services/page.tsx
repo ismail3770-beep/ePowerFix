@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Search, Wrench, Zap, Star, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Wrench, User, CalendarDays } from "lucide-react";
 import Header from "@/components/epf/Header";
 import Footer from "@/components/epf/Footer";
 import ServiceBookingDialog from "@/components/epf/ServiceBookingDialog";
@@ -35,35 +35,25 @@ interface ServiceResponse {
   services?: Service[];
 }
 
-const pageSize = 6;
+const pageSize = 9;
 
 function formatPrice(price: number) {
   return "৳" + new Intl.NumberFormat("en-BD").format(Math.round(price));
 }
 
-function StarRating({ rating = 4.5, count = 0 }: { rating?: number; count?: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          size={11}
-          className={i <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}
-        />
-      ))}
-      {count > 0 && <span className="text-[10px] text-gray-400 ml-1">({count})</span>}
-    </div>
-  );
+function formatDate(dateStr?: string) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function Pagination({ page, totalPages, onChange }: { page: number; totalPages: number; onChange: (p: number) => void }) {
   if (totalPages <= 1) return null;
   return (
-    <div className="flex items-center justify-center gap-1.5 mt-10">
+    <div className="flex items-center justify-end gap-1 mt-8">
       <button
         onClick={() => onChange(Math.max(1, page - 1))}
         disabled={page === 1}
-        className="w-9 h-9 border border-[hsl(var(--border))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))] disabled:opacity-30 transition-colors bg-[hsl(var(--card))]"
+        className="w-9 h-9 border border-gray-200 rounded flex items-center justify-center text-gray-500 hover:border-[#1a3c6e] hover:text-[#1a3c6e] disabled:opacity-30 transition-colors bg-white"
       >
         <ChevronLeft size={14} />
       </button>
@@ -72,10 +62,10 @@ function Pagination({ page, totalPages, onChange }: { page: number; totalPages: 
           key={n}
           onClick={() => onChange(n)}
           className={cn(
-            "w-9 h-9 border rounded-[var(--radius)] text-sm font-medium transition-colors",
+            "w-9 h-9 border rounded text-sm font-medium transition-colors",
             page === n
-              ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] border-[hsl(var(--primary))]"
-              : "border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))] bg-[hsl(var(--card))]"
+              ? "bg-[#1a3c6e] text-white border-[#1a3c6e]"
+              : "border-gray-200 text-gray-600 hover:border-[#1a3c6e] hover:text-[#1a3c6e] bg-white"
           )}
         >
           {n}
@@ -84,7 +74,7 @@ function Pagination({ page, totalPages, onChange }: { page: number; totalPages: 
       <button
         onClick={() => onChange(Math.min(totalPages, page + 1))}
         disabled={page === totalPages}
-        className="w-9 h-9 border border-[hsl(var(--border))] rounded-[var(--radius)] flex items-center justify-center text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))] disabled:opacity-30 transition-colors bg-[hsl(var(--card))]"
+        className="w-9 h-9 border border-gray-200 rounded flex items-center justify-center text-gray-500 hover:border-[#1a3c6e] hover:text-[#1a3c6e] disabled:opacity-30 transition-colors bg-white"
       >
         <ChevronRight size={14} />
       </button>
@@ -95,66 +85,63 @@ function Pagination({ page, totalPages, onChange }: { page: number; totalPages: 
 function ServiceCard({ service }: { service: Service }) {
   const image = service.images?.[0];
   return (
-    <Link
-      href={`/services/${service.slug}`}
-      className="group bg-[hsl(var(--card))] rounded-[var(--radius)] overflow-hidden border border-[hsl(var(--border))] hover:border-[hsl(var(--primary))/40%] hover:shadow-lg transition-all duration-250 flex flex-col"
-    >
+    <div className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col w-full h-[313px]">
       {/* Image */}
-      <div className="aspect-[4/3] overflow-hidden bg-[hsl(var(--muted))] relative">
+      <Link href={`/services/${service.slug}`} className="block h-[180px] overflow-hidden bg-gray-100 shrink-0">
         {image ? (
           <img
             src={image}
             alt={service.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2" style={{ background: "linear-gradient(135deg, #0d1a2d 0%, #0EA5E9 100%)" }}>
-            <Wrench size={32} className="text-white/40" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+            <Wrench size={36} className="text-gray-300" />
           </div>
         )}
-        {service.category?.name && (
-          <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: "hsl(var(--primary))", color: "hsl(var(--primary-foreground))" }}>
-            {service.category.name}
-          </span>
-        )}
-      </div>
+      </Link>
 
       {/* Body */}
-      <div className="p-5 flex flex-col flex-1">
-        <h3 className="font-semibold text-[hsl(var(--card-foreground))] leading-snug mb-2 group-hover:text-[hsl(var(--primary))] transition-colors line-clamp-2">
-          {service.name}
-        </h3>
-        <p className="text-sm text-[hsl(var(--muted-foreground))] line-clamp-2 mb-3 leading-relaxed flex-1">
-          {service.shortDesc || service.description}
-        </p>
-        {(service.rating || service.reviewCount) && (
-          <div className="mb-3">
-            <StarRating rating={service.rating} count={service.reviewCount} />
-          </div>
-        )}
-        <div className="flex items-center justify-between pt-3 border-t border-[hsl(var(--border))]">
-          <div>
-            <p className="text-[10px] text-[hsl(var(--muted-foreground))] uppercase tracking-wider">Starting from</p>
-            <p className="font-bold text-[hsl(var(--card-foreground))]">{formatPrice(service.basePrice)}</p>
-          </div>
-          <span className="flex items-center gap-1 text-sm font-semibold text-[hsl(var(--primary))] group-hover:gap-2 transition-all">
-            Book Now <ArrowRight size={14} />
+      <div className="p-4 flex flex-col flex-1">
+        {/* Meta row */}
+        <div className="flex items-center gap-4 text-[12px] text-gray-500 mb-2">
+          <span className="flex items-center gap-1">
+            <User size={12} className="text-gray-400" />
+            ePowerFix
+          </span>
+          <span className="flex items-center gap-1">
+            <CalendarDays size={12} className="text-gray-400" />
+            {formatDate((service as any).createdAt) || "Available"}
           </span>
         </div>
+
+        {/* Title */}
+        <Link href={`/services/${service.slug}`}>
+          <h3 className="font-bold text-[15px] text-gray-900 leading-snug mb-2 hover:text-[#1a3c6e] transition-colors line-clamp-2">
+            {service.name}
+          </h3>
+        </Link>
+
+        {/* Price + Link */}
+        <div className="mt-auto flex items-center justify-between pt-3">
+          <span className="text-[13px] font-semibold text-gray-900">{formatPrice(service.basePrice)}</span>
+          <Link href={`/services/${service.slug}`} className="text-[13px] text-gray-500 hover:text-[#1a3c6e] transition-colors">
+            View Service
+          </Link>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
 function SkeletonCard() {
   return (
-    <div className="bg-[hsl(var(--card))] rounded-[var(--radius)] overflow-hidden border border-[hsl(var(--border))] animate-pulse">
-      <div className="aspect-[4/3] bg-[hsl(var(--muted))]" />
-      <div className="p-5 space-y-3">
-        <div className="h-4 bg-[hsl(var(--muted))] rounded w-3/4" />
-        <div className="h-3 bg-[hsl(var(--muted))] rounded" />
-        <div className="h-3 bg-[hsl(var(--muted))] rounded w-2/3" />
-        <div className="h-3 bg-[hsl(var(--muted))] rounded w-1/2" />
+    <div className="bg-white rounded-lg overflow-hidden border border-gray-100 animate-pulse w-full h-[313px]">
+      <div className="h-[180px] bg-gray-100" />
+      <div className="p-4 space-y-3">
+        <div className="h-3 bg-gray-100 rounded w-1/2" />
+        <div className="h-4 bg-gray-100 rounded w-3/4" />
+        <div className="h-3 bg-gray-100 rounded w-1/3" />
       </div>
     </div>
   );
@@ -185,14 +172,18 @@ function ServicesContent() {
   const allServices = catalogQuery.data?.data?.services ?? catalogQuery.data?.services ?? [];
   const services = servicesQuery.data?.data?.services ?? servicesQuery.data?.services ?? [];
   const categories = useMemo(() => {
-    const seen = new Set<string>();
-    return allServices.reduce<Array<{ name: string; slug: string }>>((acc, s) => {
-      if (s.category && !seen.has(s.category.slug)) { seen.add(s.category.slug); acc.push(s.category); }
-      return acc;
-    }, []);
+    const seen = new Map<string, { name: string; slug: string; count: number }>();
+    allServices.forEach((s) => {
+      if (s.category) {
+        const existing = seen.get(s.category.slug);
+        if (existing) existing.count++;
+        else seen.set(s.category.slug, { ...s.category, count: 1 });
+      }
+    });
+    return Array.from(seen.values());
   }, [allServices]);
 
-  const featured = allServices.filter((s) => s.isFeatured).slice(0, 4);
+  const recentServices = allServices.slice(0, 5);
   const totalPages = Math.max(1, Math.ceil(services.length / pageSize));
   const visible = services.slice((page - 1) * pageSize, page * pageSize);
   const apply = (fn: () => void) => { fn(); setPage(1); };
@@ -201,137 +192,26 @@ function ServicesContent() {
     <>
       <Header />
 
-      <main className="bg-[hsl(var(--background))] min-h-screen">
-
-        {/* ── Hero banner ── */}
-        <section style={{ background: "linear-gradient(135deg, #0d1a2d 0%, #0a2540 60%, #0d1a2d 100%)" }} className="text-white">
-          <div className="max-w-7xl mx-auto px-4 py-14">
-            {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-xs text-white/40 mb-6">
-              <Link href="/" className="hover:text-white transition-colors">Home</Link>
-              <ChevronRight size={10} />
-              <span className="text-white/80 font-medium">Services</span>
-            </nav>
-
-            <div className="flex flex-col md:flex-row md:items-end gap-6 justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[hsl(var(--primary))] mb-3">Professional Electrical Services</p>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3 leading-tight">
-                  Expert Solutions for<br />Every Electrical Need
-                </h1>
-                <p className="text-sm text-white/50 max-w-md leading-relaxed">
-                  Certified electricians, guaranteed workmanship, transparent pricing — book in minutes.
-                </p>
-              </div>
-
-              {/* Search */}
-              <form
-                onSubmit={(e) => { e.preventDefault(); apply(() => setSearch(searchInput.trim())); }}
-                className="flex items-center bg-white/10 border border-white/20 rounded-[var(--radius)] overflow-hidden backdrop-blur-sm w-full md:w-72"
-              >
-                <input
-                  type="text"
-                  placeholder="Search services..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  className="px-4 py-3 text-sm outline-none bg-transparent text-white placeholder-white/40 flex-1"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-3 text-white/70 hover:text-white transition-colors"
-                  style={{ background: "hsl(var(--primary))" }}
-                >
-                  <Search size={15} />
-                </button>
-              </form>
-            </div>
-
-            {/* Trust strip */}
-            <div className="flex flex-wrap gap-6 mt-10 pt-8 border-t border-white/10">
-              {[
-                { icon: CheckCircle2, label: "Certified Electricians" },
-                { icon: Zap, label: "Same-Day Booking" },
-                { icon: Star, label: "4.8★ Avg Rating" },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 text-sm text-white/60">
-                  <Icon size={15} style={{ color: "hsl(var(--primary))" }} />
-                  <span>{label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Category filter pills ── */}
-        <div className="bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] sticky top-0 z-20">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center gap-2 overflow-x-auto py-3 scrollbar-hide">
-              <button
-                onClick={() => apply(() => setSelectedCat(""))}
-                className={cn(
-                  "shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all",
-                  !selectedCat
-                    ? "border-[hsl(var(--primary))] text-[hsl(var(--primary))] bg-[hsl(var(--primary))/8%]"
-                    : "border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary))/50%] hover:text-[hsl(var(--primary))]"
-                )}
-              >
-                All Services
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.slug}
-                  onClick={() => apply(() => setSelectedCat(selectedCat === cat.slug ? "" : cat.slug))}
-                  className={cn(
-                    "shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-all",
-                    selectedCat === cat.slug
-                      ? "border-[hsl(var(--primary))] text-[hsl(var(--primary))] bg-[hsl(var(--primary))/8%]"
-                      : "border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:border-[hsl(var(--primary))/50%] hover:text-[hsl(var(--primary))]"
-                  )}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Main content ── */}
-        <div className="max-w-7xl mx-auto px-4 py-10">
+      <main className="bg-gray-50 min-h-screen">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-12 py-10">
           <div className="flex gap-8 items-start">
 
-            {/* Services grid */}
+            {/* ── Services grid (left) ── */}
             <div className="flex-1 min-w-0">
-              {/* Section heading */}
-              <div className="flex items-center justify-between mb-7">
-                <div>
-                  <h2 className="font-bold text-[hsl(var(--foreground))]">
-                    {selectedCat
-                      ? categories.find((c) => c.slug === selectedCat)?.name ?? "Services"
-                      : "Our Services"}
-                  </h2>
-                  {!servicesQuery.isLoading && (
-                    <p className="text-sm text-[hsl(var(--muted-foreground))] mt-0.5">
-                      {services.length} service{services.length !== 1 ? "s" : ""} available
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Grid */}
               {servicesQuery.isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+                  {Array.from({ length: 9 }).map((_, i) => <SkeletonCard key={i} />)}
                 </div>
               ) : visible.length === 0 ? (
-                <div className="text-center py-24 bg-[hsl(var(--card))] rounded-[var(--radius)] border border-[hsl(var(--border))]">
-                  <div className="w-16 h-16 rounded-full bg-[hsl(var(--muted))] flex items-center justify-center mx-auto mb-4">
-                    <Zap size={28} className="text-[hsl(var(--muted-foreground))]" />
+                <div className="text-center py-24 bg-white rounded-lg border border-gray-100">
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <Wrench size={28} className="text-gray-400" />
                   </div>
-                  <p className="font-semibold text-[hsl(var(--foreground))] mb-1">No services found</p>
-                  <p className="text-sm text-[hsl(var(--muted-foreground))]">Try a different search or category.</p>
+                  <p className="font-semibold text-gray-900 mb-1">No services found</p>
+                  <p className="text-sm text-gray-500">Try a different search or category.</p>
                   <button
                     onClick={() => { apply(() => { setSearch(""); setSearchInput(""); setSelectedCat(""); }); }}
-                    className="mt-5 text-sm font-semibold text-[hsl(var(--primary))] hover:underline"
+                    className="mt-5 text-sm font-semibold text-[#1a3c6e] hover:underline"
                   >
                     Clear filters
                   </button>
@@ -345,65 +225,82 @@ function ServicesContent() {
               <Pagination page={page} totalPages={totalPages} onChange={setPage} />
             </div>
 
-            {/* Sidebar */}
-            <aside className="hidden lg:flex flex-col gap-5 w-60 shrink-0">
+            {/* ── Sidebar (right) ── */}
+            <aside className="hidden lg:flex flex-col gap-6 w-[280px] shrink-0">
+
+              {/* Search */}
+              <form
+                onSubmit={(e) => { e.preventDefault(); apply(() => setSearch(searchInput.trim())); }}
+                className="flex"
+              >
+                <input
+                  type="text"
+                  placeholder="Search services"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-l bg-gray-50 outline-none focus:border-[#1a3c6e] transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2.5 bg-[#1a3c6e] text-white rounded-r hover:bg-[#15325c] transition-colors"
+                >
+                  <Search size={15} />
+                </button>
+              </form>
 
               {/* Categories */}
-              <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-[var(--radius)] overflow-hidden">
-                <div className="px-5 py-4 border-b border-[hsl(var(--border))]">
-                  <h3 className="font-bold text-sm text-[hsl(var(--foreground))]">Categories</h3>
-                </div>
-                <div className="px-5 py-2">
+              <div className="bg-white border border-gray-100 rounded-lg p-5">
+                <h3 className="font-bold text-[15px] text-gray-900 pb-3 border-b-2 border-gray-900 mb-3">Categories</h3>
+                <div className="space-y-0">
                   <button
                     onClick={() => apply(() => setSelectedCat(""))}
                     className={cn(
-                      "w-full flex items-center justify-between py-2.5 text-sm border-b border-[hsl(var(--border))] group transition-colors",
-                      !selectedCat ? "text-[hsl(var(--primary))] font-medium" : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))]"
+                      "w-full flex items-center justify-between py-2.5 text-[14px] border-b border-gray-100 transition-colors",
+                      !selectedCat ? "text-[#1a3c6e] font-semibold" : "text-gray-700 hover:text-[#1a3c6e]"
                     )}
                   >
                     <span>All Services</span>
-                    <ChevronRight size={13} className={cn(!selectedCat ? "text-[hsl(var(--primary))]" : "text-[hsl(var(--border))] group-hover:text-[hsl(var(--primary))]")} />
+                    <span className="w-6 h-6 rounded-full bg-gray-100 text-[11px] font-bold flex items-center justify-center text-gray-600">{allServices.length}</span>
                   </button>
                   {categories.map((cat) => (
                     <button
                       key={cat.slug}
                       onClick={() => apply(() => setSelectedCat(selectedCat === cat.slug ? "" : cat.slug))}
                       className={cn(
-                        "w-full flex items-center justify-between py-2.5 text-sm border-b border-[hsl(var(--border))] last:border-0 group transition-colors",
-                        selectedCat === cat.slug ? "text-[hsl(var(--primary))] font-medium" : "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))]"
+                        "w-full flex items-center justify-between py-2.5 text-[14px] border-b border-gray-100 last:border-0 transition-colors",
+                        selectedCat === cat.slug ? "text-[#1a3c6e] font-semibold" : "text-gray-700 hover:text-[#1a3c6e]"
                       )}
                     >
                       <span>{cat.name}</span>
-                      <ChevronRight size={13} className={cn(selectedCat === cat.slug ? "text-[hsl(var(--primary))]" : "text-[hsl(var(--border))] group-hover:text-[hsl(var(--primary))]")} />
+                      <span className="w-6 h-6 rounded-full bg-gray-100 text-[11px] font-bold flex items-center justify-center text-gray-600">{cat.count}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Featured */}
-              {featured.length > 0 && (
-                <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-[var(--radius)] overflow-hidden">
-                  <div className="px-5 py-4 border-b border-[hsl(var(--border))]">
-                    <h3 className="font-bold text-sm text-[hsl(var(--foreground))]">Featured Services</h3>
-                  </div>
-                  <div className="px-5 py-3 space-y-4">
-                    {featured.map((service) => (
-                      <Link key={service.id} href={`/services/${service.slug}`} className="flex gap-3 cursor-pointer group">
-                        <div className="w-14 h-14 rounded-[var(--radius-sm)] overflow-hidden shrink-0 bg-[hsl(var(--muted))]">
+              {/* Recent Services */}
+              {recentServices.length > 0 && (
+                <div className="bg-white border border-gray-100 rounded-lg p-5">
+                  <h3 className="font-bold text-[15px] text-gray-900 pb-3 border-b-2 border-gray-900 mb-4">Recent Services</h3>
+                  <div className="space-y-4">
+                    {recentServices.map((service) => (
+                      <Link key={service.id} href={`/services/${service.slug}`} className="flex gap-3 group">
+                        <div className="w-16 h-14 rounded overflow-hidden shrink-0 bg-gray-100">
                           {service.images?.[0] ? (
                             <img src={service.images[0]} alt={service.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Wrench size={18} className="text-[hsl(var(--muted-foreground))]" />
+                              <Wrench size={16} className="text-gray-300" />
                             </div>
                           )}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-xs font-medium text-[hsl(var(--card-foreground))] line-clamp-2 group-hover:text-[hsl(var(--primary))] transition-colors leading-snug">
+                          <h4 className="text-[13px] font-bold text-gray-900 line-clamp-2 group-hover:text-[#1a3c6e] transition-colors leading-snug">
                             {service.name}
                           </h4>
-                          <p className="text-xs font-bold mt-1" style={{ color: "hsl(var(--primary))" }}>
-                            From {formatPrice(service.basePrice)}
+                          <p className="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
+                            <CalendarDays size={10} />
+                            {formatDate((service as any).createdAt) || "Available"}
                           </p>
                         </div>
                       </Link>
@@ -411,22 +308,6 @@ function ServicesContent() {
                   </div>
                 </div>
               )}
-
-              {/* Quick booking CTA */}
-              <div
-                className="rounded-[var(--radius)] p-5 text-white"
-                style={{ background: "linear-gradient(135deg, #0d1a2d 0%, hsl(var(--primary)) 100%)" }}
-              >
-                <Zap size={22} className="text-white/70 mb-3" />
-                <h4 className="font-bold text-sm mb-1 leading-snug">Need an Urgent Fix?</h4>
-                <p className="text-xs text-white/60 mb-4 leading-relaxed">Our team is available 7 days a week for emergency bookings.</p>
-                <Link
-                  href="/book-service"
-                  className="block text-center text-xs font-bold py-2.5 rounded-[var(--radius-sm)] bg-white/15 hover:bg-white/25 transition-colors border border-white/20"
-                >
-                  Book Now
-                </Link>
-              </div>
 
             </aside>
           </div>
@@ -446,7 +327,7 @@ function ServicesContent() {
 function LoadingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))]">
-      <Zap className="h-6 w-6 animate-pulse" style={{ color: "hsl(var(--primary))" }} />
+      <Wrench className="h-6 w-6 animate-pulse text-[#1a3c6e]" />
     </div>
   );
 }

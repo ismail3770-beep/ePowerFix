@@ -102,11 +102,32 @@ router.get(
       data: { downloadCount: { increment: 1 } },
     })
 
-    // digitalFile holds a path/URL — redirect to it (in production this would
-    // be a signed URL). For now we 302 to the stored value.
+    // digitalFile holds a path/URL — redirect to it.
+    // Security: Only allow relative paths or same-origin URLs to prevent open redirects.
     const file = item.product.digitalFile
     if (!file) {
       throw new ApiError('No file attached to this product', 404)
+    }
+
+    // Validate the redirect target to prevent open redirect attacks
+    const isRelativePath = file.startsWith('/') && !file.startsWith('//')
+    let isSafeUrl = isRelativePath
+    if (!isRelativePath) {
+      try {
+        const fileUrl = new URL(file)
+        const webUrl = new URL(process.env.WEB_URL || 'http://localhost:3000')
+        // Only allow redirects to the same origin or configured CDN/storage domains
+        isSafeUrl = fileUrl.origin === webUrl.origin ||
+          fileUrl.hostname.endsWith('.cloudinary.com') ||
+          fileUrl.hostname.endsWith('.amazonaws.com') ||
+          fileUrl.hostname.endsWith('.googleapis.com')
+      } catch {
+        isSafeUrl = false
+      }
+    }
+
+    if (!isSafeUrl) {
+      throw new ApiError('Invalid download file path', 400)
     }
 
     res.redirect(file)

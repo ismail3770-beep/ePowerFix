@@ -11,6 +11,13 @@ const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7 // 7 days
 const ISSUER = env.JWT_ISSUER
 const AUDIENCE = env.JWT_AUDIENCE
 
+const sessionCookieOptions = {
+  httpOnly: true,
+  secure: env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+}
+
 export interface SessionUser {
   id: string
   name: string
@@ -59,10 +66,7 @@ export async function createSessionToken(user: SessionUser): Promise<string> {
  */
 export function setSessionCookie(res: Response, token: string): void {
   res.cookie(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
+    ...sessionCookieOptions,
     maxAge: TOKEN_TTL_SECONDS * 1000,
   })
 }
@@ -71,7 +75,7 @@ export function setSessionCookie(res: Response, token: string): void {
  * Clears the session cookie (logout).
  */
 export function clearSessionCookie(res: Response): void {
-  res.clearCookie(COOKIE_NAME, { path: '/' })
+  res.clearCookie(COOKIE_NAME, sessionCookieOptions)
 }
 
 /**

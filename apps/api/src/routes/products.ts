@@ -1,5 +1,6 @@
 // Product routes: list, detail, compare
 import { Router } from 'express'
+import { z } from 'zod'
 
 import { db } from '../lib/db.js'
 import { asyncHandler, ApiError } from '../lib/api-handler.js'
@@ -8,12 +9,24 @@ import { cache, cacheKeys } from '../lib/cache.js'
 
 const router = Router()
 
+const productListQuery = z.object({
+  minPrice: z.string().regex(/^\d+(?:\.\d{1,2})?$/).optional(),
+  maxPrice: z.string().regex(/^\d+(?:\.\d{1,2})?$/).optional(),
+  minRating: z.string().regex(/^(?:[0-4](?:\.\d+)?|5(?:\.0+)?)$/).optional(),
+}).passthrough()
+
 // ─── GET /api/products ────────────────────────────────────────────────────────
 
 router.get(
   '/',
   asyncHandler(async (req, res) => {
     const query = req.query as Record<string, any>
+    const validatedFilters = productListQuery.safeParse(query)
+    if (!validatedFilters.success) throw new ApiError('Invalid product filters', 400)
+    const { minPrice, maxPrice, minRating } = validatedFilters.data
+    if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
+      throw new ApiError('minPrice cannot exceed maxPrice', 400)
+    }
     const countOnly = query.countOnly === 'true'
 
     if (countOnly) {
@@ -27,9 +40,6 @@ router.get(
     const featured = query.featured
     const bestDeals = query.bestDeals
     const sort = query.sort || 'featured'
-    const minPrice = query.minPrice
-    const maxPrice = query.maxPrice
-    const minRating = query.minRating
 
     const hasExtraFilters = !!(
       categoryParam ||

@@ -91,7 +91,7 @@ export default function AppearancePage() {
   const save = async () => {
     setSaving(true);
     try {
-      await apiFetch("/api/admin/settings", { method: "POST", body: JSON.stringify({ key: "appearance", value: settings }) });
+      await apiFetch("/api/admin/settings", { method: "PUT", body: JSON.stringify(settings) });
       toast.success("Appearance settings saved");
     } catch { toast.error("Failed to save settings"); } finally { setSaving(false); }
   };

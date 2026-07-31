@@ -22,7 +22,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, LogOut, ExternalLink, Plus, Menu, UserCircle } from "lucide-react";
+import { Poppins } from "next/font/google";
 
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-poppins",
+});
 interface AdminTabContextType {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -55,10 +61,13 @@ const pageTitleMap: Record<string, string> = {
   'project-kits': 'Project Kits',
   'bookings': 'Bookings',
   'returns': 'Returns',
-  'customers': 'Customers',
+  'customers': 'Users',
+  'roles': 'Roles',
   'reviews': 'Reviews',
   'staff': 'Staff',
   'coupons': 'Coupons',
+  'sliders': 'Sliders',
+  'storefront': 'Storefront',
   'flash-sales': 'Flash Sales',
   'newsletter': 'Newsletter',
   'banners': 'Banners',
@@ -106,14 +115,19 @@ const tabRouteMap: Record<string, string> = {
   'bookings': '/admin/bookings',
   'returns': '/admin/returns',
   'customers': '/admin/users',
+  'roles': '/admin/roles',
   'reviews': '/admin/reviews',
   'staff': '/admin/staff',
   'coupons': '/admin/coupons',
+  'sliders': '/admin/sliders',
+  'storefront': '/admin/storefront',
   'flash-sales': '/admin/flash-sales',
   'newsletter': '/admin/newsletter',
   'banners': '/admin/banners',
   'projects': '/admin/projects',
   'blog': '/admin/blog',
+  'blog-categories': '/admin/blog-categories',
+  'blog-tags': '/admin/blog-tags',
   'pages': '/admin/pages',
   'menus': '/admin/menus',
   'languages': '/admin/languages',
@@ -157,12 +171,14 @@ const pathToTabMap: Array<{ prefix: string; tab: string }> = [
   { prefix: '/admin/service-categories', tab: 'service-categories' },
   { prefix: '/admin/project-kits', tab: 'project-kits' },
   { prefix: '/admin/bookings', tab: 'bookings' },
-  // Customers / reviews / staff
+  // Users / Roles / staff
+  { prefix: '/admin/roles', tab: 'roles' },
   { prefix: '/admin/users', tab: 'customers' },
   { prefix: '/admin/reviews', tab: 'reviews' },
   { prefix: '/admin/staff', tab: 'staff' },
-  // Marketing
   { prefix: '/admin/coupons', tab: 'coupons' },
+  { prefix: '/admin/sliders', tab: 'sliders' },
+  { prefix: '/admin/storefront', tab: 'storefront' },
   { prefix: '/admin/flash-sales', tab: 'flash-sales' },
   { prefix: '/admin/newsletter', tab: 'newsletter' },
   { prefix: '/admin/banners', tab: 'banners' },
@@ -170,6 +186,8 @@ const pathToTabMap: Array<{ prefix: string; tab: string }> = [
   // Content
   { prefix: '/admin/pages', tab: 'pages' },
   { prefix: '/admin/menus', tab: 'menus' },
+  { prefix: '/admin/blog-categories', tab: 'blog-categories' },
+  { prefix: '/admin/blog-tags', tab: 'blog-tags' },
   { prefix: '/admin/blog', tab: 'blog' },
   { prefix: '/admin/media', tab: 'media-library' },
   // Localization
@@ -269,7 +287,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AdminTabContext.Provider value={{ activeTab, onTabChange: handleTabChange }}>
-      <div className="flex h-screen overflow-hidden bg-slate-50">
+      <div className={`flex h-screen overflow-hidden bg-slate-50 font-sans ${poppins.variable}`}>
         {/* Desktop sidebar — fixed rail (hidden on mobile) */}
         <div
           className={`hidden lg:block fixed left-0 top-0 h-screen z-40 transition-[left] duration-300 ${
@@ -280,6 +298,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             collapsed={sidebarCollapsed}
             activeTab={activeTab}
             onTabChange={handleTabChange}
+            onToggle={() => setSidebarCollapsed((v) => !v)}
           />
         </div>
 
@@ -303,7 +322,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Content area */}
         <div
           className={`flex-1 flex flex-col min-w-0 transition-[margin] duration-300 ${
-            sidebarCollapsed ? "lg:ml-[68px]" : "lg:ml-[240px]"
+            sidebarCollapsed ? "lg:ml-[72px]" : "lg:ml-[260px]"
           }`}
         >
           {/* Top Header */}
@@ -311,14 +330,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={handleHamburger}
-                className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+                className="h-9 w-9 flex lg:hidden items-center justify-center rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
                 aria-label="Toggle sidebar"
               >
                 <Menu className="h-5 w-5" />
               </button>
-              <h1 className="text-[16px] font-semibold text-slate-900 truncate">
-                {pageTitleMap[activeTab] || 'Dashboard'}
-              </h1>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">

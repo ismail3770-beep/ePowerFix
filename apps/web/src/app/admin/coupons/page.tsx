@@ -1,171 +1,252 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useFormDraft, loadFormDraft, clearFormDraft } from "@/hooks/use-form-draft";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogHeader, DialogContent, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
-import { useAdminHeaderStore } from "@/store/admin-header-store";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Home, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
-interface Coupon { id: string; code: string; discount: number; discountType: string; minOrder: number | null; maxUses: number | null; usedCount: number; validFrom: string; validTo: string; isActive: boolean; }
+interface CouponData {
+  id: string;
+  name: string;
+  code: string;
+  type: string;
+  discountType?: string;
+  value: number;
+  discount?: number;
+  isActive: boolean;
+  createdAt: string;
+}
 
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const router = useRouter();
+  const [couponsList, setCouponsList] = useState<CouponData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [dialog, setDialog] = useState(false);
-  const [editing, setEditing] = useState<Coupon | null>(null);
-  const defaultCouponForm = { code: "", discount: 0, discountType: "PERCENTAGE", minOrder: 0, maxUses: 0, validFrom: "", validTo: "", isActive: true };
-  const [form, setForm] = useState(() => loadFormDraft("admin-coupon-add", defaultCouponForm));
-  const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<Coupon | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  
+  const [perPage, setPerPage] = useState("20");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const load = async () => {
-    try { const res = await apiFetch<{ data: Coupon[] }>("/api/admin/coupons"); setCoupons(Array.isArray(res.data) ? res.data : (res.data as any)?.data || []); }
-    catch { toast.error("Failed to load coupons"); } finally { setLoading(false); }
-  };
-  useEffect(() => { load(); }, []);
-
-  // Persist the add-form draft so a refresh / navigation doesn't lose progress.
-  useFormDraft("admin-coupon-add", !editing ? form : defaultCouponForm);
-
-  const openAdd = () => { setEditing(null); setForm(loadFormDraft("admin-coupon-add", defaultCouponForm)); setDialog(true); };
-  const openEdit = (c: Coupon) => { setEditing(c); setForm({ code: c.code, discount: c.discount, discountType: c.discountType, minOrder: c.minOrder||0, maxUses: c.maxUses||0, validFrom: c.validFrom?.split("T")[0]||"", validTo: c.validTo?.split("T")[0]||"", isActive: c.isActive }); setDialog(true); };
-
-  const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
-  useEffect(() => { setAddNew('Add Coupon', openAdd); return () => setAddNew('', null); }, [setAddNew]);
-
-  const save = async () => {
-    if (!form.code) { toast.error("Code is required"); return; }
-    setSaving(true);
     try {
-      const payload = { ...form, minOrder: form.minOrder||null, maxUses: form.maxUses||null };
-      if (editing) { await apiFetch(`/api/admin/coupons/${editing.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast.success("Coupon updated"); }
-      else { await apiFetch("/api/admin/coupons", { method: "POST", body: JSON.stringify(payload) }); toast.success("Coupon created"); }
-      setDialog(false); if (!editing) {clearFormDraft("admin-coupon-add");} load();
-    } catch { toast.error("Failed to save"); } finally { setSaving(false); }
-  };
-
-  const toggleActive = async (c: Coupon) => {
-    try { await apiFetch(`/api/admin/coupons/${c.id}`, { method: "PUT", body: JSON.stringify({ isActive: !c.isActive }) }); toast.success("Coupon updated"); load(); }
-    catch { toast.error("Failed to update"); }
-  };
-
-  const remove = async (c: Coupon) => {
-    setDeleting(true);
-    try {
-      await apiFetch(`/api/admin/coupons/${c.id}`, { method: "DELETE" });
-      toast.success("Coupon deleted");
-      setDeleteTarget(null);
-      load();
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to delete coupon");
-    } finally {
-      setDeleting(false);
+      const res = await apiFetch<any>("/api/admin/coupons");
+      setCouponsList(res.data?.data || []);
+    } catch { 
+      toast.error("Failed to load coupons"); 
+    } finally { 
+      setLoading(false); 
     }
   };
 
-  const filtered = coupons.filter(c=>c.code.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => { load(); }, []);
 
-  if (loading) {return <div className="space-y-4"><Skeleton className="h-8 w-48" />{[1,2,3].map(i=><Skeleton key={i} className="h-16 w-full" />)}</div>;}
+  const remove = async (id: string) => {
+    try { 
+      await apiFetch(`/api/admin/coupons/${id}`, { method: "DELETE" }); 
+      toast.success("Coupon deleted"); 
+      load(); 
+    } catch { 
+      toast.error("Failed to delete"); 
+    } finally { 
+      setDeleteTarget(null); 
+    }
+  };
 
-  const today = new Date();
-  // L10: A coupon is "Active" only if today falls between validFrom AND validTo.
-  const isCurrentlyValid = (c: Coupon) => {
-    if (!c.validTo) {return false;}
-    const from = c.validFrom ? new Date(c.validFrom) : null;
-    const to = new Date(c.validTo);
-    if (to <= today) {return false;}
-    if (from && from > today) {return false;} // scheduled for the future
-    return true;
+  const filtered = couponsList.filter((c) => {
+    const term = search.toLowerCase();
+    const name = c.name || "";
+    const code = c.code || "";
+    return name.toLowerCase().includes(term) || code.toLowerCase().includes(term);
+  });
+
+  const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(filtered.map(c => c.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
+
+  const formatDiscount = (c: CouponData) => {
+    const amount = Number(c.value || c.discount || 0);
+    const type = (c.type || c.discountType || "").toUpperCase();
+    if (type === "PERCENTAGE" || type === "PERCENT") return `${amount.toFixed(4)}%`;
+    return `$${amount.toFixed(2)}`;
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div><h1 className="text-3xl font-bold">Coupons</h1><p className="text-gray-500 text-sm">Manage discount coupons</p></div>
-        <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Coupon</Button>
-      </div>
-      <div className="relative w-72"><Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" /><Input placeholder="Search coupons..." value={search} onChange={e=>setSearch(e.target.value)} className="pl-9" /></div>
-
-      <Card><CardContent className="p-0"><div className="overflow-x-auto">
-        <Table><TableHeader><TableRow><TableHead>Code</TableHead><TableHead>Discount</TableHead><TableHead>Min Order</TableHead><TableHead>Uses</TableHead><TableHead>Valid</TableHead><TableHead>Active</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader><TableBody>
-          {filtered.length===0?<TableRow><TableCell colSpan={7} className="text-center py-8 text-gray-500">No coupons found</TableCell></TableRow>:
-          filtered.map(c=><TableRow key={c.id}>
-            <TableCell className="font-mono font-bold">{c.code}</TableCell>
-            <TableCell>{c.discountType==="PERCENTAGE"?`${c.discount}%`:`৳${c.discount}`}</TableCell>
-            <TableCell>{c.minOrder?`৳${c.minOrder}`:"-"}</TableCell>
-            <TableCell>{c.usedCount??0}/{c.maxUses||"∞"}</TableCell>
-            <TableCell><Badge variant={isCurrentlyValid(c)?"default":"secondary"}>{isCurrentlyValid(c)?"Active":"Expired"}</Badge></TableCell>
-            <TableCell><Switch checked={c.isActive} onCheckedChange={()=>toggleActive(c)} /></TableCell>
-            <TableCell>
-              <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={()=>openEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                <Button variant="destructive" size="icon" onClick={()=>setDeleteTarget(c)} title="Delete"><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            </TableCell>
-          </TableRow>)}
-        </TableBody></Table>
-      </div></CardContent></Card>
-
-      <Dialog open={dialog} onOpenChange={setDialog}>
-        <DialogContent><DialogHeader><DialogTitle>{editing?"Edit Coupon":"Add Coupon"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
-            <div><Label>Code</Label><Input value={form.code} onChange={e=>setForm({...form,code:e.target.value.toUpperCase()})} placeholder="SUMMER25" /></div>
-            <div><Label>Discount Value</Label><Input type="number" value={form.discount} onChange={e=>setForm({...form,discount:Number(e.target.value)})} /></div>
-            <div><Label>Discount Type</Label>
-              <Select value={form.discountType} onValueChange={v=>setForm({...form,discountType:v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="PERCENTAGE">Percentage (%)</SelectItem><SelectItem value="FIXED">Fixed (৳)</SelectItem></SelectContent>
-              </Select>
-            </div>
-            <div><Label>Min Order (৳)</Label><Input type="number" value={form.minOrder} onChange={e=>setForm({...form,minOrder:Number(e.target.value)})} /></div>
-            <div><Label>Max Uses</Label><Input type="number" value={form.maxUses} onChange={e=>setForm({...form,maxUses:Number(e.target.value)})} placeholder="0 = unlimited" /></div>
-            <div><Label>Valid From</Label><Input type="date" value={form.validFrom} onChange={e=>setForm({...form,validFrom:e.target.value})} /></div>
-            <div><Label>Valid To</Label><Input type="date" value={form.validTo} onChange={e=>setForm({...form,validTo:e.target.value})} /></div>
-            <div className="flex items-center gap-2"><Switch checked={form.isActive} onCheckedChange={v=>setForm({...form,isActive:v})} /><Label>Active</Label></div>
+    <div className="font-poppins bg-[#f3f4f6] min-h-screen -m-6 p-6 text-slate-700">
+      
+      {/* Header section */}
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-[22px] font-normal text-slate-800">Coupons</h1>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2 text-[13px] text-slate-500">
+            <Home className="w-3.5 h-3.5 cursor-pointer hover:text-blue-600" onClick={() => router.push("/admin/dashboard")} />
+            <span className="text-slate-300">&gt;</span>
+            <span>Coupons</span>
           </div>
-          <DialogFooter><Button variant="outline" onClick={()=>setDialog(false)}>Cancel</Button><Button onClick={save} disabled={saving}>{saving?"Saving...":"Save"}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <Link 
+            href="/admin/coupons/create"
+            className="bg-[#0052cc] hover:bg-[#0047b3] text-white px-4 py-1.5 rounded-sm text-[13px] font-medium transition-colors"
+          >
+            Create Coupon
+          </Link>
+        </div>
+      </div>
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) {setDeleteTarget(null);} }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete coupon?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will move <strong>{deleteTarget?.code}</strong> to trash.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteTarget && remove(deleteTarget)} disabled={deleting}>
-              {deleting ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Main Card */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-sm">
+        
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-2 text-[13px] text-slate-600">
+            Show
+            <select 
+              value={perPage} 
+              onChange={e => setPerPage(e.target.value)}
+              className="border border-slate-300 rounded px-2 py-1.5 bg-white outline-none focus:border-blue-400"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            entries
+            <button 
+              className={`flex items-center gap-1 border border-slate-300 rounded px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 ml-2 transition-colors ${selectedIds.size === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={selectedIds.size === 0}
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
+          </div>
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder="Search here..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-slate-300 rounded-full pl-9 pr-4 py-1.5 text-[13px] w-[260px] outline-none focus:border-blue-400 transition-colors" 
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#f9fafb] text-[13px] text-slate-600 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-3 w-10 font-medium">
+                  <input 
+                    type="checkbox" 
+                    className="rounded-sm border-slate-300"
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
+                <th className="px-6 py-3 font-medium w-32">
+                  <div className="flex items-center gap-1 cursor-pointer group">
+                    ID <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+                <th className="px-6 py-3 font-medium">
+                  Name
+                </th>
+                <th className="px-6 py-3 font-medium">
+                  Code
+                </th>
+                <th className="px-6 py-3 font-medium text-right">
+                  Discount
+                </th>
+                <th className="px-6 py-3 font-medium w-32">
+                  <div className="flex items-center gap-1 cursor-pointer group">
+                    Status <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+                <th className="px-6 py-3 font-medium w-48 text-right">
+                  <div className="flex items-center justify-end gap-1 cursor-pointer group">
+                    Created <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={7} className="text-center py-8 text-slate-500 text-[13px]">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={7} className="text-center py-8 text-slate-500 text-[13px]">No coupons found.</td></tr>
+              ) : (
+                filtered.map((c, index) => (
+                  <tr 
+                    key={c.id} 
+                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors text-[13px] text-slate-700"
+                    onClick={() => router.push(`/admin/coupons/${c.id}/edit`)}
+                  >
+                    <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="rounded-sm border-slate-300"
+                        checked={selectedIds.has(c.id)}
+                        onChange={() => toggleSelect(c.id)}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{filtered.length - index}</td>
+                    <td className="px-6 py-4 text-slate-800 font-medium">{c.name || "Unknown"}</td>
+                    <td className="px-6 py-4 text-slate-600">{c.code || "Unknown"}</td>
+                    <td className="px-6 py-4 text-right text-slate-600">{formatDiscount(c)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-0.5 rounded-sm text-[11px] font-medium ${c.isActive ? 'bg-[#dcfce7] text-[#166534]' : 'bg-[#fef08a] text-[#854d0e]'}`}>
+                        {c.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-slate-500">
+                      {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : 'Unknown'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer / Pagination */}
+        <div className="flex justify-between items-center p-4 border-t border-slate-100 text-[13px] text-slate-500">
+          <div>
+            Showing 1 to {filtered.length} of {filtered.length} entries
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-[#0052cc] rounded-sm bg-[#0052cc] text-white">
+              1
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

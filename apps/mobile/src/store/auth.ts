@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import create from 'zustand';
+import { create } from 'zustand';
 import { authApi, setApiToken } from '@epowerfix/api-client';
 
 const TOKEN_KEY = 'epowerfix.mobile.session.token';

@@ -7,9 +7,12 @@ import HomeFeatures from "@/components/epf/HomeFeatures";
 import FeaturedCategories from "@/components/epf/FeaturedCategories";
 import TopBrands from "@/components/epf/TopBrands";
 import ServicesSection from "@/components/epf/ServicesSection";
+import ShopSection from "@/components/epf/ShopSection";
 import ProjectsSection from "@/components/epf/ProjectsSection";
+import ProjectKitsSection from "@/components/epf/ProjectKitsSection";
 import { ThreeColumnBanners, TwoColumnBanners, OneColumnBanner } from "@/components/epf/HomeBanners";
 import HomeBlog from "@/components/epf/HomeBlog";
+import { getStorefrontSettings } from "@/lib/storefront-settings";
 
 export const metadata = {
   title: "ePowerFix — বাংলাদেশের #১ ইলেকট্রিক্যাল মার্কেটপ্লেস",
@@ -17,7 +20,12 @@ export const metadata = {
     "১০,০০০+ অরিজিনাল ইলেকট্রিক্যাল প্রোডাক্ট | এক্সপার্ট সার্ভিস | সারাদেশে ফ্রি ডেলিভারি",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await getStorefrontSettings();
+  
+  // Optional: check feature toggles if they exist in settings, e.g.
+  // const showFeatures = settings?.features?.status !== false;
+
   return (
     <>
       <AnnouncementBar />
@@ -31,16 +39,19 @@ export default function HomePage() {
         Header & Footer intentionally untouched.
       */}
       <main className="bg-white pb-2">
-        <HeroBanner />
-        <HomeFeatures />
-        <FeaturedCategories />
-        <ThreeColumnBanners />
+        {settings?.['slider-banners']?.status !== false && <HeroBanner />}
+        {settings?.features?.status !== false && <HomeFeatures />}
+        {settings?.['featured-categories']?.status !== false && <FeaturedCategories />}
+        {settings?.['three-column-banners']?.status !== false && <ThreeColumnBanners />}
+        {/* Services / Projects might not have standard storefront toggles, render anyway */}
         <ServicesSection />
-        <TopBrands />
-        <OneColumnBanner />
+        <ShopSection />
+        {settings?.['top-brands']?.status !== false && <TopBrands />}
+        {settings?.['one-column-banner']?.status !== false && <OneColumnBanner />}
         <ProjectsSection />
-        <TwoColumnBanners />
-        <HomeBlog />
+        <ProjectKitsSection />
+        {settings?.['two-column-banners']?.status !== false && <TwoColumnBanners />}
+        {settings?.blogs?.status !== false && <HomeBlog />}
       </main>
       <Footer />
       <HomeClient />

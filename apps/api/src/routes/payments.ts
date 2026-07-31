@@ -9,6 +9,7 @@ import { db } from '../lib/db.js'
 import { asyncHandler, ApiError, validateBody } from '../lib/api-handler.js'
 import { requireAuth, getAuthUser } from '../lib/auth.js'
 import { env } from '../config/env.js'
+import { formatPaisa, toPaisa } from '../lib/money.js'
 import { checkRateLimit } from '../lib/rate-limit.js'
 import {
   initiatePayment,
@@ -501,9 +502,11 @@ const initiatePaymentHandler = asyncHandler(async (req, res) => {
     throw new ApiError('This order is no longer awaiting an online payment', 409)
   }
 
-  if (parsed.amount !== undefined && Number(order.total) !== parsed.amount) {
+  if (parsed.amount !== undefined && toPaisa(order.total) !== toPaisa(parsed.amount)) {
     throw new ApiError('Amount mismatch', 400)
   }
+
+  const exactOrderAmount = Number(formatPaisa(toPaisa(order.total)))
 
   const usableAttempt = await (db as any).payment.findFirst({
     where: {
@@ -532,7 +535,7 @@ const initiatePaymentHandler = asyncHandler(async (req, res) => {
   }
 
   const paymentResult = await initiatePayment(parsed.paymentMethod, {
-    amount: Number(order.total),
+    amount: exactOrderAmount,
     customerName: order.customerName || parsed.customerName || 'Customer',
     customerEmail: order.customerEmail || parsed.customerEmail || '',
     customerPhone: order.customerPhone || parsed.customerPhone || '',
@@ -586,7 +589,7 @@ const initiatePaymentHandler = asyncHandler(async (req, res) => {
       await tx.payment.create({
         data: {
           orderId: order.id,
-          amount: Number(order.total),
+          amount: exactOrderAmount,
           method: methodUpper,
           status: 'MANUAL_REVIEW',
           transactionId: paymentResult.transactionId || null,
@@ -611,7 +614,7 @@ const initiatePaymentHandler = asyncHandler(async (req, res) => {
       await tx.payment.create({
         data: {
           orderId: order.id,
-          amount: Number(order.total),
+          amount: exactOrderAmount,
           method: methodUpper,
           status: 'MANUAL_REVIEW',
           transactionId: paymentResult.transactionId || null,
@@ -628,7 +631,7 @@ const initiatePaymentHandler = asyncHandler(async (req, res) => {
     await tx.payment.create({
       data: {
         orderId: order.id,
-        amount: Number(order.total),
+        amount: exactOrderAmount,
         method: methodUpper,
         status: 'PENDING',
         transactionId: paymentResult.transactionId || null,

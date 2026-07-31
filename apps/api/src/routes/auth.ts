@@ -35,7 +35,7 @@ router.post(
       throw new ApiError('Account is disabled', 403)
     }
 
-    const valid = bcrypt.compareSync(password, user.password)
+    const valid = await bcrypt.compare(password, user.password)
     if (!valid) {
       throw new ApiError('Invalid email or password', 401)
     }
@@ -91,7 +91,7 @@ router.post(
         nameBn: nameBn?.trim() ? nameBn.trim() : null,
         email: normalizedEmail,
         phone,
-        password: bcrypt.hashSync(password, 10),
+        password: await bcrypt.hash(password, 10),
         role: 'CUSTOMER',
         isActive: true,
         emailVerified: false,
@@ -168,7 +168,7 @@ router.put(
       if (!body.currentPassword) {
         throw new ApiError('Current password is required to change email', 400)
       }
-      const ok = bcrypt.compareSync(body.currentPassword, currentUser.password)
+      const ok = await bcrypt.compare(body.currentPassword, currentUser.password)
       if (!ok) {
         throw new ApiError('Current password is incorrect', 400)
       }
@@ -241,14 +241,14 @@ router.put(
       throw new ApiError('User not found', 404)
     }
 
-    const ok = bcrypt.compareSync(currentPassword, dbUser.password)
+    const ok = await bcrypt.compare(currentPassword, dbUser.password)
     if (!ok) {
       throw new ApiError('Current password is incorrect', 400)
     }
 
     await db.user.update({
       where: { id: dbUser.id },
-      data: { password: bcrypt.hashSync(newPassword, 10) },
+      data: { password: await bcrypt.hash(newPassword, 10) },
     })
 
     res.json({ message: 'Password changed successfully' })

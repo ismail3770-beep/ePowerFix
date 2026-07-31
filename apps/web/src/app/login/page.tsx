@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
+
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -166,16 +166,6 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
-
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  className="accent-[#0EA5E9]"
-                />
-                <span className="text-xs text-gray-500">Remember me for 30 days</span>
-              </label>
 
               <button
                 type="submit"

@@ -1,301 +1,251 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
-} from "@/components/ui/table";
-import { Plus, Pencil, Trash2, GripVertical, Link as LinkIcon, Menu } from "lucide-react";
-import { useAdminHeaderStore } from "@/store/admin-header-store";
-
-interface MenuItem {
-  id: string;
-  label: string;
-  url: string;
-  order: number;
-  isActive: boolean;
-  target?: string;
-}
+import { Home, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 interface MenuData {
   id: string;
   name: string;
-  slug: string;
   isActive: boolean;
-  items: MenuItem[];
   createdAt: string;
 }
 
-const defaultMenuForm = { name: "", slug: "", isActive: true };
-const defaultItemForm = { label: "", url: "", target: "_self", isActive: true };
-
-function toSlug(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-}
-
-export default function MenusPage() {
-  const [menus, setMenus] = useState<MenuData[]>([]);
+export default function MenusListPage() {
+  const router = useRouter();
+  const [menusList, setMenusList] = useState<MenuData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMenu, setSelectedMenu] = useState<MenuData | null>(null);
-  const [menuDialog, setMenuDialog] = useState(false);
-  const [editingMenu, setEditingMenu] = useState<MenuData | null>(null);
-  const [menuForm, setMenuForm] = useState(defaultMenuForm);
-  const [itemDialog, setItemDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [itemForm, setItemForm] = useState(defaultItemForm);
-  const [saving, setSaving] = useState(false);
-  const [deleteMenuTarget, setDeleteMenuTarget] = useState<MenuData | null>(null);
-  const [deleteItemTarget, setDeleteItemTarget] = useState<MenuItem | null>(null);
+  const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  
+  const [perPage, setPerPage] = useState("20");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = async () => {
     try {
-      const res = await apiFetch<{ data: MenuData[] | { data: MenuData[] } }>("/api/admin/menus");
-      const list: MenuData[] = (res.data as any)?.data ?? (Array.isArray(res.data) ? res.data : []);
-      setMenus(list);
-      if (list.length > 0 && !selectedMenu) setSelectedMenu(list[0]);
-    } catch { toast.error("Failed to load menus"); } finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
-
-  const openAddMenu = useCallback(() => { setEditingMenu(null); setMenuForm(defaultMenuForm); setMenuDialog(true); }, []);
-  const openEditMenu = (m: MenuData) => { setEditingMenu(m); setMenuForm({ name: m.name, slug: m.slug, isActive: m.isActive }); setMenuDialog(true); };
-
-  const setAddNew = useAdminHeaderStore((s) => s.setAddNew);
-  useEffect(() => { setAddNew("Add Menu", openAddMenu); return () => setAddNew("", null); }, [setAddNew, openAddMenu]);
-
-  const saveMenu = async () => {
-    if (!menuForm.name.trim()) { toast.error("Name is required"); return; }
-    setSaving(true);
-    try {
-      if (editingMenu) {
-        await apiFetch(`/api/admin/menus/${editingMenu.id}`, { method: "PUT", body: JSON.stringify(menuForm) });
-        toast.success("Menu updated");
-      } else {
-        await apiFetch("/api/admin/menus", { method: "POST", body: JSON.stringify({ ...menuForm, slug: menuForm.slug || toSlug(menuForm.name) }) });
-        toast.success("Menu created");
-      }
-      setMenuDialog(false);
-      load();
-    } catch (e: any) { toast.error(e?.message || "Save failed"); } finally { setSaving(false); }
+      const res = await apiFetch<any>("/api/admin/menus");
+      setMenusList(res.data?.data || []);
+    } catch { 
+      toast.error("Failed to load menus"); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  const saveItem = async () => {
-    if (!selectedMenu) return;
-    if (!itemForm.label.trim() || !itemForm.url.trim()) { toast.error("Label and URL are required"); return; }
-    setSaving(true);
-    try {
-      if (editingItem) {
-        await apiFetch(`/api/admin/menus/${selectedMenu.id}/items/${editingItem.id}`, { method: "PUT", body: JSON.stringify(itemForm) });
-        toast.success("Item updated");
-      } else {
-        await apiFetch(`/api/admin/menus/${selectedMenu.id}/items`, { method: "POST", body: JSON.stringify(itemForm) });
-        toast.success("Item added");
-      }
-      setItemDialog(false);
-      load();
-    } catch (e: any) { toast.error(e?.message || "Save failed"); } finally { setSaving(false); }
+  useEffect(() => { load(); }, []);
+
+  const remove = async (id: string) => {
+    try { 
+      await apiFetch(`/api/admin/menus/${id}`, { method: "DELETE" }); 
+      toast.success("Menu deleted"); 
+      load(); 
+    } catch { 
+      toast.error("Failed to delete"); 
+    } finally { 
+      setDeleteTarget(null); 
+    }
   };
 
-  const deleteMenu = async () => {
-    if (!deleteMenuTarget) return;
+  const removeBulk = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} menu(s)?`)) return;
+    
     try {
-      await apiFetch(`/api/admin/menus/${deleteMenuTarget.id}`, { method: "DELETE" });
-      toast.success("Menu deleted");
-      setDeleteMenuTarget(null);
-      if (selectedMenu?.id === deleteMenuTarget.id) setSelectedMenu(null);
+      setLoading(true);
+      await Promise.all(
+        Array.from(selectedIds).map(id => 
+          apiFetch(`/api/admin/menus/${id}`, { method: "DELETE" })
+        )
+      );
+      toast.success(`${selectedIds.size} menu(s) deleted successfully`);
+      setSelectedIds(new Set());
       load();
-    } catch { toast.error("Delete failed"); }
+    } catch (error) {
+      toast.error("Failed to delete some menus");
+      load();
+    }
   };
 
-  const deleteItem = async () => {
-    if (!deleteItemTarget || !selectedMenu) return;
-    try {
-      await apiFetch(`/api/admin/menus/${selectedMenu.id}/items/${deleteItemTarget.id}`, { method: "DELETE" });
-      toast.success("Item deleted");
-      setDeleteItemTarget(null);
-      load();
-    } catch { toast.error("Delete failed"); }
+  const filtered = menusList.filter((m) => {
+    const term = search.toLowerCase();
+    const name = m.name || "";
+    return name.toLowerCase().includes(term);
+  });
+
+  const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(new Set(filtered.map(m => m.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
   };
 
-  const activeMenu = menus.find(m => m.id === selectedMenu?.id) || selectedMenu;
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
+  };
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-        {/* Menu list sidebar */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[14px] font-semibold text-slate-700">All Menus</h3>
-            <Button size="sm" onClick={openAddMenu} className="h-8 bg-epf-500 hover:bg-epf-600 text-white text-xs gap-1">
-              <Plus className="h-3.5 w-3.5" /> New
-            </Button>
-          </div>
-          {loading ? Array.from({length:4}).map((_,i) => <Skeleton key={i} className="h-12 rounded-lg" />) :
-            menus.length === 0 ? (
-              <Card className="rounded-xl border-slate-200 py-0">
-                <CardContent className="p-8 text-center text-slate-400">
-                  <Menu className="mx-auto h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">No menus yet</p>
-                </CardContent>
-              </Card>
-            ) : menus.map((m) => (
-              <div key={m.id}
-                onClick={() => setSelectedMenu(m)}
-                className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedMenu?.id === m.id ? "border-epf-500 bg-epf-50" : "border-slate-200 bg-white hover:border-slate-300"}`}>
-                <div>
-                  <p className={`text-[13px] font-semibold ${selectedMenu?.id === m.id ? "text-epf-600" : "text-slate-800"}`}>{m.name}</p>
-                  <p className="text-[11px] text-slate-400">{m.items?.length || 0} items · {m.isActive ? "Active" : "Inactive"}</p>
-                </div>
-                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => openEditMenu(m)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:text-red-600" onClick={() => setDeleteMenuTarget(m)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                </div>
-              </div>
-            ))}
-        </div>
-
-        {/* Menu items */}
+    <div className="font-poppins bg-[#f3f4f6] min-h-screen -m-6 p-6 text-slate-700">
+      
+      {/* Header section */}
+      <div className="flex justify-between items-start mb-6">
         <div>
-          {!activeMenu ? (
-            <Card className="rounded-xl border-slate-200 py-0">
-              <CardContent className="p-16 text-center text-slate-400">
-                <Menu className="mx-auto h-10 w-10 mb-3 opacity-20" />
-                <p>Select a menu to manage its items</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="rounded-xl border-slate-200 shadow-sm py-0 overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-slate-50">
-                <div>
-                  <h3 className="text-[14px] font-semibold text-slate-900">{activeMenu.name}</h3>
-                  <p className="text-[11px] text-slate-500">/{activeMenu.slug}</p>
-                </div>
-                <Button size="sm" onClick={() => { setEditingItem(null); setItemForm(defaultItemForm); setItemDialog(true); }}
-                  className="h-8 bg-epf-500 hover:bg-epf-600 text-white text-xs gap-1">
-                  <Plus className="h-3.5 w-3.5" /> Add Item
-                </Button>
-              </div>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50 border-b border-slate-100 hover:bg-slate-50">
-                    {["","Label","URL","Target","Status",""].map((h,i) => (
-                      <TableHead key={i} className="text-[11px] font-semibold uppercase text-slate-500 px-4 py-3">{h}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {!activeMenu.items || activeMenu.items.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-12 text-slate-400">
-                      <LinkIcon className="mx-auto h-6 w-6 mb-2 opacity-30" />
-                      No items yet. Add the first menu item.
-                    </TableCell></TableRow>
-                  ) : activeMenu.items.sort((a,b) => a.order - b.order).map((item) => (
-                    <TableRow key={item.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <TableCell className="px-3 py-3 w-8 text-slate-300"><GripVertical className="h-4 w-4" /></TableCell>
-                      <TableCell className="px-4 py-3 font-medium text-[13px] text-slate-900">{item.label}</TableCell>
-                      <TableCell className="px-4 py-3 text-[12px] text-slate-500 font-mono">{item.url}</TableCell>
-                      <TableCell className="px-4 py-3 text-[12px] text-slate-500">{item.target || "_self"}</TableCell>
-                      <TableCell className="px-4 py-3">
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${item.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-500 border-slate-200"}`}>
-                          {item.isActive ? "Active" : "Hidden"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0"
-                            onClick={() => { setEditingItem(item); setItemForm({ label: item.label, url: item.url, target: item.target || "_self", isActive: item.isActive }); setItemDialog(true); }}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-red-500 hover:text-red-600" onClick={() => setDeleteItemTarget(item)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-          )}
+          <h1 className="text-[22px] font-normal text-slate-800">Menus</h1>
+        </div>
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2 text-[13px] text-slate-500">
+            <Home className="w-3.5 h-3.5 cursor-pointer hover:text-blue-600" onClick={() => router.push("/admin/dashboard")} />
+            <span className="text-slate-300">&gt;</span>
+            <span>Menu</span>
+          </div>
+          <Link 
+            href="/admin/menus/create"
+            className="bg-[#0052cc] hover:bg-[#0047b3] text-white px-4 py-1.5 rounded-sm text-[13px] font-medium transition-colors"
+          >
+            Create Menu
+          </Link>
         </div>
       </div>
 
-      {/* Menu Dialog */}
-      <Dialog open={menuDialog} onOpenChange={setMenuDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{editingMenu ? "Edit Menu" : "Add Menu"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5"><Label>Name <span className="text-red-500">*</span></Label>
-              <Input value={menuForm.name} onChange={(e) => setMenuForm(f => ({ ...f, name: e.target.value, slug: f.slug || toSlug(e.target.value) }))} placeholder="Primary Menu" /></div>
-            <div className="space-y-1.5"><Label>Slug</Label>
-              <Input value={menuForm.slug} onChange={(e) => setMenuForm(f => ({ ...f, slug: toSlug(e.target.value) }))} placeholder="primary-menu" /></div>
-            <div className="flex items-center gap-3"><Switch checked={menuForm.isActive} onCheckedChange={(v) => setMenuForm(f => ({ ...f, isActive: v }))} /><Label>Active</Label></div>
+      {/* Main Card */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-sm">
+        
+        {/* Toolbar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-2 text-[13px] text-slate-600">
+            Show
+            <select 
+              value={perPage} 
+              onChange={e => setPerPage(e.target.value)}
+              className="border border-slate-300 rounded px-2 py-1.5 bg-white outline-none focus:border-blue-400"
+            >
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+            entries
+            <button 
+              className={`flex items-center gap-1 border border-slate-300 rounded px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 ml-2 transition-colors ${selectedIds.size === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={selectedIds.size === 0}
+              onClick={removeBulk}
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMenuDialog(false)}>Cancel</Button>
-            <Button onClick={saveMenu} disabled={saving} className="bg-epf-500 hover:bg-epf-600 text-white">{saving ? "Saving…" : editingMenu ? "Update" : "Create"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Item Dialog */}
-      <Dialog open={itemDialog} onOpenChange={setItemDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{editingItem ? "Edit Item" : "Add Menu Item"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5"><Label>Label <span className="text-red-500">*</span></Label>
-              <Input value={itemForm.label} onChange={(e) => setItemForm(f => ({ ...f, label: e.target.value }))} placeholder="Home" /></div>
-            <div className="space-y-1.5"><Label>URL <span className="text-red-500">*</span></Label>
-              <Input value={itemForm.url} onChange={(e) => setItemForm(f => ({ ...f, url: e.target.value }))} placeholder="/ or https://..." /></div>
-            <div className="space-y-1.5"><Label>Open in</Label>
-              <select value={itemForm.target} onChange={(e) => setItemForm(f => ({ ...f, target: e.target.value }))} className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm">
-                <option value="_self">Same tab</option>
-                <option value="_blank">New tab</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-3"><Switch checked={itemForm.isActive} onCheckedChange={(v) => setItemForm(f => ({ ...f, isActive: v }))} /><Label>Active</Label></div>
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder="Search here..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-slate-300 rounded-full pl-9 pr-4 py-1.5 text-[13px] w-[260px] outline-none focus:border-blue-400 transition-colors" 
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setItemDialog(false)}>Cancel</Button>
-            <Button onClick={saveItem} disabled={saving} className="bg-epf-500 hover:bg-epf-600 text-white">{saving ? "Saving…" : editingItem ? "Update" : "Add"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
 
-      <AlertDialog open={!!deleteMenuTarget} onOpenChange={(o) => !o && setDeleteMenuTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Delete Menu</AlertDialogTitle>
-            <AlertDialogDescription>Delete <strong>"{deleteMenuTarget?.name}"</strong> and all its items?</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteMenu} className="bg-red-500 hover:bg-red-600 text-white">Delete</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#f9fafb] text-[13px] text-slate-600 border-b border-slate-200">
+              <tr>
+                <th className="px-6 py-3 w-10 font-medium">
+                  <input 
+                    type="checkbox" 
+                    className="rounded-sm border-slate-300"
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
+                <th className="px-6 py-3 font-medium w-32">
+                  <div className="flex items-center gap-1 cursor-pointer group">
+                    ID <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+                <th className="px-6 py-3 font-medium">
+                  Name
+                </th>
+                <th className="px-6 py-3 font-medium w-32">
+                  <div className="flex items-center gap-1 cursor-pointer group">
+                    Status <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+                <th className="px-6 py-3 font-medium w-48 text-right">
+                  <div className="flex items-center justify-end gap-1 cursor-pointer group">
+                    Created <ArrowUpDown className="w-3 h-3 text-slate-300 group-hover:text-slate-500" />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-[13px]">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-8 text-slate-500 text-[13px]">No menus found.</td></tr>
+              ) : (
+                filtered.map((m, index) => (
+                  <tr 
+                    key={m.id} 
+                    className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors text-[13px] text-slate-700"
+                    onClick={() => router.push(`/admin/menus/${m.id}/edit`)}
+                  >
+                    <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
+                      <input 
+                        type="checkbox" 
+                        className="rounded-sm border-slate-300"
+                        checked={selectedIds.has(m.id)}
+                        onChange={() => toggleSelect(m.id)}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-slate-500">{filtered.length - index}</td>
+                    <td className="px-6 py-4 text-slate-800 font-medium">{m.name || "Unknown"}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-0.5 rounded-sm text-[11px] font-medium ${m.isActive ? 'text-[#166534]' : 'text-[#854d0e]'}`}>
+                        {m.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-slate-500">
+                      {m.createdAt ? formatDistanceToNow(new Date(m.createdAt), { addSuffix: true }) : 'Unknown'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <AlertDialog open={!!deleteItemTarget} onOpenChange={(o) => !o && setDeleteItemTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Remove Item</AlertDialogTitle>
-            <AlertDialogDescription>Remove <strong>"{deleteItemTarget?.label}"</strong> from this menu?</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={deleteItem} className="bg-red-500 hover:bg-red-600 text-white">Remove</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Footer / Pagination */}
+        <div className="flex justify-between items-center p-4 border-t border-slate-100 text-[13px] text-slate-500">
+          <div>
+            Showing 1 to {filtered.length} of {filtered.length} entries
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-[#0052cc] rounded-sm bg-[#0052cc] text-white">
+              1
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-sm bg-slate-50 text-slate-400 hover:bg-slate-100 cursor-not-allowed">
+              <ChevronsRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
