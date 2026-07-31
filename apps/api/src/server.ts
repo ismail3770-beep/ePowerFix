@@ -93,7 +93,16 @@ const authLimiter = rateLimit({
 app.use('/api', apiLimiter)
 app.use('/api/auth', authLimiter)
 
-// ─── Health check (before routes, no rate limit) ──────────────────────────────
+app.get('/', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store')
+  res.json({
+    status: 'ok',
+    service: 'ePowerFix API',
+    message: 'Welcome to ePowerFix API Server',
+    health: '/health',
+    api: '/api',
+  })
+})
 
 app.get('/health', (_req, res) => {
   res.setHeader('Cache-Control', 'no-store')
