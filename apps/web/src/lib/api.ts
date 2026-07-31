@@ -3,7 +3,8 @@
 // The proxy is configured in next.config.ts → rewrites → /api/:path* → Express API.
 
 export async function apiFetch<T>(endpoint: string, options?: globalThis.RequestInit): Promise<T> {
-  const url = endpoint // always same-origin, Next.js proxy handles it
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://e-power-fix-api.vercel.app'
+  const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`
   const res = await fetch(url, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options?.headers },

@@ -52,6 +52,10 @@ app.set('trust proxy', 1)
 
 // ─── Security & utility middleware ────────────────────────────────────────────
 
+app.use(cors({
+  origin: true,
+  credentials: true,
+}))
 app.use(helmet())
 app.use(compression())
 app.use(
